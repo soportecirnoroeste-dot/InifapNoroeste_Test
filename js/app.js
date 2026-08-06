@@ -1,16 +1,16 @@
 const AuthGuard = {
     verificarAcceso: () => {
-        const usuario = localStorage.getItem('usuario_sesion');
+        const estaLogueado = localStorage.getItem('isLoggedIn');
         const paginaActual = window.location.pathname;
 
-        // Si estamos en el login y ya hay sesión, mandamos al index
-        if (usuario && (paginaActual.includes('login.html') || paginaActual.endsWith('/'))) {
+        // Si ya hay sesión y estamos en el login, mandamos al index
+        if (estaLogueado === 'true' && (paginaActual.includes('login.html') || paginaActual.endsWith('/'))) {
             window.location.href = 'index.html';
             return;
         }
 
-        // Si NO hay usuario y NO estamos en el login, redirigir al login
-        if (!usuario && !paginaActual.includes('login.html')) {
+        // Si NO hay sesión y NO estamos en el login, redirigir al login
+        if (estaLogueado !== 'true' && !paginaActual.includes('login.html')) {
             window.location.href = 'login.html';
             return;
         } 

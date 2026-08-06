@@ -19,72 +19,52 @@ var AuthModule = {
             if (eyeOpen) eyeOpen.style.display = 'block';
             if (eyeClosed) eyeClosed.style.display = 'none';
         }
-    },    
+    },
 
+    // Reemplaza la función ejecutarLogin en tu login.js por esta:
     ejecutarLogin: async function () {
         if (window._loginEnProceso) return;
         window._loginEnProceso = true;
 
-        var usuario = document.getElementById('login-user').value.trim();
-        var password = document.getElementById('login-pass').value.trim();
+        var usuarioInput = document.getElementById('login-user').value.trim();
+        var passwordInput = document.getElementById('login-pass').value.trim();
 
-        if (!usuario || !password) {
+        if (!usuarioInput || !passwordInput) {
             alert("Por favor llena todos los campos.");
             window._loginEnProceso = false;
             return;
         }
 
-        // Activamos el overlay de carga si existe en el DOM
         const overlay = document.getElementById('loading-overlay');
         if (overlay) {
             overlay.style.display = 'flex';
             overlay.style.opacity = '1';
         }
 
-        if (typeof toggleLoading === 'function') {
-            toggleLoading(true);
-        }
-
-        await new Promise(resolve => setTimeout(resolve, 50));
-
         try {
-            // Envía la acción de login al backend (Google Apps Script)
-            var res = await FetchAPI("login", { user: usuario, pass: password });
+            // Petición al backend que ya tienes configurado
+            var res = await FetchAPI("login", { user: usuarioInput, pass: passwordInput });
 
             if (res && res.success) {
-                localStorage.setItem('session_user', res.usuario || res.user);
+                // AQUÍ ESTÁ LA CLAVE: Guardamos exactamente los campos que devuelve tu Apps Script
+                localStorage.setItem('usuario_sesion', res.usuario || usuarioInput);
                 localStorage.setItem('session_userName', res.userName || "Usuario");
                 localStorage.setItem('isLoggedIn', 'true');
                 localStorage.setItem('ultima_seccion', 'home');
 
-                // Sincronización inicial si el módulo lo requiere
-                if (typeof inicializarSincronizacion === 'function') {
-                    await inicializarSincronizacion();
-                }
-
                 setTimeout(() => {
                     window.location.href = "./index.html";
-                }, 600);
+                }, 400);
             } else {
-                if (overlay) {
-                    overlay.style.display = 'none';
-                }
-                if (typeof toggleLoading === 'function') {
-                    toggleLoading(false);
-                }
+                if (overlay) overlay.style.display = 'none';
                 var msg = res && res.message ? res.message : "Número de empleado o contraseña incorrectos.";
                 alert(msg);
                 window._loginEnProceso = false;
             }
         } catch (err) {
-            if (overlay) {
-                overlay.style.display = 'none';
-            }
-            if (typeof toggleLoading === 'function') {
-                toggleLoading(false);
-            }
+            if (overlay) overlay.style.display = 'none';
             console.error("Error atrapado en el login:", err);
-            alert("Error al conectar con el servidor. Revisa la consola.");
+            alert("Error al conectar con el servidor.");
             window._loginEnProceso = false;
         }
     }

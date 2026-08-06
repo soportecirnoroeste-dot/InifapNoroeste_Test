@@ -17,5 +17,4 @@ const AuthGuard = {
         }
     }
 };
-
 document.addEventListener('DOMContentLoaded', AuthGuard.verificarAcceso);

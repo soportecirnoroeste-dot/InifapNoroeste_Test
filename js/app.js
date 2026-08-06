@@ -18,6 +18,5 @@ const AuthGuard = {
         }
     }
 };
-
 // Ejecutar la verificación al cargar cualquier página
 document.addEventListener('DOMContentLoaded', AuthGuard.verificarAcceso);

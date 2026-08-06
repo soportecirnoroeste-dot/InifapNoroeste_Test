@@ -89,11 +89,13 @@
                         </div>
                     </div>
                     <p id="login-error" class="text-rose-500 text-xs font-semibold hidden text-center"></p>
-                    
-                    <button type="button" onclick="intentarLogin()"
-                        class="w-full bg-[#249444] text-white py-4 rounded-xl font-bold uppercase text-xs tracking-widest hover:bg-[#1b7033] shadow-md shadow-emerald-900/10 transition-all cursor-pointer mt-10">
-                        Ingresar al Sistema
-                    </button>
+
+                    <form onsubmit="event.preventDefault(); AuthModule.ejecutarLogin();">
+                        <!-- Tus inputs de usuario y contraseña -->
+                        <button type="submit" class="w-full bg-[#249444] text-white py-4 rounded-xl ...">
+                            Ingresar al Sistema
+                        </button>
+                    </form>
                 </div>
             </form>
         </div>

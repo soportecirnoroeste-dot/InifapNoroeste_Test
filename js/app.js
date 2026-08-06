@@ -1,6 +1,5 @@
 const AuthGuard = {
     verificarAcceso: () => {
-        debugger; // <--- Esto pausará la ejecución automáticamente en tu navegador
         const usuario = localStorage.getItem('usuario_sesion');
         const paginaActual = window.location.pathname;
 

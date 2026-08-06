@@ -33,6 +33,14 @@ body:not(.auth-checked) {
     margin: 0 auto;
 }
 
+.inifap-logo-wrapperIndex {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    margin: 0 auto;
+}
+
 .logo-main {
     display: flex;
     align-items: baseline;

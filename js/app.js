@@ -1,22 +1,20 @@
 const AuthGuard = {
     verificarAcceso: () => {
-        const estaLogueado = localStorage.getItem('isLoggedIn');
+        const usuarioSesion = localStorage.getItem('usuario_sesion');
         const paginaActual = window.location.pathname;
 
-        // Si ya hay sesión y estamos en el login, mandamos al index
-        if (estaLogueado === 'true' && (paginaActual.includes('login.html') || paginaActual.endsWith('/'))) {
-            window.location.href = 'index.html';
-            return;
-        }
-
-        // Si NO hay sesión y NO estamos en el login, redirigir al login
-        if (estaLogueado !== 'true' && !paginaActual.includes('login.html')) {
+        if (!usuarioSesion && !paginaActual.includes('login.html')) {
             window.location.href = 'login.html';
-            return;
-        } 
-
-        // Si todo está bien, mostramos el contenido eliminando el ocultamiento del CSS
-        document.body.classList.add('auth-checked');
+        } else if (usuarioSesion && paginaActual.includes('login.html')) {
+            window.location.href = 'index.html';
+        } else {
+            document.body.classList.add('auth-checked');
+            // Opcional: mostrar el nombre del usuario en el header si existe el elemento
+            const labelUser = document.getElementById('user-display-name');
+            if (labelUser) {
+                labelUser.textContent = localStorage.getItem('session_userName') || 'Usuario';
+            }
+        }
     }
 };
 

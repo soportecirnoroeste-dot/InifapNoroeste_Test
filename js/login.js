@@ -107,6 +107,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Dentro de tu función de login exitoso
 function manejarLoginExitoso(datosUsuario) {
+    console.warn('Entra');
     localStorage.setItem('usuario_sesion', 'Activo');
     window.location.href = 'index.html';
 }

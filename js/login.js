@@ -116,3 +116,5 @@ function logout() {
     localStorage.removeItem('usuario_sesion');
     window.location.href = 'login.html';
 }
+
+

@@ -23,20 +23,12 @@ body:not(.auth-checked) {
     visibility: hidden;
 }
 
-/* Clases ajustadas para centrado simétrico exacto */
+/* Logo Login */
 .inifap-logo-wrapper {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    width: 100%;
-    margin: 0 auto;
-}
-
-.inifap-logo-wrapperIndex {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
     width: 100%;
     margin: 0 auto;
 }
@@ -92,6 +84,66 @@ body:not(.auth-checked) {
     text-align: center;
     width: 100%;
 }
+
+/*logo index*/
+.inifap-logo-wrapperIndex {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.logo-mainIndex {
+    display: flex;
+    align-items: baseline;
+    font-family: "Arial Black", Gadget, sans-serif;
+    font-size: 50px;
+    color: var(--inifap-green);
+    letter-spacing: -3px;
+    user-select: none;
+}
+
+.letterIndex {
+    position: relative;
+    display: inline-block;
+}
+
+.f-containerIndex {
+    position: relative;
+    display: inline-block;
+}
+
+.seedIndex{
+    position: absolute;
+    width: 17px;
+    height: 9px;
+    background: linear-gradient(to bottom, var(--seed-orange) 50%, var(--seed-yellow) 50%);
+    border-radius: 50%;
+    top: 30px;
+    left: 2.5px;
+    transform: rotate(-15deg);
+    z-index: 20;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.kern-inIndex {
+    letter-spacing: -4px;
+}
+
+.kern-apIndex {
+    letter-spacing: -2px;
+}
+
+.logo-legendIndex {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 9px;
+    color: var(--text-color);
+    line-height: 1.3;
+    font-weight: bold;
+    max-width: 600px;
+}
+
 
 
 /* Sombra suave personalizada para tarjetas */

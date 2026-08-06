@@ -20,6 +20,7 @@ var AuthModule = {
             if (eyeClosed) eyeClosed.style.display = 'none';
         }
     },
+    
 
     ejecutarLogin: async function () {
         if (window._loginEnProceso) return;

@@ -1,7 +1,7 @@
 // ========================================================
 // MÓDULO DE CONEXIÓN CON APPS SCRIPT / BACKEND
 // ========================================================
-window.APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwpyFlplS4e2C3UrfF5Ap9xkqn6Dr4FElpfj10JxMotZtKo2Drs9vE7eP43dsPeiPaKOA/exec";
+window.APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDs5fvFxykQniWFZnbUqpbuDAmrIDhMHlVwU4r5B3iPLxBp4FDG7uKrtDBDQEXxEX8fQ/exec";
 
 async function FetchAPI(action, payload = {}) {
     try {

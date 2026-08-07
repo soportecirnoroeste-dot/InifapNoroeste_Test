@@ -26,10 +26,8 @@ const AuthGuard = {
 
 // Función para solicitar los departamentos a Google Apps Script
 function inicializarMenuDepartamentos() {
-    // Reemplaza con la URL de tu Web App de Google Apps Script
-    const URL_APPS_SCRIPT = "TU_URL_DE_APPS_SCRIPT_AQUI"; 
 
-    fetch(URL_APPS_SCRIPT, {
+    fetch(APPS_SCRIPT_URL, {
         method: 'POST',
         body: JSON.stringify({ action: "obtenerDepartamentos" })
     })

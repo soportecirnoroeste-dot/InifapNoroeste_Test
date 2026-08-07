@@ -26,7 +26,7 @@ const AuthGuard = {
 };
 
 // ==========================================
-// 2. NÚCLEO CENTRAL DEL SISTEMA (CON CACHÉ)
+// 2. NÚCLEO CENTRAL DEL SISTEMA (CACHÉ FORZADA)
 // ==========================================
 const SistemaGlobal = {
     datos: null,
@@ -34,19 +34,24 @@ const SistemaGlobal = {
     init() {
         console.log("Iniciando Sistema Regional Interno...");
 
-        // REVISAR SI HAY CACHÉ LOCAL (Elimina la espera de los 2.6s)
+        // 1. INTENTO DE CARGA DESDE CACHÉ LOCAL (Prioridad absoluta)
         const datosEnCache = localStorage.getItem('sistema_cache_datos');
         const tiempoCache = localStorage.getItem('sistema_cache_tiempo');
         const ahora = new Date().getTime();
 
-        // Si la caché es menor a 10 minutos, cargamos al instante
-        if (datosEnCache && tiempoCache && (ahora - tiempoCache < 10 * 60 * 1000)) {
-            console.log("Cargando datos desde la caché local (Cero espera)...");
-            this.procesarRespuestaServidor(JSON.parse(datosEnCache));
-            return;
+        // Si la caché tiene menos de 30 minutos, la usamos de inmediato y matamos el proceso de red
+        if (datosEnCache && tiempoCache && (ahora - tiempoCache < 30 * 60 * 1000)) {
+            console.log("%c⚡ USANDO CACHÉ LOCAL: Carga instantánea (0 ms)", "color: #249444; font-weight: bold; font-size: 12px;");
+            try {
+                const datosProcesados = JSON.parse(datosEnCache);
+                this.procesarRespuestaServidor(datosProcesados);
+                return; // Corta la ejecución aquí para que jamás haga el fetch
+            } catch (e) {
+                console.error("Error al leer la caché, procediendo a red...", e);
+            }
         }
 
-        // Si no hay caché, consultamos al servidor
+        // 2. SI NO HAY CACHÉ, PROCEDEMOS A LA RED
         if (typeof google !== 'undefined' && google.script && google.script.run) {
             google.script.run
                 .withSuccessHandler(respuesta => this.guardarYCargar(respuesta))
@@ -70,10 +75,11 @@ const SistemaGlobal = {
             campos: respuestaServidor.campos || []
         };
 
-        // Guardar en caché por 10 minutos
+        // Guardamos en caché local por 30 minutos
         localStorage.setItem('sistema_cache_datos', JSON.stringify(datosReales));
         localStorage.setItem('sistema_cache_tiempo', new Date().getTime());
 
+        console.log("Datos descargados de Google Sheets y guardados en caché.");
         this.procesarRespuestaServidor(datosReales);
     },
 
@@ -142,7 +148,6 @@ const SistemaGlobal = {
         if (selectFiltro) {
             selectFiltro.innerHTML = '<option value="">Seleccionar campo</option>';
             camposDeLaRegional.forEach(campo => {
-                // Formato claveCentro - centro (ej. 102 - C.E. NORMAN E. BORLAUG)
                 const textoOpcion = `${campo.claveCentro} - ${campo.centro}`;
                 selectFiltro.innerHTML += `<option value="${campo.claveCentro}">${textoOpcion}</option>`;
             });

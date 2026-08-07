@@ -49,6 +49,7 @@ function inicializarMenuDepartamentos() {
     });
 }
 
+
 // Renderiza las tarjetas del menú según la tabla de Apps Script
 function renderizarMenuDepartamentos(todosLosDepartamentos) {
     const contenedorMenu = document.getElementById('menu-dinamico-departamentos');

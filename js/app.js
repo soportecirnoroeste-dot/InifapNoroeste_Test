@@ -32,8 +32,6 @@ const SistemaGlobal = {
     datos: null,
 
     init() {
-        console.log("Iniciando Sistema Regional Interno...");
-
         // 1. INTENTO DE CARGA DESDE CACHÉ LOCAL (Prioridad absoluta)
         const datosEnCache = localStorage.getItem('sistema_cache_datos');
         const tiempoCache = localStorage.getItem('sistema_cache_tiempo');
@@ -41,7 +39,6 @@ const SistemaGlobal = {
 
         // Si la caché tiene menos de 30 minutos, la usamos de inmediato y matamos el proceso de red
         if (datosEnCache && tiempoCache && (ahora - tiempoCache < 30 * 60 * 1000)) {
-            console.log("%c⚡ USANDO CACHÉ LOCAL: Carga instantánea (0 ms)", "color: #249444; font-weight: bold; font-size: 12px;");
             try {
                 const datosProcesados = JSON.parse(datosEnCache);
                 this.procesarRespuestaServidor(datosProcesados);

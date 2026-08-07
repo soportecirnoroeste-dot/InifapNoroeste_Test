@@ -53,49 +53,44 @@ function renderizarMenuDepartamentos(respuestaServidor) {
     const todasLasRegionales = respuestaServidor.regionales || [];
     const todosLosCampos = respuestaServidor.campos || [];
 
-    // Obtenemos el área o clave del usuario logueado
-    const areaUsuario = localStorage.getItem('session_area') || 'CIRNODIR';
+    // Obtenemos el área o clave del usuario logueado de forma limpia
+    const areaUsuario = String(localStorage.getItem('session_area') || 'CIRNODIR').trim();
     
-    // Identificamos la ClaveReg del usuario
-    const depUsuario = todosLosDepartamentos.find(dep => dep.nomCotDep === areaUsuario || dep.claveReg === areaUsuario);
-    const claveRegUsuario = depUsuario ? depUsuario.claveReg : "100"; 
+    // Buscamos usando nomCorDep correctamente
+    const depUsuario = todosLosDepartamentos.find(dep => 
+        String(dep.nomCorDep).trim().toUpperCase() === areaUsuario.toUpperCase() || 
+        String(dep.claveReg).trim() === areaUsuario
+    );
+    
+    const claveRegUsuario = depUsuario ? String(depUsuario.claveReg).trim() : "100"; 
 
-    // Buscamos el nombre real de la regional
-    const infoRegional = todasLasRegionales.find(r => r.claveReg === claveRegUsuario || r.nomCorto === areaUsuario);
+    // Buscamos el nombre real de la regional en la pestaña "Regional"
+    const infoRegional = todasLasRegionales.find(r => String(r.claveReg).trim() === claveRegUsuario);
     const nombreRegionalOficial = infoRegional ? infoRegional.regional : "CIR NOROESTE";
 
-    // Formato exacto solicitado: "100 - REGIONAL CIR NOROESTE" (o el nombre que venga de la hoja)
+    // Formato exacto de la regional: "100 - CIR NOROESTE"
     const labelRegional = document.getElementById('user-regional-display');
     if (labelRegional) {
         labelRegional.textContent = `${claveRegUsuario} - ${nombreRegionalOficial}`;
     }
 
-    // Filtramos los campos que pertenecen a la ClaveReg del usuario
-    const camposDeLaRegional = todosLosCampos.filter(c => c.claveReg === claveRegUsuario);
+    // Filtramos los campos que pertenecen a esta ClaveReg
+    const camposDeLaRegional = todosLosCampos.filter(c => String(c.claveReg).trim() === claveRegUsuario);
 
-    // Intentamos detectar cuál es el centro o campo predeterminado del usuario logueado
-    // (Buscamos si el usuario tiene asignada una clave de centro o tomamos la primera de su región por defecto)
-    const centroDelUsuario = depUsuario ? depUsuario.claveCentro : (camposDeLaRegional.length > 0 ? camposDeLaRegional[0].claveCentro : "");
-
-    // Poblamos el selector desplegable con "Seleccionar campo" como opción inicial
+    // Llenamos el menú desplegable con "Seleccionar campo"
     const selectFiltro = document.getElementById('filtro-campos-regional');
     if (selectFiltro) {
         selectFiltro.innerHTML = '<option value="">Seleccionar campo</option>';
         camposDeLaRegional.forEach(campo => {
-            const esSeleccionado = String(campo.claveCentro) === String(centroDelUsuario) ? 'selected' : '';
-            selectFiltro.innerHTML += `<option value="${campo.claveCentro}" ${esSeleccionado}>${campo.centro}</option>`;
+            selectFiltro.innerHTML += `<option value="${campo.claveCentro}">${campo.centro}</option>`;
         });
     }
 
-    // De primera instancia, mostramos exclusivamente los departamentos del campo al que pertenece el usuario
-    const departamentosIniciales = todosLosDepartamentos.filter(dep => 
-        dep.claveReg === claveRegUsuario && String(dep.claveCentro) === String(centroDelUsuario)
-    );
+    // Obtenemos los departamentos que pertenecen a esta regional
+    const departamentosDeLaRegional = todosLosDepartamentos.filter(dep => String(dep.claveReg).trim() === claveRegUsuario);
 
-    // Si por algo no hay coincidencia exacta de centro, mostramos los de la regional
-    const aPintar = departamentosIniciales.length > 0 ? departamentosIniciales : todosLosDepartamentos.filter(dep => dep.claveReg === claveRegUsuario);
-
-    pintarTarjetasDepartamentos(aPintar);
+    // Mostramos los departamentos de entrada
+    pintarTarjetasDepartamentos(departamentosDeLaRegional);
 }
 
 // Función que dibuja las tarjetas en pantalla
@@ -106,7 +101,7 @@ function pintarTarjetasDepartamentos(listaDepartamentos) {
     contenedorMenu.innerHTML = '';
 
     if (listaDepartamentos.length === 0) {
-        contenedorMenu.innerHTML = '<p class="text-xs text-stone-400 col-span-full">No se encontraron departamentos para este campo.</p>';
+        contenedorMenu.innerHTML = '<p class="text-xs text-stone-400 col-span-full">No se encontraron departamentos disponibles.</p>';
         return;
     }
 
@@ -115,7 +110,7 @@ function pintarTarjetasDepartamentos(listaDepartamentos) {
         const iconoBg = index === 0 ? 'bg-[#249444] text-white' : 'bg-emerald-50 text-[#249444]';
 
         const btnHTML = `
-            <button onclick="seleccionarDepartamento('${dep.nomCotDep}', this)" 
+            <button onclick="seleccionarDepartamento('${dep.nomCorDep}', this)" 
                 class="area-btn ${esActivo} flex flex-col items-center justify-center p-4 rounded-xl border hover:border-[#249444] hover:bg-emerald-50/50 transition-all text-center cursor-pointer group">
                 <div class="w-10 h-10 rounded-lg ${iconoBg} flex items-center justify-center mb-2 group-hover:bg-[#249444] group-hover:text-white transition-all">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
@@ -128,23 +123,20 @@ function pintarTarjetasDepartamentos(listaDepartamentos) {
     });
 }
 
-// Función que filtra las tarjetas al cambiar el selector de "Seleccionar campo"
+// Función que filtra las tarjetas cuando seleccionas un campo en el desplegable
 function filtrarPorCampoRegional(claveCentroSeleccionado) {
     if (!datosGlobalesSistema || !datosGlobalesSistema.departamentos) return;
 
-    const areaUsuario = localStorage.getItem('session_area') || 'CIRNODIR';
-    const depUsuario = datosGlobalesSistema.departamentos.find(dep => dep.nomCotDep === areaUsuario || dep.claveReg === areaUsuario);
-    const claveRegUsuario = depUsuario ? depUsuario.claveReg : "100";
+    const areaUsuario = String(localStorage.getItem('session_area') || 'CIRNODIR').trim();
+    const depUsuario = datosGlobalesSistema.departamentos.find(dep => String(dep.claveReg).trim() === areaUsuario);
+    const claveRegUsuario = depUsuario ? String(depUsuario.claveReg).trim() : "100";
 
-    const departamentosDeLaRegional = datosGlobalesSistema.departamentos.filter(dep => dep.claveReg === claveRegUsuario);
+    const departamentosDeLaRegional = datosGlobalesSistema.departamentos.filter(dep => String(dep.claveReg).trim() === claveRegUsuario);
 
     if (!claveCentroSeleccionado) {
-        // Si regresan a "Seleccionar campo", mostramos por defecto los del usuario
-        const centroDelUsuario = depUsuario ? depUsuario.claveCentro : "";
-        const filtradosUsuario = departamentosDeLaRegional.filter(dep => String(dep.claveCentro) === String(centroDelUsuario));
-        pintarTarjetasDepartamentos(filtradosUsuario.length > 0 ? filtradosUsuario : departamentosDeLaRegional);
+        pintarTarjetasDepartamentos(departamentosDeLaRegional);
     } else {
-        const filtrados = departamentosDeLaRegional.filter(dep => String(dep.claveCentro) === String(claveCentroSeleccionado));
+        const filtrados = departamentosDeLaRegional.filter(dep => String(dep.claveCentro).trim() === String(claveCentroSeleccionado).trim());
         pintarTarjetasDepartamentos(filtrados);
     }
 }

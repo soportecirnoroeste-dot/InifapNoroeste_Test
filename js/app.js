@@ -49,35 +49,39 @@ let datosGlobalesSistema = null;
 function renderizarMenuDepartamentos(respuestaServidor) {
     datosGlobalesSistema = respuestaServidor;
     
+    console.log("Datos recibidos del servidor:", respuestaServidor);
+
     const todosLosDepartamentos = respuestaServidor.departamentos || [];
     const todasLasRegionales = respuestaServidor.regionales || [];
     const todosLosCampos = respuestaServidor.campos || [];
 
-    // Obtenemos el área o clave del usuario logueado de forma limpia
     const areaUsuario = String(localStorage.getItem('session_area') || 'CIRNODIR').trim();
     
-    // Buscamos usando nomCorDep correctamente
+    // Buscamos al usuario en los departamentos
     const depUsuario = todosLosDepartamentos.find(dep => 
         String(dep.nomCorDep).trim().toUpperCase() === areaUsuario.toUpperCase() || 
         String(dep.claveReg).trim() === areaUsuario
     );
     
     const claveRegUsuario = depUsuario ? String(depUsuario.claveReg).trim() : "100"; 
+    
+    // Identificamos el ClaveCentro predeterminado del usuario logueado (si existe)
+    const centroUsuarioLogueado = depUsuario ? String(depUsuario.claveCentro).trim() : "";
 
-    // Buscamos el nombre real de la regional en la pestaña "Regional"
+    // Regional oficial
     const infoRegional = todasLasRegionales.find(r => String(r.claveReg).trim() === claveRegUsuario);
     const nombreRegionalOficial = infoRegional ? infoRegional.regional : "CIR NOROESTE";
 
-    // Formato exacto de la regional: "100 - CIR NOROESTE"
     const labelRegional = document.getElementById('user-regional-display');
     if (labelRegional) {
         labelRegional.textContent = `${claveRegUsuario} - ${nombreRegionalOficial}`;
     }
 
-    // Filtramos los campos que pertenecen a esta ClaveReg
+    // Filtramos los campos de la regional
     const camposDeLaRegional = todosLosCampos.filter(c => String(c.claveReg).trim() === claveRegUsuario);
+    console.log("Campos encontrados para la regional:", camposDeLaRegional);
 
-    // Llenamos el menú desplegable con "Seleccionar campo"
+    // Poblamos el select con los campos
     const selectFiltro = document.getElementById('filtro-campos-regional');
     if (selectFiltro) {
         selectFiltro.innerHTML = '<option value="">Seleccionar campo</option>';
@@ -86,11 +90,17 @@ function renderizarMenuDepartamentos(respuestaServidor) {
         });
     }
 
-    // Obtenemos los departamentos que pertenecen a esta regional
+    // Departamentos de la regional
     const departamentosDeLaRegional = todosLosDepartamentos.filter(dep => String(dep.claveReg).trim() === claveRegUsuario);
 
-    // Mostramos los departamentos de entrada
-    pintarTarjetasDepartamentos(departamentosDeLaRegional);
+    // DE PRIMERA INSTANCIA: Si el usuario tiene un centro asignado, mostramos ese. Si no, mostramos todos los de la regional.
+    if (centroUsuarioLogueado) {
+        if (selectFiltro) selectFiltro.value = centroUsuarioLogueado;
+        const filtradosPorCentro = departamentosDeLaRegional.filter(dep => String(dep.claveCentro).trim() === centroUsuarioLogueado);
+        pintarTarjetasDepartamentos(filtradosPorCentro.length > 0 ? filtradosPorCentro : departamentosDeLaRegional);
+    } else {
+        pintarTarjetasDepartamentos(departamentosDeLaRegional);
+    }
 }
 
 // Función que dibuja las tarjetas en pantalla

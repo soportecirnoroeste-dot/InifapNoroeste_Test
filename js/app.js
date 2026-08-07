@@ -16,8 +16,8 @@ const AuthGuard = {
                 labelUser.textContent = localStorage.getItem('session_userName') || 'Usuario';
             }
 
-            // Si estamos en el index, inicializamos la carga del menú dinámico de departamentos
-            if (paginaActual.includes('index.html') || paginaActual.endsWith('/')) {
+            // Si no estamos en el login, cargamos el menú de departamentos directamente
+            if (!paginaActual.includes('login.html')) {
                 inicializarMenuDepartamentos();
             }
         }

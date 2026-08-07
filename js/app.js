@@ -26,10 +26,11 @@ const AuthGuard = {
 
 // Función para solicitar los departamentos a Google Apps Script
 function inicializarMenuDepartamentos() {
+    // Cambiamos a método GET enviando la acción por parámetro para evitar CORS
+    const urlConAccion = `${window.APPS_SCRIPT_URL}?action=obtenerDepartamentos`;
 
-    fetch(window.APPS_SCRIPT_URL, {
-        method: 'POST',
-        body: JSON.stringify({ action: "obtenerDepartamentos" })
+    fetch(urlConAccion, {
+        method: 'GET'
     })
     .then(res => res.json())
     .then(data => {

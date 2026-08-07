@@ -184,8 +184,29 @@ const SistemaGlobal = {
         }
 
         listaDepartamentos.forEach((dep) => {
-            // Icono SVG predeterminado o dinámico según el departamento
-            const iconoSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>';
+            const nombreDepLower = (dep.nomDep || '').toLowerCase();
+            let iconoSvg = '';
+
+            // Selector dinámico de iconos según palabras clave en el nombre del departamento
+            if (nombreDepLower.includes('finanz') || nombreDepLower.includes('contab') || nombreDepLower.includes('presupuesto')) {
+                // Icono de dinero / finanzas
+                iconoSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>`;
+            } else if (nombreDepLower.includes('sistem') || nombreDepLower.includes('tecnolog') || nombreDepLower.includes('ti') || nombreDepLower.includes('informat')) {
+                // Icono de código / sistemas
+                iconoSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>`;
+            } else if (nombreDepLower.includes('recursos human') || nombreDepLower.includes('personal') || nombreDepLower.includes('talento')) {
+                // Icono de personas / RH
+                iconoSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>`;
+            } else if (nombreDepLower.includes('material') || nombreDepLower.includes('compras') || nombreDepLower.includes('almacen') || nombreDepLower.includes('logist')) {
+                // Icono de caja / materiales
+                iconoSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>`;
+            } else if (nombreDepLower.includes('investigac') || nombreDepLower.includes('desarrollo')) {
+                // Icono de lupa / investigación
+                iconoSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>`;
+            } else {
+                // Icono genérico por defecto (edificio / oficina)
+                iconoSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>`;
+            }
 
             const btnHTML = `
                 <button onclick="seleccionarDepartamento('${dep.nomCorDep}', this)" 

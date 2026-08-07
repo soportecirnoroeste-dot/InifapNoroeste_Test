@@ -26,7 +26,7 @@ const AuthGuard = {
 
 // Función para solicitar los departamentos a Google Apps Script
 function inicializarMenuDepartamentos() {
-    const URL_DIRECTA = "https://script.google.com/macros/s/AKfycbwpyFlplS4e2C3UrfF5Ap9xkqn6Dr4FElpfj10JxMotZtKo2Drs9vE7eP43dsPeiPaKOA/exec";
+    const URL_DIRECTA = "https://script.google.com/macros/s/AKfycbzDs5fvFxykQniWFZnbUqpbuDAmrIDhMHlVwU4r5B3iPLxBp4FDG7uKrtDBDQEXxEX8fQ/exec";
 
     fetch(URL_DIRECTA, {
         method: 'POST',

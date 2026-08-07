@@ -7,7 +7,7 @@ async function FetchAPI(action, payload = {}) {
     try {
         payload.action = action;
         
-        let response = await fetch(APPS_SCRIPT_URL, {
+        let response = await fetch(window.APPS_SCRIPT_URL, {
             method: "POST",
             mode: "cors", // Permite la comunicación cruzada con Google Apps Script
             headers: {

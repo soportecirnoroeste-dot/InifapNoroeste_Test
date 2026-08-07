@@ -26,8 +26,10 @@ const AuthGuard = {
 
 // Función para solicitar los departamentos a Google Apps Script
 function inicializarMenuDepartamentos() {
-    // Usamos POST con cabeceras estándar para evitar el bloqueo de lectura por GET en Google
-    fetch(window.APPS_SCRIPT_URL, {
+    // Definimos la URL directamente aquí para evitar que falle si la variable global tarda en cargar
+    const URL_DIRECTA = "https://script.google.com/macros/s/AKfycbwpyFlplS4e2C3UrfF5Ap9xkqn6Dr4FElpfj10JxMotZtKo2Drs9vE7eP43dsPeiPaKOA/exec";
+
+    fetch(URL_DIRECTA, {
         method: 'POST',
         body: JSON.stringify({ action: "obtenerDepartamentos" })
     })

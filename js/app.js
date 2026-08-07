@@ -31,6 +31,9 @@ function inicializarMenuDepartamentos() {
 
     fetch(URL_DIRECTA, {
         method: 'POST',
+        headers: {
+            'Content-Type': 'text/plain;charset=utf-8', // Esto evita que el navegador active el bloqueo CORS previo
+        },
         body: JSON.stringify({ action: "obtenerDepartamentos" })
     })
     .then(res => res.json())
@@ -45,7 +48,6 @@ function inicializarMenuDepartamentos() {
         console.error("Error de conexión al obtener departamentos:", err);
     });
 }
-
 // Renderiza las tarjetas del menú según la tabla de Apps Script
 function renderizarMenuDepartamentos(todosLosDepartamentos) {
     const contenedorMenu = document.getElementById('menu-dinamico-departamentos');

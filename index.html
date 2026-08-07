@@ -79,7 +79,7 @@
                 <p class="text-xs text-stone-500">Selecciona el departamento de tu interés</p>
             </div>
 
-            <div>
+            <div class="absolute left-1/2 -translate-x-1/2 -translate-y-10 hidden md:block">
                 <p class="text-xs text-stone-500">Regional actual:</p>
                 <h2 id="user-regional-display" class="text-lg font-bold text-stone-800">Cargando...</h2>
             </div>
@@ -87,8 +87,8 @@
             <!-- Filtro dinámico basado en los campos de la regional -->
             <div class="flex items-center gap-3 mt-3 md:mt-0">
                 <select id="filtro-campos-regional" onchange="filtrarPorCampoRegional(this.value)"
-                    class="bg-stone-50 border border-stone-300 text-stone-700 text-xs rounded-lg focus:ring-[#249444] focus:border-[#249444] block p-2">
-                    <option value="">Todos los campos de la regional</option>
+                    class=" text-right bg-stone-50 border border-stone-300 text-stone-700 text-xs rounded-lg focus:ring-[#249444] focus:border-[#249444] block p-2">
+                    <option value="">Campos de la regional</option>
                 </select>
             </div>
 

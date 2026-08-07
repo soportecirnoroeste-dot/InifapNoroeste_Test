@@ -124,21 +124,26 @@ const SistemaGlobal = {
 
         this.renderizarFiltroCampos(todosLosCampos, claveRegUsuario);
 
-        // Detectar el centro/campo inicial del usuario logueado para seleccionarlo de entrada
+        // Búsqueda inteligente del campo inicial
+        const camposDeLaRegional = todosLosCampos.filter(c => String(c.claveReg).trim() === claveRegUsuario);
         const depDelUsuarioLogueado = departamentosDeLaRegional.find(dep => 
             String(dep.nomCorDep).trim().toUpperCase() === areaUsuario || 
             String(dep.claveCentro).trim().toUpperCase() === areaUsuario
         );
 
-        const claveCentroInicial = depDelUsuarioLogueado ? String(depDelUsuarioLogueado.claveCentro).trim() : "";
+        let claveCentroInicial = "";
+        if (depDelUsuarioLogueado) {
+            claveCentroInicial = String(depDelUsuarioLogueado.claveCentro).trim();
+        } else if (camposDeLaRegional.length > 0) {
+            // Si el usuario es de toda la regional, seleccionamos el primer campo por defecto para que no aparezca vacío
+            claveCentroInicial = String(camposDeLaRegional[0].claveCentro).trim();
+        }
 
-        // Posicionar el select visualmente en el campo del usuario
         const selectFiltro = document.getElementById('filtro-campos-regional');
         if (selectFiltro && claveCentroInicial) {
             selectFiltro.value = claveCentroInicial;
         }
 
-        // Pintar las tarjetas filtradas inicialmente por su centro (sin ninguna seleccionada)
         if (claveCentroInicial) {
             const filtradosIniciales = departamentosDeLaRegional.filter(dep => String(dep.claveCentro).trim() === claveCentroInicial);
             this.pintarTarjetasDepartamentos(filtradosIniciales);

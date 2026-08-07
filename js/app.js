@@ -26,18 +26,18 @@ const AuthGuard = {
 
 // Función para solicitar los departamentos a Google Apps Script
 function inicializarMenuDepartamentos() {
-    // Definimos la URL directamente aquí para evitar que falle si la variable global tarda en cargar
     const URL_DIRECTA = "https://script.google.com/macros/s/AKfycbwpyFlplS4e2C3UrfF5Ap9xkqn6Dr4FElpfj10JxMotZtKo2Drs9vE7eP43dsPeiPaKOA/exec";
 
     fetch(URL_DIRECTA, {
         method: 'POST',
         headers: {
-            'Content-Type': 'text/plain;charset=utf-8', // Esto evita que el navegador active el bloqueo CORS previo
+            'Content-Type': 'text/plain;charset=utf-8',
         },
-        body: JSON.stringify({ action: "obtenerDepartamentos" })
+        body: JSON.stringify({ action: "obtenerDatosSistema" }) // <-- Coincide exactamente con el doPost
     })
     .then(res => res.json())
     .then(data => {
+        // Como tu función devuelve { success: true, movimientos, categorias, departamentos }
         if (data.success && data.departamentos) {
             renderizarMenuDepartamentos(data.departamentos);
         } else {
@@ -48,6 +48,7 @@ function inicializarMenuDepartamentos() {
         console.error("Error de conexión al obtener departamentos:", err);
     });
 }
+
 // Renderiza las tarjetas del menú según la tabla de Apps Script
 function renderizarMenuDepartamentos(todosLosDepartamentos) {
     const contenedorMenu = document.getElementById('menu-dinamico-departamentos');

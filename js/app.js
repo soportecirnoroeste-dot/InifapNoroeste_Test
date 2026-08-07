@@ -9,7 +9,7 @@ const AuthGuard = {
             window.location.href = 'index.html';
         } else {
             document.body.classList.add('auth-checked');
-            
+
             // Mostrar el nombre del usuario en el header
             const labelUser = document.getElementById('user-display-name');
             if (labelUser) {
@@ -26,27 +26,22 @@ const AuthGuard = {
 
 // Función para solicitar los departamentos a Google Apps Script
 function inicializarMenuDepartamentos() {
-    const URL_DIRECTA = "https://script.google.com/macros/s/AKfycbzDs5fvFxykQniWFZnbUqpbuDAmrIDhMHlVwU4r5B3iPLxBp4FDG7uKrtDBDQEXxEX8fQ/exec";
+    const URL_DIRECTA = "https://script.google.com/macros/s/AKfycbzDs5fvFxykQniWFZnbUqpbuDAmrIDhMHlVwU4r5B3iPLxBp4FDG7uKrtDBDQEXxEX8fQ/exec?action=obtenerDatosSistema";
 
     fetch(URL_DIRECTA, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'text/plain;charset=utf-8',
-        },
-        body: JSON.stringify({ action: "obtenerDatosSistema" }) // <-- Coincide exactamente con el doPost
+        method: 'GET'
     })
-    .then(res => res.json())
-    .then(data => {
-        // Como tu función devuelve { success: true, movimientos, categorias, departamentos }
-        if (data.success && data.departamentos) {
-            renderizarMenuDepartamentos(data.departamentos);
-        } else {
-            console.warn("No se pudieron cargar los departamentos:", data.message);
-        }
-    })
-    .catch(err => {
-        console.error("Error de conexión al obtener departamentos:", err);
-    });
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.departamentos) {
+                renderizarMenuDepartamentos(data.departamentos);
+            } else {
+                console.warn("No se pudieron cargar los departamentos:", data.message);
+            }
+        })
+        .catch(err => {
+            console.error("Error de conexión al obtener departamentos:", err);
+        });
 }
 
 
@@ -58,7 +53,7 @@ function renderizarMenuDepartamentos(todosLosDepartamentos) {
     contenedorMenu.innerHTML = '';
 
     // Recuperamos el área o rol del usuario logueado
-    const areaDelUsuario = localStorage.getItem('session_area') || 'CIRNODIR'; 
+    const areaDelUsuario = localStorage.getItem('session_area') || 'CIRNODIR';
 
     // Aquí puedes filtrar si lo deseas, o mostrar todos los de la regional
     const departamentosPermitidos = todosLosDepartamentos.filter(dep => {

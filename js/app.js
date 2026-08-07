@@ -53,24 +53,42 @@ function renderizarMenuDepartamentos(respuestaServidor) {
     const todasLasRegionales = respuestaServidor.regionales || [];
     let todosLosCampos = respuestaServidor.campos || [];
 
-    const areaUsuario = String(localStorage.getItem('session_area') || 'CIRNODIR').trim();
+    // Obtenemos el área o clave del usuario logueado
+    const areaUsuario = String(localStorage.getItem('session_area') || '').trim().toUpperCase();
     
-    const depUsuario = todosLosDepartamentos.find(dep => 
-        String(dep.nomCorDep).trim().toUpperCase() === areaUsuario.toUpperCase() || 
-        String(dep.claveReg).trim() === areaUsuario
-    );
-    
-    const claveRegUsuario = depUsuario ? String(depUsuario.claveReg).trim() : "100"; 
+    let claveRegUsuario = "";
 
-    // Regional oficial
+    // 1. ¿El session_area coincide directamente con una clave de regional o su nombre corto?
+    const regionalEncontrada = todasLasRegionales.find(r => 
+        String(r.claveReg).trim().toUpperCase() === areaUsuario || 
+        String(r.nomCorto).trim().toUpperCase() === areaUsuario
+    );
+
+    if (regionalEncontrada) {
+        claveRegUsuario = String(regionalEncontrada.claveReg).trim();
+    } else {
+        // 2. Si no es una regional directa, buscamos en los departamentos si el usuario pertenece a uno
+        const depUsuario = todosLosDepartamentos.find(dep => 
+            String(dep.nomCorDep).trim().toUpperCase() === areaUsuario || 
+            String(dep.claveCentro).trim().toUpperCase() === areaUsuario
+        );
+        
+        if (depUsuario) {
+            claveRegUsuario = String(depUsuario.claveReg).trim();
+        } else {
+            // 3. Fallback absoluto si de plano no se reconoce la sesión (toma la primera regional disponible)
+            claveRegUsuario = todasLasRegionales.length > 0 ? String(todasLasRegionales[0].claveReg).trim() : "100";
+        }
+    }
+
+    // Regional oficial dinámica según el usuario en sesión
     const infoRegional = todasLasRegionales.find(r => String(r.claveReg).trim() === claveRegUsuario);
-    const nombreRegionalOficial = infoRegional ? infoRegional.regional : "CIR NOROESTE";
+    const nombreRegionalOficial = infoRegional ? infoRegional.regional : "REGIONAL DESCONOCIDA";
 
     const labelRegional = document.getElementById('user-regional-display');
     if (labelRegional) {
         labelRegional.textContent = `${claveRegUsuario} - ${nombreRegionalOficial}`;
     }
-
     // Filtrar departamentos de la regional
     const departamentosDeLaRegional = todosLosDepartamentos.filter(dep => String(dep.claveReg).trim() === claveRegUsuario);
 

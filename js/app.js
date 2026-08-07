@@ -183,16 +183,17 @@ const SistemaGlobal = {
             return;
         }
 
-        // Ninguna tarjeta inicia seleccionada (se usa diseño base neutro en todas)
         listaDepartamentos.forEach((dep) => {
+            // Icono SVG predeterminado o dinámico según el departamento
+            const iconoSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>';
+
             const btnHTML = `
                 <button onclick="seleccionarDepartamento('${dep.nomCorDep}', this)" 
                     class="area-btn border-stone-200 flex flex-col items-center justify-center p-4 rounded-xl border hover:border-[#249444] hover:bg-emerald-50/50 transition-all text-center cursor-pointer group">
-                    <div class="uppercase w-10 h-10 rounded-lg bg-emerald-50 text-[#249444] flex items-center justify-center mb-2 group-hover:bg-[#249444] group-hover:text-white transition-all">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+                    <span class="uppercase text-xs font-bold text-stone-700 group-hover:text-[#249444] mb-2">${dep.nomDep}</span>
+                    <div class="w-10 h-10 rounded-lg bg-emerald-50 text-[#249444] flex items-center justify-center group-hover:bg-[#249444] group-hover:text-white transition-all">
+                        ${iconoSvg}
                     </div>
-                    <span class="text-xs font-bold text-stone-700 group-hover:text-[#249444]">${dep.nomDep}</span>
-                    <span class="text-[10px] text-stone-400 mt-1">Centro: ${dep.claveCentro}</span>
                 </button>
             `;
             contenedorMenu.innerHTML += btnHTML;

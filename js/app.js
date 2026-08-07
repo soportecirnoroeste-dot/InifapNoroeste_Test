@@ -49,24 +49,18 @@ let datosGlobalesSistema = null;
 function renderizarMenuDepartamentos(respuestaServidor) {
     datosGlobalesSistema = respuestaServidor;
     
-    console.log("Datos recibidos del servidor:", respuestaServidor);
-
     const todosLosDepartamentos = respuestaServidor.departamentos || [];
     const todasLasRegionales = respuestaServidor.regionales || [];
-    const todosLosCampos = respuestaServidor.campos || [];
+    let todosLosCampos = respuestaServidor.campos || [];
 
     const areaUsuario = String(localStorage.getItem('session_area') || 'CIRNODIR').trim();
     
-    // Buscamos al usuario en los departamentos
     const depUsuario = todosLosDepartamentos.find(dep => 
         String(dep.nomCorDep).trim().toUpperCase() === areaUsuario.toUpperCase() || 
         String(dep.claveReg).trim() === areaUsuario
     );
     
     const claveRegUsuario = depUsuario ? String(depUsuario.claveReg).trim() : "100"; 
-    
-    // Identificamos el ClaveCentro predeterminado del usuario logueado (si existe)
-    const centroUsuarioLogueado = depUsuario ? String(depUsuario.claveCentro).trim() : "";
 
     // Regional oficial
     const infoRegional = todasLasRegionales.find(r => String(r.claveReg).trim() === claveRegUsuario);
@@ -77,11 +71,22 @@ function renderizarMenuDepartamentos(respuestaServidor) {
         labelRegional.textContent = `${claveRegUsuario} - ${nombreRegionalOficial}`;
     }
 
-    // Filtramos los campos de la regional
-    const camposDeLaRegional = todosLosCampos.filter(c => String(c.claveReg).trim() === claveRegUsuario);
-    console.log("Campos encontrados para la regional:", camposDeLaRegional);
+    // Filtrar departamentos de la regional
+    const departamentosDeLaRegional = todosLosDepartamentos.filter(dep => String(dep.claveReg).trim() === claveRegUsuario);
 
-    // Poblamos el select con los campos
+    // RESPALDO: Si la pestaña Campos está vacía, la llenamos con los centros únicos que existan en los departamentos
+    if (todosLosCampos.length === 0) {
+        const centrosUnicos = [...new Set(departamentosDeLaRegional.map(d => d.claveCentro))];
+        todosLosCampos = centrosUnicos.map(c => ({
+            claveReg: claveRegUsuario,
+            claveCentro: c,
+            centro: `Centro ${c}`
+        }));
+    }
+
+    const camposDeLaRegional = todosLosCampos.filter(c => String(c.claveReg).trim() === claveRegUsuario);
+
+    // Poblar el select
     const selectFiltro = document.getElementById('filtro-campos-regional');
     if (selectFiltro) {
         selectFiltro.innerHTML = '<option value="">Seleccionar campo</option>';
@@ -90,20 +95,10 @@ function renderizarMenuDepartamentos(respuestaServidor) {
         });
     }
 
-    // Departamentos de la regional
-    const departamentosDeLaRegional = todosLosDepartamentos.filter(dep => String(dep.claveReg).trim() === claveRegUsuario);
-
-    // DE PRIMERA INSTANCIA: Si el usuario tiene un centro asignado, mostramos ese. Si no, mostramos todos los de la regional.
-    if (centroUsuarioLogueado) {
-        if (selectFiltro) selectFiltro.value = centroUsuarioLogueado;
-        const filtradosPorCentro = departamentosDeLaRegional.filter(dep => String(dep.claveCentro).trim() === centroUsuarioLogueado);
-        pintarTarjetasDepartamentos(filtradosPorCentro.length > 0 ? filtradosPorCentro : departamentosDeLaRegional);
-    } else {
-        pintarTarjetasDepartamentos(departamentosDeLaRegional);
-    }
+    // Mostrar tarjetas de entrada
+    pintarTarjetasDepartamentos(departamentosDeLaRegional);
 }
 
-// Función que dibuja las tarjetas en pantalla
 function pintarTarjetasDepartamentos(listaDepartamentos) {
     const contenedorMenu = document.getElementById('menu-dinamico-departamentos');
     if (!contenedorMenu) return;
@@ -133,7 +128,6 @@ function pintarTarjetasDepartamentos(listaDepartamentos) {
     });
 }
 
-// Función que filtra las tarjetas cuando seleccionas un campo en el desplegable
 function filtrarPorCampoRegional(claveCentroSeleccionado) {
     if (!datosGlobalesSistema || !datosGlobalesSistema.departamentos) return;
 

@@ -32,14 +32,11 @@ const SistemaGlobal = {
     datos: null,
 
     init() {
-        console.log("Iniciando Sistema Regional Interno...");
-
         const datosEnCache = localStorage.getItem('sistema_cache_datos');
         const tiempoCache = localStorage.getItem('sistema_cache_tiempo');
         const ahora = new Date().getTime();
 
         if (datosEnCache && tiempoCache && (ahora - tiempoCache < 30 * 60 * 1000)) {
-            console.log("%c⚡ USANDO CACHÉ LOCAL: Carga instantánea (0 ms)", "color: #249444; font-weight: bold; font-size: 12px;");
             try {
                 const datosProcesados = JSON.parse(datosEnCache);
                 this.procesarRespuestaServidor(datosProcesados);

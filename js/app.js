@@ -46,43 +46,94 @@ function inicializarMenuDepartamentos() {
 
 let datosGlobalesSistema = null;
 
-function renderizarMenuDepartamentos(todosLosDepartamentos) {
-    datosGlobalesSistema = todosLosDepartamentos;
+function renderizarMenuDepartamentos(respuestaServidor) {
+    // Guardamos todo el objeto global que viene del servidor
+    datosGlobalesSistema = respuestaServidor;
     
-    // Obtenemos el área o clave de regional guardada al iniciar sesión (ej: "CIRNODIR" o la clave numérica)
+    const todosLosDepartamentos = respuestaServidor.departamentos || [];
+    const todasLasRegionales = respuestaServidor.regionales || [];
+    const todosLosCampos = respuestaServidor.campos || [];
+
+    // Obtenemos el área o clave del usuario logueado (ej. "CIRNODIR" o "100")
     const areaUsuario = localStorage.getItem('session_area') || 'CIRNODIR';
     
-    // Filtramos los departamentos que corresponden al usuario logueado según su ClaveReg o nomCotDep
-    const departamentosDelUsuario = todosLosDepartamentos.filter(dep => 
-        dep.nomCotDep === areaUsuario || dep.claveReg === areaUsuario
-    );
+    // Identificamos la ClaveReg del usuario buscando en sus departamentos o regionales
+    const depUsuario = todosLosDepartamentos.find(dep => dep.nomCorDep === areaUsuario || dep.claveReg === areaUsuario);
+    const claveRegUsuario = depUsuario ? depUsuario.claveReg : "100"; // Por defecto 100 según tu tabla
 
-    // Si encontramos coincidencia, tomamos su ClaveReg real, si no, usamos el área por defecto
-    const claveRegUsuario = departamentosDelUsuario.length > 0 ? departamentosDelUsuario[0].claveReg : areaUsuario;
+    // Buscamos el nombre real de la regional en la pestaña "Regional" (Columna B -> Regional)
+    const infoRegional = todasLasRegionales.find(r => r.claveReg === claveRegUsuario || r.nomCorto === areaUsuario);
+    const nombreRegionalOficial = infoRegional ? infoRegional.regional : "CIR NOROESTE";
 
-    // Mostramos la Regional actual en el encabezado
+    // Mostramos el nombre real de la regional en el encabezado
     const labelRegional = document.getElementById('user-regional-display');
     if (labelRegional) {
-        labelRegional.textContent = `Región: ${claveRegUsuario} (${areaUsuario})`;
+        labelRegional.textContent = `${nombreRegionalOficial} (Clave: ${claveRegUsuario})`;
     }
 
-    // Filtramos inicialmente la tabla de departamentos que pertenecen a esta ClaveReg del usuario
-    const departamentosDeLaRegional = todosLosDepartamentos.filter(dep => dep.claveReg === claveRegUsuario);
+    // Filtramos los campos que pertenecen estrictamente a la ClaveReg del usuario
+    const camposDeLaRegional = todosLosCampos.filter(c => c.claveReg === claveRegUsuario);
 
-    // Poblamos el selector desplegable exclusivamente con los centros/campos de esta ClaveReg
+    // Poblamos el selector desplegable con el nombre de la columna "Centro"
     const selectFiltro = document.getElementById('filtro-campos-regional');
     if (selectFiltro) {
-        // Extraemos las claves de centro (o el campo correspondiente, ej: claveCentro o nomDep) únicas de esta regional
-        const camposUnicos = [...new Set(departamentosDeLaRegional.map(d => d.claveCentro))].filter(Boolean);
-        
         selectFiltro.innerHTML = '<option value="">Todos los campos de la región</option>';
-        camposUnicos.forEach(centro => {
-            selectFiltro.innerHTML += `<option value="${centro}">Campo / Centro: ${centro}</option>`;
+        camposDeLaRegional.forEach(campo => {
+            selectFiltro.innerHTML += `<option value="${campo.claveCentro}">${campo.centro}</option>`;
         });
     }
 
-    // Pintamos las tarjetas iniciales filtradas por la región del usuario
+    // Filtramos los departamentos iniciales de esta regional
+    const departamentosDeLaRegional = todosLosDepartamentos.filter(dep => dep.claveReg === claveRegUsuario);
     pintarTarjetasDepartamentos(departamentosDeLaRegional);
+}
+
+// Función que dibuja las tarjetas en pantalla
+function pintarTarjetasDepartamentos(listaDepartamentos) {
+    const contenedorMenu = document.getElementById('menu-dinamico-departamentos');
+    if (!contenedorMenu) return;
+
+    contenedorMenu.innerHTML = '';
+
+    if (listaDepartamentos.length === 0) {
+        contenedorMenu.innerHTML = '<p class="text-xs text-stone-400 col-span-full">No se encontraron departamentos para este filtro.</p>';
+        return;
+    }
+
+    listaDepartamentos.forEach((dep, index) => {
+        const esActivo = index === 0 ? 'border-[#249444] bg-emerald-50/80 shadow-sm' : 'border-stone-200';
+        const iconoBg = index === 0 ? 'bg-[#249444] text-white' : 'bg-emerald-50 text-[#249444]';
+
+        const btnHTML = `
+            <button onclick="seleccionarDepartamento('${dep.nomCorDep}', this)" 
+                class="area-btn ${esActivo} flex flex-col items-center justify-center p-4 rounded-xl border hover:border-[#249444] hover:bg-emerald-50/50 transition-all text-center cursor-pointer group">
+                <div class="w-10 h-10 rounded-lg ${iconoBg} flex items-center justify-center mb-2 group-hover:bg-[#249444] group-hover:text-white transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+                </div>
+                <span class="text-xs font-bold text-stone-700 group-hover:text-[#249444]">${dep.nomDep}</span>
+                <span class="text-[10px] text-stone-400 mt-1">Centro: ${dep.claveCentro}</span>
+            </button>
+        `;
+        contenedorMenu.innerHTML += btnHTML;
+    });
+}
+
+// Función que filtra las tarjetas al seleccionar un Centro específico en el desplegable
+function filtrarPorCampoRegional(claveCentroSeleccionado) {
+    if (!datosGlobalesSistema || !datosGlobalesSistema.departamentos) return;
+
+    const areaUsuario = localStorage.getItem('session_area') || 'CIRNODIR';
+    const depUsuario = datosGlobalesSistema.departamentos.find(dep => dep.NomCorDep === areaUsuario || dep.claveReg === areaUsuario);
+    const claveRegUsuario = depUsuario ? depUsuario.claveReg : "100";
+
+    const departamentosDeLaRegional = datosGlobalesSistema.departamentos.filter(dep => dep.claveReg === claveRegUsuario);
+
+    if (!claveCentroSeleccionado) {
+        pintarTarjetasDepartamentos(departamentosDeLaRegional);
+    } else {
+        const filtrados = departamentosDeLaRegional.filter(dep => String(dep.claveCentro) === String(claveCentroSeleccionado));
+        pintarTarjetasDepartamentos(filtrados);
+    }
 }
 
 // Función para pintar las tarjetas de departamentos en pantalla
@@ -102,7 +153,7 @@ function pintarTarjetasDepartamentos(listaDepartamentos) {
         const iconoBg = index === 0 ? 'bg-[#249444] text-white' : 'bg-emerald-50 text-[#249444]';
 
         const btnHTML = `
-            <button onclick="seleccionarDepartamento('${dep.nomCotDep}', this)" 
+            <button onclick="seleccionarDepartamento('${dep.NomCorDep}', this)" 
                 class="area-btn ${esActivo} flex flex-col items-center justify-center p-4 rounded-xl border hover:border-[#249444] hover:bg-emerald-50/50 transition-all text-center cursor-pointer group">
                 <div class="w-10 h-10 rounded-lg ${iconoBg} flex items-center justify-center mb-2 group-hover:bg-[#249444] group-hover:text-white transition-all">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
@@ -115,29 +166,8 @@ function pintarTarjetasDepartamentos(listaDepartamentos) {
     });
 }
 
-// Función que ejecuta el filtro cuando seleccionas un campo específico del menú desplegable
-function filtrarPorCampoRegional(campoSeleccionado) {
-    if (!datosGlobalesSistema) return;
-
-    const areaUsuario = localStorage.getItem('session_area') || 'CIRNODIR';
-    
-    // Primero acotamos a la regional del usuario
-    const baseRegional = datosGlobalesSistema.filter(dep => 
-        dep.nomCotDep === areaUsuario || dep.claveReg === areaUsuario
-    );
-    const claveRegUsuario = baseRegional.length > 0 ? baseRegional[0].claveReg : areaUsuario;
-    const departamentosDeLaRegional = datosGlobalesSistema.filter(dep => dep.claveReg === claveRegUsuario);
-
-    // Si se selecciona un campo en específico, filtramos sobre la regional del usuario
-    if (!campoSeleccionado) {
-        pintarTarjetasDepartamentos(departamentosDeLaRegional);
-    } else {
-        const filtradosPorCampo = departamentosDeLaRegional.filter(dep => dep.claveCentro === campoSeleccionado);
-        pintarTarjetasDepartamentos(filtradosPorCampo);
-    }
-}
 // Acción al hacer clic en una opción del menú de departamentos
-function seleccionarDepartamento(nomCotDep, elementoBtn) {
+function seleccionarDepartamento(NomCorDep, elementoBtn) {
     document.querySelectorAll('.area-btn').forEach(btn => {
         btn.classList.remove('border-[#249444]', 'bg-emerald-50/80', 'shadow-sm');
         let divIcon = btn.querySelector('div');
@@ -150,7 +180,7 @@ function seleccionarDepartamento(nomCotDep, elementoBtn) {
     iconoDiv.classList.remove('bg-emerald-50', 'text-[#249444]');
     iconoDiv.classList.add('bg-[#249444]', 'text-white');
 
-    console.log("Departamento seleccionado:", nomCotDep);
+    console.log("Departamento seleccionado:", NomCorDep);
     // Aquí puedes disparar la función que recarga los movimientos o registros de la tabla principal según el departamento
 }
 

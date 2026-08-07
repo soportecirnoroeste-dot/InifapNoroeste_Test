@@ -77,7 +77,7 @@ const SistemaGlobal = {
 
     procesarRespuestaServidor(datosReales) {
         this.datos = datosReales;
-        
+
         const todosLosDepartamentos = datosReales.departamentos || [];
         const todasLasRegionales = datosReales.regionales || [];
         let todosLosCampos = datosReales.campos || [];
@@ -85,19 +85,19 @@ const SistemaGlobal = {
         const areaUsuario = String(localStorage.getItem('session_area') || '').trim().toUpperCase();
         let claveRegUsuario = "";
 
-        const regionalEncontrada = todasLasRegionales.find(r => 
-            String(r.claveReg).trim().toUpperCase() === areaUsuario || 
+        const regionalEncontrada = todasLasRegionales.find(r =>
+            String(r.claveReg).trim().toUpperCase() === areaUsuario ||
             String(r.nomCorto).trim().toUpperCase() === areaUsuario
         );
 
         if (regionalEncontrada) {
             claveRegUsuario = String(regionalEncontrada.claveReg).trim();
         } else {
-            const depUsuario = todosLosDepartamentos.find(dep => 
-                String(dep.nomCorDep).trim().toUpperCase() === areaUsuario || 
+            const depUsuario = todosLosDepartamentos.find(dep =>
+                String(dep.nomCorDep).trim().toUpperCase() === areaUsuario ||
                 String(dep.claveCentro).trim().toUpperCase() === areaUsuario
             );
-            
+
             if (depUsuario) {
                 claveRegUsuario = String(depUsuario.claveReg).trim();
             } else {
@@ -123,8 +123,8 @@ const SistemaGlobal = {
 
         // Búsqueda inteligente del campo inicial
         const camposDeLaRegional = todosLosCampos.filter(c => String(c.claveReg).trim() === claveRegUsuario);
-        const depDelUsuarioLogueado = departamentosDeLaRegional.find(dep => 
-            String(dep.nomCorDep).trim().toUpperCase() === areaUsuario || 
+        const depDelUsuarioLogueado = departamentosDeLaRegional.find(dep =>
+            String(dep.nomCorDep).trim().toUpperCase() === areaUsuario ||
             String(dep.claveCentro).trim().toUpperCase() === areaUsuario
         );
 
@@ -162,7 +162,7 @@ const SistemaGlobal = {
     renderizarFiltroCampos(campos, claveReg) {
         const camposDeLaRegional = campos.filter(c => String(c.claveReg).trim() === claveReg);
         const selectFiltro = document.getElementById('filtro-campos-regional');
-        
+
         if (selectFiltro) {
             selectFiltro.innerHTML = '<option value="">Seleccionar campo</option>';
             camposDeLaRegional.forEach(campo => {

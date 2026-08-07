@@ -26,13 +26,19 @@ const AuthGuard = {
 
 // Función para solicitar los departamentos a Google Apps Script
 function inicializarMenuDepartamentos() {
-    // Cambiamos a método GET enviando la acción por parámetro para evitar CORS
     const urlConAccion = `${window.APPS_SCRIPT_URL}?action=obtenerDepartamentos`;
 
     fetch(urlConAccion, {
-        method: 'GET'
+        method: 'GET',
+        mode: 'cors', // Forzamos el modo CORS explícitamente
+        headers: {
+            'Accept': 'application/json'
+        }
     })
-    .then(res => res.json())
+    .then(res => {
+        if (!res.ok) throw new Error("Error en la red al conectar con Apps Script");
+        return res.json();
+    })
     .then(data => {
         if (data.success && data.departamentos) {
             renderizarMenuDepartamentos(data.departamentos);
@@ -40,7 +46,9 @@ function inicializarMenuDepartamentos() {
             console.warn("No se pudieron cargar los departamentos:", data.message);
         }
     })
-    .catch(err => console.error("Error de conexión al obtener departamentos:", err));
+    .catch(err => {
+        console.error("Error de conexión al obtener departamentos:", err);
+    });
 }
 
 // Renderiza las tarjetas del menú según la tabla de Apps Script

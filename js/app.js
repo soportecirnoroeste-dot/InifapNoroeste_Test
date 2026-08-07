@@ -34,7 +34,7 @@ const SistemaGlobal = {
 
     init() {
         console.log("Iniciando Sistema Regional Interno...");
-        
+
         // Verificamos si estamos dentro del entorno de Google Apps Script
         if (typeof google !== 'undefined' && google.script && google.script.run) {
             google.script.run
@@ -62,7 +62,7 @@ const SistemaGlobal = {
         };
 
         this.datos = datosReales;
-        
+
         const todosLosDepartamentos = datosReales.departamentos || [];
         const todasLasRegionales = datosReales.regionales || [];
         let todosLosCampos = datosReales.campos || [];
@@ -72,8 +72,8 @@ const SistemaGlobal = {
         let claveRegUsuario = "";
 
         // 1. Coincidencia con regional o nombre corto
-        const regionalEncontrada = todasLasRegionales.find(r => 
-            String(r.claveReg).trim().toUpperCase() === areaUsuario || 
+        const regionalEncontrada = todasLasRegionales.find(r =>
+            String(r.claveReg).trim().toUpperCase() === areaUsuario ||
             String(r.nomCorto).trim().toUpperCase() === areaUsuario
         );
 
@@ -81,11 +81,11 @@ const SistemaGlobal = {
             claveRegUsuario = String(regionalEncontrada.claveReg).trim();
         } else {
             // 2. Coincidencia con departamentos
-            const depUsuario = todosLosDepartamentos.find(dep => 
-                String(dep.nomCorDep).trim().toUpperCase() === areaUsuario || 
+            const depUsuario = todosLosDepartamentos.find(dep =>
+                String(dep.nomCorDep).trim().toUpperCase() === areaUsuario ||
                 String(dep.claveCentro).trim().toUpperCase() === areaUsuario
             );
-            
+
             if (depUsuario) {
                 claveRegUsuario = String(depUsuario.claveReg).trim();
             } else {
@@ -127,11 +127,13 @@ const SistemaGlobal = {
     renderizarFiltroCampos(campos, claveReg) {
         const camposDeLaRegional = campos.filter(c => String(c.claveReg).trim() === claveReg);
         const selectFiltro = document.getElementById('filtro-campos-regional');
-        
+
         if (selectFiltro) {
             selectFiltro.innerHTML = '<option value="">Seleccionar campo</option>';
             camposDeLaRegional.forEach(campo => {
-                selectFiltro.innerHTML += `<option value="${campo.claveCentro}">${campo.centro}</option>`;
+                // Concatenamos claveCentro y el nombre del centro tal como lo pediste
+                const textoOpcion = `${campo.claveCentro} - ${campo.centro}`;
+                selectFiltro.innerHTML += `<option value="${campo.claveCentro}">${textoOpcion}</option>`;
             });
         }
     },

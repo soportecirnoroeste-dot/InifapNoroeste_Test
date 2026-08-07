@@ -46,6 +46,18 @@ function inicializarMenuDepartamentos() {
 
 let datosGlobalesSistema = null;
 
+// Disparador automático al cargar la página para conectar con Google Sheets
+window.addEventListener('DOMContentLoaded', () => {
+    if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+            .withSuccessHandler(renderizarMenuDepartamentos)
+            .withFailureHandler(err => console.error("Error al obtener datos de Sheets:", err))
+            .obtenerDatosSistema();
+    } else {
+        console.warn("Entorno de Google Apps Script no detectado.");
+    }
+});
+
 function renderizarMenuDepartamentos(respuestaServidor) {
     datosGlobalesSistema = respuestaServidor;
     
@@ -53,7 +65,7 @@ function renderizarMenuDepartamentos(respuestaServidor) {
     const todasLasRegionales = respuestaServidor.regionales || [];
     let todosLosCampos = respuestaServidor.campos || [];
 
-    // Obtenemos el área o clave del usuario logueado
+    // Obtenemos el área o clave del usuario logueado desde localStorage
     const areaUsuario = String(localStorage.getItem('session_area') || '').trim().toUpperCase();
     
     let claveRegUsuario = "";
@@ -76,24 +88,25 @@ function renderizarMenuDepartamentos(respuestaServidor) {
         if (depUsuario) {
             claveRegUsuario = String(depUsuario.claveReg).trim();
         } else {
-            // 3. Fallback absoluto si de plano no se reconoce la sesión (toma la primera regional disponible)
-            claveRegUsuario = todasLasRegionales.length > 0 ? String(todasLasRegionales[0].claveReg).trim() : "100";
+            // 3. Si no encuentra coincidencia, toma la primera regional disponible en la hoja (sin inventar códigos fijos)
+            claveRegUsuario = todasLasRegionales.length > 0 ? String(todasLasRegionales[0].claveReg).trim() : "";
         }
     }
 
-    // Regional oficial dinámica según el usuario en sesión
+    // Regional oficial dinámica según el usuario en sesión (leída de la pestaña Regional)
     const infoRegional = todasLasRegionales.find(r => String(r.claveReg).trim() === claveRegUsuario);
-    const nombreRegionalOficial = infoRegional ? infoRegional.regional : "REGIONAL DESCONOCIDA";
+    const nombreRegionalOficial = infoRegional ? infoRegional.regional : "REGIONAL NO ENCONTRADA EN SHEETS";
 
     const labelRegional = document.getElementById('user-regional-display');
     if (labelRegional) {
         labelRegional.textContent = `${claveRegUsuario} - ${nombreRegionalOficial}`;
     }
+
     // Filtrar departamentos de la regional
     const departamentosDeLaRegional = todosLosDepartamentos.filter(dep => String(dep.claveReg).trim() === claveRegUsuario);
 
-    // RESPALDO: Si la pestaña Campos está vacía, la llenamos con los centros únicos que existan en los departamentos
-    if (todosLosCampos.length === 0) {
+    // RESPALDO: Si la pestaña Campos está vacía, extraemos los centros reales de los departamentos leídos de Sheets
+    if (todosLosCampos.length === 0 && departamentosDeLaRegional.length > 0) {
         const centrosUnicos = [...new Set(departamentosDeLaRegional.map(d => d.claveCentro))];
         todosLosCampos = centrosUnicos.map(c => ({
             claveReg: claveRegUsuario,
@@ -104,7 +117,7 @@ function renderizarMenuDepartamentos(respuestaServidor) {
 
     const camposDeLaRegional = todosLosCampos.filter(c => String(c.claveReg).trim() === claveRegUsuario);
 
-    // Poblar el select
+    // Poblar el select de campos
     const selectFiltro = document.getElementById('filtro-campos-regional');
     if (selectFiltro) {
         selectFiltro.innerHTML = '<option value="">Seleccionar campo</option>';
@@ -124,7 +137,7 @@ function pintarTarjetasDepartamentos(listaDepartamentos) {
     contenedorMenu.innerHTML = '';
 
     if (listaDepartamentos.length === 0) {
-        contenedorMenu.innerHTML = '<p class="text-xs text-stone-400 col-span-full">No se encontraron departamentos disponibles.</p>';
+        contenedorMenu.innerHTML = '<p class="text-xs text-stone-400 col-span-full">No se encontraron departamentos disponibles en las pestañas.</p>';
         return;
     }
 
@@ -149,9 +162,9 @@ function pintarTarjetasDepartamentos(listaDepartamentos) {
 function filtrarPorCampoRegional(claveCentroSeleccionado) {
     if (!datosGlobalesSistema || !datosGlobalesSistema.departamentos) return;
 
-    const areaUsuario = String(localStorage.getItem('session_area') || 'CIRNODIR').trim();
+    const areaUsuario = String(localStorage.getItem('session_area') || '').trim().toUpperCase();
     const depUsuario = datosGlobalesSistema.departamentos.find(dep => String(dep.claveReg).trim() === areaUsuario);
-    const claveRegUsuario = depUsuario ? String(depUsuario.claveReg).trim() : "100";
+    const claveRegUsuario = depUsuario ? String(depUsuario.claveReg).trim() : (datosGlobalesSistema.regionales[0]?.claveReg || "");
 
     const departamentosDeLaRegional = datosGlobalesSistema.departamentos.filter(dep => String(dep.claveReg).trim() === claveRegUsuario);
 

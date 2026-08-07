@@ -26,29 +26,29 @@ const AuthGuard = {
 };
 
 // ==========================================
-// 2. NÚCLEO CENTRAL DEL SISTEMA (CACHÉ FORZADA)
+// 2. NÚCLEO CENTRAL DEL SISTEMA (CON CACHÉ Y FILTRO INICIAL)
 // ==========================================
 const SistemaGlobal = {
     datos: null,
 
     init() {
-        // 1. INTENTO DE CARGA DESDE CACHÉ LOCAL (Prioridad absoluta)
+        console.log("Iniciando Sistema Regional Interno...");
+
         const datosEnCache = localStorage.getItem('sistema_cache_datos');
         const tiempoCache = localStorage.getItem('sistema_cache_tiempo');
         const ahora = new Date().getTime();
 
-        // Si la caché tiene menos de 30 minutos, la usamos de inmediato y matamos el proceso de red
         if (datosEnCache && tiempoCache && (ahora - tiempoCache < 30 * 60 * 1000)) {
+            console.log("%c⚡ USANDO CACHÉ LOCAL: Carga instantánea (0 ms)", "color: #249444; font-weight: bold; font-size: 12px;");
             try {
                 const datosProcesados = JSON.parse(datosEnCache);
                 this.procesarRespuestaServidor(datosProcesados);
-                return; // Corta la ejecución aquí para que jamás haga el fetch
+                return;
             } catch (e) {
                 console.error("Error al leer la caché, procediendo a red...", e);
             }
         }
 
-        // 2. SI NO HAY CACHÉ, PROCEDEMOS A LA RED
         if (typeof google !== 'undefined' && google.script && google.script.run) {
             google.script.run
                 .withSuccessHandler(respuesta => this.guardarYCargar(respuesta))
@@ -72,11 +72,9 @@ const SistemaGlobal = {
             campos: respuestaServidor.campos || []
         };
 
-        // Guardamos en caché local por 30 minutos
         localStorage.setItem('sistema_cache_datos', JSON.stringify(datosReales));
         localStorage.setItem('sistema_cache_tiempo', new Date().getTime());
 
-        console.log("Datos descargados de Google Sheets y guardados en caché.");
         this.procesarRespuestaServidor(datosReales);
     },
 
@@ -125,7 +123,28 @@ const SistemaGlobal = {
         }
 
         this.renderizarFiltroCampos(todosLosCampos, claveRegUsuario);
-        this.pintarTarjetasDepartamentos(departamentosDeLaRegional);
+
+        // Detectar el centro/campo inicial del usuario logueado para seleccionarlo de entrada
+        const depDelUsuarioLogueado = departamentosDeLaRegional.find(dep => 
+            String(dep.nomCorDep).trim().toUpperCase() === areaUsuario || 
+            String(dep.claveCentro).trim().toUpperCase() === areaUsuario
+        );
+
+        const claveCentroInicial = depDelUsuarioLogueado ? String(depDelUsuarioLogueado.claveCentro).trim() : "";
+
+        // Posicionar el select visualmente en el campo del usuario
+        const selectFiltro = document.getElementById('filtro-campos-regional');
+        if (selectFiltro && claveCentroInicial) {
+            selectFiltro.value = claveCentroInicial;
+        }
+
+        // Pintar las tarjetas filtradas inicialmente por su centro (sin ninguna seleccionada)
+        if (claveCentroInicial) {
+            const filtradosIniciales = departamentosDeLaRegional.filter(dep => String(dep.claveCentro).trim() === claveCentroInicial);
+            this.pintarTarjetasDepartamentos(filtradosIniciales);
+        } else {
+            this.pintarTarjetasDepartamentos(departamentosDeLaRegional);
+        }
     },
 
     renderizarRegional(claveReg, regionales) {
@@ -162,14 +181,12 @@ const SistemaGlobal = {
             return;
         }
 
-        listaDepartamentos.forEach((dep, index) => {
-            const esActivo = index === 0 ? 'border-[#249444] bg-emerald-50/80 shadow-sm' : 'border-stone-200';
-            const iconoBg = index === 0 ? 'bg-[#249444] text-white' : 'bg-emerald-50 text-[#249444]';
-
+        // Ninguna tarjeta inicia seleccionada (se usa diseño base neutro en todas)
+        listaDepartamentos.forEach((dep) => {
             const btnHTML = `
                 <button onclick="seleccionarDepartamento('${dep.nomCorDep}', this)" 
-                    class="area-btn ${esActivo} flex flex-col items-center justify-center p-4 rounded-xl border hover:border-[#249444] hover:bg-emerald-50/50 transition-all text-center cursor-pointer group">
-                    <div class="w-10 h-10 rounded-lg ${iconoBg} flex items-center justify-center mb-2 group-hover:bg-[#249444] group-hover:text-white transition-all">
+                    class="area-btn border-stone-200 flex flex-col items-center justify-center p-4 rounded-xl border hover:border-[#249444] hover:bg-emerald-50/50 transition-all text-center cursor-pointer group">
+                    <div class="w-10 h-10 rounded-lg bg-emerald-50 text-[#249444] flex items-center justify-center mb-2 group-hover:bg-[#249444] group-hover:text-white transition-all">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
                     </div>
                     <span class="text-xs font-bold text-stone-700 group-hover:text-[#249444]">${dep.nomDep}</span>
@@ -200,6 +217,7 @@ const SistemaGlobal = {
     seleccionarDepartamento(NomCorDep, elementoBtn) {
         document.querySelectorAll('.area-btn').forEach(btn => {
             btn.classList.remove('border-[#249444]', 'bg-emerald-50/80', 'shadow-sm');
+            btn.classList.add('border-stone-200');
             let divIcon = btn.querySelector('div');
             if (divIcon) {
                 divIcon.classList.remove('bg-[#249444]', 'text-white');
@@ -207,6 +225,7 @@ const SistemaGlobal = {
             }
         });
 
+        elementoBtn.classList.remove('border-stone-200');
         elementoBtn.classList.add('border-[#249444]', 'bg-emerald-50/80', 'shadow-sm');
         let iconoDiv = elementoBtn.querySelector('div');
         if (iconoDiv) {

@@ -49,6 +49,7 @@ var AuthModule = {
                 // AQUÍ ESTÁ LA CLAVE: Guardamos exactamente los campos que devuelve tu Apps Script
                 localStorage.setItem('usuario_sesion', res.usuario || usuarioInput);
                 localStorage.setItem('session_userName', res.userName || "Usuario");
+                localStorage.setItem('session_area', res.area || "CIRNODIR"); // <-- Guardamos el área/departamento recibido
                 localStorage.setItem('isLoggedIn', 'true');
                 localStorage.setItem('ultima_seccion', 'home');
 

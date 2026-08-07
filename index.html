@@ -24,11 +24,9 @@
     </div>
 
     <!-- Barra de Navegación / Cabecera Principal -->
-    <!-- Barra de Navegación / Cabecera Principal -->
     <header class="bg-white shadow-md sticky top-0 z-50 border-b-4 border-[#249444]">
         <div class="container mx-auto px-6 py-3 flex items-center justify-between">
 
-            <!-- 1. Logotipo Institucional (Izquierda) -->
             <div class="inifap-logo-wrapperIndex">
                 <div class="logo-mainIndex">
                     <span class="letteIndexr">i</span>
@@ -47,20 +45,18 @@
                 </div>
             </div>
 
-            <!-- 2. Título del Sistema (Centro exacto) -->
-            <div class="absolute left-1/2 -translate-x-1/2 hidden md:block">
+            <div class="absolute left-1/2 -translate-x-1/2 -translate-y-1 hidden md:block">
                 <span class="text-xl font-black italic text-[#249444] tracking-wide uppercase">SISTEMA REGIONAL
                     INTERNO</span>
             </div>
 
-            <!-- 3. Perfil de Usuario y Botón de Salida (Derecha) -->
             <div class="flex items-center gap-4">
-                <div class="text-right hidden sm:block">
+                <div class="text-right hidden sm:block whitespace-nowrap">
                     <p id="user-display-name" class="text-xs font-bold text-stone-700 uppercase">Cargando usuario...</p>
-                    <p class="text-[10px] text-stone-400 font-semibold tracking-wider">Sesión Activa</p>
+                    <p class="text-[10px] text-stone-400 font-semibold tracking-wider block">Sesión Activa</p>
                 </div>
                 <button onclick="AuthManager.logout()"
-                    class="nav-btn px-3 py-2 rounded-lg flex flex-col md:flex-row items-center gap-1 text-[10px] font-bold opacity-50 hover:opacity-100 uppercase tracking-tighter transition-all text-red-500">
+                    class="nav-btn px-3 py-2 rounded-lg flex flex-col md:flex-row items-center gap-1 text-[10px] font-bold opacity-50 hover:opacity-100 uppercase tracking-tighter transition-all text-red-500 cursor-pointer">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                         <polyline points="16 17 21 12 16 7"></polyline>

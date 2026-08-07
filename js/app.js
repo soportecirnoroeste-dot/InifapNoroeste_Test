@@ -26,19 +26,12 @@ const AuthGuard = {
 
 // Función para solicitar los departamentos a Google Apps Script
 function inicializarMenuDepartamentos() {
-    const urlConAccion = `${window.APPS_SCRIPT_URL}?action=obtenerDepartamentos`;
-
-    fetch(urlConAccion, {
-        method: 'GET',
-        mode: 'cors', // Forzamos el modo CORS explícitamente
-        headers: {
-            'Accept': 'application/json'
-        }
+    // Usamos POST con cabeceras estándar para evitar el bloqueo de lectura por GET en Google
+    fetch(window.APPS_SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: "obtenerDepartamentos" })
     })
-    .then(res => {
-        if (!res.ok) throw new Error("Error en la red al conectar con Apps Script");
-        return res.json();
-    })
+    .then(res => res.json())
     .then(data => {
         if (data.success && data.departamentos) {
             renderizarMenuDepartamentos(data.departamentos);

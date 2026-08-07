@@ -18,7 +18,6 @@ const AuthGuard = {
                 labelUser.textContent = localStorage.getItem('session_userName') || 'Usuario';
             }
 
-            // Si estamos en el dashboard, iniciamos el sistema centralizado
             if (!paginaActual.includes('login.html')) {
                 SistemaGlobal.init();
             }
@@ -27,7 +26,7 @@ const AuthGuard = {
 };
 
 // ==========================================
-// 2. NÚCLEO CENTRAL DEL SISTEMA (STATE & UI)
+// 2. NÚCLEO CENTRAL DEL SISTEMA (CON CACHÉ)
 // ==========================================
 const SistemaGlobal = {
     datos: null,
@@ -35,71 +34,83 @@ const SistemaGlobal = {
     init() {
         console.log("Iniciando Sistema Regional Interno...");
 
-        // Verificamos si estamos dentro del entorno de Google Apps Script
+        // REVISAR SI HAY CACHÉ LOCAL (Para evitar la tardanza de los 3 segundos de Google)
+        const datosEnCache = localStorage.getItem('sistema_cache_datos');
+        const tiempoCache = localStorage.getItem('sistema_cache_tiempo');
+        const ahora = new Date().getTime();
+
+        // Si la caché tiene menos de 10 minutos, la usamos de inmediato (Cero demora)
+        if (datosEnCache && tiempoCache && (ahora - tiempoCache < 10 * 60 * 1000)) {
+            console.log("Cargando datos desde la caché local (Ultra rápido)...");
+            this.procesarRespuestaServidor(JSON.parse(datosEnCache));
+            return;
+        }
+
+        // Si no hay caché, consultamos al servidor
         if (typeof google !== 'undefined' && google.script && google.script.run) {
             google.script.run
-                .withSuccessHandler(respuesta => this.procesarRespuestaServidor(respuesta))
+                .withSuccessHandler(respuesta => this.guardarYCargar(respuesta))
                 .withFailureHandler(err => console.error("Error al obtener datos de Sheets:", err))
                 .obtenerDatosSistema();
         } else {
-            // Modo de respaldo vía Fetch (para pruebas locales o despliegue web directo)
             console.warn("Entorno Google Apps Script no detectado. Usando conexión Fetch...");
-            const URL_DIRECTA = "https://script.google.com/macros/s/AKfycbzDs5fvFxykQniWFZnbUqpbuDAmrIDhMHlVwU4r5B3iPLxBp4FDG7uKrtDBDQEXxEX8fQ/exec?action=obtenerDatosSistema";
+            const URL_DIRECTA = "https://script.google.com/macros/s/AKfycbzDs5fvFxykQniWFZnbUqpbuDAmrIDhMHlVwU4r5B3iPLxBp4FDG7uKrtDBEXxEX8fQ/exec?action=obtenerDatosSistema";
 
             fetch(URL_DIRECTA)
                 .then(res => res.json())
-                .then(data => this.procesarRespuestaServidor(data))
+                .then(data => this.guardarYCargar(data))
                 .catch(err => console.error("Error de conexión Fetch:", err));
         }
     },
 
-    procesarRespuestaServidor(respuestaServidor) {
-        // Validación robusta por si el JSON viene envuelto de otra forma
+    guardarYCargar(respuestaServidor) {
         const datosReales = respuestaServidor.success ? respuestaServidor : {
             departamentos: respuestaServidor.departamentos || [],
             regionales: respuestaServidor.regionales || [],
             campos: respuestaServidor.campos || []
         };
 
-        this.datos = datosReales;
+        // Guardar en caché por 10 minutos
+        localStorage.setItem('sistema_cache_datos', JSON.stringify(datosReales));
+        localStorage.setItem('sistema_cache_tiempo', new Date().getTime());
 
+        this.procesarRespuestaServidor(datosReales);
+    },
+
+    procesarRespuestaServidor(datosReales) {
+        this.datos = datosReales;
+        
         const todosLosDepartamentos = datosReales.departamentos || [];
         const todasLasRegionales = datosReales.regionales || [];
         let todosLosCampos = datosReales.campos || [];
 
-        // Obtenemos el área de la sesión actual
         const areaUsuario = String(localStorage.getItem('session_area') || '').trim().toUpperCase();
         let claveRegUsuario = "";
 
-        // 1. Coincidencia con regional o nombre corto
-        const regionalEncontrada = todasLasRegionales.find(r =>
-            String(r.claveReg).trim().toUpperCase() === areaUsuario ||
+        const regionalEncontrada = todasLasRegionales.find(r => 
+            String(r.claveReg).trim().toUpperCase() === areaUsuario || 
             String(r.nomCorto).trim().toUpperCase() === areaUsuario
         );
 
         if (regionalEncontrada) {
             claveRegUsuario = String(regionalEncontrada.claveReg).trim();
         } else {
-            // 2. Coincidencia con departamentos
-            const depUsuario = todosLosDepartamentos.find(dep =>
-                String(dep.nomCorDep).trim().toUpperCase() === areaUsuario ||
+            const depUsuario = todosLosDepartamentos.find(dep => 
+                String(dep.nomCorDep).trim().toUpperCase() === areaUsuario || 
                 String(dep.claveCentro).trim().toUpperCase() === areaUsuario
             );
-
+            
             if (depUsuario) {
                 claveRegUsuario = String(depUsuario.claveReg).trim();
             } else {
-                // 3. Fallback a la primera regional disponible
                 claveRegUsuario = todasLasRegionales.length > 0 ? String(todasLasRegionales[0].claveReg).trim() : "";
             }
         }
 
-        // Renderizar componentes visuales
         this.renderizarRegional(claveRegUsuario, todasLasRegionales);
 
         const departamentosDeLaRegional = todosLosDepartamentos.filter(dep => String(dep.claveReg).trim() === claveRegUsuario);
 
-        // Respaldo dinámico si Campos viene vacío
         if (todosLosCampos.length === 0 && departamentosDeLaRegional.length > 0) {
             const centrosUnicos = [...new Set(departamentosDeLaRegional.map(d => d.claveCentro))];
             todosLosCampos = centrosUnicos.map(c => ({
@@ -127,11 +138,10 @@ const SistemaGlobal = {
     renderizarFiltroCampos(campos, claveReg) {
         const camposDeLaRegional = campos.filter(c => String(c.claveReg).trim() === claveReg);
         const selectFiltro = document.getElementById('filtro-campos-regional');
-
+        
         if (selectFiltro) {
             selectFiltro.innerHTML = '<option value="">Seleccionar campo</option>';
             camposDeLaRegional.forEach(campo => {
-                // Concatenamos claveCentro y el nombre del centro tal como lo pediste
                 const textoOpcion = `${campo.claveCentro} - ${campo.centro}`;
                 selectFiltro.innerHTML += `<option value="${campo.claveCentro}">${textoOpcion}</option>`;
             });

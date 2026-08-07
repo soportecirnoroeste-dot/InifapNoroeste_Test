@@ -188,7 +188,7 @@ const SistemaGlobal = {
             const btnHTML = `
                 <button onclick="seleccionarDepartamento('${dep.nomCorDep}', this)" 
                     class="area-btn border-stone-200 flex flex-col items-center justify-center p-4 rounded-xl border hover:border-[#249444] hover:bg-emerald-50/50 transition-all text-center cursor-pointer group">
-                    <div class="w-10 h-10 rounded-lg bg-emerald-50 text-[#249444] flex items-center justify-center mb-2 group-hover:bg-[#249444] group-hover:text-white transition-all">
+                    <div class="uppercase w-10 h-10 rounded-lg bg-emerald-50 text-[#249444] flex items-center justify-center mb-2 group-hover:bg-[#249444] group-hover:text-white transition-all">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
                     </div>
                     <span class="text-xs font-bold text-stone-700 group-hover:text-[#249444]">${dep.nomDep}</span>

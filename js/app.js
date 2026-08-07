@@ -34,32 +34,42 @@ const SistemaGlobal = {
     init() {
         console.log("Iniciando Sistema Regional Interno...");
 
-        // REVISAR SI HAY CACHÉ LOCAL (Para evitar la tardanza de los 3 segundos de Google)
         const datosEnCache = localStorage.getItem('sistema_cache_datos');
         const tiempoCache = localStorage.getItem('sistema_cache_tiempo');
         const ahora = new Date().getTime();
 
-        // Si la caché tiene menos de 10 minutos, la usamos de inmediato (Cero demora)
         if (datosEnCache && tiempoCache && (ahora - tiempoCache < 10 * 60 * 1000)) {
-            console.log("Cargando datos desde la caché local (Ultra rápido)...");
+            console.log("Cargando datos desde la caché local...");
             this.procesarRespuestaServidor(JSON.parse(datosEnCache));
             return;
         }
 
-        // Si no hay caché, consultamos al servidor
         if (typeof google !== 'undefined' && google.script && google.script.run) {
             google.script.run
                 .withSuccessHandler(respuesta => this.guardarYCargar(respuesta))
                 .withFailureHandler(err => console.error("Error al obtener datos de Sheets:", err))
                 .obtenerDatosSistema();
         } else {
-            console.warn("Entorno Google Apps Script no detectado. Usando conexión Fetch...");
-            const URL_DIRECTA = "https://script.google.com/macros/s/AKfycbzDs5fvFxykQniWFZnbUqpbuDAmrIDhMHlVwU4r5B3iPLxBp4FDG7uKrtDBEXxEX8fQ/exec?action=obtenerDatosSistema";
+            console.warn("Usando puente seguro para GitHub Pages (CORS Bypass)...");
 
-            fetch(URL_DIRECTA)
+            // IMPORTANTE: Asegúrate de que tu función en Google Apps Script reciba un parámetro 'callback' 
+            // o usa un proxy ligero de Google Script configurado para aceptar llamadas externas.
+            const URL_DIRECTA = "https://script.google.com/macros/s/AKfycbzDs5fvFxykQniWFZnbUqpbuDAmrIDhMHlVwU4r5B3iPLxBp4FDG7uKrtDBDQEXxEX8fQ/exec?action=obtenerDatosSistema";
+
+            // Usamos un proxy público gratuito para evitar CORS en GitHub Pages de forma temporal
+            const proxyCORS = `https://api.allorigins.win/get?url=${encodeURIComponent(URL_DIRECTA)}`;
+
+            fetch(proxyCORS)
                 .then(res => res.json())
-                .then(data => this.guardarYCargar(data))
-                .catch(err => console.error("Error de conexión Fetch:", err));
+                .then(response => {
+                    const data = JSON.parse(response.contents);
+                    this.guardarYCargar(data);
+                })
+                .catch(err => {
+                    console.error("Error de conexión mediante Proxy:", err);
+                    // Fallback visual
+                    document.getElementById('user-regional-display').textContent = "Error de conexión con Sheets";
+                });
         }
     },
 
@@ -79,7 +89,7 @@ const SistemaGlobal = {
 
     procesarRespuestaServidor(datosReales) {
         this.datos = datosReales;
-        
+
         const todosLosDepartamentos = datosReales.departamentos || [];
         const todasLasRegionales = datosReales.regionales || [];
         let todosLosCampos = datosReales.campos || [];
@@ -87,19 +97,19 @@ const SistemaGlobal = {
         const areaUsuario = String(localStorage.getItem('session_area') || '').trim().toUpperCase();
         let claveRegUsuario = "";
 
-        const regionalEncontrada = todasLasRegionales.find(r => 
-            String(r.claveReg).trim().toUpperCase() === areaUsuario || 
+        const regionalEncontrada = todasLasRegionales.find(r =>
+            String(r.claveReg).trim().toUpperCase() === areaUsuario ||
             String(r.nomCorto).trim().toUpperCase() === areaUsuario
         );
 
         if (regionalEncontrada) {
             claveRegUsuario = String(regionalEncontrada.claveReg).trim();
         } else {
-            const depUsuario = todosLosDepartamentos.find(dep => 
-                String(dep.nomCorDep).trim().toUpperCase() === areaUsuario || 
+            const depUsuario = todosLosDepartamentos.find(dep =>
+                String(dep.nomCorDep).trim().toUpperCase() === areaUsuario ||
                 String(dep.claveCentro).trim().toUpperCase() === areaUsuario
             );
-            
+
             if (depUsuario) {
                 claveRegUsuario = String(depUsuario.claveReg).trim();
             } else {
@@ -138,7 +148,7 @@ const SistemaGlobal = {
     renderizarFiltroCampos(campos, claveReg) {
         const camposDeLaRegional = campos.filter(c => String(c.claveReg).trim() === claveReg);
         const selectFiltro = document.getElementById('filtro-campos-regional');
-        
+
         if (selectFiltro) {
             selectFiltro.innerHTML = '<option value="">Seleccionar campo</option>';
             camposDeLaRegional.forEach(campo => {

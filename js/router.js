@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // 2. Buscamos de forma automática la variable de configuración global correspondiente
     // Ejemplo: si llega 'CIRNOSIS', buscará 'cirnosisConfig' o 'CIRNOSISConfig' de manera robusta.
     // Buscamos primero en minúsculas+Config o exacto con Config.
-    let deptoData = window[nombreCorto + 'Config'];
+    const deptoData = window[nombreCorto + 'Config'];
     console.warn(deptoData);
     // Si existe la configuración para ese departamento, pintamos su menú dinámicamente
     if (deptoData && deptoData.options) {

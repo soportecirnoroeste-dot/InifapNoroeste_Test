@@ -1,10 +1,10 @@
 document.addEventListener("DOMContentLoaded", () => {
     const urlParams = new URLSearchParams(window.location.search);
     
-    // 1. Capturamos el nombre corto que viene en la URL (ej. 'sistemas', 'rh', etc.)
-    const nombreCorto = (urlParams.get('depto') || '').toLowerCase().trim();
+    // 1. Capturamos la clave del departamento que viene en la URL (ej. 'CIRNOSIS', 'CIRNORH', etc.)
+    const nombreCorto = (urlParams.get('depto') || '').toUpperCase().trim();
     
-    console.log("Nombre corto recibido en el main:", nombreCorto);
+    console.log("Clave de departamento recibida en el main:", nombreCorto);
 
     const navContainer = document.getElementById('dept-options-nav');
     const container = document.getElementById('app-container');
@@ -15,13 +15,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // 2. Buscamos de forma automática la variable de configuración global correspondiente
-    // Por ejemplo, si llega 'sistemas', buscará una variable llamada 'sistemasConfig'
-    // Si llega 'rh', buscarará 'rhConfig'
-    const nombreVariableConfig = nombreCorto + 'Config';
-    const deptoData = window[nombreVariableConfig]; // Busca la variable globalmente en el navegador
+    // Ejemplo: si llega 'CIRNOSIS', buscará 'cirnosisConfig' o 'CIRNOSISConfig' de manera robusta.
+    // Buscamos primero en minúsculas+Config o exacto con Config.
+    let deptoData = window[nombreCorto.toLowerCase() + 'Config'] || window[nombreCorto + 'Config'];
 
-    if (nombreCorto === 'CIRNOSIS') {
-        // 3. Pintar el menú superior dinámicamente con las opciones que traiga ese depto
+    // Si existe la configuración para ese departamento, pintamos su menú dinámicamente
+    if (deptoData && deptoData.options) {
         let navHtml = '';
         deptoData.options.forEach((opt, index) => {
             navHtml += `
@@ -34,17 +33,17 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         navContainer.innerHTML = navHtml;
 
-        // 4. Ejecutar por defecto la primera opción del menú
+        // 3. Ejecutar por defecto la primera opción del menú si existe
         if (deptoData.options.length > 0) {
             eval(deptoData.options[0].action);
         }
     } else {
-        // Si el archivo JS de ese departamento no ha sido cargado o no existe su configuración
+        // Si el archivo JS de ese departamento no ha cargado o no existe su configuración global
         navContainer.innerHTML = `<span class="text-xs text-red-500 font-bold px-3">Sin configuración</span>`;
         container.innerHTML = `
             <div class="text-center py-20 bg-white rounded-2xl border border-stone-200 shadow-sm">
                 <h2 class="text-2xl font-bold text-red-500">Departamento no configurado</h2>
-                <p class="text-xs text-stone-500 mt-2">No se encontró la configuración <code class="bg-stone-100 px-2 py-1 rounded text-stone-700">${nombreVariableConfig}</code> para el departamento: <strong class="text-stone-800">"${nombreCorto}"</strong></p>
+                <p class="text-xs text-stone-500 mt-2">No se encontró la configuración global para el departamento: <strong class="text-stone-800">"${nombreCorto}"</strong></p>
                 <a href="index.html" class="inline-block mt-6 px-6 py-2 bg-[#249444] text-white rounded-xl text-xs font-bold">Regresar al inicio</a>
             </div>
         `;

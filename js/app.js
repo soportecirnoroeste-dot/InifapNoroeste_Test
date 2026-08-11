@@ -187,6 +187,7 @@ const SistemaGlobal = {
             const claveDep = (dep.nomCorDep || '').toUpperCase();
             let iconoSvg = '';
 
+console.log("Departamento detectado:", claveDep, "Nombre:", dep.nomDep);
             // Asignación exacta basada en el nombre corto (NomCorDep)
             switch (claveDep) {
                 case 'CIRNODIR': // Dirección Regional

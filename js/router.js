@@ -1,27 +1,27 @@
-// js/router.js
-
-// Registro central por nombre corto (puedes pasarlo a minúsculas para estandarizar)
-const departmentsRegistry = {
-    'sistemas': typeof sistemasConfig !== 'undefined' ? sistemasConfig : null,
-    'sis': typeof sistemasConfig !== 'undefined' ? sistemasConfig : null, // Por si acaso usas la clave corta
-    // 'recursos': typeof recursosConfig !== 'undefined' ? recursosConfig : null,
-};
-
 document.addEventListener("DOMContentLoaded", () => {
     const urlParams = new URLSearchParams(window.location.search);
-
-    // Capturamos el valor que venga en la variable (ej. ?depto=sistemas o ?depto=sis)
+    
+    // 1. Capturamos el nombre corto que viene en la URL (ej. 'sistemas', 'rh', etc.)
     const nombreCorto = (urlParams.get('depto') || '').toLowerCase().trim();
+    
+    console.log("Nombre corto recibido en el main:", nombreCorto);
 
-    const deptoData = departmentsRegistry[nombreCorto];
     const navContainer = document.getElementById('dept-options-nav');
     const container = document.getElementById('app-container');
 
-    console.log("Valor recibido en la variable depto:", deptoData);
-    if (deptoData) {
-            console.log("depto:", deptoData);
+    if (!nombreCorto) {
+        mostrarError("No se especificó ningún departamento en la URL.");
+        return;
+    }
 
-        // 1. Pintar el título/menú superior dinámicamente según lo que traiga la variable
+    // 2. Buscamos de forma automática la variable de configuración global correspondiente
+    // Por ejemplo, si llega 'sistemas', buscará una variable llamada 'sistemasConfig'
+    // Si llega 'rh', buscarará 'rhConfig'
+    const nombreVariableConfig = nombreCorto + 'Config';
+    const deptoData = window[nombreVariableConfig]; // Busca la variable globalmente en el navegador
+
+    if (deptoData && deptoData.options) {
+        // 3. Pintar el menú superior dinámicamente con las opciones que traiga ese depto
         let navHtml = '';
         deptoData.options.forEach((opt, index) => {
             navHtml += `
@@ -34,17 +34,17 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         navContainer.innerHTML = navHtml;
 
-        // 2. Ejecutar por defecto la primera opción del menú
+        // 4. Ejecutar por defecto la primera opción del menú
         if (deptoData.options.length > 0) {
             eval(deptoData.options[0].action);
         }
     } else {
-        // Si la variable llega vacía o con un nombre no registrado, lo indicamos claramente
-        navContainer.innerHTML = `<span class="text-xs text-red-500 font-bold px-3">Sin departamento</span>`;
+        // Si el archivo JS de ese departamento no ha sido cargado o no existe su configuración
+        navContainer.innerHTML = `<span class="text-xs text-red-500 font-bold px-3">Sin configuración</span>`;
         container.innerHTML = `
             <div class="text-center py-20 bg-white rounded-2xl border border-stone-200 shadow-sm">
-                <h2 class="text-2xl font-bold text-red-500">Departamento no identificado</h2>
-                <p class="text-xs text-stone-500 mt-2">La variable de la URL no contiene un nombre corto válido o activo: <strong class="text-stone-800">"${nombreCorto}"</strong></p>
+                <h2 class="text-2xl font-bold text-red-500">Departamento no configurado</h2>
+                <p class="text-xs text-stone-500 mt-2">No se encontró la configuración <code class="bg-stone-100 px-2 py-1 rounded text-stone-700">${nombreVariableConfig}</code> para el departamento: <strong class="text-stone-800">"${nombreCorto}"</strong></p>
                 <a href="index.html" class="inline-block mt-6 px-6 py-2 bg-[#249444] text-white rounded-xl text-xs font-bold">Regresar al inicio</a>
             </div>
         `;

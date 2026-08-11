@@ -1,6 +1,6 @@
-// js/sistemas.js
-
-const cirnosisConfig = {
+// En tu archivo js/cirnosis.js (sin usar const para que no marque error si se reescribe)
+window.cirnosisConfig = {
+    deptoKey: "cirnosis",
     title: "Departamento de Sistemas",
     subtitle: "Gestión de infraestructura tecnológica, redes y soporte técnico.",
     options: [
@@ -10,8 +10,7 @@ const cirnosisConfig = {
         { id: "inventarios", title: "Inventarios", icon: "💻", action: "cargarInventariosSis()" },
         { id: "formatos", title: "Formatos Of.", icon: "📄", action: "cargarFormatosSis()" }
     ]
-};
-
+}
 function cargarReunionesSis() {
     document.getElementById('app-container').innerHTML = `
         <div class="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm animate-fade-in">

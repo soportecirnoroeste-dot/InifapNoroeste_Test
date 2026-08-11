@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema INIFAP - Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./css/styles.css">
+</head>
+
+<body class="min-h-screen flex flex-col bg-[#F2F2F2] font-['Plus_Jakarta_Sans',sans-serif]">
+
+    <!-- Aquí va el Header (igual que tenías) -->
+    <header class="bg-white shadow-md sticky top-0 z-50 border-b-4 border-[#249444]">
+        <!-- ... (tu código del header) ... -->
+    </header>
+
+    <!-- Contenedor donde cargaremos dinámicamente el contenido de los departamentos -->
+    <main id="app-container" class="flex-grow container mx-auto px-6 py-8">
+        <!-- El contenido se inyectará aquí mediante JavaScript -->
+    </main>
+
+    <footer class="bg-white border-t border-stone-200 py-4 text-center text-xs text-stone-400">
+        <p>INIFAP &copy; 2026 - Todos los derechos reservados.</p>
+    </footer>
+
+    <script src="js/api.js" defer></script>
+    <script src="js/router.js" defer></script> <!-- Nuevo archivo de control -->
+    <script src="js/app.js" defer></script>
+</body>
+</html>

@@ -12,13 +12,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Capturamos el valor que venga en la variable (ej. ?depto=sistemas o ?depto=sis)
     const nombreCorto = (urlParams.get('depto') || '').toLowerCase().trim();
-    console.log("Valor recibido en la variable depto:", nombreCorto);
-    
+
     const deptoData = departmentsRegistry[nombreCorto];
     const navContainer = document.getElementById('dept-options-nav');
     const container = document.getElementById('app-container');
 
+    console.log("Valor recibido en la variable depto:", deptoData);
     if (deptoData) {
+            console.log("depto:", deptoData);
+
         // 1. Pintar el título/menú superior dinámicamente según lo que traiga la variable
         let navHtml = '';
         deptoData.options.forEach((opt, index) => {

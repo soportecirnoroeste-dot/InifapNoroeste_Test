@@ -25,26 +25,27 @@
     <!-- Barra de Navegación / Cabecera Principal -->
     <header class="bg-white shadow-md sticky top-0 z-50 border-b-4 border-[#249444]">
         <div class="container mx-auto px-6 py-3 flex items-center justify-between">
-
-            <!-- Logo -->
+            <!-- Contenedor principal con flex e items-center para alineación vertical perfecta -->
             <div class="inifap-logo-wrapperIndex flex items-center gap-4">
 
                 <!-- 1. Botón de Regresar (Flecha) -->
                 <a href="index.html"
-                    class="flex items-center justify-center p-2 rounded-xl bg-stone-100 text-stone-600 hover:bg-[#249444] hover:text-white transition-all shadow-xs shrink-0"
+                    class="flex items-center justify-center p-2.5 rounded-xl bg-stone-100 text-stone-600 hover:bg-[#249444] hover:text-white transition-all shadow-xs"
                     title="Regresar al inicio">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="2.5">
                         <path d="M19 12H5M12 19l-7-7 7-7" />
                     </svg>
                 </a>
-                <div class="inifap-logo-wrapperIndex  px-15">
-                    <div class="logo-mainIndex">
+
+                <!-- 2. Logotipo de INIFAP -->
+                <div class="logo-mainIndex flex flex-col justify-center">
+                    <div class="flex items-baseline">
                         <span class="letteIndexr">i</span>
                         <span class="letterIndex kern-inIndex">n</span>
                         <span class="letterIndex">i</span>
-                        <div class="f-containerIndex">
-                            <div class="seedIndex"></div>
+                        <div class="f-containerIndex relative inline-flex items-baseline">
+                            <div class="seedIndex absolute"></div>
                             <span class="letterIndex">f</span>
                         </div>
                         <span class="Index">a</span>

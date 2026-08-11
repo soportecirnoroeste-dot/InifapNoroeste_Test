@@ -9,10 +9,11 @@ const departmentsRegistry = {
 
 document.addEventListener("DOMContentLoaded", () => {
     const urlParams = new URLSearchParams(window.location.search);
-    
+
     // Capturamos el valor que venga en la variable (ej. ?depto=sistemas o ?depto=sis)
     const nombreCorto = (urlParams.get('depto') || '').toLowerCase().trim();
-
+    console.log("Valor recibido en la variable depto:", nombreCorto);
+    
     const deptoData = departmentsRegistry[nombreCorto];
     const navContainer = document.getElementById('dept-options-nav');
     const container = document.getElementById('app-container');

@@ -249,37 +249,36 @@ const SistemaGlobal = {
     },
 
     seleccionarDepartamento(NomCorDep, elementoBtn) {
-        // 1. Quitar estilos activos de todos los botones e inactivos los iconos
-        document.querySelectorAll('.area-btn').forEach(btn => {
-            btn.classList.remove('border-[#249444]', 'bg-emerald-50/80', 'shadow-sm');
-            btn.classList.add('border-stone-200');
-            let divIcon = btn.querySelector('div');
-            if (divIcon) {
-                divIcon.classList.remove('bg-[#249444]', 'text-white');
-                divIcon.classList.add('bg-emerald-50', 'text-[#249444]');
-            }
-        });
-
-        // 2. Aplicar estilos de selección al botón presionado
-        elementoBtn.classList.remove('border-stone-200');
-        elementoBtn.classList.add('border-[#249444]', 'bg-emerald-50/80', 'shadow-sm');
-        let iconoDiv = elementoBtn.querySelector('div');
-        if (iconoDiv) {
-            iconoDiv.classList.remove('bg-emerald-50', 'text-[#249444]');
-            iconoDiv.classList.add('bg-[#249444]', 'text-white');
+    // 1. Quitar estilos activos de todos los botones e inactivos los iconos
+    document.querySelectorAll('.area-btn').forEach(btn => {
+        btn.classList.remove('border-[#249444]', 'bg-emerald-50/80', 'shadow-sm');
+        btn.classList.add('border-stone-200');
+        let divIcon = btn.querySelector('div');
+        if (divIcon) {
+            divIcon.classList.remove('bg-[#249444]', 'text-white');
+            divIcon.classList.add('bg-emerald-50', 'text-[#249444]');
         }
+    });
 
-        console.log("Departamento seleccionado:", NomCorDep);
-
-        // 3. Redirigir a la plantilla main.html indicando el departamento seleccionado
-        // Convertimos el nombre corto o clave a minúsculas o formato amigable para la URL
-        const deptoKey = NomCorDep.toLowerCase().replace(/\s+/g, '');
-
-        // Pequeño retraso opcional (150ms) para que el usuario alcance a ver el verde de selección antes de cambiar de vista
-        setTimeout(() => {
-            window.location.href = `main.html?depto=${deptoKey}`;
-        }, 150);
+    // 2. Aplicar estilos de selección al botón presionado
+    elementoBtn.classList.remove('border-stone-200');
+    elementoBtn.classList.add('border-[#249444]', 'bg-emerald-50/80', 'shadow-sm');
+    let iconoDiv = elementoBtn.querySelector('div');
+    if (iconoDiv) {
+        iconoDiv.classList.remove('bg-emerald-50', 'text-[#249444]');
+        iconoDiv.classList.add('bg-[#249444]', 'text-white');
     }
+
+    console.log("Departamento seleccionado:", NomCorDep);
+
+    // 3. Limpiar y estandarizar la clave o nombre corto para la URL (ej: 'sis')
+    const deptoKey = NomCorDep.toString().toLowerCase().trim().replace(/\s+/g, '');
+
+    // 4. Redirigir a main.html con la clave limpia
+    setTimeout(() => {
+        window.location.href = `main.html?depto=${deptoKey}`;
+    }, 150);
+}
 };
 
 // ==========================================

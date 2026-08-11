@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const deptoData = departmentsRegistry[deptoKey];
     const navContainer = document.getElementById('dept-options-nav');
     const container = document.getElementById('app-container');
-
+    console.warn(deptoData)
     if (deptoData) {
         // 1. Pintar el menú superior en la cabecera dentro de main.html
         let navHtml = '';

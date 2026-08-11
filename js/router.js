@@ -1,9 +1,8 @@
 // js/router.js
 
-// Mapa general que unifica las configuraciones de cada departamento
 const departmentsRegistry = {
     'sis': typeof sistemasConfig !== 'undefined' ? sistemasConfig : null,
-    // Aquí puedes agregar después 'rh': recursosConfig, etc.
+    // Aquí agregarás los demás cuando gustes (ej. 'rh', 'inv')
 };
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -15,7 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const container = document.getElementById('app-container');
 
     if (deptoData) {
-        // 1. Pintar los botones del menú superior en la barra central
+        // 1. Pintar el menú superior en la cabecera dentro de main.html
         let navHtml = '';
         deptoData.options.forEach((opt, index) => {
             navHtml += `
@@ -28,7 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         navContainer.innerHTML = navHtml;
 
-        // 2. Ejecutar por defecto la primera opción
+        // 2. Cargar por defecto la primera opción (Reuniones) al abrir el main
         if (deptoData.options.length > 0) {
             eval(deptoData.options[0].action);
         }
@@ -37,7 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
         container.innerHTML = `
             <div class="text-center py-20 bg-white rounded-2xl border border-stone-200">
                 <h2 class="text-2xl font-bold text-red-500">Clave de departamento inválida</h2>
-                <a href="index.html" class="inline-block mt-6 px-6 py-2 bg-[#249444] text-white rounded-xl text-xs font-bold">Regresar al inicio</a>
+                <p class="text-xs text-stone-500 mt-2">No se encontró información para la clave especificada.</p>
             </div>
         `;
     }

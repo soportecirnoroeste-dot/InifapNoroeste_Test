@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Ejemplo: si llega 'CIRNOSIS', buscará 'cirnosisConfig' o 'CIRNOSISConfig' de manera robusta.
     // Buscamos primero en minúsculas+Config o exacto con Config.
     let deptoData = window[nombreCorto.toLowerCase() + 'Config'] || window[nombreCorto + 'Config'];
-    console.warn(deptoData+", "+nombreCorto+", "+deptoData.options);
+
     // Si existe la configuración para ese departamento, pintamos su menú dinámicamente
     if (deptoData && deptoData.options) {
         let navHtml = '';

@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
     const urlParams = new URLSearchParams(window.location.search);
-    
+
     // 1. Capturamos el nombre corto de la URL (ej. 'cirnosis')
     const nombreCorto = (urlParams.get('depto') || '').toLowerCase().trim();
     console.warn("Departamento solicitado:", nombreCorto);
@@ -14,8 +14,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // 2. Cargamos el archivo .js dinámicamente usando el nombre corto (ej. js/cirnosis.js)
+    // Agrega esto para depurar la ruta exacta en la consola
+    const rutaScript = `js/${nombreCorto}.js`;
+    console.warn("Intentando cargar archivo:", rutaScript);
+
     const script = document.createElement('script');
-    script.src = `js/${nombreCorto}.js`;
+    script.src = rutaScript;
     script.defer = true;
 
     script.onload = () => {

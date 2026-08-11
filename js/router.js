@@ -74,7 +74,7 @@ function mostrarErrorDepto(mensaje) {
 function mostrarErrorConfig(nombreCorto, detalle) {
     document.getElementById('dept-options-nav').innerHTML = `<span class="text-xs text-red-500 font-bold px-3">Sin configuración</span>`;
     document.getElementById('app-container').innerHTML = `
-        <div class="text-center py-20 bg-white rounded-2xl border border-stone-200 shadow-sm">
+        <div class="text-center py-20 bg-white rounded-2xl border border-stone-200 shadow-sm mt-5">
             <h2 class="text-2xl font-bold text-red-500">Departamento no configurado</h2>
             <p class="text-xs text-stone-500 mt-2">No se pudo cargar correctamente el archivo o la estructura para: <strong class="text-stone-800">"${nombreCorto}"</strong> (<code class="bg-stone-100 px-2 py-1 rounded text-stone-700">${detalle}</code>)</p>
             <a href="index.html" class="inline-block mt-6 px-6 py-2 bg-[#249444] text-white rounded-xl text-xs font-bold">Regresar al inicio</a>

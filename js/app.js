@@ -298,15 +298,3 @@ function seleccionarDepartamento(NomCorDep, elementoBtn) {
 // ==========================================
 document.addEventListener('DOMContentLoaded', AuthGuard.verificarAcceso);
 
-// Ejemplo de cómo generar los botones dinámicos
-function generarMenu() {
-    const menu = document.getElementById('menu-dinamico-departamentos');
-
-    // Ejemplo para el botón de sistemas
-    const btnSistemas = document.createElement('button');
-    btnSistemas.innerText = "Sistemas";
-    btnSistemas.className = "p-4 bg-white rounded-lg shadow";
-    btnSistemas.onclick = () => navigateTo('sistemas');
-
-    menu.appendChild(btnSistemas);
-}

@@ -1,6 +1,5 @@
 // js/sistemas.js
 
-// Objeto de configuración de opciones para el menú superior de Sistemas
 const sistemasConfig = {
     title: "Departamento de Sistemas",
     subtitle: "Gestión de infraestructura tecnológica, redes y soporte técnico.",
@@ -13,7 +12,6 @@ const sistemasConfig = {
     ]
 };
 
-// Funciones con prefijo Sis
 function cargarReunionesSis() {
     document.getElementById('app-container').innerHTML = `
         <div class="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm animate-fade-in">

@@ -1,25 +1,24 @@
 // js/router.js
 
-// Tu registro de departamentos (puedes ir agregando más según su ClaveDep en minúsculas)
+// Registro central por nombre corto (puedes pasarlo a minúsculas para estandarizar)
 const departmentsRegistry = {
-    'sis': typeof sistemasConfig !== 'undefined' ? sistemasConfig : null,
-    'sistemas': typeof sistemasConfig !== 'undefined' ? sistemasConfig : null, // Por si llega la clave completa
+    'sistemas': typeof sistemasConfig !== 'undefined' ? sistemasConfig : null,
+    'sis': typeof sistemasConfig !== 'undefined' ? sistemasConfig : null, // Por si acaso usas la clave corta
     // 'recursos': typeof recursosConfig !== 'undefined' ? recursosConfig : null,
 };
 
 document.addEventListener("DOMContentLoaded", () => {
     const urlParams = new URLSearchParams(window.location.search);
     
-    // Capturamos el parámetro de la URL (el ClaveDep) y lo normalizamos a minúsculas y sin espacios
-    const rawDepto = urlParams.get('depto') || urlParams.get('ClaveDep') || 'sis';
-    const deptoKey = rawDepto.toLowerCase().trim().replace(/\s+/g, '');
+    // Capturamos el valor que venga en la variable (ej. ?depto=sistemas o ?depto=sis)
+    const nombreCorto = (urlParams.get('depto') || '').toLowerCase().trim();
 
-    const deptoData = departmentsRegistry[deptoKey];
+    const deptoData = departmentsRegistry[nombreCorto];
     const navContainer = document.getElementById('dept-options-nav');
     const container = document.getElementById('app-container');
 
     if (deptoData) {
-        // 1. Pintar el menú superior en la cabecera dentro de main.html
+        // 1. Pintar el título/menú superior dinámicamente según lo que traiga la variable
         let navHtml = '';
         deptoData.options.forEach((opt, index) => {
             navHtml += `
@@ -32,17 +31,18 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         navContainer.innerHTML = navHtml;
 
-        // 2. Cargar por defecto la primera opción al abrir el main
+        // 2. Ejecutar por defecto la primera opción del menú
         if (deptoData.options.length > 0) {
             eval(deptoData.options[0].action);
         }
     } else {
-        // Si no encuentra la ClaveDep en el registro, muestra un mensaje claro indicando cuál clave falló
-        navContainer.innerHTML = `<span class="text-xs text-red-500 font-bold px-3">Clave no registrada</span>`;
+        // Si la variable llega vacía o con un nombre no registrado, lo indicamos claramente
+        navContainer.innerHTML = `<span class="text-xs text-red-500 font-bold px-3">Sin departamento</span>`;
         container.innerHTML = `
             <div class="text-center py-20 bg-white rounded-2xl border border-stone-200 shadow-sm">
-                <h2 class="text-2xl font-bold text-red-500">Clave de departamento no encontrada</h2>
-                <p class="text-xs text-stone-500 mt-2">La clave <strong class="text-stone-800">"${rawDepto}"</strong> no cuenta con un archivo de configuración activo en el sistema.</p>
+                <h2 class="text-2xl font-bold text-red-500">Departamento no identificado</h2>
+                <p class="text-xs text-stone-500 mt-2">La variable de la URL no contiene un nombre corto válido o activo: <strong class="text-stone-800">"${nombreCorto}"</strong></p>
+                <a href="index.html" class="inline-block mt-6 px-6 py-2 bg-[#249444] text-white rounded-xl text-xs font-bold">Regresar al inicio</a>
             </div>
         `;
     }

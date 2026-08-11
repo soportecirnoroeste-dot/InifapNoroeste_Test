@@ -1,6 +1,6 @@
 // js/sistemas.js
 
-const sistemasConfig = {
+const cirnosisConfig = {
     title: "Departamento de Sistemas",
     subtitle: "Gestión de infraestructura tecnológica, redes y soporte técnico.",
     options: [

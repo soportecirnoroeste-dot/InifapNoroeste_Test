@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const nombreVariableConfig = nombreCorto + 'Config';
     const deptoData = window[nombreVariableConfig]; // Busca la variable globalmente en el navegador
 
-    if (deptoData && deptoData.options) {
+    if (deptoData === 'cirnosisConfig ') {
         // 3. Pintar el menú superior dinámicamente con las opciones que traiga ese depto
         let navHtml = '';
         deptoData.options.forEach((opt, index) => {

@@ -187,7 +187,6 @@ const SistemaGlobal = {
             const claveDep = (dep.nomCorDep || '').toUpperCase();
             let iconoSvg = '';
 
-            console.log("Departamento detectado:", claveDep, "Nombre:", dep.nomDep);
             // Asignación exacta basada en el nombre corto (NomCorDep)
             switch (claveDep) {
                 case 'CIRNODIR': // Dirección Regional
@@ -250,6 +249,7 @@ const SistemaGlobal = {
     },
 
     seleccionarDepartamento(NomCorDep, elementoBtn) {
+        // 1. Quitar estilos activos de todos los botones e inactivos los iconos
         document.querySelectorAll('.area-btn').forEach(btn => {
             btn.classList.remove('border-[#249444]', 'bg-emerald-50/80', 'shadow-sm');
             btn.classList.add('border-stone-200');
@@ -260,6 +260,7 @@ const SistemaGlobal = {
             }
         });
 
+        // 2. Aplicar estilos de selección al botón presionado
         elementoBtn.classList.remove('border-stone-200');
         elementoBtn.classList.add('border-[#249444]', 'bg-emerald-50/80', 'shadow-sm');
         let iconoDiv = elementoBtn.querySelector('div');
@@ -269,6 +270,15 @@ const SistemaGlobal = {
         }
 
         console.log("Departamento seleccionado:", NomCorDep);
+
+        // 3. Redirigir a la plantilla main.html indicando el departamento seleccionado
+        // Convertimos el nombre corto o clave a minúsculas o formato amigable para la URL
+        const deptoKey = NomCorDep.toLowerCase().replace(/\s+/g, '');
+
+        // Pequeño retraso opcional (150ms) para que el usuario alcance a ver el verde de selección antes de cambiar de vista
+        setTimeout(() => {
+            window.location.href = `main.html?depto=${deptoKey}`;
+        }, 150);
     }
 };
 
@@ -291,12 +301,12 @@ document.addEventListener('DOMContentLoaded', AuthGuard.verificarAcceso);
 // Ejemplo de cómo generar los botones dinámicos
 function generarMenu() {
     const menu = document.getElementById('menu-dinamico-departamentos');
-    
+
     // Ejemplo para el botón de sistemas
     const btnSistemas = document.createElement('button');
     btnSistemas.innerText = "Sistemas";
     btnSistemas.className = "p-4 bg-white rounded-lg shadow";
     btnSistemas.onclick = () => navigateTo('sistemas');
-    
+
     menu.appendChild(btnSistemas);
 }

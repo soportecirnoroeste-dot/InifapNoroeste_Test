@@ -1,18 +1,23 @@
 // js/router.js
 
+// Tu registro de departamentos (puedes ir agregando más según su ClaveDep en minúsculas)
 const departmentsRegistry = {
     'sis': typeof sistemasConfig !== 'undefined' ? sistemasConfig : null,
-    // Aquí agregarás los demás cuando gustes (ej. 'rh', 'inv')
+    'sistemas': typeof sistemasConfig !== 'undefined' ? sistemasConfig : null, // Por si llega la clave completa
+    // 'recursos': typeof recursosConfig !== 'undefined' ? recursosConfig : null,
 };
 
 document.addEventListener("DOMContentLoaded", () => {
     const urlParams = new URLSearchParams(window.location.search);
-    const deptoKey = (urlParams.get('depto') || 'sis').toLowerCase();
+    
+    // Capturamos el parámetro de la URL (el ClaveDep) y lo normalizamos a minúsculas y sin espacios
+    const rawDepto = urlParams.get('depto') || urlParams.get('ClaveDep') || 'sis';
+    const deptoKey = rawDepto.toLowerCase().trim().replace(/\s+/g, '');
 
     const deptoData = departmentsRegistry[deptoKey];
     const navContainer = document.getElementById('dept-options-nav');
     const container = document.getElementById('app-container');
-    console.warn(deptoData)
+
     if (deptoData) {
         // 1. Pintar el menú superior en la cabecera dentro de main.html
         let navHtml = '';
@@ -27,16 +32,17 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         navContainer.innerHTML = navHtml;
 
-        // 2. Cargar por defecto la primera opción (Reuniones) al abrir el main
+        // 2. Cargar por defecto la primera opción al abrir el main
         if (deptoData.options.length > 0) {
             eval(deptoData.options[0].action);
         }
     } else {
-        navContainer.innerHTML = `<span class="text-xs text-red-500 font-bold px-3">Departamento no encontrado</span>`;
+        // Si no encuentra la ClaveDep en el registro, muestra un mensaje claro indicando cuál clave falló
+        navContainer.innerHTML = `<span class="text-xs text-red-500 font-bold px-3">Clave no registrada</span>`;
         container.innerHTML = `
-            <div class="text-center py-20 bg-white rounded-2xl border border-stone-200">
-                <h2 class="text-2xl font-bold text-red-500">Clave de departamento inválida</h2>
-                <p class="text-xs text-stone-500 mt-2">No se encontró información para la clave especificada.</p>
+            <div class="text-center py-20 bg-white rounded-2xl border border-stone-200 shadow-sm">
+                <h2 class="text-2xl font-bold text-red-500">Clave de departamento no encontrada</h2>
+                <p class="text-xs text-stone-500 mt-2">La clave <strong class="text-stone-800">"${rawDepto}"</strong> no cuenta con un archivo de configuración activo en el sistema.</p>
             </div>
         `;
     }

@@ -14,6 +14,37 @@ window.cirnorhConfig = {
 
 // Función de Bienvenida Específica para Recursos Humanos
 function cargarBienvenidaRh() {
+    let tarjetasHtml = '';
+    const coloresBg = [
+        'bg-[#f0fdf4] border-[#c6f6d5] text-[#059669]',
+        'bg-[#fffbeb] border-[#fef3c7] text-[#d97706]',
+        'bg-[#eff6ff] border-[#bfdbfe] text-[#2563eb]',
+        'bg-[#faf5ff] border-[#f3e8ff] text-[#7e22ce]',
+        'bg-[#fff1f2] border-[#ffe4e6] text-[#e11d48]'
+    ];
+
+    // Generamos las tarjetas dinámicamente basadas en el menú de opciones
+    if (window.cirnorhConfig && window.cirnorhConfig.options) {
+        window.cirnorhConfig.options.forEach((opt, index) => {
+            const estiloColor = coloresBg[index % coloresBg.length];
+            tarjetasHtml += `
+                <div onclick="${opt.action}" 
+                     class="p-5 rounded-xl border cursor-pointer hover:shadow-md transition-all bg-white flex flex-col justify-between group">
+                    <div>
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-xl p-2 rounded-lg ${estiloColor.split(' ')[0]}">${opt.icon}</span>
+                            <h4 class="font-bold text-stone-800 text-sm group-hover:text-[#249444] transition-colors">${opt.title}</h4>
+                        </div>
+                        <p class="text-xs text-stone-500">Módulo de gestión para ${opt.title.toLowerCase()}.</p>
+                    </div>
+                    <div class="mt-4 text-[10px] font-bold uppercase tracking-wider text-stone-400 group-hover:text-[#249444] flex items-center gap-1">
+                        <span>Abrir módulo</span> &rarr;
+                    </div>
+                </div>
+            `;
+        });
+    }
+
     document.getElementById('app-container').innerHTML = `
         <div class="bg-white rounded-2xl p-8 border border-stone-200 shadow-sm animate-fade-in">
             <div class="flex items-center gap-4 mb-6 pb-6 border-b border-stone-100">
@@ -22,24 +53,14 @@ function cargarBienvenidaRh() {
                 </div>
                 <div>
                     <h2 class="font-black text-stone-900 text-2xl mb-1">👋 ¡Bienvenido/a!</h2>
-                    <p class="text-sm text-stone-600 max-w-xl">${deptoData.subtitle || 'Selecciona una de las tarjetas inferiores para comenzar.'}</p>
+                    <p class="text-sm text-stone-600 max-w-xl">Te encuentras en el portal del Departamento de Recursos Humanos (CIRNORH). Selecciona una de las tarjetas inferiores para comenzar.</p>
                 </div>
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="p-5 bg-[#f0fdf4] rounded-xl border border-[#c6f6d5]">
-                    <h4 class="font-bold text-[#059669] text-sm mb-1.5">Gestión Ágil</h4>
-                    <p class="text-xs text-stone-700">Accede a la información de empleados y procesos clave de manera rápida y segura.</p>
-                </div>
-                <div class="p-5 bg-[#fffbeb] rounded-xl border border-[#fef3c7]">
-                    <h4 class="font-bold text-[#d97706] text-sm mb-1.5">Información Precisa</h4>
-                    <p class="text-xs text-stone-700">Mantén los datos actualizados sobre asistencias, vacaciones y expedientes digitales.</p>
-                </div>
-                <div class="p-5 bg-[#eff6ff] rounded-xl border border-[#bfdbfe]">
-                    <h4 class="font-bold text-[#2563eb] text-sm mb-1.5">Procesos Eficientes</h4>
-                    <p class="text-xs text-stone-700">Utiliza herramientas para la generación de oficios y seguimiento del personal.</p>
-                </div>
+                ${tarjetasHtml}
             </div>
+            
             <p class="mt-6 text-xs text-stone-400 italic text-center">Última actualización de datos: ${new Date().toLocaleDateString()}</p>
         </div>
     `;

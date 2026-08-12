@@ -1,55 +1,64 @@
 document.addEventListener("DOMContentLoaded", async () => {
     const urlParams = new URLSearchParams(window.location.search);
-    const nombreCorto = (urlParams.get('depto') || '').toLowerCase().trim();
+    const nombreCortoUrl = (urlParams.get('depto') || '').toLowerCase().trim();
     
     const navContainer = document.getElementById('dept-options-nav');
     const headerTitleSpan = document.getElementById('header-depto-title');
 
-    if (!nombreCorto) {
+    if (!nombreCortoUrl) {
         mostrarErrorDepto("No se especificó ningún departamento en la URL.");
         return;
     }
 
-    // 1. OBTENEMOS EL NOMDEP DIRECTAMENTE DESDE EL SHEETS (O SU CACHÉ GLOBAL)
-    let nombreOficialSheets = "";
+    let nombreOficialDep = "";
+
     try {
-        // Si ya tienes una función global o endpoint que trae los departamentos del Sheets:
-        // (Asegúrate de cambiar 'obtenerDepartamentosDelSheets()' por la función o fetch que ya usas en tu index)
-        const departamentos = typeof obtenerDepartamentosDelSheets === 'function' 
-            ? await obtenerDepartamentosDelSheets() 
+        // 1. Intentamos obtener los datos frescos directamente de tu API / Google Sheets
+        const datosSheets = typeof apiGetDepartamentos === 'function' 
+            ? await apiGetDepartamentos() 
             : JSON.parse(localStorage.getItem('cacheDepartamentos') || '[]');
 
-        // Buscamos el departamento donde la clave corta coincida con la de la URL
-        const deptoEncontrado = departamentos.find(d => 
-            (d.nomCorDep || d.key || '').toLowerCase().trim() === nombreCorto
-        );
+        // 2. Buscamos el objeto donde NomCorDep (Columna F) coincida con la URL
+        const deptoEncontrado = datosSheets.find(row => {
+            const cor = (row.NomCorDep || row.nomCorDep || '').toLowerCase().trim();
+            return cor === nombreCortoUrl;
+        });
 
-        if (deptoEncontrado && deptoEncontrado.nomDep) {
-            nombreOficialSheets = deptoEncontrado.nomDep;
-            // Lo guardamos para futuras recargas rápidas
-            localStorage.setItem('nomDepActual', nombreOficialSheets);
-        } else {
-            // Si no está en la caché, recurrimos al localStorage previo o formateamos el nombre corto
-            nombreOficialSheets = localStorage.getItem('nomDepActual') || nombreCorto;
+        if (deptoEncontrado && deptoEncontrado.NomDep) {
+            nombreOficialDep = deptoEncontrado.NomDep; // Extrae "Recursos Humanos", etc.
         }
-    } catch (error) {
-        console.warn("No se pudo consultar el Sheets en tiempo real, usando respaldo.", error);
-        nombreOficialSheets = localStorage.getItem('nomDepActual') || nombreCorto;
+    } catch (e) {
+        console.warn("No se pudo conectar al Sheets para el título, usando respaldo.");
     }
 
-    // 2. INYECTAMOS EL NOMBRE OFICIAL EN EL HEADER
+    // 3. Si por alguna razón no lo halló en la red, revisamos si lo guardaste previo o mapeamos manualmente
+    if (!nombreOficialDep) {
+        const mapaEmergencia = {
+            'cirnordir': 'Dirección Regional',
+            'cirnodirin': 'Dirección de Investigacion',
+            'cirnodirad': 'Dirección de Administración',
+            'cirnorf': 'Recursos Financiero',
+            'cirnorh': 'Recursos Humanos',
+            'cirnorm': 'Recursos Materiales',
+            'cirnosis': 'Sistemas',
+            'cirnoof': 'Oficialia'
+        };
+        nombreOficialDep = mapaEmergencia[nombreCortoUrl] || nombreCortoUrl;
+    }
+
+    // 4. Inyectamos el NomDep oficial en el header
     if (headerTitleSpan) {
-        headerTitleSpan.innerHTML = `SISTEMA REGIONAL INTERNO <span class="text-stone-400 font-normal">/</span> ${nombreOficialSheets.toUpperCase()}`;
+        headerTitleSpan.innerHTML = `SISTEMA REGIONAL INTERNO <span class="text-stone-400 font-normal">/</span> ${nombreOficialDep.toUpperCase()}`;
     }
 
-    // 3. CARGAMOS EL SCRIPT DINÁMICO DEL DEPARTAMENTO
-    const rutaScript = `js/${nombreCorto}.js`;
+    // 5. Cargamos el archivo .js del departamento correspondiente
+    const rutaScript = `js/${nombreCortoUrl}.js`;
     const script = document.createElement('script');
     script.src = rutaScript;
     script.defer = true;
 
     script.onload = () => {
-        const nombreVariableConfig = nombreCorto + 'Config';
+        const nombreVariableConfig = nombreCortoUrl + 'Config';
         const deptoData = window[nombreVariableConfig];
 
         if (deptoData && deptoData.options) {
@@ -69,12 +78,12 @@ document.addEventListener("DOMContentLoaded", async () => {
                 eval(deptoData.options[0].action);
             }
         } else {
-            mostrarErrorConfig(nombreCorto, nombreVariableConfig);
+            mostrarErrorConfig(nombreCortoUrl, nombreVariableConfig);
         }
     };
 
     script.onerror = () => {
-        mostrarErrorConfig(nombreCorto, `js/${nombreCorto}.js`);
+        mostrarErrorConfig(nombreCortoUrl, `js/${nombreCortoUrl}.js`);
     };
 
     document.head.appendChild(script);

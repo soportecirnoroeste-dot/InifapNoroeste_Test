@@ -51,13 +51,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (deptoData && deptoData.options) {
             
-            // --- ACTUALIZADO: Forzar siempre mayúsculas en el header ---
-            const headerTitleSpan = document.querySelector('.absolute.left-1/2.-translate-x-1\\/2.-translate-y-10 span');
+            // --- ACTUALIZADO: Búsqueda directa y limpia por ID ---
+            const headerTitleSpan = document.getElementById('header-depto-title');
             if (headerTitleSpan && deptoData.title) {
                 const tituloMayusculas = deptoData.title.toUpperCase();
                 headerTitleSpan.innerHTML = `SISTEMA REGIONAL INTERNO <span class="text-stone-400 font-normal">/</span> ${tituloMayusculas}`;
             }
-            // -----------------------------------------------------------
+            // -----------------------------------------------------
 
             // Pintamos el menú superior dinámicamente
             let navHtml = '';

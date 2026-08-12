@@ -10,21 +10,24 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
     }
 
-    let nombreOficialDep = nombreCortoUrl; // Valor por defecto si no se encuentra
+    let nombreOficialDep = "";
 
     try {
-        // Obtenemos los datos directamente de la caché local existente
+        // Leemos directo del caché que ya tiene el objeto con los departamentos
         const cacheBruto = localStorage.getItem('sistema_cache_datos');
         if (cacheBruto) {
             const cacheObj = JSON.parse(cacheBruto);
             const departamentos = cacheObj.departamentos || [];
 
-            // Buscamos el departamento coincidente por su clave o identificador corto
+            // Buscamos directamente el departamento haciendo match con el nombre corto o usando claveDep
+            // (Ajusta la propiedad si en tu objeto guardas el nombre corto, por ejemplo row.nomCorDep)
             const deptoEncontrado = departamentos.find(row => {
-                const depNom = (row.nomDep || '').toLowerCase().trim();
-                // Puedes adaptar esta validación si en tu caché guardas un campo como 'nomCorDep'
-                return depNom.includes(nombreCortoUrl) || depNom === nombreCortoUrl;
-                alert(depNom);
+                // Si tienes un campo para el nombre corto en la fila, úsalo aquí:
+                const cor = (row.nomCorDep || '').toLowerCase().trim();
+                if (cor) return cor === nombreCortoUrl;
+                
+                // Como respaldo lógico si no viene el campo corto, validamos por coincidencia
+                return (row.nomDep || '').toLowerCase().includes(nombreCortoUrl);
             });
 
             if (deptoEncontrado && deptoEncontrado.nomDep) {
@@ -32,7 +35,12 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
     } catch (e) {
-        console.warn("No se pudo leer la caché local para el título, usando el parámetro de la URL.");
+        console.warn("No se pudo leer la caché local para el título.");
+    }
+
+    // Si no se encontró en la caché, usamos el nombre corto directamente como respaldo
+    if (!nombreOficialDep) {
+        nombreOficialDep = nombreCortoUrl;
     }
 
     // Inyectamos el nombre oficial en el header

@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener("DOMContentLoaded", () => {
     const urlParams = new URLSearchParams(window.location.search);
     const nombreCortoUrl = (urlParams.get('depto') || '').toLowerCase().trim();
     
@@ -10,48 +10,36 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
     }
 
-    let nombreOficialDep = "";
+    let nombreOficialDep = nombreCortoUrl; // Valor por defecto si no se encuentra
 
     try {
-        // 1. Intentamos obtener los datos frescos directamente de tu API / Google Sheets
-        const datosSheets = typeof apiGetDepartamentos === 'function' 
-            ? await apiGetDepartamentos() 
-            : JSON.parse(localStorage.getItem('cacheDepartamentos') || '[]');
+        // Obtenemos los datos directamente de la caché local existente
+        const cacheBruto = localStorage.getItem('sistema_cache_datos');
+        if (cacheBruto) {
+            const cacheObj = JSON.parse(cacheBruto);
+            const departamentos = cacheObj.departamentos || [];
 
-        // 2. Buscamos el objeto donde NomCorDep (Columna F) coincida con la URL
-        const deptoEncontrado = datosSheets.find(row => {
-            const cor = (row.NomCorDep || row.nomCorDep || '').toLowerCase().trim();
-            return cor === nombreCortoUrl;
-        });
+            // Buscamos el departamento coincidente por su clave o identificador corto
+            const deptoEncontrado = departamentos.find(row => {
+                const depNom = (row.nomDep || '').toLowerCase().trim();
+                // Puedes adaptar esta validación si en tu caché guardas un campo como 'nomCorDep'
+                return depNom.includes(nombreCortoUrl) || depNom === nombreCortoUrl;
+            });
 
-        if (deptoEncontrado && deptoEncontrado.NomDep) {
-            nombreOficialDep = deptoEncontrado.NomDep; // Extrae "Recursos Humanos", etc.
+            if (deptoEncontrado && deptoEncontrado.nomDep) {
+                nombreOficialDep = deptoEncontrado.nomDep;
+            }
         }
     } catch (e) {
-        console.warn("No se pudo conectar al Sheets para el título, usando respaldo.");
+        console.warn("No se pudo leer la caché local para el título, usando el parámetro de la URL.");
     }
 
-    // 3. Si por alguna razón no lo halló en la red, revisamos si lo guardaste previo o mapeamos manualmente
-    if (!nombreOficialDep) {
-        const mapaEmergencia = {
-            'cirnordir': 'Dirección Regional',
-            'cirnodirin': 'Dirección de Investigacion',
-            'cirnodirad': 'Dirección de Administración',
-            'cirnorf': 'Recursos Financiero',
-            'cirnorh': 'Recursos Humanos',
-            'cirnorm': 'Recursos Materiales',
-            'cirnosis': 'Sistemas',
-            'cirnoof': 'Oficialia'
-        };
-        nombreOficialDep = mapaEmergencia[nombreCortoUrl] || nombreCortoUrl;
-    }
-
-    // 4. Inyectamos el NomDep oficial en el header
+    // Inyectamos el nombre oficial en el header
     if (headerTitleSpan) {
         headerTitleSpan.innerHTML = `SISTEMA REGIONAL INTERNO <span class="text-stone-400 font-normal">/</span> ${nombreOficialDep.toUpperCase()}`;
     }
 
-    // 5. Cargamos el archivo .js del departamento correspondiente
+    // Cargamos el archivo .js del departamento correspondiente
     const rutaScript = `js/${nombreCortoUrl}.js`;
     const script = document.createElement('script');
     script.src = rutaScript;

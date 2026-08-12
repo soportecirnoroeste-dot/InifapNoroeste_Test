@@ -58,16 +58,16 @@
                 </div>
             </div>
 
-            <div class="absolute left-1/2 -translate-x-1/2 -translate-y-10 hidden md:block">
-                <span id="header-depto-title"
-                    class="text-xl font-black italic text-[#249444] tracking-wide uppercase">SISTEMA REGIONAL
-                    INTERNO</span>
+            <!-- TÍTULO CENTRAL Y MENÚ (Contenedor flexible al centro) -->
+            <div class="hidden lg:flex flex-col items-center justify-center absolute left-1/2 -translate-x-1/2">
+                <span id="header-depto-title" class="text-xs font-black italic text-[#249444] tracking-wide uppercase">
+                    SISTEMA REGIONAL INTERNO
+                </span>
+                <!-- Menú de Opciones del Departamento debajo del título o integrado -->
+                <nav id="dept-options-nav" class="flex items-center gap-1 mt-1">
+                    <!-- Se inyectará dinámicamente -->
+                </nav>
             </div>
-
-            <!-- Menú de Opciones del Departamento (Área superior derecha / centro) -->
-            <nav id="dept-options-nav" class="class=hidden lg:flex items-center gap-1 mt-15 p-1.5">
-                <!-- Se inyectará dinámicamente según la clave o nombre corto del depto -->
-            </nav>
 
             <!-- Usuario y Salida -->
             <div class="flex items-center gap-4 mt-15">

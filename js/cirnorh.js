@@ -2,12 +2,11 @@
 window.cirnorhConfig = {
     deptoKey: "cirnorh",
     subtitle: "Gestión de personal, incidencias, nómina y desarrollo humano.",
-    // Icono principal y exclusivo para el encabezado/menú de este departamento (Handshake)
-    icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-handshake"><path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/><path d="m21 3 1 11h-2"/><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"/><path d="M3 4h8"/></svg>`,
     options: [
         { 
             id: "personal", 
             title: "Personal", 
+            // Aquí aseguramos que Personal use únicamente su icono de usuarios
             icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-users-round"><path d="M18 21a8 8 0 0 0-16 0"/><circle cx="10" cy="8" r="5"/><path d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3"/></svg>`, 
             colorClass: 'bg-[#f0fdf4] border-[#c6f6d5] text-[#059669]',
             action: "cargarPersonalRh()" 
@@ -50,7 +49,7 @@ window.cirnorhConfig = {
     ]
 };
 
-// Función de Bienvenida Específica para Recursos Humanos
+// Función de Bienvenida Específica para Recursos Humanos con su icono de Handshake protegido
 function cargarBienvenidaRh() {
     let tarjetasHtml = '';
 
@@ -75,14 +74,14 @@ function cargarBienvenidaRh() {
         });
     }
 
-    // Aquí toma estrictamente el icono global del menú principal (el handshake) sin depender de las opciones de abajo
-    const iconoDepto = window.cirnorhConfig.icon || '';
+    // SVG de Handshake escrito directamente aquí para que NUNCA dependa de options[0]
+    const iconoHandshakeFijo = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-handshake"><path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/><path d="m21 3 1 11h-2"/><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"/><path d="M3 4h8"/></svg>`;
 
     document.getElementById('app-container').innerHTML = `
         <div class="bg-white rounded-2xl p-8 border border-stone-200 shadow-sm animate-fade-in">
             <div class="flex items-center gap-4 mb-6 pb-6 border-b border-stone-100">
                 <div class="p-3 bg-stone-100 rounded-2xl text-stone-700 flex items-center justify-center shadow-xs">
-                    ${iconoDepto}
+                    ${iconoHandshakeFijo}
                 </div>
                 <div>
                     <h2 class="font-black text-stone-900 text-2xl mb-1">¡Bienvenido/a!</h2>

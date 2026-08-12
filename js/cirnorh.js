@@ -165,6 +165,21 @@ function renderizarVistaModulo(opt, descripcion) {
     }
 }
 
-if (new URLSearchParams(window.location.search).get('depto') === 'cirnorh') {
-    cargarBienvenidaRh();
-}
+// Asegurar la ejecución automática cuando el DOM y el router estén listos
+window.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('depto') === 'cirnorh') {
+        // Damos un pequeño respiro para que el router general termine de inicializarse
+        setTimeout(() => {
+            cargarBienvenidaRh();
+        }, 50);
+    }
+});
+
+// Respaldo por si el router intenta limpiar la pantalla por defecto
+window.addEventListener('popstate', () => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('depto') === 'cirnorh') {
+        cargarBienvenidaRh();
+    }
+});

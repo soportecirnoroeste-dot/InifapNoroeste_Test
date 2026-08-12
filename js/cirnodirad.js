@@ -1,7 +1,7 @@
 // js/cirnodirad.js
 window.cirnodiradConfig = {
     deptoKey: "cirnodirad",
-    title: "Dirección Regional",
+    title: "Dirección de Administración",
     subtitle: "Supervisión general, toma de decisiones estratégicas y vinculación institucional.",
     options: [
         { id: "dashboard", title: "Resumen", icon: "📊", action: "cargarDashboardDir()" },

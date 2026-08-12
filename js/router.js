@@ -13,20 +13,14 @@ document.addEventListener("DOMContentLoaded", () => {
     let nombreOficialDep = "";
 
     try {
-        // Leemos directo del caché que ya tiene el objeto con los departamentos
         const cacheBruto = localStorage.getItem('sistema_cache_datos');
         if (cacheBruto) {
             const cacheObj = JSON.parse(cacheBruto);
             const departamentos = cacheObj.departamentos || [];
 
-            // Buscamos directamente el departamento haciendo match con el nombre corto o usando claveDep
-            // (Ajusta la propiedad si en tu objeto guardas el nombre corto, por ejemplo row.nomCorDep)
             const deptoEncontrado = departamentos.find(row => {
-                // Si tienes un campo para el nombre corto en la fila, úsalo aquí:
                 const cor = (row.nomCorDep || '').toLowerCase().trim();
                 if (cor) return cor === nombreCortoUrl;
-                
-                // Como respaldo lógico si no viene el campo corto, validamos por coincidencia
                 return (row.nomDep || '').toLowerCase().includes(nombreCortoUrl);
             });
 
@@ -38,17 +32,14 @@ document.addEventListener("DOMContentLoaded", () => {
         console.warn("No se pudo leer la caché local para el título.");
     }
 
-    // Si no se encontró en la caché, usamos el nombre corto directamente como respaldo
     if (!nombreOficialDep) {
         nombreOficialDep = nombreCortoUrl;
     }
 
-    // Inyectamos el nombre oficial en el header
     if (headerTitleSpan) {
         headerTitleSpan.innerHTML = `SISTEMA REGIONAL INTERNO <span class="text-stone-400 font-normal">/</span> ${nombreOficialDep.toUpperCase()}`;
     }
 
-    // Cargamos el archivo .js del departamento correspondiente
     const rutaScript = `js/${nombreCortoUrl}.js`;
     const script = document.createElement('script');
     script.src = rutaScript;
@@ -60,10 +51,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (deptoData && deptoData.options) {
             let navHtml = '';
-            deptoData.options.forEach((opt, index) => {
+            deptoData.options.forEach((opt) => {
                 navHtml += `
                     <button onclick="activarSubmenu('${opt.id}', this); ${opt.action}" 
-                        class="dept-opt-btn px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 text-stone-600 hover:text-[#249444] hover:bg-white cursor-pointer ${index === 0 ? 'active-dept-opt bg-white shadow-xs text-[#249444]' : ''}">
+                        class="dept-opt-btn px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 text-stone-600 hover:text-[#249444] hover:bg-white cursor-pointer">
                         <span>${opt.icon}</span>
                         <span>${opt.title}</span>
                     </button>
@@ -71,9 +62,8 @@ document.addEventListener("DOMContentLoaded", () => {
             });
             navContainer.innerHTML = navHtml;
 
-            if (deptoData.options.length > 0) {
-                eval(deptoData.options[0].action);
-            }
+            // Se eliminó el bloque que ejecutaba el primer elemento automáticamente (eval inicial), 
+            // por lo que ningún menú ni contenido se activará hasta que el usuario dé clic en una opción.
         } else {
             mostrarErrorConfig(nombreCortoUrl, nombreVariableConfig);
         }
@@ -85,7 +75,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.head.appendChild(script);
 });
-
 function activarSubmenu(idOpt, btnElement) {
     document.querySelectorAll('.dept-opt-btn').forEach(btn => {
         btn.classList.remove('bg-white', 'shadow-xs', 'text-[#249444]');

@@ -57,7 +57,7 @@ function cargarBienvenidaRh() {
                 </div>
             </div>
             
-            <div class="w-10 h-10 rounded-lg bg-emerald-50 text-[#249444] flex items-center justify-center group-hover:bg-[#249444] group-hover:text-white transition-all">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 ${tarjetasHtml}
             </div>
             

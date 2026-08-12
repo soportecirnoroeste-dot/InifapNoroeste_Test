@@ -1,7 +1,7 @@
 // En tu archivo js/cirnosis.js (sin usar const para que no marque error si se reescribe)
 window.cirnosisConfig = {
     deptoKey: "cirnosis",
-    title: "Sistemas",
+    //title: "Sistemas",
     subtitle: "Gestión de infraestructura tecnológica, redes y soporte técnico.",
     options: [
         { id: "reuniones", title: "Reuniones", icon: "📅", action: "cargarReunionesSis()" },

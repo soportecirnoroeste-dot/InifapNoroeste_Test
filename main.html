@@ -106,16 +106,6 @@
     <script src="js/cirnorh.js" defer></script> <!-- ¡Agregamos esta línea! -->
     <script src="js/router.js" defer></script>
     <script src="js/app.js" defer></script>
-
-    <script>
-        window.addEventListener('load', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const depto = urlParams.get('depto');
-            if (depto === 'cirnorh' && typeof cargarBienvenidaRh === 'function') {
-                cargarBienvenidaRh();
-            }
-        });
-    </script>
 </body>
 
 </html>

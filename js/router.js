@@ -51,13 +51,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (deptoData && deptoData.options) {
             
-            // --- ACTUALIZADO: Búsqueda directa y limpia por ID ---
             const headerTitleSpan = document.getElementById('header-depto-title');
             if (headerTitleSpan && deptoData.title) {
-                const tituloMayusculas = deptoData.title.toUpperCase();
-                headerTitleSpan.innerHTML = `SISTEMA REGIONAL INTERNO <span class="text-stone-400 font-normal">/</span> ${tituloMayusculas}`;
+                // Quitamos la palabra "departamento" (ignorando mayúsculas/minúsculas) y pasamos a mayúsculas
+                let nombreLimpio = deptoData.title.replace(/departamento\s+de\s+|departamento\s+/gi, '').toUpperCase();
+                
+                headerTitleSpan.innerHTML = `SISTEMA REGIONAL INTERNO <span class="text-stone-400 font-normal">/</span> ${nombreLimpio}`;
             }
-            // -----------------------------------------------------
 
             // Pintamos el menú superior dinámicamente
             let navHtml = '';
@@ -72,7 +72,6 @@ document.addEventListener("DOMContentLoaded", () => {
             });
             navContainer.innerHTML = navHtml;
 
-            // Ejecutar por defecto la primera opción
             if (deptoData.options.length > 0) {
                 eval(deptoData.options[0].action);
             }

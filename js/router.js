@@ -1,7 +1,7 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const nombreCorto = (urlParams.get('depto') || '').toLowerCase().trim();
-
+    
     const navContainer = document.getElementById('dept-options-nav');
     const headerTitleSpan = document.getElementById('header-depto-title');
 
@@ -10,17 +10,39 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
     }
 
-    // AQUÍ VA EL CAMBIO: Inyectamos el nombre de Sheets o usamos respaldo si el localStorage está vacío
-    const nombreOficialSheets = localStorage.getItem('nomDepActual');
-    if (headerTitleSpan) {
-        if (nombreOficialSheets) {
-            headerTitleSpan.innerHTML = `SISTEMA REGIONAL INTERNO <span class="text-stone-400 font-normal">/</span> ${nombreOficialSheets.toUpperCase()}`;
+    // 1. OBTENEMOS EL NOMDEP DIRECTAMENTE DESDE EL SHEETS (O SU CACHÉ GLOBAL)
+    let nombreOficialSheets = "";
+    try {
+        // Si ya tienes una función global o endpoint que trae los departamentos del Sheets:
+        // (Asegúrate de cambiar 'obtenerDepartamentosDelSheets()' por la función o fetch que ya usas en tu index)
+        const departamentos = typeof obtenerDepartamentosDelSheets === 'function' 
+            ? await obtenerDepartamentosDelSheets() 
+            : JSON.parse(localStorage.getItem('cacheDepartamentos') || '[]');
+
+        // Buscamos el departamento donde la clave corta coincida con la de la URL
+        const deptoEncontrado = departamentos.find(d => 
+            (d.nomCorDep || d.key || '').toLowerCase().trim() === nombreCorto
+        );
+
+        if (deptoEncontrado && deptoEncontrado.nomDep) {
+            nombreOficialSheets = deptoEncontrado.nomDep;
+            // Lo guardamos para futuras recargas rápidas
+            localStorage.setItem('nomDepActual', nombreOficialSheets);
         } else {
-            // Respaldo de emergencia por si abres el enlace directo y no pasa por el index
-            headerTitleSpan.innerHTML = `SISTEMA REGIONAL INTERNO <span class="text-stone-400 font-normal">/</span> ${nombreCorto.toUpperCase()}`;
+            // Si no está en la caché, recurrimos al localStorage previo o formateamos el nombre corto
+            nombreOficialSheets = localStorage.getItem('nomDepActual') || nombreCorto;
         }
+    } catch (error) {
+        console.warn("No se pudo consultar el Sheets en tiempo real, usando respaldo.", error);
+        nombreOficialSheets = localStorage.getItem('nomDepActual') || nombreCorto;
     }
 
+    // 2. INYECTAMOS EL NOMBRE OFICIAL EN EL HEADER
+    if (headerTitleSpan) {
+        headerTitleSpan.innerHTML = `SISTEMA REGIONAL INTERNO <span class="text-stone-400 font-normal">/</span> ${nombreOficialSheets.toUpperCase()}`;
+    }
+
+    // 3. CARGAMOS EL SCRIPT DINÁMICO DEL DEPARTAMENTO
     const rutaScript = `js/${nombreCorto}.js`;
     const script = document.createElement('script');
     script.src = rutaScript;

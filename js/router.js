@@ -45,43 +45,67 @@ document.addEventListener("DOMContentLoaded", () => {
     script.src = rutaScript;
     script.defer = true;
 
-script.onload = () => {
+    script.onload = () => {
         const nombreVariableConfig = nombreCortoUrl + 'Config';
         const deptoData = window[nombreVariableConfig];
 
         if (deptoData && deptoData.options) {
-            let navHtml = '';
-            deptoData.options.forEach((opt) => {
-                navHtml += `
-                    <button onclick="activarSubmenu('${opt.id}', this); ${opt.action}" 
-                        class="dept-opt-btn px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 text-stone-600 hover:text-[#249444] hover:bg-white cursor-pointer">
-                        <span>${opt.icon}</span>
-                        <span>${opt.title}</span>
-                    </button>
-                `;
-            });
-            navContainer.innerHTML = navHtml;
+            // 1. Vaciamos o dejamos limpio el contenedor superior del menú (ya no va arriba)
+            navContainer.innerHTML = '';
 
-            // --- AGREGAR ESTA LÓGICA AQUÍ ---
-            // Buscamos dinámicamente si existe una función de bienvenida para este depto y la ejecutamos
-            // Ejemplo: si nombreCortoUrl es 'cirnorh', buscará 'cargarBienvenidaRh' o similar.
-            // O podemos buscar cualquier función global que empiece con "cargarBienvenida"
-            const fnBienvenidaNombre = Object.keys(window).find(key => 
-                key.toLowerCase().includes('bienvenida') && typeof window[key] === 'function'
-            );
+            // 2. Función genérica para pintar la bienvenida y las tarjetas en el #app-container
+            window.cargarBienvenidaGeneral = () => {
+                let tarjetasHtml = '';
+                const coloresBg = [
+                    'bg-[#f0fdf4] border-[#c6f6d5] text-[#059669]',
+                    'bg-[#fffbeb] border-[#fef3c7] text-[#d97706]',
+                    'bg-[#eff6ff] border-[#bfdbfe] text-[#2563eb]',
+                    'bg-[#faf5ff] border-[#f3e8ff] text-[#7e22ce]',
+                    'bg-[#fff1f2] border-[#ffe4e6] text-[#e11d48]'
+                ];
 
-            if (fnBienvenidaNombre) {
-                window[fnBienvenidaNombre]();
-            } else {
-                // Respaldo por si acaso: muestra un contenedor limpio de bienvenida genérico
-                document.getElementById('app-container').innerHTML = `
-                    <div class="bg-white rounded-2xl p-8 border border-stone-200 shadow-sm animate-fade-in">
-                        <h2 class="font-black text-stone-900 text-xl mb-2">👋 ¡Bienvenido/a al módulo!</h2>
-                        <p class="text-xs text-stone-500">Selecciona una opción del menú superior para comenzar.</p>
+                deptoData.options.forEach((opt, index) => {
+                    const estiloColor = coloresBg[index % coloresBg.length];
+                    tarjetasHtml += `
+                    <div onclick="${opt.action}" 
+                         class="p-5 rounded-xl border cursor-pointer hover:shadow-md transition-all bg-white flex flex-col justify-between group">
+                        <div>
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="text-xl p-2 rounded-lg ${estiloColor.split(' ')[0]}">${opt.icon}</span>
+                                <h4 class="font-bold text-stone-800 text-sm group-hover:text-[#249444] transition-colors">${opt.title}</h4>
+                            </div>
+                            <p class="text-xs text-stone-500">Módulo de gestión para ${opt.title.toLowerCase()}.</p>
+                        </div>
+                        <div class="mt-4 text-[10px] font-bold uppercase tracking-wider text-stone-400 group-hover:text-[#249444] flex items-center gap-1">
+                            <span>Abrir módulo</span> &rarr;
+                        </div>
                     </div>
                 `;
-            }
-            // ---------------------------------
+                });
+
+                document.getElementById('app-container').innerHTML = `
+                <div class="bg-white rounded-2xl p-8 border border-stone-200 shadow-sm animate-fade-in">
+                    <div class="flex items-center gap-4 mb-6 pb-6 border-b border-stone-100">
+                        <div class="p-3 bg-stone-100 rounded-2xl text-3xl shadow-xs">
+                            ${deptoData.options[0]?.icon || '📂'}
+                        </div>
+                        <div>
+                            <h2 class="font-black text-stone-900 text-2xl mb-1">👋 ¡Bienvenido/a!</h2>
+                            <p class="text-sm text-stone-600 max-w-xl">${deptoData.subtitle || 'Selecciona una de las tarjetas inferiores para comenzar.'}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        ${tarjetasHtml}
+                    </div>
+
+                    <p class="mt-6 text-xs text-stone-400 italic text-center">Última actualización de datos: ${new Date().toLocaleDateString()}</p>
+                </div>
+            `;
+            };
+
+            // 3. Ejecutamos la bienvenida por defecto al entrar al depto
+            window.cargarBienvenidaGeneral();
 
         } else {
             mostrarErrorConfig(nombreCortoUrl, nombreVariableConfig);

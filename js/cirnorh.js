@@ -165,12 +165,6 @@ function renderizarVistaModulo(opt, descripcion) {
     }
 }
 
-// Autoejecución de emergencia si el router externo falla
-window.addEventListener('DOMContentLoaded', () => {
-    setTimeout(() => {
-        const contenedor = obtenerContenedor();
-        if (contenedor && (!contenedor.innerHTML.trim() || contenedor.innerHTML.includes("¡Bienvenido/a!"))) {
-            cargarBienvenidaRh();
-        }
-    }, 200);
-});
+if (new URLSearchParams(window.location.search).get('depto') === 'cirnorh') {
+    cargarBienvenidaRh();
+}

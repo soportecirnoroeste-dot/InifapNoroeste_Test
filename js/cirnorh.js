@@ -159,3 +159,10 @@ function renderizarVistaModulo(opt, descripcion) {
         `;
     }
 }
+
+// Agrega esto al final de todo tu archivo cirnorh.js para forzar la carga inicial:
+window.addEventListener('DOMContentLoaded', () => {
+    if (typeof cargarBienvenidaRh === 'function') {
+        cargarBienvenidaRh();
+    }
+});

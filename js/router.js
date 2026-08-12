@@ -10,13 +10,12 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
     }
 
-    // 1. INYECTAMOS EL NOMBRE DIRECTO DE SHEETS (vía localStorage)
+    // Inyectamos el nombre oficial directo del Google Sheets (guardado en localStorage)
     const nombreOficialSheets = localStorage.getItem('nomDepActual');
     if (headerTitleSpan && nombreOficialSheets) {
         headerTitleSpan.innerHTML = `SISTEMA REGIONAL INTERNO <span class="text-stone-400 font-normal">/</span> ${nombreOficialSheets.toUpperCase()}`;
     }
 
-    // 2. Cargamos el archivo .js del departamento (que YA NO necesita la propiedad "title")
     const rutaScript = `js/${nombreCorto}.js`;
     const script = document.createElement('script');
     script.src = rutaScript;

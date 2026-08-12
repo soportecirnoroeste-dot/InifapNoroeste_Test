@@ -1,7 +1,7 @@
 // js/cirnorh.js
 window.cirnorhConfig = {
     deptoKey: "cirnorh",
-    title: "Departamento de Recursos Humanos",
+    title: "Recursos Humanos",
     subtitle: "Gestión de personal, incidencias, nómina y desarrollo humano.",
     options: [
         { id: "personal", title: "Personal", icon: "👥", action: "cargarPersonalRh()" },

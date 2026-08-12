@@ -53,10 +53,10 @@ document.addEventListener("DOMContentLoaded", () => {
             
             const headerTitleSpan = document.getElementById('header-depto-title');
             if (headerTitleSpan && deptoData.title) {
-                // Quitamos la palabra "departamento" (ignorando mayúsculas/minúsculas) y pasamos a mayúsculas
-                let nombreLimpio = deptoData.title.replace(/departamento\s+de\s+|departamento\s+/gi, '').toUpperCase();
+                // Imprime tal cual el title del depto en mayúsculas, sin quitarle ninguna palabra
+                const textoExacto = deptoData.title.toUpperCase();
                 
-                headerTitleSpan.innerHTML = `SISTEMA REGIONAL INTERNO <span class="text-stone-400 font-normal">/</span> ${nombreLimpio}`;
+                headerTitleSpan.innerHTML = `SISTEMA REGIONAL INTERNO <span class="text-stone-400 font-normal">/</span> ${textoExacto}`;
             }
 
             // Pintamos el menú superior dinámicamente

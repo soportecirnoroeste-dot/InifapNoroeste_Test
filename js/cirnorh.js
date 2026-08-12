@@ -8,7 +8,8 @@ window.cirnorhConfig = {
         { id: "asistencia", title: "Asistencia", icon: "⏱️", action: "cargarAsistenciaRh()" },
         { id: "vacaciones", title: "Vacaciones", icon: "🏖️", action: "cargarVacacionesRh()" },
         { id: "capacitacion", title: "Capacitación", icon: "📚", action: "cargarCapacitacionRh()" },
-        { id: "expedientes", title: "Expedientes", icon: "📁", action: "cargarExpedientesRh()" }
+        { id: "expedientes", title: "Expedientes", icon: "📁", action: "cargarExpedientesRh()" },
+        { id: "generar-oficios", title: "Generar Oficios", icon: "✍️", action: "cargarGenerarOficiosRh()" } // <-- Nueva opción añadida
     ]
 };
 
@@ -54,6 +55,19 @@ function cargarExpedientesRh() {
         <div class="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm animate-fade-in">
             <h3 class="font-black text-stone-800 text-lg mb-2">📁 Expedientes Digitales</h3>
             <p class="text-xs text-stone-500">Documentación oficial, contratos y resguardos de los trabajadores.</p>
+        </div>
+    `;
+}
+
+// Nueva función para la vista de generar oficios en RH
+function cargarGenerarOficiosRh() {
+    document.getElementById('app-container').innerHTML = `
+        <div class="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm animate-fade-in">
+            <h3 class="font-black text-stone-800 text-lg mb-2">✍️ Generación de Oficios - Recursos Humanos</h3>
+            <p class="text-xs text-stone-500 mb-4">Elaboración de constancias laborales, comisiones y avisos internos.</p>
+            <div class="p-4 bg-stone-50 rounded-xl border border-dashed border-stone-300 text-xs text-stone-400 text-center">
+                Aquí irá el formulario o generador de documentos específico para RH.
+            </div>
         </div>
     `;
 }

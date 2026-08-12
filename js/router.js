@@ -1,41 +1,32 @@
 document.addEventListener("DOMContentLoaded", () => {
     const urlParams = new URLSearchParams(window.location.search);
-
-    // 1. Capturamos el nombre corto de la URL (ej. 'cirnosis')
     const nombreCorto = (urlParams.get('depto') || '').toLowerCase().trim();
-    console.warn("Departamento solicitado:", nombreCorto);
-
+    
     const navContainer = document.getElementById('dept-options-nav');
-    const container = document.getElementById('app-container');
+    const headerTitleSpan = document.getElementById('header-depto-title');
 
     if (!nombreCorto) {
         mostrarErrorDepto("No se especificó ningún departamento en la URL.");
         return;
     }
 
-    // 2. Cargamos el archivo .js dinámicamente usando el nombre corto (ej. js/cirnosis.js)
-    const rutaScript = `js/${nombreCorto}.js`;
-    console.warn("Intentando cargar archivo:", rutaScript);
+    // 1. INYECTAMOS EL NOMBRE DIRECTO DE SHEETS (vía localStorage)
+    const nombreOficialSheets = localStorage.getItem('nomDepActual');
+    if (headerTitleSpan && nombreOficialSheets) {
+        headerTitleSpan.innerHTML = `SISTEMA REGIONAL INTERNO <span class="text-stone-400 font-normal">/</span> ${nombreOficialSheets.toUpperCase()}`;
+    }
 
+    // 2. Cargamos el archivo .js del departamento (que YA NO necesita la propiedad "title")
+    const rutaScript = `js/${nombreCorto}.js`;
     const script = document.createElement('script');
     script.src = rutaScript;
     script.defer = true;
 
     script.onload = () => {
-        // Buscamos la variable global correspondiente basada en el nombre corto + Config
         const nombreVariableConfig = nombreCorto + 'Config';
         const deptoData = window[nombreVariableConfig];
 
         if (deptoData && deptoData.options) {
-            
-            // A. Actualizamos el título del header (si existe la propiedad title en el .js)
-            const headerTitleSpan = document.getElementById('header-depto-title');
-            if (headerTitleSpan && deptoData.title) {
-                const textoExacto = deptoData.title.toUpperCase();
-                headerTitleSpan.innerHTML = `SISTEMA REGIONAL INTERNO <span class="text-stone-400 font-normal">/</span> ${textoExacto}`;
-            }
-
-            // B. Pintamos el menú superior dinámicamente UNA SOLA VEZ
             let navHtml = '';
             deptoData.options.forEach((opt, index) => {
                 navHtml += `
@@ -48,11 +39,9 @@ document.addEventListener("DOMContentLoaded", () => {
             });
             navContainer.innerHTML = navHtml;
 
-            // C. Ejecutar por defecto la primera opción del menú
             if (deptoData.options.length > 0) {
                 eval(deptoData.options[0].action);
             }
-            
         } else {
             mostrarErrorConfig(nombreCorto, nombreVariableConfig);
         }
@@ -88,31 +77,4 @@ function mostrarErrorConfig(nombreCorto, detalle) {
             <a href="index.html" class="inline-block mt-6 px-6 py-2 bg-[#249444] text-white rounded-xl text-xs font-bold">Regresar al inicio</a>
         </div>
     `;
-}
-
-// Dentro de tu router.js al cargar el depto:
-async function cargarDepartamento(deptoKey) {
-    try {
-        // 1. Haces la petición a tu Google Sheets / API para traer la lista de departamentos
-        const response = await fetch('URL_DE_TU_GOOGLE_SHEETS_O_API');
-        const departamentosSheets = await response.json();
-
-        // 2. Buscas el departamento cuyo código coincida con el deptoKey actual
-        const deptoInfo = departamentosSheets.find(d => d.nomCorDep.toLowerCase() === deptoKey.toLowerCase());
-        
-        // 3. Obtienes el NomDep directo de la hoja (ej: "Oficialia" o "Gestión de Oficios")
-        const nombreNomDep = deptoInfo ? deptoInfo.nomDep.toUpperCase() : "SISTEMA INTERNO";
-
-        // 4. Pintas el título en el header automáticamente
-        const headerTitleSpan = document.getElementById('header-depto-title');
-        if (headerTitleSpan) {
-            headerTitleSpan.innerHTML = `SISTEMA REGIONAL INTERNO <span class="text-stone-400 font-normal">/</span> ${nombreNomDep}`;
-        }
-
-        // 5. Cargas el archivo .js correspondiente...
-        // (Tu lógica actual para inyectar las opciones del menú)
-
-    } catch (error) {
-        console.error("Error al obtener el NomDep del Sheets:", error);
-    }
 }

@@ -24,6 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const depNom = (row.nomDep || '').toLowerCase().trim();
                 // Puedes adaptar esta validación si en tu caché guardas un campo como 'nomCorDep'
                 return depNom.includes(nombreCortoUrl) || depNom === nombreCortoUrl;
+                console.warn(depNom);
             });
 
             if (deptoEncontrado && deptoEncontrado.nomDep) {

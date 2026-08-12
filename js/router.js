@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
     const urlParams = new URLSearchParams(window.location.search);
     const nombreCorto = (urlParams.get('depto') || '').toLowerCase().trim();
-    
+
     const navContainer = document.getElementById('dept-options-nav');
     const headerTitleSpan = document.getElementById('header-depto-title');
 
@@ -10,10 +10,15 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
     }
 
-    // Inyectamos el nombre oficial directo del Google Sheets (guardado en localStorage)
+    // AQUÍ VA EL CAMBIO: Inyectamos el nombre de Sheets o usamos respaldo si el localStorage está vacío
     const nombreOficialSheets = localStorage.getItem('nomDepActual');
-    if (headerTitleSpan && nombreOficialSheets) {
-        headerTitleSpan.innerHTML = `SISTEMA REGIONAL INTERNO <span class="text-stone-400 font-normal">/</span> ${nombreOficialSheets.toUpperCase()}`;
+    if (headerTitleSpan) {
+        if (nombreOficialSheets) {
+            headerTitleSpan.innerHTML = `SISTEMA REGIONAL INTERNO <span class="text-stone-400 font-normal">/</span> ${nombreOficialSheets.toUpperCase()}`;
+        } else {
+            // Respaldo de emergencia por si abres el enlace directo y no pasa por el index
+            headerTitleSpan.innerHTML = `SISTEMA REGIONAL INTERNO <span class="text-stone-400 font-normal">/</span> ${nombreCorto.toUpperCase()}`;
+        }
     }
 
     const rutaScript = `js/${nombreCorto}.js`;

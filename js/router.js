@@ -45,28 +45,28 @@ document.addEventListener("DOMContentLoaded", () => {
     script.src = rutaScript;
     script.defer = true;
 
-script.onload = () => {
-    const nombreVariableConfig = nombreCortoUrl + 'Config';
-    const deptoData = window[nombreVariableConfig];
+    script.onload = () => {
+        const nombreVariableConfig = nombreCortoUrl + 'Config';
+        const deptoData = window[nombreVariableConfig];
 
-    if (deptoData && deptoData.options) {
-        // 1. Vaciamos o dejamos limpio el contenedor superior del menú (ya no va arriba)
-        navContainer.innerHTML = ''; 
+        if (deptoData && deptoData.options) {
+            // 1. Vaciamos o dejamos limpio el contenedor superior del menú (ya no va arriba)
+            navContainer.innerHTML = '';
 
-        // 2. Función genérica para pintar la bienvenida y las tarjetas en el #app-container
-        window.cargarBienvenidaGeneral = () => {
-            let tarjetasHtml = '';
-            const coloresBg = [
-                'bg-[#f0fdf4] border-[#c6f6d5] text-[#059669]',
-                'bg-[#fffbeb] border-[#fef3c7] text-[#d97706]',
-                'bg-[#eff6ff] border-[#bfdbfe] text-[#2563eb]',
-                'bg-[#faf5ff] border-[#f3e8ff] text-[#7e22ce]',
-                'bg-[#fff1f2] border-[#ffe4e6] text-[#e11d48]'
-            ];
+            // 2. Función genérica para pintar la bienvenida y las tarjetas en el #app-container
+            window.cargarBienvenidaGeneral = () => {
+                let tarjetasHtml = '';
+                const coloresBg = [
+                    'bg-[#f0fdf4] border-[#c6f6d5] text-[#059669]',
+                    'bg-[#fffbeb] border-[#fef3c7] text-[#d97706]',
+                    'bg-[#eff6ff] border-[#bfdbfe] text-[#2563eb]',
+                    'bg-[#faf5ff] border-[#f3e8ff] text-[#7e22ce]',
+                    'bg-[#fff1f2] border-[#ffe4e6] text-[#e11d48]'
+                ];
 
-            deptoData.options.forEach((opt, index) => {
-                const estiloColor = coloresBg[index % coloresBg.length];
-                tarjetasHtml += `
+                deptoData.options.forEach((opt, index) => {
+                    const estiloColor = coloresBg[index % coloresBg.length];
+                    tarjetasHtml += `
                     <div onclick="${opt.action}" 
                          class="p-5 rounded-xl border cursor-pointer hover:shadow-md transition-all bg-white flex flex-col justify-between group">
                         <div>
@@ -81,16 +81,16 @@ script.onload = () => {
                         </div>
                     </div>
                 `;
-            });
+                });
 
-            document.getElementById('app-container').innerHTML = `
+                document.getElementById('app-container').innerHTML = `
                 <div class="bg-white rounded-2xl p-8 border border-stone-200 shadow-sm animate-fade-in">
                     <div class="flex items-center gap-4 mb-6 pb-6 border-b border-stone-100">
                         <div class="p-3 bg-stone-100 rounded-2xl text-3xl shadow-xs">
                             ${deptoData.options[0]?.icon || '📂'}
                         </div>
                         <div>
-                            <h2 class="font-black text-stone-900 text-2xl mb-1">👋 ¡Bienvenido/a!</h2>
+                            <h2 class="font-black text-stone-900 text-2xl mb-1">¡Bienvenido/a!</h2>
                             <p class="text-sm text-stone-600 max-w-xl">${deptoData.subtitle || 'Selecciona una de las tarjetas inferiores para comenzar.'}</p>
                         </div>
                     </div>
@@ -102,15 +102,15 @@ script.onload = () => {
                     <p class="mt-6 text-xs text-stone-400 italic text-center">Última actualización de datos: ${new Date().toLocaleDateString()}</p>
                 </div>
             `;
-        };
+            };
 
-        // 3. Ejecutamos la bienvenida por defecto al entrar al depto
-        window.cargarBienvenidaGeneral();
+            // 3. Ejecutamos la bienvenida por defecto al entrar al depto
+            window.cargarBienvenidaGeneral();
 
-    } else {
-        mostrarErrorConfig(nombreCortoUrl, nombreVariableConfig);
-    }
-};
+        } else {
+            mostrarErrorConfig(nombreCortoUrl, nombreVariableConfig);
+        }
+    };
 
     script.onerror = () => {
         mostrarErrorConfig(nombreCortoUrl, `js/${nombreCortoUrl}.js`);
@@ -118,6 +118,7 @@ script.onload = () => {
 
     document.head.appendChild(script);
 });
+
 function activarSubmenu(idOpt, btnElement) {
     document.querySelectorAll('.dept-opt-btn').forEach(btn => {
         btn.classList.remove('bg-white', 'shadow-xs', 'text-[#249444]');
@@ -142,3 +143,4 @@ function mostrarErrorConfig(nombreCorto, detalle) {
         </div>
     `;
 }
+

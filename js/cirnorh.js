@@ -12,16 +12,16 @@ window.cirnorhConfig = {
     ]
 };
 
-// Nueva Función de Bienvenida Específica para Recursos Humanos
+// Función de Bienvenida Específica para Recursos Humanos
 function cargarBienvenidaRh() {
-    const nombreUsuario = localStorage.getItem('session_userName') || 'Usuario'; // Obtenemos el nombre del usuario del localStorage
+    const nombreUsuario = localStorage.getItem('session_userName') || 'Usuario';
     document.getElementById('app-container').innerHTML = `
         <div class="bg-white rounded-2xl p-8 border border-stone-200 shadow-sm animate-fade-in">
             <div class="flex items-center gap-4 mb-6 pb-6 border-b border-stone-100">
-                <img src="img/logo_rh.svg" alt="Logo RH" class="w-16 h-16 opacity-75"> <!-- Puedes añadir un logo representativo aquí -->
+                <div class="p-3 bg-stone-100 rounded-2xl text-2xl">👥</div>
                 <div>
                     <h2 class="font-black text-stone-900 text-2xl mb-1">👋 ¡Bienvenido/a, ${nombreUsuario}!</h2>
-                    <p class="text-sm text-stone-600 max-w-xl">Te encuentras en el portal del Departamento de Recursos Humanos (CIRNORH). Selecciona una de las opciones en el menú superior para comenzar a gestionar la información del personal.</p>
+                    <p class="text-sm text-stone-600 max-w-xl">Te encuentras en el portal del Departamento de Recursos Humanos (CIRNORH). Selecciona una de las opciones en el menú superior para comenzar.</p>
                 </div>
             </div>
             
@@ -44,10 +44,60 @@ function cargarBienvenidaRh() {
     `;
 }
 
-// Funciones de visualización existentes (sin cambios)...
-function cargarPersonalRh() { /* ... */ }
-function cargarAsistenciaRh() { /* ... */ }
-function cargarVacacionesRh() { /* ... */ }
-function cargarCapacitacionRh() { /* ... */ }
-function cargarExpedientesRh() { /* ... */ }
-function cargarGenerarOficiosRh() { /* ... */ }
+// Funciones de visualización específicas de Recursos Humanos
+function cargarPersonalRh() {
+    document.getElementById('app-container').innerHTML = `
+        <div class="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm animate-fade-in">
+            <h3 class="font-black text-stone-800 text-lg mb-2">👥 Plantilla de Personal</h3>
+            <p class="text-xs text-stone-500">Directorio de empleados, altas, bajas y estructura organizacional.</p>
+        </div>
+    `;
+}
+
+function cargarAsistenciaRh() {
+    document.getElementById('app-container').innerHTML = `
+        <div class="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm animate-fade-in">
+            <h3 class="font-black text-stone-800 text-lg mb-2">⏱️ Control de Asistencia e Incidencias</h3>
+            <p class="text-xs text-stone-500">Registro de retardos, faltas, permisos y justificantes.</p>
+        </div>
+    `;
+}
+
+function cargarVacacionesRh() {
+    document.getElementById('app-container').innerHTML = `
+        <div class="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm animate-fade-in">
+            <h3 class="font-black text-stone-800 text-lg mb-2">🏖️ Solicitudes de Vacaciones y Permisos</h3>
+            <p class="text-xs text-stone-500">Calendario de descansos y control de días económicos disponibles.</p>
+        </div>
+    `;
+}
+
+function cargarCapacitacionRh() {
+    document.getElementById('app-container').innerHTML = `
+        <div class="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm animate-fade-in">
+            <h3 class="font-black text-stone-800 text-lg mb-2">📚 Programas de Capacitación</h3>
+            <p class="text-xs text-stone-500">Cursos, talleres y constancias de desarrollo profesional para el personal.</p>
+        </div>
+    `;
+}
+
+function cargarExpedientesRh() {
+    document.getElementById('app-container').innerHTML = `
+        <div class="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm animate-fade-in">
+            <h3 class="font-black text-stone-800 text-lg mb-2">📁 Expedientes Digitales</h3>
+            <p class="text-xs text-stone-500">Documentación oficial, contratos y resguardos de los trabajadores.</p>
+        </div>
+    `;
+}
+
+function cargarGenerarOficiosRh() {
+    document.getElementById('app-container').innerHTML = `
+        <div class="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm animate-fade-in">
+            <h3 class="font-black text-stone-800 text-lg mb-2">✍️ Generación de Oficios - Recursos Humanos</h3>
+            <p class="text-xs text-stone-500 mb-4">Elaboración de constancias laborales, comisiones y avisos internos.</p>
+            <div class="p-4 bg-stone-50 rounded-xl border border-dashed border-stone-300 text-xs text-stone-400 text-center">
+                Aquí irá el formulario o generador de documentos específico para RH.
+            </div>
+        </div>
+    `;
+}

@@ -1,299 +1,175 @@
-// ==========================================
-// 1. CONTROLADOR DE AUTENTICACIÓN Y SESIÓN
-// ==========================================
-const AuthGuard = {
-    verificarAcceso: () => {
-        const usuarioSesion = localStorage.getItem('usuario_sesion');
-        const paginaActual = window.location.pathname;
-
-        if (!usuarioSesion && !paginaActual.includes('login.html')) {
-            window.location.href = 'login.html';
-        } else if (usuarioSesion && paginaActual.includes('login.html')) {
-            window.location.href = 'index.html';
-        } else {
-            document.body.classList.add('auth-checked');
-
-            const labelUser = document.getElementById('user-display-name');
-            if (labelUser) {
-                labelUser.textContent = localStorage.getItem('session_userName') || 'Usuario';
-            }
-
-            if (!paginaActual.includes('login.html')) {
-                SistemaGlobal.init();
-            }
+// js/cirnorh.js
+window.cirnorhConfig = {
+    deptoKey: "cirnorh",
+    subtitle: "Gestión de personal, incidencias, nómina y desarrollo humano.",
+    options: [
+        { 
+            id: "personal", 
+            title: "Personal", 
+            icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-users-round"><path d="M18 21a8 8 0 0 0-16 0"/><circle cx="10" cy="8" r="5"/><path d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3"/></svg>`, 
+            colorClass: 'bg-[#f0fdf4] border-[#c6f6d5] text-[#059669]',
+            action: "cargarPersonalRh()" 
+        },
+        { 
+            id: "asistencia", 
+            title: "Asistencia", 
+            icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-round-check"><path d="M2 21a8 8 0 0 1 13.292-6"/><circle cx="10" cy="8" r="5"/><path d="m16 19 2 2 4-4"/></svg>`, 
+            colorClass: 'bg-[#fffbeb] border-[#fef3c7] text-[#d97706]',
+            action: "cargarAsistenciaRh()" 
+        },
+        { 
+            id: "vacaciones", 
+            title: "Vacaciones", 
+            icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-parasol"><path d="M12.5 11.134 18.196 21"/><path d="M20.425 5.299a10 10 0 0 0-16.941 9.78c.183.563.843.774 1.355.478L20.16 6.711c.512-.296.66-.973.264-1.413"/><path d="M21 21H3"/></svg>`, 
+            colorClass: 'bg-[#eff6ff] border-[#bfdbfe] text-[#2563eb]',
+            action: "cargarVacacionesRh()" 
+        },
+        { 
+            id: "capacitacion", 
+            title: "Capacitación", 
+            icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-library-big"><rect width="8" height="18" x="3" y="3" rx="1"/><path d="M7 3v18"/><path d="M20.4 18.9c.2.5-.1 1.1-.6 1.3l-1.9.7c-.5.2-1.1-.1-1.3-.6L11.1 5.1c-.2-.5.1-1.1.6-1.3l1.9-.7c.5-.2 1.1.1 1.3.6Z"/></svg>`, 
+            colorClass: 'bg-[#faf5ff] border-[#f3e8ff] text-[#7e22ce]',
+            action: "cargarCapacitacionRh()" 
+        },
+        { 
+            id: "expedientes", 
+            title: "Expedientes", 
+            icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-archive"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></svg>`, 
+            colorClass: 'bg-[#fff1f2] border-[#ffe4e6] text-[#e11d48]',
+            action: "cargarExpedientesRh()" 
+        },
+        { 
+            id: "generar-oficios", 
+            title: "Generar Oficios", 
+            icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>`, 
+            colorClass: 'bg-[#f0fdf4] border-[#c6f6d5] text-[#059669]',
+            action: "cargarGenerarOficiosRh()" 
         }
-    }
+    ]
 };
 
-// ==========================================
-// 2. NÚCLEO CENTRAL DEL SISTEMA (CON CACHÉ Y FILTRO INICIAL)
-// ==========================================
-const SistemaGlobal = {
-    datos: null,
+// Función principal de bienvenida
+function cargarBienvenidaRh() {
+    let tarjetasHtml = '';
 
-    init() {
-        const datosEnCache = localStorage.getItem('sistema_cache_datos');
-        const tiempoCache = localStorage.getItem('sistema_cache_tiempo');
-        const ahora = new Date().getTime();
-
-        if (datosEnCache && tiempoCache && (ahora - tiempoCache < 30 * 60 * 1000)) {
-            try {
-                const datosProcesados = JSON.parse(datosEnCache);
-                this.procesarRespuestaServidor(datosProcesados);
-                return;
-            } catch (e) {
-                console.error("Error al leer la caché, procediendo a red...", e);
-            }
-        }
-
-        if (typeof google !== 'undefined' && google.script && google.script.run) {
-            google.script.run
-                .withSuccessHandler(respuesta => this.guardarYCargar(respuesta))
-                .withFailureHandler(err => console.error("Error al obtener datos de Sheets:", err))
-                .obtenerDatosSistema();
-        } else {
-            console.warn("Entorno Google Apps Script no detectado. Usando conexión Fetch...");
-            const URL_DIRECTA = "https://script.google.com/macros/s/AKfycbzDs5fvFxykQniWFZnbUqpbuDAmrIDhMHlVwU4r5B3iPLxBp4FDG7uKrtDBDQEXxEX8fQ/exec?action=obtenerDatosSistema";
-
-            fetch(URL_DIRECTA)
-                .then(res => res.json())
-                .then(data => this.guardarYCargar(data))
-                .catch(err => console.error("Error de conexión Fetch:", err));
-        }
-    },
-
-    guardarYCargar(respuestaServidor) {
-        const datosReales = respuestaServidor.success ? respuestaServidor : {
-            departamentos: respuestaServidor.departamentos || [],
-            regionales: respuestaServidor.regionales || [],
-            campos: respuestaServidor.campos || []
-        };
-
-        localStorage.setItem('sistema_cache_datos', JSON.stringify(datosReales));
-        localStorage.setItem('sistema_cache_tiempo', new Date().getTime());
-
-        this.procesarRespuestaServidor(datosReales);
-    },
-
-    procesarRespuestaServidor(datosReales) {
-        this.datos = datosReales;
-
-        const todosLosDepartamentos = datosReales.departamentos || [];
-        const todasLasRegionales = datosReales.regionales || [];
-        let todosLosCampos = datosReales.campos || [];
-
-        const areaUsuario = String(localStorage.getItem('session_area') || '').trim().toUpperCase();
-        let claveRegUsuario = "";
-
-        const regionalEncontrada = todasLasRegionales.find(r =>
-            String(r.claveReg).trim().toUpperCase() === areaUsuario ||
-            String(r.nomCorto).trim().toUpperCase() === areaUsuario
-        );
-
-        if (regionalEncontrada) {
-            claveRegUsuario = String(regionalEncontrada.claveReg).trim();
-        } else {
-            const depUsuario = todosLosDepartamentos.find(dep =>
-                String(dep.nomCorDep).trim().toUpperCase() === areaUsuario ||
-                String(dep.claveCentro).trim().toUpperCase() === areaUsuario
-            );
-
-            if (depUsuario) {
-                claveRegUsuario = String(depUsuario.claveReg).trim();
-            } else {
-                claveRegUsuario = todasLasRegionales.length > 0 ? String(todasLasRegionales[0].claveReg).trim() : "";
-            }
-        }
-
-        this.renderizarRegional(claveRegUsuario, todasLasRegionales);
-
-        const departamentosDeLaRegional = todosLosDepartamentos.filter(dep => String(dep.claveReg).trim() === claveRegUsuario);
-
-        if (todosLosCampos.length === 0 && departamentosDeLaRegional.length > 0) {
-            const centrosUnicos = [...new Set(departamentosDeLaRegional.map(d => d.claveCentro))];
-            todosLosCampos = centrosUnicos.map(c => ({
-                claveReg: claveRegUsuario,
-                claveCentro: c,
-                centro: `Centro ${c}`
-            }));
-            this.datos.campos = todosLosCampos;
-        }
-
-        this.renderizarFiltroCampos(todosLosCampos, claveRegUsuario);
-
-        // Búsqueda inteligente del campo inicial
-        const camposDeLaRegional = todosLosCampos.filter(c => String(c.claveReg).trim() === claveRegUsuario);
-        const depDelUsuarioLogueado = departamentosDeLaRegional.find(dep =>
-            String(dep.nomCorDep).trim().toUpperCase() === areaUsuario ||
-            String(dep.claveCentro).trim().toUpperCase() === areaUsuario
-        );
-
-        let claveCentroInicial = "";
-        if (depDelUsuarioLogueado) {
-            claveCentroInicial = String(depDelUsuarioLogueado.claveCentro).trim();
-        } else if (camposDeLaRegional.length > 0) {
-            // Si el usuario es de toda la regional, seleccionamos el primer campo por defecto para que no aparezca vacío
-            claveCentroInicial = String(camposDeLaRegional[0].claveCentro).trim();
-        }
-
-        const selectFiltro = document.getElementById('filtro-campos-regional');
-        if (selectFiltro && claveCentroInicial) {
-            selectFiltro.value = claveCentroInicial;
-        }
-
-        if (claveCentroInicial) {
-            const filtradosIniciales = departamentosDeLaRegional.filter(dep => String(dep.claveCentro).trim() === claveCentroInicial);
-            this.pintarTarjetasDepartamentos(filtradosIniciales);
-        } else {
-            this.pintarTarjetasDepartamentos(departamentosDeLaRegional);
-        }
-    },
-
-    renderizarRegional(claveReg, regionales) {
-        const infoRegional = regionales.find(r => String(r.claveReg).trim() === claveReg);
-        const nombreRegionalOficial = infoRegional ? infoRegional.regional : "REGIONAL NO ENCONTRADA EN SHEETS";
-
-        const labelRegional = document.getElementById('user-regional-display');
-        if (labelRegional) {
-            labelRegional.textContent = `${claveReg} - ${nombreRegionalOficial}`;
-        }
-    },
-
-    renderizarFiltroCampos(campos, claveReg) {
-        const camposDeLaRegional = campos.filter(c => String(c.claveReg).trim() === claveReg);
-        const selectFiltro = document.getElementById('filtro-campos-regional');
-
-        if (selectFiltro) {
-            selectFiltro.innerHTML = '<option value="">Seleccionar campo</option>';
-            camposDeLaRegional.forEach(campo => {
-                const textoOpcion = `${campo.claveCentro} - ${campo.centro}`;
-                selectFiltro.innerHTML += `<option value="${campo.claveCentro}">${textoOpcion}</option>`;
-            });
-        }
-    },
-
-    pintarTarjetasDepartamentos(listaDepartamentos) {
-        const contenedorMenu = document.getElementById('menu-dinamico-departamentos');
-        if (!contenedorMenu) return;
-
-        contenedorMenu.innerHTML = '';
-
-        if (listaDepartamentos.length === 0) {
-            contenedorMenu.innerHTML = '<p class="text-xs text-stone-400 col-span-full">No se encontraron departamentos disponibles en las pestañas.</p>';
-            return;
-        }
-
-        listaDepartamentos.forEach((dep) => {
-            const claveDep = (dep.nomCorDep || '').toUpperCase();
-            let iconoSvg = '';
-
-            // Asignación exacta basada en el nombre corto (NomCorDep)
-            switch (claveDep) {
-                case 'CIRNODIR': // Dirección Regional
-                    iconoSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-landmark"><line x1="3" y1="21" x2="21" y2="21"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="10" y1="12" x2="14" y2="12"/><line x1="6" y1="16" x2="18" y2="16"/><path d="m3 9 9-6 9 6v3H3z"/></svg>`;
-                    break;
-                case 'CIRNODIRIN': // Dirección de Investigación
-                    iconoSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-search"><path d="M11 22H5.5a1 1 0 0 1 0-5h4.501"/><path d="m21 22-1.879-1.878"/><path d="M3 19.5v-15A2.5 2.5 0 0 1 5.5 2H18a1 1 0 0 1 1 1v8"/><circle cx="17" cy="18" r="3"/></svg>`;
-                    break;
-                case 'CIRNODIRAD': // Dirección de Administración
-                    iconoSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-blocks"><path d="M10 22V7a1 1 0 0 0-1-1H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5a1 1 0 0 0-1-1H2"/><rect x="14" y="2" width="8" height="8" rx="1"/></svg>`;
-                    break;
-                case 'CIRNORF': // Recursos Financieros
-                    iconoSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chart-line"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="m19 9-5 5-4-4-3 3"/></svg>`;
-                    break;
-                case 'CIRNORH': // Recursos Humanos
-                    iconoSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-handshake"><path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/><path d="m21 3 1 11h-2"/><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"/><path d="M3 4h8"/></svg>`;
-                    break;
-                case 'CIRNORM': // Recursos Materiales
-                    iconoSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-hand-coins-icon lucide-hand-coins"><path d="M11 15h2a2 2 0 1 0 0-4h-3c-.6 0-1.1.2-1.4.6L3 17"/><path d="m7 21 1.6-1.4c.3-.4.8-.6 1.4-.6h4c1.1 0 2.1-.4 2.8-1.2l4.6-4.4a2 2 0 0 0-2.75-2.91l-4.2 3.9"/><path d="m2 16 6 6"/><circle cx="16" cy="9" r="2.9"/><circle cx="6" cy="5" r="3"/></svg>`;
-                    break;
-                case 'CIRNOSIS': // Sistemas
-                    iconoSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-terminal"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="m8 16 2-2-2-2"/><path d="M12 18h4"/></svg>`;
-                    break;
-                case 'CIRNOOF': // Oficialia
-                    iconoSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mailbox-icon lucide-mailbox"><path d="M22 17a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9.5C2 7 4 5 6.5 5H18c2.2 0 4 1.8 4 4v8Z"/><polyline points="15,9 18,9 18,11"/><path d="M6.5 5C9 5 11 7 11 9.5V17a2 2 0 0 1-2 2"/><line x1="6" x2="7" y1="10" y2="10"/></svg`;
-                    break;
-                default: // Icono por defecto si llegara a haber uno nuevo
-                    iconoSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-network"><rect x="16" y="16" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><rect x="9" y="2" width="6" height="6" rx="1"/><path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3"/><path d="M12 12V8"/></svg>`;
-                    break;
-            }
-
-            const btnHTML = `
-                <button onclick="seleccionarDepartamento('${dep.nomCorDep}', this)" 
-                    class="area-btn border-stone-200 flex flex-col items-center justify-center p-4 rounded-xl border hover:border-[#249444] hover:bg-emerald-50/50 transition-all text-center cursor-pointer group">
-                    <span class="uppercase text-xs font-bold text-stone-700 group-hover:text-[#249444] mb-2">${dep.nomDep}</span>
-                    <div class="w-10 h-10 rounded-lg bg-emerald-50 text-[#249444] flex items-center justify-center group-hover:bg-[#249444] group-hover:text-white transition-all">
-                        ${iconoSvg}
+    if (window.cirnorhConfig && window.cirnorhConfig.options) {
+        window.cirnorhConfig.options.forEach((opt) => {
+            const bgSolo = opt.colorClass.split(' ')[0];
+            tarjetasHtml += `
+                <div onclick="${opt.action}" 
+                     class="p-5 rounded-xl border cursor-pointer hover:shadow-md transition-all bg-white flex flex-col justify-between group">
+                    <div>
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-xl p-2 rounded-lg ${bgSolo}">${opt.icon}</span>
+                            <h4 class="font-bold text-stone-800 text-sm group-hover:text-[#249444] transition-colors">${opt.title}</h4>
+                        </div>
+                        <p class="text-xs text-stone-500">Módulo de gestión para ${opt.title.toLowerCase()}.</p>
                     </div>
-                </button>
+                    <div class="mt-4 text-[10px] font-bold uppercase tracking-wider text-stone-400 group-hover:text-[#249444] flex items-center gap-1">
+                        <span>Abrir módulo</span> &rarr;
+                    </div>
+                </div>
             `;
-            contenedorMenu.innerHTML += btnHTML;
         });
-    },
+    }
 
-    filtrarPorCampo(claveCentroSeleccionado) {
-        if (!this.datos || !this.datos.departamentos) return;
+    const iconoHandshakeFijo = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-handshake"><path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/><path d="m21 3 1 11h-2"/><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"/><path d="M3 4h8"/></svg>`;
 
-        const areaUsuario = String(localStorage.getItem('session_area') || '').trim().toUpperCase();
-        const depUsuario = this.datos.departamentos.find(dep => String(dep.claveReg).trim() === areaUsuario);
-        const claveRegUsuario = depUsuario ? String(depUsuario.claveReg).trim() : (this.datos.regionales[0]?.claveReg || "");
+    document.getElementById('app-container').innerHTML = `
+        <div class="bg-white rounded-2xl p-8 border border-stone-200 shadow-sm animate-fade-in">
+            <div class="flex items-center gap-4 mb-6 pb-6 border-b border-stone-100">
+                <div class="p-3 bg-stone-100 rounded-2xl text-stone-700 flex items-center justify-center shadow-xs">
+                    ${iconoHandshakeFijo}
+                </div>
+                <div>
+                    <h2 class="font-black text-stone-900 text-2xl mb-1">¡Bienvenido/a!</h2>
+                    <p class="text-sm text-stone-600 max-w-xl">${window.cirnorhConfig.subtitle}</p>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                ${tarjetasHtml}
+            </div>
+            
+            <p class="mt-6 text-xs text-stone-400 italic text-center">Última actualización de datos: ${new Date().toLocaleDateString()}</p>
+        </div>
+    `;
+}
 
-        const departamentosDeLaRegional = this.datos.departamentos.filter(dep => String(dep.claveReg).trim() === claveRegUsuario);
-
-        if (!claveCentroSeleccionado) {
-            this.pintarTarjetasDepartamentos(departamentosDeLaRegional);
-        } else {
-            const filtrados = departamentosDeLaRegional.filter(dep => String(dep.claveCentro).trim() === String(claveCentroSeleccionado).trim());
-            this.pintarTarjetasDepartamentos(filtrados);
-        }
-    },
-
-    seleccionarDepartamento(NomCorDep, elementoBtn) {
-    // 1. Quitar estilos activos de todos los botones e inactivos los iconos
-    document.querySelectorAll('.area-btn').forEach(btn => {
-        btn.classList.remove('border-[#249444]', 'bg-emerald-50/80', 'shadow-sm');
-        btn.classList.add('border-stone-200');
-        let divIcon = btn.querySelector('div');
-        if (divIcon) {
-            divIcon.classList.remove('bg-[#249444]', 'text-white');
-            divIcon.classList.add('bg-emerald-50', 'text-[#249444]');
+// Vigilante automático para mantener el icono independiente en el menú lateral/superior
+const observer = new MutationObserver(() => {
+    const contenedoresIcono = document.querySelectorAll('.lucide-users-round');
+    contenedoresIcono.forEach(el => {
+        const padre = el.closest('.bg-white, header, aside, .shadow-sm');
+        if (padre && !padre.onclick && padre.innerHTML.includes("RECURSOS HUMANOS")) {
+            const wrapper = el.parentElement;
+            if (wrapper && !wrapper.innerHTML.includes('lucide-handshake')) {
+                wrapper.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-handshake"><path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/><path d="m21 3 1 11h-2"/><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"/><path d="M3 4h8"/></svg>`;
+            }
         }
     });
+});
 
-    // 2. Aplicar estilos de selección al botón presionado
-    elementoBtn.classList.remove('border-stone-200');
-    elementoBtn.classList.add('border-[#249444]', 'bg-emerald-50/80', 'shadow-sm');
-    let iconoDiv = elementoBtn.querySelector('div');
-    if (iconoDiv) {
-        iconoDiv.classList.remove('bg-emerald-50', 'text-[#249444]');
-        iconoDiv.classList.add('bg-[#249444]', 'text-white');
-    }
+observer.observe(document.body, { childList: true, subtree: true });
 
-    console.log("Departamento seleccionado:", NomCorDep);
-
-    // 3. Limpiar y estandarizar la clave o nombre corto para la URL (ej: 'sis')
-    const deptoKey = NomCorDep.toString().toLowerCase().trim().replace(/\s+/g, '');
-
-    // 4. Redirigir a main.html con la clave limpia
-    setTimeout(() => {
-        window.location.href = `main.html?depto=${deptoKey}`;
-    }, 150);
-}
-};
-
-// ==========================================
-// 3. PUENTES GLOBALES PARA EL HTML
-// ==========================================
-function filtrarPorCampoRegional(claveCentro) {
-    SistemaGlobal.filtrarPorCampo(claveCentro);
+// Funciones individuales de cada módulo
+function cargarPersonalRh() {
+    const opt = window.cirnorhConfig.options.find(o => o.id === 'personal');
+    renderizarVistaModulo(opt, "Directorio de empleados, altas, bajas y estructura organizacional.");
 }
 
-function seleccionarDepartamento(NomCorDep, elementoBtn) {
-    SistemaGlobal.seleccionarDepartamento(NomCorDep, elementoBtn);
+function cargarAsistenciaRh() {
+    const opt = window.cirnorhConfig.options.find(o => o.id === 'asistencia');
+    renderizarVistaModulo(opt, "Registro de retardos, faltas, permisos y justificantes.");
 }
 
-// ==========================================
-// 4. DISPARADOR ÚNICO DE INICIO
-// ==========================================
-document.addEventListener('DOMContentLoaded', AuthGuard.verificarAcceso);
+function cargarVacacionesRh() {
+    const opt = window.cirnorhConfig.options.find(o => o.id === 'vacaciones');
+    renderizarVistaModulo(opt, "Calendario de descansos y control de días económicos disponibles.");
+}
 
+function cargarCapacitacionRh() {
+    const opt = window.cirnorhConfig.options.find(o => o.id === 'capacitacion');
+    renderizarVistaModulo(opt, "Cursos, talleres y constancias de desarrollo profesional para el personal.");
+}
+
+function cargarExpedientesRh() {
+    const opt = window.cirnorhConfig.options.find(o => o.id === 'expedientes');
+    renderizarVistaModulo(opt, "Documentación oficial, contratos y resguardos de los trabajadores.");
+}
+
+function cargarGenerarOficiosRh() {
+    const opt = window.cirnorhConfig.options.find(o => o.id === 'generar-oficios');
+    document.getElementById('app-container').innerHTML = `
+        <div class="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm animate-fade-in">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="p-2.5 ${opt.colorClass} rounded-xl border">
+                    ${opt.icon}
+                </div>
+                <div>
+                    <h3 class="font-black text-stone-800 text-lg">Generación de Oficios - Recursos Humanos</h3>
+                    <p class="text-xs text-stone-500">Elaboración de constancias laborales, comisiones y avisos internos.</p>
+                </div>
+            </div>
+            <div class="p-4 bg-stone-50 rounded-xl border border-dashed border-stone-300 text-xs text-stone-400 text-center mt-4">
+                Aquí irá el formulario o generador de documentos específico para RH.
+            </div>
+        </div>
+    `;
+}
+
+function renderizarVistaModulo(opt, descripcion) {
+    document.getElementById('app-container').innerHTML = `
+        <div class="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm animate-fade-in">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="p-2.5 ${opt.colorClass} rounded-xl border">
+                    ${opt.icon}
+                </div>
+                <div>
+                    <h3 class="font-black text-stone-800 text-lg">${opt.title}</h3>
+                    <p class="text-xs text-stone-500">${descripcion}</p>
+                </div>
+            </div>
+        </div>
+    `;
+}

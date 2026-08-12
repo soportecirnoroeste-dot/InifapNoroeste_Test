@@ -109,3 +109,30 @@ function mostrarErrorConfig(nombreCorto, detalle) {
         </div>
     `;
 }
+
+// Dentro de tu router.js al cargar el depto:
+async function cargarDepartamento(deptoKey) {
+    try {
+        // 1. Haces la petición a tu Google Sheets / API para traer la lista de departamentos
+        const response = await fetch('URL_DE_TU_GOOGLE_SHEETS_O_API');
+        const departamentosSheets = await response.json();
+
+        // 2. Buscas el departamento cuyo código coincida con el deptoKey actual
+        const deptoInfo = departamentosSheets.find(d => d.nomCorDep.toLowerCase() === deptoKey.toLowerCase());
+        
+        // 3. Obtienes el NomDep directo de la hoja (ej: "Oficialia" o "Gestión de Oficios")
+        const nombreNomDep = deptoInfo ? deptoInfo.nomDep.toUpperCase() : "SISTEMA INTERNO";
+
+        // 4. Pintas el título en el header automáticamente
+        const headerTitleSpan = document.getElementById('header-depto-title');
+        if (headerTitleSpan) {
+            headerTitleSpan.innerHTML = `SISTEMA REGIONAL INTERNO <span class="text-stone-400 font-normal">/</span> ${nombreNomDep}`;
+        }
+
+        // 5. Cargas el archivo .js correspondiente...
+        // (Tu lógica actual para inyectar las opciones del menú)
+
+    } catch (error) {
+        console.error("Error al obtener el NomDep del Sheets:", error);
+    }
+}

@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
     const urlParams = new URLSearchParams(window.location.search);
     const nombreCortoUrl = (urlParams.get('depto') || '').toLowerCase().trim();
-    
+
     const navContainer = document.getElementById('dept-options-nav');
     const headerTitleSpan = document.getElementById('header-depto-title');
 
@@ -45,7 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
     script.src = rutaScript;
     script.defer = true;
 
-    script.onload = () => {
+script.onload = () => {
         const nombreVariableConfig = nombreCortoUrl + 'Config';
         const deptoData = window[nombreVariableConfig];
 
@@ -62,8 +62,27 @@ document.addEventListener("DOMContentLoaded", () => {
             });
             navContainer.innerHTML = navHtml;
 
-            // Se eliminó el bloque que ejecutaba el primer elemento automáticamente (eval inicial), 
-            // por lo que ningún menú ni contenido se activará hasta que el usuario dé clic en una opción.
+            // --- AGREGAR ESTA LÓGICA AQUÍ ---
+            // Buscamos dinámicamente si existe una función de bienvenida para este depto y la ejecutamos
+            // Ejemplo: si nombreCortoUrl es 'cirnorh', buscará 'cargarBienvenidaRh' o similar.
+            // O podemos buscar cualquier función global que empiece con "cargarBienvenida"
+            const fnBienvenidaNombre = Object.keys(window).find(key => 
+                key.toLowerCase().includes('bienvenida') && typeof window[key] === 'function'
+            );
+
+            if (fnBienvenidaNombre) {
+                window[fnBienvenidaNombre]();
+            } else {
+                // Respaldo por si acaso: muestra un contenedor limpio de bienvenida genérico
+                document.getElementById('app-container').innerHTML = `
+                    <div class="bg-white rounded-2xl p-8 border border-stone-200 shadow-sm animate-fade-in">
+                        <h2 class="font-black text-stone-900 text-xl mb-2">👋 ¡Bienvenido/a al módulo!</h2>
+                        <p class="text-xs text-stone-500">Selecciona una opción del menú superior para comenzar.</p>
+                    </div>
+                `;
+            }
+            // ---------------------------------
+
         } else {
             mostrarErrorConfig(nombreCortoUrl, nombreVariableConfig);
         }

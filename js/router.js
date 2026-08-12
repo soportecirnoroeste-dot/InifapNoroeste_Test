@@ -51,10 +51,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (deptoData && deptoData.options) {
             
-            // --- NUEVO: Actualizar dinámicamente el título del Header ---
+            // --- ACTUALIZADO: Forzar siempre mayúsculas en el header ---
             const headerTitleSpan = document.querySelector('.absolute.left-1/2.-translate-x-1\\/2.-translate-y-10 span');
             if (headerTitleSpan && deptoData.title) {
-                headerTitleSpan.innerHTML = `SISTEMA REGIONAL INTERNO <span class="text-stone-400 font-normal">/</span> ${deptoData.title}`;
+                const tituloMayusculas = deptoData.title.toUpperCase();
+                headerTitleSpan.innerHTML = `SISTEMA REGIONAL INTERNO <span class="text-stone-400 font-normal">/</span> ${tituloMayusculas}`;
             }
             // -----------------------------------------------------------
 

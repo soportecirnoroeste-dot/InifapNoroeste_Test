@@ -90,7 +90,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             ${deptoData.options[0]?.icon || '📂'}
                         </div>
                         <div>
-                            <h2 class="font-black text-stone-900 text-2xl mb-1">👋 ¡Bienvenido/a!</h2>
+                            <h2 class="font-black text-stone-900 text-2xl mb-1">¡Bienvenido/a!</h2>
                             <p class="text-sm text-stone-600 max-w-xl">${deptoData.subtitle || 'Selecciona una de las tarjetas inferiores para comenzar.'}</p>
                         </div>
                     </div>

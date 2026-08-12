@@ -143,6 +143,3 @@ function mostrarErrorConfig(nombreCorto, detalle) {
     `;
 }
 
-if (new URLSearchParams(window.location.search).get('depto') === 'cirnorh') {
-    cargarBienvenidaRh();
-}

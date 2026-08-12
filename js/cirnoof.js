@@ -1,7 +1,7 @@
 // js/oficios.js
 window.cirnoofConfig = {
     deptoKey: "oficios",
-    title: "Gestión de Oficios",
+    title: "Oficios",
     subtitle: "Control centralizado de correspondencia, folios y documentación oficial.",
     options: [
         { id: "recibidos", title: "Recibidos", icon: "📥", action: "cargarRecibidosOfiGen()" },

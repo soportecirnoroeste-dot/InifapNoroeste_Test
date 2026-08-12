@@ -14,7 +14,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // 2. Cargamos el archivo .js dinámicamente usando el nombre corto (ej. js/cirnosis.js)
-    // Agrega esto para depurar la ruta exacta en la consola
     const rutaScript = `js/${nombreCorto}.js`;
     console.warn("Intentando cargar archivo:", rutaScript);
 
@@ -28,38 +27,15 @@ document.addEventListener("DOMContentLoaded", () => {
         const deptoData = window[nombreVariableConfig];
 
         if (deptoData && deptoData.options) {
-            // Pintamos el menú superior dinámicamente
-            let navHtml = '';
-            deptoData.options.forEach((opt, index) => {
-                navHtml += `
-                    <button onclick="activarSubmenu('${opt.id}', this); ${opt.action}" 
-                        class="dept-opt-btn px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 text-stone-600 hover:text-[#249444] hover:bg-white cursor-pointer ${index === 0 ? 'active-dept-opt bg-white shadow-xs text-[#249444]' : ''}">
-                        <span>${opt.icon}</span>
-                        <span>${opt.title}</span>
-                    </button>
-                `;
-            });
-            navContainer.innerHTML = navHtml;
-
-            // Ejecutar por defecto la primera opción del menú
-            if (deptoData.options.length > 0) {
-                eval(deptoData.options[0].action);
-            }
-        } else {
-            mostrarErrorConfig(nombreCorto, nombreVariableConfig);
-        }
-
-        if (deptoData && deptoData.options) {
             
+            // A. Actualizamos el título del header (si existe la propiedad title en el .js)
             const headerTitleSpan = document.getElementById('header-depto-title');
             if (headerTitleSpan && deptoData.title) {
-                // Imprime tal cual el title del depto en mayúsculas, sin quitarle ninguna palabra
                 const textoExacto = deptoData.title.toUpperCase();
-                
                 headerTitleSpan.innerHTML = `SISTEMA REGIONAL INTERNO <span class="text-stone-400 font-normal">/</span> ${textoExacto}`;
             }
 
-            // Pintamos el menú superior dinámicamente
+            // B. Pintamos el menú superior dinámicamente UNA SOLA VEZ
             let navHtml = '';
             deptoData.options.forEach((opt, index) => {
                 navHtml += `
@@ -72,9 +48,13 @@ document.addEventListener("DOMContentLoaded", () => {
             });
             navContainer.innerHTML = navHtml;
 
+            // C. Ejecutar por defecto la primera opción del menú
             if (deptoData.options.length > 0) {
                 eval(deptoData.options[0].action);
             }
+            
+        } else {
+            mostrarErrorConfig(nombreCorto, nombreVariableConfig);
         }
     };
 

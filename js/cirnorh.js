@@ -165,21 +165,15 @@ function renderizarVistaModulo(opt, descripcion) {
     }
 }
 
-// Asegurar la ejecución automática cuando el DOM y el router estén listos
-window.addEventListener('DOMContentLoaded', () => {
+// Ejecución inmediata segura para el módulo de Recursos Humanos
+(function() {
     const params = new URLSearchParams(window.location.search);
     if (params.get('depto') === 'cirnorh') {
-        // Damos un pequeño respiro para que el router general termine de inicializarse
-        setTimeout(() => {
-            cargarBienvenidaRh();
-        }, 50);
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', cargarBienvenidaRh);
+        } else {
+            // Si la página ya cargó, lo lanzamos de inmediato con un leve respiro
+            setTimeout(cargarBienvenidaRh, 100);
+        }
     }
-});
-
-// Respaldo por si el router intenta limpiar la pantalla por defecto
-window.addEventListener('popstate', () => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('depto') === 'cirnorh') {
-        cargarBienvenidaRh();
-    }
-});
+})();

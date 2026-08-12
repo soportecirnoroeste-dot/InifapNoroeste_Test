@@ -48,6 +48,34 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
             mostrarErrorConfig(nombreCorto, nombreVariableConfig);
         }
+
+        if (deptoData && deptoData.options) {
+            
+            // --- NUEVO: Actualizar dinámicamente el título del Header ---
+            const headerTitleSpan = document.querySelector('.absolute.left-1/2.-translate-x-1\\/2.-translate-y-10 span');
+            if (headerTitleSpan && deptoData.title) {
+                headerTitleSpan.innerHTML = `SISTEMA REGIONAL INTERNO <span class="text-stone-400 font-normal">/</span> ${deptoData.title}`;
+            }
+            // -----------------------------------------------------------
+
+            // Pintamos el menú superior dinámicamente
+            let navHtml = '';
+            deptoData.options.forEach((opt, index) => {
+                navHtml += `
+                    <button onclick="activarSubmenu('${opt.id}', this); ${opt.action}" 
+                        class="dept-opt-btn px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 text-stone-600 hover:text-[#249444] hover:bg-white cursor-pointer ${index === 0 ? 'active-dept-opt bg-white shadow-xs text-[#249444]' : ''}">
+                        <span>${opt.icon}</span>
+                        <span>${opt.title}</span>
+                    </button>
+                `;
+            });
+            navContainer.innerHTML = navHtml;
+
+            // Ejecutar por defecto la primera opción
+            if (deptoData.options.length > 0) {
+                eval(deptoData.options[0].action);
+            }
+        }
     };
 
     script.onerror = () => {

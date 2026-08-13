@@ -51,7 +51,7 @@
 
             // Crear contenedor principal visual con nodos nativos
             const wrapper = document.createElement('div');
-            wrapper.style.cssText = "bg-white rounded-2xl p-6 md:p-8 soft-shadow border border-[#249444]/10 mb-8";
+            wrapper.style.cssText = "background-color: #ffffff; padding: 30px; border-radius: 16px; border: 1px solid #e5e7eb; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin: 20px auto; max-width: 1000px; display: block;";
 
             // Cabecera
             const headerDiv = document.createElement('div');

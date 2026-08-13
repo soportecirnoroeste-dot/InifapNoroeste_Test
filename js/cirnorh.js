@@ -97,17 +97,20 @@ function renderizarVistaModulo(idOpt, descripcion) {
     const contenedor = obtenerContenedor();
     if (contenedor && opt) {
         contenedor.innerHTML = `
-            <div class="bg-white rounded-2xl p-6 md:p-8 soft-shadow border border-[#249444]/10 mb-8 max-w-5xl mx-auto w-full box-border">
-                <div class="flex items-center gap-3 mb-4">
+            <section class="bg-white rounded-2xl p-6 md:p-8 soft-shadow border border-[#249444]/10 mb-8 max-w-5xl mx-auto w-full box-border">
+                <div class="flex items-center gap-3 mb-6 pb-4 border-b border-stone-100">
                     <div class="p-2.5 bg-[#f0fdf4] border border-[#c6f6d5] text-[#059669] rounded-xl flex items-center justify-center">
                         ${opt.icon}
                     </div>
                     <div>
-                        <h3 class="font-black text-stone-800 text-lg">${opt.title}</h3>
+                        <h3 class="font-black text-stone-800 text-lg uppercase tracking-wide">${opt.title}</h3>
                         <p class="text-xs text-stone-500">${descripcion}</p>
                     </div>
                 </div>
-            </div>
+
+                <div id="contenido-submodulo-dinamico" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    </div>
+            </section>
         `;
     }
 }

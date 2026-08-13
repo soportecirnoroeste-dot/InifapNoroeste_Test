@@ -51,8 +51,7 @@
 
             // Crear contenedor principal visual con nodos nativos
             const wrapper = document.createElement('section');
-            // Forzamos un ancho exacto y consistente de punta a punta con max-w-[1050px] w-full mx-auto
-            wrapper.className = "bg-white rounded-2xl p-6 md:p-8 soft-shadow border border-[#249444]/10 mb-8 mx-auto w-full max-w-[1050px] box-border animate-fade-in";
+            wrapper.className = "bg-white rounded-2xl p-6 md:p-8 soft-shadow border border-[#249444]/10 mb-8 w-full box-border animate-fade-in";
 
             // Cabecera
             const headerDiv = document.createElement('div');

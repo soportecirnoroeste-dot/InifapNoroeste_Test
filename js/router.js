@@ -56,20 +56,17 @@
             ];
 
             deptoData.options.forEach((opt, index) => {
-                const estiloColor = coloresBg[index % coloresBg.length];
-                const claseColorBg = estiloColor.split(' ')[0];
-
                 tarjetasHtml += `
-                <div onclick="${opt.action}" class="p-5 rounded-xl border cursor-pointer hover:shadow-md transition-all bg-white flex flex-col justify-between group">
+                <div onclick="${opt.action}" style="background: #f9fafb; border: 1px solid #e5e7eb; padding: 20px; border-radius: 12px; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between;">
                     <div>
-                        <div class="flex items-center gap-2 mb-2">
-                            <span class="text-xl p-2 rounded-lg ${claseColorBg}">${opt.icon}</span>
-                            <h4 class="font-bold text-stone-800 text-sm group-hover:text-[#249444] transition-colors">${opt.title}</h4>
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                            <span style="font-size: 20px; background: #d1fae5; color: #065f46; padding: 8px; border-radius: 8px;">${opt.icon}</span>
+                            <h4 style="font-size: 14px; font-weight: 700; color: #1f2937; margin: 0;">${opt.title}</h4>
                         </div>
-                        <p class="text-xs text-stone-500">Módulo de gestión para ${opt.title.toLowerCase()}.</p>
+                        <p style="font-size: 12px; color: #4b5563; margin: 0;">Módulo de gestión para ${opt.title.toLowerCase()}.</p>
                     </div>
-                    <div class="mt-4 text-[10px] font-bold uppercase tracking-wider text-stone-400 group-hover:text-[#249444] flex items-center gap-1">
-                        <span>Abrir módulo</span> &rarr;
+                    <div style="margin-top: 16px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #059669;">
+                        Abrir módulo &rarr;
                     </div>
                 </div>
                 `;

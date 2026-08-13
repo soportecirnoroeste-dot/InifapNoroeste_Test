@@ -40,6 +40,12 @@
         const deptoData = window[nombreVariableConfig];
 
         if (deptoData && deptoData.options) {
+            // Actualizar dinámicamente el título superior con el nombre oficial del depto en memoria
+            const headerDeptoTitle = document.getElementById('header-depto-title');
+            if (headerDeptoTitle) {
+                headerDeptoTitle.textContent = nombreOficialDep.toUpperCase();
+            }
+
             const contenedorApp = document.getElementById('app-container');
             if (!contenedorApp) {
                 console.error("No se encontró el contenedor #app-container");
@@ -48,7 +54,7 @@
 
             // Limpiar contenedor de forma segura
             contenedorApp.innerHTML = '';
-
+            
             // Crear contenedor principal visual con nodos nativos
             const wrapper = document.createElement('section');
             wrapper.className = "bg-white rounded-2xl p-6 md:p-8 soft-shadow border border-[#249444]/10 mb-8 w-full box-border animate-fade-in";
@@ -76,7 +82,6 @@
 
             deptoData.options.forEach((opt) => {
                 const card = document.createElement('div');
-                // Agregamos height: 100% y box-sizing para que todas midan lo mismo
                 card.style.cssText = "background: #f9fafb; border: 1px solid #e5e7eb; padding: 20px; border-radius: 12px; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; height: 100%; box-sizing: border-box;";
 
                 // Asignar la acción de manera segura
@@ -149,7 +154,6 @@ function mostrarErrorConfig(nombreCorto, detalle) {
 
 // Forzar visibilidad absoluta del contenedor principal y el body
 window.addEventListener('DOMContentLoaded', () => {
-    // Añade esta línea para quitar el ocultamiento del CSS
     document.body.classList.add('auth-checked');
 
     const mainContainer = document.getElementById('app-container');

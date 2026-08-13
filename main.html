@@ -26,42 +26,56 @@
     <header class="bg-white shadow-md sticky top-0 z-50 border-b-4 border-[#249444]">
         <div class="container mx-auto px-6 py-3 flex items-center justify-between">
 
-            <!-- Logo -->
-            <div class="inifap-logo-wrapperIndex flex items-center gap-4">
+            <!-- Contenedor izquierdo: Flecha y Logo alineados horizontalmente -->
+            <div class="flex items-center gap-3">
+                <!-- Flecha de Regresar -->
                 <a href="index.html"
-                    class="flex items-center gap-2 text-stone-500 hover:text-[#249444] transition-colors"
+                    class="flex items-center justify-center p-2.5 rounded-xl bg-stone-100 text-stone-600 hover:bg-[#249444] hover:text-white transition-all shadow-xs shrink-0"
                     title="Regresar al inicio">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="2.5">
                         <path d="M19 12H5M12 19l-7-7 7-7" />
                     </svg>
                 </a>
-                <div class="logo-mainIndex">
-                    <span class="letteIndexr">i</span>
-                    <span class="letterIndex kern-inIndex">n</span>
-                    <span class="letterIndex">i</span>
-                    <div class="f-containerIndex">
-                        <div class="seedIndex"></div>
-                        <span class="letterIndex">f</span>
+
+                <!-- Bloque del Logotipo INIFAP y su leyenda -->
+                <div class="inifap-logo-wrapperIndex flex flex-col justify-center">
+                    <div class="logo-mainIndex flex items-baseline">
+                        <span class="letterIndex">i</span>
+                        <span class="letterIndex kern-inIndex">n</span>
+                        <span class="letterIndex">i</span>
+                        <div class="f-containerIndex relative inline-flex items-baseline">
+                            <div class="seedIndex absolute"></div>
+                            <span class="letterIndex">f</span>
+                        </div>
+                        <span class="Index">a</span>
+                        <span class="letterIndex kern-ap">p</span>
                     </div>
-                    <span class="Index">a</span>
-                    <span class="letterIndex kern-ap">p</span>
+                    <div class="logo-legendIndex">
+                        Instituto Nacional de Investigaciones<br>
+                        Forestales, Agrícolas y Pecuarias
+                    </div>
                 </div>
             </div>
 
-            <!-- Menú de Opciones del Departamento (Área marcada en rojo) -->
-            <nav id="dept-options-nav"
-                class="hidden lg:flex items-center gap-1 bg-stone-50 p-1.5 rounded-xl border border-stone-200">
+            <div class="absolute left-1/2 -translate-x-1/2 -translate-y-10 hidden md:block">
+                <span id="header-depto-title"
+                    class="text-xl font-black italic text-[#249444] tracking-wide uppercase">SISTEMA REGIONAL
+                    INTERNO</span>
+            </div>
+
+            <!-- Menú de Opciones del Departamento (Área superior derecha / centro) -->
+            <nav id="dept-options-nav" class="class=hidden lg:flex items-center gap-1 mt-15 p-1.5">
                 <!-- Se inyectará dinámicamente según la clave o nombre corto del depto -->
             </nav>
 
             <!-- Usuario y Salida -->
-            <div class="flex items-center gap-4">
+            <div class="flex items-center gap-4 mt-15">
                 <div class="text-right hidden sm:block whitespace-nowrap">
                     <p id="user-display-name" class="text-xs font-bold text-stone-700 uppercase">Cargando usuario...</p>
                     <p class="text-[10px] text-stone-400 font-semibold tracking-wider block">Sesión Activa</p>
                 </div>
-                <button onclick="AuthManager.logout()"
+                <button onclick="logout()"
                     class="nav-btn px-3 py-2 rounded-lg flex flex-col md:flex-row items-center gap-1 text-[10px] font-bold opacity-50 hover:opacity-100 uppercase tracking-tighter transition-all text-red-500 cursor-pointer">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
@@ -71,11 +85,12 @@
                     <span>Salir</span>
                 </button>
             </div>
+
         </div>
     </header>
 
     <!-- Contenedor Principal del Departamento -->
-    <main id="app-container" class="flex-grow container mx-auto px-6 py-8">
+    <main id="app-container" class="flex-grow container mx-auto px-3 py-8">
         <!-- Contenido dinámico del submódulo seleccionado -->
     </main>
 
@@ -86,9 +101,12 @@
 
     <!-- Scripts -->
     <script src="js/api.js" defer></script>
-    <script src="js/sistemas.js" defer></script> <!-- Archivo específico de sistemas -->
+    <script src="js/cirnosis.js" defer></script>
+    <script src="js/cirnoof.js" defer></script>
+    <script src="js/cirnorh.js" defer></script> <!-- ¡Agregamos esta línea! -->
     <script src="js/router.js" defer></script>
     <script src="js/app.js" defer></script>
+    <script src="./js/login.js"></script>
 </body>
 
 </html>

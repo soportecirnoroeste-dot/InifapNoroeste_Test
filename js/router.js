@@ -48,21 +48,16 @@
 
             // Limpiar contenedor de forma segura
             contenedorApp.innerHTML = '';
-            
+
             // Crear contenedor principal visual con nodos nativos
             const wrapper = document.createElement('section');
-            wrapper.className = "bg-white rounded-2xl p-6 md:p-8 soft-shadow border border-[#249444]/10 mb-8 mx-auto w-full max-w-5xl lg:w-[1050px] box-border animate-fade-in";
+            // Forzamos un ancho exacto y consistente de punta a punta con max-w-[1050px] w-full mx-auto
+            wrapper.className = "bg-white rounded-2xl p-6 md:p-8 soft-shadow border border-[#249444]/10 mb-8 mx-auto w-full max-w-[1050px] box-border animate-fade-in";
 
             // Cabecera
             const headerDiv = document.createElement('div');
             headerDiv.style.cssText = "display: flex; align-items: center; gap: 16px; margin-bottom: 24px; padding-bottom: 24px; border-bottom: 2px solid #f3f4f6;";
 
-            // router.js
-
-            // 1. Tomamos el icono directamente de la configuración del departamento (deptoData)
-            // Si por alguna razón viniera vacío, usará una cadena vacía en lugar de un SVG predeterminado forzado.
-            // router.js
-            // Leemos dinámicamente el icono que trae el archivo .js del departamento
             const iconoCabecera = deptoData.icon || '';
 
             headerDiv.innerHTML = `
@@ -76,9 +71,9 @@
             `;
             wrapper.appendChild(headerDiv);
 
-            // Grid de tarjetas
+            // Grid de tarjetas con un diseño de columnas controlado para que no se estire de más
             const gridDiv = document.createElement('div');
-            gridDiv.style.cssText = "display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;";
+            gridDiv.style.cssText = "display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: stretch;";
 
             deptoData.options.forEach((opt) => {
                 const card = document.createElement('div');

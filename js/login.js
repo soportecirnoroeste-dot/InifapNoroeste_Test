@@ -98,6 +98,4 @@ function logout() {
     window.location.href = 'login.html';
 }
 
-document.body.classList.add('auth-checked');
-
 

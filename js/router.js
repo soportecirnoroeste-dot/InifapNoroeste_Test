@@ -97,6 +97,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.head.appendChild(script);
 });
+
 function activarSubmenu(idOpt, btnElement) {
     document.querySelectorAll('.dept-opt-btn').forEach(btn => {
         btn.classList.remove('bg-white', 'shadow-xs', 'text-[#249444]');

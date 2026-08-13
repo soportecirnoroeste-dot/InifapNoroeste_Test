@@ -57,7 +57,7 @@
             const headerDiv = document.createElement('div');
             headerDiv.style.cssText = "display: flex; align-items: center; gap: 16px; margin-bottom: 24px; padding-bottom: 24px; border-bottom: 2px solid #f3f4f6;";
             headerDiv.innerHTML = `
-                <div style="font-size: 32px; background: #f3f4f6; padding: 12px; border-radius: 12px;">📂</div>
+
                 <div>
                     <h2 style="font-size: 24px; font-weight: 900; color: #111827; margin: 0 0 4px 0;">${nombreOficialDep.toUpperCase()}</h2>
                     <p style="font-size: 14px; color: #4b5563; margin: 0;">${deptoData.subtitle || 'Selecciona una opción para comenzar.'}</p>

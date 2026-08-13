@@ -1,7 +1,7 @@
 // js/router.js
-(function() {
+(function () {
     console.log("Router iniciado correctamente.");
-    
+
     const params = new URLSearchParams(window.location.search);
     const nombreCortoUrl = (params.get('depto') || '').toLowerCase().trim();
 
@@ -34,7 +34,7 @@
     // 2. Cargar dinámicamente el archivo de script del departamento correspondiente
     const script = document.createElement('script');
     script.src = `js/${nombreCortoUrl}.js`;
-    
+
     script.onload = () => {
         const nombreVariableConfig = nombreCortoUrl + 'Config';
         const deptoData = window[nombreVariableConfig];
@@ -45,7 +45,7 @@
                 console.error("No se encontró el contenedor #app-container");
                 return;
             }
-            
+
             let tarjetasHtml = '';
             const coloresBg = [
                 'bg-[#f0fdf4] border-[#c6f6d5] text-[#059669]',
@@ -76,18 +76,16 @@
             });
 
             contenedorApp.innerHTML = `
-            <div class="bg-white rounded-2xl p-8 border border-stone-200 shadow-sm animate-fade-in">
-                <div class="flex items-center gap-4 mb-6 pb-6 border-b border-stone-100">
-                    <div class="p-3 bg-stone-100 rounded-2xl text-3xl shadow-xs">
-                        📂
-                    </div>
+            <div style="background-color: #ffffff; padding: 30px; border-radius: 16px; border: 1px solid #e5e7eb; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin: 20px auto; max-width: 1000px;">
+                <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px; padding-bottom: 24px; border-bottom: 2px solid #f3f4f6;">
+                    <div style="font-size: 32px; background: #f3f4f6; padding: 12px; border-radius: 12px;">📂</div>
                     <div>
-                        <h2 class="font-black text-stone-900 text-2xl mb-1">${nombreOficialDep.toUpperCase()}</h2>
-                        <p class="text-sm text-stone-600 max-w-xl">${deptoData.subtitle || 'Selecciona una opción para comenzar.'}</p>
+                        <h2 style="font-size: 24px; font-weight: 900; color: #111827; margin: 0 0 4px 0;">${nombreOficialDep.toUpperCase()}</h2>
+                        <p style="font-size: 14px; color: #4b5563; margin: 0;">${deptoData.subtitle || 'Selecciona una opción para comenzar.'}</p>
                     </div>
                 </div>
                 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
                     ${tarjetasHtml}
                 </div>
             </div>

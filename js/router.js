@@ -152,7 +152,7 @@ function mostrarErrorConfig(nombreCorto, detalle) {
     }
 }
 
-// Forzar visibilidad absoluta, ajustar botón de retroceso dinámico y DOMContentLoaded
+// Ajustar dinámicamente el botón de retroceso (flecha de retorno) según la URL
 window.addEventListener('DOMContentLoaded', () => {
     document.body.classList.add('auth-checked');
 
@@ -165,14 +165,14 @@ window.addEventListener('DOMContentLoaded', () => {
         mainContainer.style.opacity = '1';
     }
 
-    // Ajustar dinámicamente el botón de retroceso (flecha de retorno) según la URL
     const params = new URLSearchParams(window.location.search);
     const depto = params.get('depto');
     const btnRegresar = document.getElementById('btn-regresar');
 
     if (btnRegresar) {
         if (depto) {
-            btnRegresar.href = `router.html?depto=${depto}`;
+            // Apunta correctamente a main.html manteniendo el parámetro del departamento
+            btnRegresar.href = `main.html?depto=${depto}`;
             btnRegresar.title = "Regresar al menú del departamento";
         } else {
             btnRegresar.href = "index.html";

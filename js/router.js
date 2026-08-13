@@ -51,9 +51,8 @@
 
             // Crear contenedor principal visual con nodos nativos
             const wrapper = document.createElement('div');
-            // Usamos las clases de Tailwind que te gustan y le fijamos un ancho máximo uniforme (max-w-5xl)
-            wrapper.className = "bg-white rounded-2xl p-6 md:p-8 border border-stone-200 shadow-sm animate-fade-in my-6 mx-auto max-w-5xl w-full box-border";
-            
+            wrapper.className = "bg-white rounded-2xl p-6 md:p-8 border border-stone-200 shadow-sm animate-fade-in my-6 mx-auto w-full max-w-5xl lg:w-[1050px] box-border";
+
             // Cabecera
             const headerDiv = document.createElement('div');
             headerDiv.style.cssText = "display: flex; align-items: center; gap: 16px; margin-bottom: 24px; padding-bottom: 24px; border-bottom: 2px solid #f3f4f6;";

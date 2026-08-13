@@ -132,3 +132,15 @@ function mostrarErrorConfig(nombreCorto, detalle) {
     `;
     }
 }
+
+// Forzar visibilidad absoluta del contenedor principal y el body
+window.addEventListener('DOMContentLoaded', () => {
+    const mainContainer = document.getElementById('app-container');
+    if (mainContainer) {
+        mainContainer.style.position = 'relative';
+        mainContainer.style.zIndex = '9999';
+        mainContainer.style.display = 'block';
+        mainContainer.style.visibility = 'visible';
+        mainContainer.style.opacity = '1';
+    }
+});

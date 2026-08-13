@@ -51,8 +51,7 @@
 
             // Crear contenedor principal visual con nodos nativos
             const wrapper = document.createElement('div');
-            wrapper.style.cssText = "background-color: #ffffff; padding: 30px; border-radius: 16px; border: 1px solid #e5e7eb; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin: 20px auto; max-width: 1000px; display: block;";
-
+            wrapper.style.cssText = "background-color: #ffffff; padding: 30px; border-radius: 16px; border: 1px solid #e5e7eb; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin: 20px auto; width: 100%; max-width: 1150px; box-sizing: border-box; display: block;";
             // Cabecera
             const headerDiv = document.createElement('div');
             headerDiv.style.cssText = "display: flex; align-items: center; gap: 16px; margin-bottom: 24px; padding-bottom: 24px; border-bottom: 2px solid #f3f4f6;";

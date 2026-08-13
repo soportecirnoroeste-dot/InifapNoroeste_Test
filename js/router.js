@@ -40,7 +40,6 @@
         const deptoData = window[nombreVariableConfig];
 
         if (deptoData && deptoData.options) {
-            // Actualizar dinámicamente el título superior con el nombre oficial del depto en memoria
             // Actualizar dinámicamente el título superior con la ruta completa
             const headerDeptoTitle = document.getElementById('header-depto-title');
             if (headerDeptoTitle) {
@@ -153,7 +152,7 @@ function mostrarErrorConfig(nombreCorto, detalle) {
     }
 }
 
-// Forzar visibilidad absoluta del contenedor principal y el body
+// Forzar visibilidad absoluta, ajustar botón de retroceso dinámico y DOMContentLoaded
 window.addEventListener('DOMContentLoaded', () => {
     document.body.classList.add('auth-checked');
 
@@ -164,5 +163,20 @@ window.addEventListener('DOMContentLoaded', () => {
         mainContainer.style.display = 'block';
         mainContainer.style.visibility = 'visible';
         mainContainer.style.opacity = '1';
+    }
+
+    // Ajustar dinámicamente el botón de retroceso (flecha de retorno) según la URL
+    const params = new URLSearchParams(window.location.search);
+    const depto = params.get('depto');
+    const btnRegresar = document.getElementById('btn-regresar');
+
+    if (btnRegresar) {
+        if (depto) {
+            btnRegresar.href = `router.html?depto=${depto}`;
+            btnRegresar.title = "Regresar al menú del departamento";
+        } else {
+            btnRegresar.href = "index.html";
+            btnRegresar.title = "Regresar al inicio";
+        }
     }
 });

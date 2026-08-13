@@ -41,9 +41,10 @@
 
         if (deptoData && deptoData.options) {
             // Actualizar dinámicamente el título superior con el nombre oficial del depto en memoria
+            // Actualizar dinámicamente el título superior con la ruta completa
             const headerDeptoTitle = document.getElementById('header-depto-title');
             if (headerDeptoTitle) {
-                headerDeptoTitle.textContent = nombreOficialDep.toUpperCase();
+                headerDeptoTitle.textContent = `SISTEMA REGIONAL INTERNO / ${nombreOficialDep.toUpperCase()}`;
             }
 
             const contenedorApp = document.getElementById('app-container');
@@ -54,7 +55,7 @@
 
             // Limpiar contenedor de forma segura
             contenedorApp.innerHTML = '';
-            
+
             // Crear contenedor principal visual con nodos nativos
             const wrapper = document.createElement('section');
             wrapper.className = "bg-white rounded-2xl p-6 md:p-8 soft-shadow border border-[#249444]/10 mb-8 w-full box-border animate-fade-in";
@@ -70,8 +71,7 @@
                     ${iconoCabecera}
                 </div>
                 <div>
-                    <h2 style="font-size: 24px; font-weight: 900; color: #111827; margin: 0 0 4px 0;">SISTEMA REGIONAL
-                    INTERNO/ +${nombreOficialDep.toUpperCase()}</h2>
+                    <h2 style="font-size: 24px; font-weight: 900; color: #249444; margin: 0 0 4px 0;">PANEL DE MENÚ DE DEPARTAMENTO</h2>
                     <p style="font-size: 14px; color: #4b5563; margin: 0;">${deptoData.subtitle || 'Selecciona una opción para comenzar.'}</p>
                 </div>
             `;

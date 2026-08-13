@@ -71,7 +71,7 @@
                     ${iconoCabecera}
                 </div>
                 <div>
-                    <h2 style="font-size: 24px; font-weight: 900; color: #249444; margin: 0 0 4px 0;">MENÚ DEL DEPARTAMENTO</h2>
+                    <h2 style="font-size: 20px; font-weight: 900; color: #249444; margin: 0 0 4px 0;">MENÚ DEL DEPARTAMENTO</h2>
                     <p style="font-size: 14px; color: #4b5563; margin: 0;">${deptoData.subtitle || 'Selecciona una opción para comenzar.'}</p>
                 </div>
             `;

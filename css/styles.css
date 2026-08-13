@@ -17,6 +17,12 @@ body {
     padding: 0;
 }
 
+/* Oculta la página de inicio hasta que el script de sesión confirme que estás logueada */
+body:not(.auth-checked) {
+    opacity: 0;
+    visibility: hidden;
+}
+
 /* Logo Login */
 .inifap-logo-wrapper {
     display: flex;

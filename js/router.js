@@ -152,7 +152,6 @@ function mostrarErrorConfig(nombreCorto, detalle) {
     }
 }
 
-// Ajustar dinámicamente el botón de retroceso (flecha de retorno) según la URL
 window.addEventListener('DOMContentLoaded', () => {
     document.body.classList.add('auth-checked');
 
@@ -170,13 +169,21 @@ window.addEventListener('DOMContentLoaded', () => {
     const btnRegresar = document.getElementById('btn-regresar');
 
     if (btnRegresar) {
-        if (depto) {
-            // Apunta correctamente a main.html manteniendo el parámetro del departamento
+        // Obtenemos la página actual (ej. 'main.html', 'submodulo.html', etc.)
+        const paginaActual = window.location.pathname.split('/').pop();
+
+        if (paginaActual === 'main.html' || paginaActual === '') {
+            // Si ya estás en el menú del departamento, el botón te saca al inicio general
+            btnRegresar.href = 'index.html';
+            btnRegresar.title = 'Regresar al inicio';
+        } else if (depto) {
+            // Si estás en un submódulo dentro del departamento, el primer clic te regresa al main.html de ese depto
             btnRegresar.href = `main.html?depto=${depto}`;
-            btnRegresar.title = "Regresar al menú del departamento";
+            btnRegresar.title = 'Regresar al menú del departamento';
         } else {
-            btnRegresar.href = "index.html";
-            btnRegresar.title = "Regresar al inicio";
+            // Por defecto si no hay departamento
+            btnRegresar.href = 'index.html';
+            btnRegresar.title = 'Regresar al inicio';
         }
     }
 });

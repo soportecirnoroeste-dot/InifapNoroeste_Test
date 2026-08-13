@@ -46,18 +46,39 @@
                 return;
             }
 
-            let tarjetasHtml = '';
-            const coloresBg = [
-                'bg-[#f0fdf4] border-[#c6f6d5] text-[#059669]',
-                'bg-[#fffbeb] border-[#fef3c7] text-[#d97706]',
-                'bg-[#eff6ff] border-[#bfdbfe] text-[#2563eb]',
-                'bg-[#faf5ff] border-[#f3e8ff] text-[#7e22ce]',
-                'bg-[#fff1f2] border-[#ffe4e6] text-[#e11d48]'
-            ];
+            // Limpiar contenedor de forma segura
+            contenedorApp.innerHTML = '';
 
-            deptoData.options.forEach((opt, index) => {
-                tarjetasHtml += `
-                <div onclick="${opt.action}" style="background: #f9fafb; border: 1px solid #e5e7eb; padding: 20px; border-radius: 12px; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between;">
+            // Crear contenedor principal visual con nodos nativos
+            const wrapper = document.createElement('div');
+            wrapper.style.cssText = "background-color: #ffffff; padding: 30px; border-radius: 16px; border: 1px solid #e5e7eb; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin: 20px auto; max-width: 1000px; display: block;";
+
+            // Cabecera
+            const headerDiv = document.createElement('div');
+            headerDiv.style.cssText = "display: flex; align-items: center; gap: 16px; margin-bottom: 24px; padding-bottom: 24px; border-bottom: 2px solid #f3f4f6;";
+            headerDiv.innerHTML = `
+                <div style="font-size: 32px; background: #f3f4f6; padding: 12px; border-radius: 12px;">📂</div>
+                <div>
+                    <h2 style="font-size: 24px; font-weight: 900; color: #111827; margin: 0 0 4px 0;">${nombreOficialDep.toUpperCase()}</h2>
+                    <p style="font-size: 14px; color: #4b5563; margin: 0;">${deptoData.subtitle || 'Selecciona una opción para comenzar.'}</p>
+                </div>
+            `;
+            wrapper.appendChild(headerDiv);
+
+            // Grid de tarjetas
+            const gridDiv = document.createElement('div');
+            gridDiv.style.cssText = "display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;";
+
+            deptoData.options.forEach((opt) => {
+                const card = document.createElement('div');
+                card.style.cssText = "background: #f9fafb; border: 1px solid #e5e7eb; padding: 20px; border-radius: 12px; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between;";
+                
+                // Asignar la acción de manera segura
+                if (opt.action) {
+                    card.onclick = new Function(opt.action);
+                }
+                
+                card.innerHTML = `
                     <div>
                         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
                             <span style="font-size: 20px; background: #d1fae5; color: #065f46; padding: 8px; border-radius: 8px;">${opt.icon}</span>
@@ -68,25 +89,12 @@
                     <div style="margin-top: 16px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #059669;">
                         Abrir módulo &rarr;
                     </div>
-                </div>
                 `;
+                gridDiv.appendChild(card);
             });
 
-            contenedorApp.innerHTML = `
-            <div style="background-color: #ffffff; padding: 30px; border-radius: 16px; border: 1px solid #e5e7eb; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin: 20px auto; max-width: 1000px;">
-                <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px; padding-bottom: 24px; border-bottom: 2px solid #f3f4f6;">
-                    <div style="font-size: 32px; background: #f3f4f6; padding: 12px; border-radius: 12px;">📂</div>
-                    <div>
-                        <h2 style="font-size: 24px; font-weight: 900; color: #111827; margin: 0 0 4px 0;">${nombreOficialDep.toUpperCase()}</h2>
-                        <p style="font-size: 14px; color: #4b5563; margin: 0;">${deptoData.subtitle || 'Selecciona una opción para comenzar.'}</p>
-                    </div>
-                </div>
-                
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
-                    ${tarjetasHtml}
-                </div>
-            </div>
-            `;
+            wrapper.appendChild(gridDiv);
+            contenedorApp.appendChild(wrapper);
             console.log("¡Interfaz pintada con éxito!");
         } else {
             console.error("No se encontró la configuración global para: " + nombreVariableConfig);

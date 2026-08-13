@@ -57,10 +57,13 @@
             const headerDiv = document.createElement('div');
             headerDiv.style.cssText = "display: flex; align-items: center; gap: 16px; margin-bottom: 24px; padding-bottom: 24px; border-bottom: 2px solid #f3f4f6;";
 
-            // Asegúrate de que deptoData tenga el icono o usa uno por defecto
-            const iconoCabecera = deptoData.icon || `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>`;
+            // router.js
 
-            headerDiv.innerHTML = `
+            // 1. Tomamos el icono directamente de la configuración del departamento (deptoData)
+            // Si por alguna razón viniera vacío, usará una cadena vacía en lugar de un SVG predeterminado forzado.
+            const iconoCabecera = deptoData.icon || '';
+
+                        headerDiv.innerHTML = `
                 <div style="font-size: 24px; background: #f0fdf4; color: #059669; padding: 12px; border-radius: 12px; border: 1px solid #c6f6d5; display: flex; align-items: center; justify-content: center;">
                     ${iconoCabecera}
                 </div>
@@ -68,7 +71,7 @@
                     <h2 style="font-size: 24px; font-weight: 900; color: #111827; margin: 0 0 4px 0;">${nombreOficialDep.toUpperCase()}</h2>
                     <p style="font-size: 14px; color: #4b5563; margin: 0;">${deptoData.subtitle || 'Selecciona una opción para comenzar.'}</p>
                 </div>
-            `;  
+            `;
             wrapper.appendChild(headerDiv);
 
             // Grid de tarjetas

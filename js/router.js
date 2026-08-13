@@ -61,6 +61,8 @@
 
             // 1. Tomamos el icono directamente de la configuración del departamento (deptoData)
             // Si por alguna razón viniera vacío, usará una cadena vacía en lugar de un SVG predeterminado forzado.
+            // router.js
+            // Leemos dinámicamente el icono que trae el archivo .js del departamento
             const iconoCabecera = deptoData.icon || '';
 
             headerDiv.innerHTML = `

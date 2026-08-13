@@ -48,11 +48,11 @@
 
             // Limpiar contenedor de forma segura
             contenedorApp.innerHTML = '';
-
+            
             // Crear contenedor principal visual con nodos nativos
             const wrapper = document.createElement('section');
-            wrapper.className = "bg-white rounded-2xl p-6 md:p-8 soft-shadow border border-[#249444]/10 mb-8 max-w-5xl mx-auto w-full box-border animate-fade-in";
-            
+            wrapper.className = "bg-white rounded-2xl p-6 md:p-8 soft-shadow border border-[#249444]/10 mb-8 mx-auto w-full max-w-5xl lg:w-[1050px] box-border animate-fade-in";
+
             // Cabecera
             const headerDiv = document.createElement('div');
             headerDiv.style.cssText = "display: flex; align-items: center; gap: 16px; margin-bottom: 24px; padding-bottom: 24px; border-bottom: 2px solid #f3f4f6;";

@@ -63,7 +63,7 @@
             // Si por alguna razón viniera vacío, usará una cadena vacía en lugar de un SVG predeterminado forzado.
             const iconoCabecera = deptoData.icon || '';
 
-                        headerDiv.innerHTML = `
+            headerDiv.innerHTML = `
                 <div style="font-size: 24px; background: #f0fdf4; color: #059669; padding: 12px; border-radius: 12px; border: 1px solid #c6f6d5; display: flex; align-items: center; justify-content: center;">
                     ${iconoCabecera}
                 </div>
@@ -80,7 +80,8 @@
 
             deptoData.options.forEach((opt) => {
                 const card = document.createElement('div');
-                card.style.cssText = "background: #f9fafb; border: 1px solid #e5e7eb; padding: 20px; border-radius: 12px; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between;";
+                // Agregamos height: 100% y box-sizing para que todas midan lo mismo
+                card.style.cssText = "background: #f9fafb; border: 1px solid #e5e7eb; padding: 20px; border-radius: 12px; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; height: 100%; box-sizing: border-box;";
 
                 // Asignar la acción de manera segura
                 if (opt.action) {
@@ -88,17 +89,17 @@
                 }
 
                 card.innerHTML = `
-                    <div>
-                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-                            <span style="font-size: 20px; background: #d1fae5; color: #065f46; padding: 8px; border-radius: 8px;">${opt.icon}</span>
-                            <h4 style="font-size: 14px; font-weight: 700; color: #1f2937; margin: 0;">${opt.title}</h4>
-                        </div>
-                        <p style="font-size: 12px; color: #4b5563; margin: 0;">Módulo de gestión para ${opt.title.toLowerCase()}.</p>
+                <div>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                        <span style="font-size: 20px; background: #d1fae5; color: #065f46; padding: 8px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">${opt.icon}</span>
+                        <h4 style="font-size: 14px; font-weight: 700; color: #1f2937; margin: 0;">${opt.title}</h4>
                     </div>
-                    <div style="margin-top: 16px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #059669;">
-                        Abrir módulo &rarr;
-                    </div>
-                `;
+                    <p style="font-size: 12px; color: #4b5563; margin: 0;">Módulo de gestión para ${opt.title.toLowerCase()}.</p>
+                </div>
+                <div style="margin-top: 16px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #059669;">
+                    Abrir módulo &rarr;
+                </div>
+            `;
                 gridDiv.appendChild(card);
             });
 

@@ -67,14 +67,18 @@ function cargarExpedientesRh() {
 }
 
 function cargarGenerarOficiosRh() {
-    let opt= `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-handshake"><path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/><path d="m21 3 1 11h-2"/><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"/><path d="M3 4h8"/></svg>`;
+    let opt = window.cirnorhConfig.options.find(o => o.id === 'generar-oficios');
     const contenedor = obtenerContenedor();
-    if (contenedor) {
+    
+    // Icono de handshake personalizado
+    const iconoHandshake = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-handshake"><path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/><path d="m21 3 1 11h-2"/><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"/><path d="M3 4h8"/></svg>`;
+
+    if (contenedor && opt) {
         contenedor.innerHTML = `
             <div class="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm animate-fade-in">
                 <div class="flex items-center gap-3 mb-4">
                     <div class="p-2.5 bg-[#f0fdf4] border border-[#c6f6d5] text-[#059669] rounded-xl">
-                        ${opt.icon}
+                        ${iconoHandshake}
                     </div>
                     <div>
                         <h3 class="font-black text-stone-800 text-lg">Generación de Oficios - Recursos Humanos</h3>

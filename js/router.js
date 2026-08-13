@@ -143,6 +143,9 @@ function mostrarErrorConfig(nombreCorto, detalle) {
 
 // Forzar visibilidad absoluta del contenedor principal y el body
 window.addEventListener('DOMContentLoaded', () => {
+    // Añade esta línea para quitar el ocultamiento del CSS
+    document.body.classList.add('auth-checked');
+
     const mainContainer = document.getElementById('app-container');
     if (mainContainer) {
         mainContainer.style.position = 'relative';

@@ -1,10 +1,13 @@
-// router.js - Versión Corregida y Robusta
-document.addEventListener("DOMContentLoaded", () => {
+// js/router.js
+(function() {
+    console.log("Router iniciado correctamente.");
+    
     const params = new URLSearchParams(window.location.search);
     const nombreCortoUrl = (params.get('depto') || '').toLowerCase().trim();
 
     if (!nombreCortoUrl) {
         console.warn("No se especificó ningún departamento en la URL.");
+        mostrarErrorDepto("No se especificó ningún departamento.");
         return;
     }
 
@@ -37,8 +40,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const deptoData = window[nombreVariableConfig];
 
         if (deptoData && deptoData.options) {
-            // Buscamos el contenedor principal donde se pintará la interfaz
-            const contenedorApp = document.getElementById('app-container') || document.querySelector('main') || document.body;
+            const contenedorApp = document.getElementById('app-container');
+            if (!contenedorApp) {
+                console.error("No se encontró el contenedor #app-container");
+                return;
+            }
             
             let tarjetasHtml = '';
             const coloresBg = [
@@ -52,7 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
             deptoData.options.forEach((opt, index) => {
                 const estiloColor = coloresBg[index % coloresBg.length];
                 const claseColorBg = estiloColor.split(' ')[0];
-                
+
                 tarjetasHtml += `
                 <div onclick="${opt.action}" class="p-5 rounded-xl border cursor-pointer hover:shadow-md transition-all bg-white flex flex-col justify-between group">
                     <div>
@@ -86,17 +92,20 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
             </div>
             `;
+            console.log("¡Interfaz pintada con éxito!");
         } else {
             console.error("No se encontró la configuración global para: " + nombreVariableConfig);
+            mostrarErrorConfig(nombreCortoUrl, "No se encontró el objeto " + nombreVariableConfig);
         }
     };
 
     script.onerror = () => {
         console.error("No se pudo cargar el archivo de script: js/" + nombreCortoUrl + ".js");
+        mostrarErrorConfig(nombreCortoUrl, "Archivo js/" + nombreCortoUrl + ".js no encontrado");
     };
 
     document.head.appendChild(script);
-});
+})();
 
 function activarSubmenu(idOpt, btnElement) {
     document.querySelectorAll('.dept-opt-btn').forEach(btn => {
@@ -108,18 +117,23 @@ function activarSubmenu(idOpt, btnElement) {
 }
 
 function mostrarErrorDepto(mensaje) {
-    document.getElementById('dept-options-nav').innerHTML = `<span class="text-xs text-red-500 font-bold px-3">Sin departamento</span>`;
-    document.getElementById('app-container').innerHTML = `<div class="text-center py-20 font-bold text-red-500">${mensaje}</div>`;
+    const navElem = document.getElementById('dept-options-nav');
+    const appElem = document.getElementById('app-container');
+    if (navElem) navElem.innerHTML = `<span class="text-xs text-red-500 font-bold px-3">Sin departamento</span>`;
+    if (appElem) appElem.innerHTML = `<div class="text-center py-20 font-bold text-red-500">${mensaje}</div>`;
 }
 
 function mostrarErrorConfig(nombreCorto, detalle) {
-    document.getElementById('dept-options-nav').innerHTML = `<span class="text-xs text-red-500 font-bold px-3">Sin configuración</span>`;
-    document.getElementById('app-container').innerHTML = `
+    const navElem = document.getElementById('dept-options-nav');
+    const appElem = document.getElementById('app-container');
+    if (navElem) navElem.innerHTML = `<span class="text-xs text-red-500 font-bold px-3">Sin configuración</span>`;
+    if (appElem) {
+        appElem.innerHTML = `
         <div class="text-center py-20 bg-white rounded-2xl border border-stone-200 shadow-sm">
             <h2 class="text-2xl font-bold text-red-500">Departamento no configurado</h2>
             <p class="text-xs text-stone-500 mt-2">No se pudo cargar correctamente el archivo o la estructura para: <strong class="text-stone-800">"${nombreCorto}"</strong> (<code class="bg-stone-100 px-2 py-1 rounded text-stone-700">${detalle}</code>)</p>
             <a href="index.html" class="inline-block mt-6 px-6 py-2 bg-[#249444] text-white rounded-xl text-xs font-bold">Regresar al inicio</a>
         </div>
     `;
+    }
 }
-

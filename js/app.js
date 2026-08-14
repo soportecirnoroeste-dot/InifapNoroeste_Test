@@ -52,7 +52,6 @@ const SistemaGlobal = {
                 .withFailureHandler(err => console.error("Error al obtener datos de Sheets:", err))
                 .obtenerDatosSistema();
         } else {
-            console.warn("Entorno Google Apps Script no detectado. Usando conexión Fetch...");
             const URL_DIRECTA = "https://script.google.com/macros/s/AKfycbzDs5fvFxykQniWFZnbUqpbuDAmrIDhMHlVwU4r5B3iPLxBp4FDG7uKrtDBDQEXxEX8fQ/exec?action=obtenerDatosSistema";
 
             fetch(URL_DIRECTA)

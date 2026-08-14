@@ -69,8 +69,7 @@ function cargarPersonalRh() {
         <div class="bg-white rounded-xl border border-stone-200 overflow-hidden shadow-sm">
             <div class="p-4 border-b border-stone-100 font-bold text-xs text-stone-700 uppercase tracking-wider flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-[#059669]"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                Listado General de Empleados (Google Sheets)
-            </div>
+                Listado General de Empleados
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse text-xs">
                     <thead>
@@ -85,7 +84,7 @@ function cargarPersonalRh() {
                     </thead>
                     <tbody id="tabla-personal-body">
                         <tr>
-                            <td colspan="6" class="p-6 text-center text-stone-400 italic">Cargando registros desde Google Sheets...</td>
+                            <td colspan="6" class="p-6 text-center text-stone-400 italic">Cargando registros...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -111,7 +110,7 @@ async function cargarDatosPersonalSheets() {
     const tbody = document.getElementById('tabla-personal-body');
     if (!tbody) return;
 
-    tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-stone-400 italic">Sincronizando con Google Sheets...</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-stone-400 italic">Sincronizando los datos...</td></tr>`;
 
     try {
         // Usamos la función global FetchAPI pasando la acción correspondiente para el backend en Apps Script
@@ -119,7 +118,7 @@ async function cargarDatosPersonalSheets() {
         renderizarTablaPersonal(data);
     } catch (error) {
         console.error("Error al cargar datos de Sheets:", error);
-        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-red-500 italic">Error al conectar con Google Sheets. Verifica la URL o tu Apps Script.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-red-500 italic">Error al conectar con  Sheets. Comucate son soporte.</td></tr>`;
     }
 }
 

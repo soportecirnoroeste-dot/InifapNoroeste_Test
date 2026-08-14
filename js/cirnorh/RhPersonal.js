@@ -1,5 +1,4 @@
 // js/cirnorh/RhPersonal.js
-
 function cargarPersonalRh(cargarLista = true) {
     renderizarVistaModulo('personal', "Directorio de empleados, altas, bajas y estructura organizacional.");
 
@@ -38,10 +37,8 @@ function cargarPersonalRh(cargarLista = true) {
                 <div><label class="block font-bold text-stone-700 mb-1">Núm. Empleado:</label><input type="text" name="numEmp" id="input-numEmp" required class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
                 <div><label class="block font-bold text-stone-700 mb-1">Nombre Completo:</label><input type="text" name="nombre" required class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
                 
-                <!-- Password enmascarado (type="password") -->
-                <div><label class="block font-bold text-stone-700 mb-1">Password:</label><input type="password" name="pass" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
-                
                 <div><label class="block font-bold text-stone-700 mb-1">Extensión:</label><input type="text" name="ext" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
+                <div><label class="block font-bold text-stone-700 mb-1">Núm. Personal:</label><input type="text" name="numPers" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
                 <div><label class="block font-bold text-stone-700 mb-1">Escolaridad:</label><input type="text" name="escolaridad" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
                 <div><label class="block font-bold text-stone-700 mb-1">Dirección:</label><input type="text" name="direccion" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
                 <div><label class="block font-bold text-stone-700 mb-1">C.P.:</label><input type="text" name="cp" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
@@ -61,7 +58,6 @@ function cargarPersonalRh(cargarLista = true) {
             </form>
         </div>
 
-        <!-- Contenedor del listado general para poder ocultarlo/mostrarlo fácilmente -->
         <div id="contenedor-listado-personal" class="bg-white rounded-xl border border-stone-200 overflow-hidden shadow-sm">
             <div class="p-4 border-b border-stone-100 font-bold text-xs text-stone-700 uppercase tracking-wider">Listado General de Empleados</div>
             <div class="overflow-x-auto">
@@ -148,7 +144,6 @@ function seleccionarEmpleadoParaEditar(index) {
     const emp = window._empleadosCache[index];
     if (!emp) return;
 
-    // Abrimos el formulario sin recargar la lista
     cargarPersonalRh(false); 
 
     const form = document.getElementById('form-nuevo-personal');
@@ -158,30 +153,31 @@ function seleccionarEmpleadoParaEditar(index) {
     const inputNumEmp = document.getElementById('input-numEmp');
 
     if (formContainer && form) {
-        // Llenado de todos los campos incluyendo claves y password
-        form.elements['claveReg'].value = emp.claveReg || '';
-        form.elements['claveCentro'].value = emp.claveCentro || '';
-        form.elements['claveSit'].value = emp.claveSit || '';
+        const limpiarValor = (val) => (!val || val === 0 || val === '0') ? '' : val;
+
+        form.elements['claveReg'].value = limpiarValor(emp.claveReg);
+        form.elements['claveCentro'].value = limpiarValor(emp.claveCentro);
+        form.elements['claveSit'].value = limpiarValor(emp.claveSit);
         
-        form.elements['numEmp'].value = emp.numEmp || '';
+        form.elements['numEmp'].value = limpiarValor(emp.numEmp);
         inputNumEmp.setAttribute('readonly', true);
         
-        form.elements['nombre'].value = emp.nombre || '';
-        form.elements['pass'].value = emp.pass || '';
-        form.elements['ext'].value = emp.ext || '';
-        form.elements['escolaridad'].value = emp.escolaridad || '';
-        form.elements['direccion'].value = emp.direccion || '';
-        form.elements['cp'].value = emp.cp || '';
-        form.elements['email'].value = emp.email || '';
-        form.elements['rfc'].value = emp.rfc || '';
-        form.elements['puesto'].value = emp.puesto || '';
-        form.elements['departamento'].value = emp.departamento || '';
-        form.elements['ciudad'].value = emp.ciudad || '';
-        form.elements['estado'].value = emp.estado || '';
+        form.elements['nombre'].value = limpiarValor(emp.nombre);
+        form.elements['ext'].value = limpiarValor(emp.ext);
+        form.elements['numPers'].value = limpiarValor(emp.numPers); // Nuevo campo
+        form.elements['escolaridad'].value = limpiarValor(emp.escolaridad);
+        form.elements['direccion'].value = limpiarValor(emp.direccion);
+        form.elements['cp'].value = limpiarValor(emp.cp);
+        form.elements['email'].value = limpiarValor(emp.email);
+        form.elements['rfc'].value = limpiarValor(emp.rfc);
+        form.elements['puesto'].value = limpiarValor(emp.puesto);
+        form.elements['departamento'].value = limpiarValor(emp.departamento);
+        form.elements['ciudad'].value = limpiarValor(emp.ciudad);
+        form.elements['estado'].value = limpiarValor(emp.estado);
 
-        titulo.innerHTML = `Editando: <span class="text-[#249444]">${emp.nombre}</span>`;
+        titulo.innerHTML = `Editando: <span class="text-[#249444]">${limpiarValor(emp.nombre) || 'Sin Nombre'}</span>`;
         formContainer.classList.remove('hidden');
-        if (listadoContainer) listadoContainer.classList.add('hidden'); // Ocultar la tabla de abajo
+        if (listadoContainer) listadoContainer.classList.add('hidden');
     }
 }
 

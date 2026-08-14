@@ -173,33 +173,34 @@ window.addEventListener('DOMContentLoaded', () => {
     const btnRegresar = document.getElementById('btn-regresar');
 
     if (btnRegresar) {
-        const rutaCompleta = window.location.pathname;
-        const paginaActual = rutaCompleta.split('/').pop().toLowerCase();
+        const urlActual = window.location.href.toLowerCase();
         const deptoGuardado = localStorage.getItem('depto_activo_actual');
 
-        const pathSegments = rutaCompleta.split('/').filter(Boolean);
+        // Detectar base path para GitHub Pages de forma robusta
+        const pathSegments = window.location.pathname.split('/').filter(Boolean);
         let basePath = '';
         if (window.location.hostname.includes('github.io') && pathSegments.length > 0) {
             basePath = `/${pathSegments[0]}`;
         }
 
-        console.group("🔍 Control del Botón Regresar");
-        console.log("Página actual:", paginaActual);
+        console.group("🔍 Control Definitivo del Botón Regresar");
+        console.log("URL actual:", urlActual);
+        console.log("Base Path:", basePath);
         console.log("Departamento en localStorage:", deptoGuardado);
 
-        // Si estamos en main.html, el botón de retroceso debe llevar al panel principal (index.html)
-        if (paginaActual === 'main.html') {
+        // Si la URL actual contiene 'main.html', estamos en el menú del depto y el botón va al index general.
+        if (urlActual.includes('main.html')) {
             btnRegresar.href = `${basePath}/index.html`;
             btnRegresar.title = 'Regresar al panel principal';
-            console.log("Acción: main.html -> index.html");
+            console.log("Acción: Estás en main -> Ir a index.html");
         } 
-        // Si estamos en cualquier submódulo (ej. personal, asistencia, etc.), el botón SIEMPRE debe regresar al main.html de ese depto
+        // Si la URL NO contiene 'main.html' (estás en un submódulo como personal), regresamos al main del depto.
         else if (deptoGuardado) {
             btnRegresar.href = `${basePath}/main.html?depto=${deptoGuardado}`;
             btnRegresar.title = 'Regresar al menú del departamento';
-            console.log(`Acción: Submódulo -> main.html?depto=${deptoGuardado}`);
+            console.log(`Acción: Estás en submódulo -> Ir a main.html?depto=${deptoGuardado}`);
         } 
-        // Si no hay nada guardado, mandamos al index por seguridad
+        // Fallback por si acaso
         else {
             btnRegresar.href = `${basePath}/index.html`;
             btnRegresar.title = 'Regresar al inicio';

@@ -84,6 +84,7 @@ function cargarPersonalRh() {
                     <thead>
                         <tr class="bg-stone-50 text-stone-600 border-b border-stone-200">
                             <th class="p-3 font-bold">Clave Reg</th>
+                            <th class="p-3 font-bold">Clave Cen</th>
                             <th class="p-3 font-bold">Núm. Emp</th>
                             <th class="p-3 font-bold">Nombre</th>
                             <th class="p-3 font-bold">RFC</th>
@@ -154,6 +155,7 @@ function renderizarTablaPersonal(registros) {
 
     tbody.innerHTML = registros.map((row, index) => {
         const claveReg = row.claveReg || 'N/A';
+        const claveCen = row.claveCen || 'N/A';
         const numEmp = row.numEmp || 'N/A';
         const nombre = row.nombre || 'Sin Nombre';
         const rfc = row.rfc || 'N/A';
@@ -164,6 +166,7 @@ function renderizarTablaPersonal(registros) {
         return `
             <tr class="border-b border-stone-100 hover:bg-stone-50 transition">
                 <td class="p-3 font-mono text-stone-600">${claveReg}</td>
+                <td class="p-3 font-mono text-stone-600">${claveCen}</td>
                 <td class="p-3 font-mono text-stone-600">${numEmp}</td>
                 <td class="p-3">
                     <button onclick="seleccionarEmpleadoParaEditar(${index})" class="font-semibold text-[#249444] hover:underline text-left">

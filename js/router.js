@@ -179,32 +179,40 @@ window.addEventListener('DOMContentLoaded', () => {
         const paginaActual = rutaCompleta.split('/').pop();
         const deptoGuardado = localStorage.getItem('depto_activo_actual');
 
+        // Detectar dinámicamente si estamos en GitHub Pages (ej. /InifapNoroeste_Test/)
+        const pathSegments = rutaCompleta.split('/').filter(Boolean);
+        let basePath = '';
+        if (window.location.hostname.includes('github.io') && pathSegments.length > 0) {
+            basePath = `/${pathSegments[0]}`; // Ej: /InifapNoroeste_Test
+        }
+
         console.group("🔍 Depuración del Botón de Regreso");
         console.log("Ruta completa:", rutaCompleta);
         console.log("Página actual detectada:", paginaActual);
+        console.log("Base path detectado:", basePath);
         console.log("Departamento guardado:", deptoGuardado);
 
-        // Si estamos exactamente en main.html, el botón debe ir al index general
+        // Si ya estás en el main.html del departamento, el botón te lleva al index general
         if (paginaActual === 'main.html') {
-            btnRegresar.href = 'index.html';
+            btnRegresar.href = `${basePath}/index.html`;
             btnRegresar.title = 'Regresar al panel principal';
-            console.log("Acción: Ir a index.html");
+            console.log("Acción: Ir a index.html general");
         } 
-        // Si estamos en el index general de GitHub Pages (la raíz o index.html principal)
-        else if (paginaActual === 'index.html' || rutaCompleta.endsWith('/InifapNoroeste_Test/') || paginaActual === '') {
-            btnRegresar.href = 'index.html';
+        // Si estás en la página principal general (index.html)
+        else if (paginaActual === 'index.html' || paginaActual === '') {
+            btnRegresar.href = `${basePath}/index.html`;
             btnRegresar.title = 'Ya estás en el inicio';
             console.log("Acción: Ya en inicio");
         } 
-        // Si estamos en cualquier submódulo y tenemos un departamento guardado
+        // Si estás en un submódulo (personal, asistencia, etc.), el primer clic te regresa al main.html con su depto
         else if (deptoGuardado) {
-            btnRegresar.href = `main.html?depto=${deptoGuardado}`;
+            btnRegresar.href = `${basePath}/main.html?depto=${deptoGuardado}`;
             btnRegresar.title = 'Regresar al menú del departamento';
             console.log(`Acción: Volver a main.html?depto=${deptoGuardado}`);
         } 
-        // Fallback seguro
+        // Fallback por seguridad
         else {
-            btnRegresar.href = 'index.html';
+            btnRegresar.href = `${basePath}/index.html`;
             btnRegresar.title = 'Regresar al inicio';
             console.log("Acción por defecto: Ir a index.html");
         }

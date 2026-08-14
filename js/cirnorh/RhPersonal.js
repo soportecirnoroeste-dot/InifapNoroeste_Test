@@ -11,8 +11,8 @@ function cargarPersonalRh() {
     contenedorDinamico.innerHTML = `
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-stone-50 p-4 rounded-xl border border-stone-200">
             <div>
-                <h4 class="font-bold text-stone-800 text-sm">Gestión de Personal</h4>
-                <p class="text-xs text-stone-500">Visualiza el padrón, da de alta o haz clic en el nombre de un empleado para editar sus datos.</p>
+                <h4 class="font-bold text-stone-800 text-sm">Gestión de Personal - Conectado a Sheets</h4>
+                <p class="text-xs text-stone-500">Visualiza el padrón completo, da de alta o haz clic en un empleado para editar sus datos.</p>
             </div>
             <div class="flex gap-2">
                 <button onclick="mostrarFormularioNuevoPersonal()" class="px-4 py-2 bg-[#249444] text-white rounded-xl text-xs font-bold hover:bg-[#1e7a37] transition flex items-center gap-2">
@@ -77,7 +77,7 @@ function cargarPersonalRh() {
         <div class="bg-white rounded-xl border border-stone-200 overflow-hidden shadow-sm">
             <div class="p-4 border-b border-stone-100 font-bold text-xs text-stone-700 uppercase tracking-wider flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-[#059669]"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                Listado General de Empleados
+                Listado General de Empleados (Haz clic en un nombre para editar)
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse text-xs">
@@ -104,7 +104,6 @@ function cargarPersonalRh() {
     cargarDatosPersonalSheets();
 }
 
-// Caché global para lectura instantánea al editar
 window._empleadosCache = [];
 
 function mostrarFormularioNuevoPersonal() {
@@ -115,7 +114,7 @@ function mostrarFormularioNuevoPersonal() {
     
     if (formContainer && form) {
         form.reset();
-        inputNumEmp.removeAttribute('readonly'); // Habilitar ID si es alta nueva
+        inputNumEmp.removeAttribute('readonly');
         titulo.innerHTML = `Capturar Nuevo Empleado`;
         formContainer.classList.remove('hidden');
         formContainer.scrollIntoView({ behavior: 'smooth' });
@@ -127,7 +126,6 @@ function ocultarFormularioPersonal() {
     if (formContainer) formContainer.classList.add('hidden');
 }
 
-// Lectura de datos reales del Google Sheet usando FetchAPI global
 async function cargarDatosPersonalSheets() {
     const tbody = document.getElementById('tabla-personal-body');
     if (!tbody) return;
@@ -136,11 +134,11 @@ async function cargarDatosPersonalSheets() {
 
     try {
         const data = await FetchAPI('obtenerPersonal');
-        window._empleadosCache = data || []; // Guardamos en memoria para edición rápida
+        window._empleadosCache = data || [];
         renderizarTablaPersonal(window._empleadosCache);
     } catch (error) {
         console.error("Error al cargar datos de Sheets:", error);
-        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-red-500 italic">Error al conectar con Sheets. Comunicate con soporte.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-red-500 italic">Error al conectar con Sheets.</td></tr>`;
     }
 }
 
@@ -149,17 +147,17 @@ function renderizarTablaPersonal(registros) {
     if (!tbody) return;
 
     if (!registros || registros.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-stone-400 italic">No se encontraron registros en Google Sheets.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-stone-400 italic">No se encontraron registros.</td></tr>`;
         return;
     }
 
     tbody.innerHTML = registros.map((row, index) => {
-        const numEmp = row.numEmp || row[3] || 'N/A';
-        const nombre = row.nombre || row[5] || 'Sin Nombre';
-        const rfc = row.rfc || row[6] || 'N/A';
-        const puesto = row.puesto || row[7] || '';
-        const departamento = row.departamento || row[8] || '';
-        const ciudadEstado = (row.ciudad || row[14] || '') + ', ' + (row.estado || row[13] || '');
+        const numEmp = row.numEmp || 'N/A';
+        const nombre = row.nombre || 'Sin Nombre';
+        const rfc = row.rfc || 'N/A';
+        const puesto = row.puesto || '';
+        const departamento = row.departamento || '';
+        const ciudadEstado = (row.ciudad || '') + ', ' + (row.estado || '');
 
         return `
             <tr class="border-b border-stone-100 hover:bg-stone-50 transition">
@@ -178,7 +176,6 @@ function renderizarTablaPersonal(registros) {
     }).join('');
 }
 
-// Cargar datos en el formulario al dar clic en el nombre del empleado
 function seleccionarEmpleadoParaEditar(index) {
     const emp = window._empleadosCache[index];
     if (!emp) return;
@@ -189,41 +186,37 @@ function seleccionarEmpleadoParaEditar(index) {
     const inputNumEmp = document.getElementById('input-numEmp');
 
     if (formContainer && form) {
-        form.elements['claveReg'].value = emp.claveReg || emp[0] || '';
-        form.elements['numEmp'].value = emp.numEmp || emp[3] || '';
-        inputNumEmp.setAttribute('readonly', true); // Bloquear el número de empleado para asegurar la edición correcta en Sheets
-        form.elements['nombre'].value = emp.nombre || emp[5] || '';
-        form.elements['rfc'].value = emp.rfc || emp[6] || '';
-        form.elements['puesto'].value = emp.puesto || emp[7] || '';
-        form.elements['departamento'].value = emp.departamento || emp[8] || '';
-        form.elements['ciudad'].value = emp.ciudad || emp[14] || '';
-        form.elements['estado'].value = emp.estado || emp[13] || '';
+        form.elements['claveReg'].value = emp.claveReg || '';
+        form.elements['numEmp'].value = emp.numEmp || '';
+        inputNumEmp.setAttribute('readonly', true);
+        form.elements['nombre'].value = emp.nombre || '';
+        form.elements['rfc'].value = emp.rfc || '';
+        form.elements['puesto'].value = emp.puesto || '';
+        form.elements['departamento'].value = emp.departamento || '';
+        form.elements['ciudad'].value = emp.ciudad || '';
+        form.elements['estado'].value = emp.estado || '';
 
-        titulo.innerHTML = `Editando Empleado: <span class="text-[#249444]">${emp.nombre || emp[5] || ''}</span>`;
+        titulo.innerHTML = `Editando Empleado: <span class="text-[#249444]">${emp.nombre || ''}</span>`;
         formContainer.classList.remove('hidden');
         formContainer.scrollIntoView({ behavior: 'smooth' });
     }
 }
 
-// Función unificada que detecta si debe crear un registro nuevo o actualizar uno existente
 async function guardarOActualizarPersonal(event) {
     event.preventDefault();
     const form = document.getElementById('form-nuevo-personal');
     const formData = new FormData(form);
     const datosEmpleado = Object.fromEntries(formData.entries());
 
-    // Validamos si el número de empleado ya existe en caché para elegir la acción adecuada
-    const existe = window._empleadosCache.some(e => String(e.numEmp || e[3]).trim() === String(datosEmpleado.numEmp).trim());
+    const existe = window._empleadosCache.some(e => String(e.numEmp).trim() === String(datosEmpleado.numEmp).trim());
     const actionName = existe ? 'actualizarPersonal' : 'guardarPersonal';
 
     try {
         const resultado = await FetchAPI(actionName, datosEmpleado);
-        
-        alert(resultado.message || "¡Operación realizada correctamente en Google Sheets!");
+        alert(resultado.message || "¡Operación realizada correctamente!");
         form.reset();
         ocultarFormularioPersonal();
         cargarDatosPersonalSheets();
-
     } catch (error) {
         console.error("Error al procesar los datos:", error);
         alert("Error de red al intentar guardar los datos.");

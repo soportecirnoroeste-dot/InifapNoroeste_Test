@@ -47,7 +47,7 @@ function obtenerContenedor() {
     return document.getElementById('app-container') || document.querySelector('main') || document.body;
 }
 
-// Módulo de Personal con conexión a Google Sheets y SVGs completos
+// Módulo de Personal adaptado a las columnas reales del Sheet
 function cargarPersonalRh() {
     renderizarVistaModulo('personal', "Directorio de empleados, altas, bajas y estructura organizacional.");
     
@@ -81,8 +81,20 @@ function cargarPersonalRh() {
             </h5>
             <form id="form-nuevo-personal" onsubmit="guardarPersonalSheets(event)" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
                 <div>
+                    <label class="block font-bold text-stone-700 mb-1">Clave Reg:</label>
+                    <input type="text" name="claveReg" required class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]">
+                </div>
+                <div>
+                    <label class="block font-bold text-stone-700 mb-1">Núm. Empleado:</label>
+                    <input type="text" name="numEmp" required class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]">
+                </div>
+                <div>
                     <label class="block font-bold text-stone-700 mb-1">Nombre Completo:</label>
                     <input type="text" name="nombre" required class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]">
+                </div>
+                <div>
+                    <label class="block font-bold text-stone-700 mb-1">RFC:</label>
+                    <input type="text" name="rfc" required class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]">
                 </div>
                 <div>
                     <label class="block font-bold text-stone-700 mb-1">Puesto:</label>
@@ -90,22 +102,14 @@ function cargarPersonalRh() {
                 </div>
                 <div>
                     <label class="block font-bold text-stone-700 mb-1">Departamento:</label>
-                    <input type="text" name="departamento" value="Recursos Humanos" required class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]">
+                    <input type="text" name="departamento" required class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]">
                 </div>
-                <div>
-                    <label class="block font-bold text-stone-700 mb-1">Correo Electrónico:</label>
-                    <input type="email" name="correo" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]">
-                </div>
-                <div>
-                    <label class="block font-bold text-stone-700 mb-1">Teléfono:</label>
-                    <input type="tel" name="telefono" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]">
-                </div>
-                <div class="flex items-end gap-2">
-                    <button type="submit" class="w-full py-2.5 bg-[#059669] text-white font-bold rounded-lg hover:bg-[#047857] transition flex items-center justify-center gap-1.5">
+                <div class="sm:col-span-2 md:col-span-3 flex items-end gap-2 pt-2">
+                    <button type="submit" class="py-2.5 px-6 bg-[#059669] text-white font-bold rounded-lg hover:bg-[#047857] transition flex items-center justify-center gap-1.5">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
                         Guardar en Sheets
                     </button>
-                    <button type="button" onclick="ocultarFormularioPersonal()" class="px-3 py-2.5 bg-stone-100 text-stone-600 font-bold rounded-lg hover:bg-stone-200 transition">Cancelar</button>
+                    <button type="button" onclick="ocultarFormularioPersonal()" class="px-4 py-2.5 bg-stone-100 text-stone-600 font-bold rounded-lg hover:bg-stone-200 transition">Cancelar</button>
                 </div>
             </form>
         </div>
@@ -113,22 +117,23 @@ function cargarPersonalRh() {
         <div class="bg-white rounded-xl border border-stone-200 overflow-hidden shadow-sm">
             <div class="p-4 border-b border-stone-100 font-bold text-xs text-stone-700 uppercase tracking-wider flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-[#059669]"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                Listado General de Empleados
+                Listado General de Empleados (Google Sheets)
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse text-xs">
                     <thead>
                         <tr class="bg-stone-50 text-stone-600 border-b border-stone-200">
+                            <th class="p-3 font-bold">Núm. Emp</th>
                             <th class="p-3 font-bold">Nombre</th>
+                            <th class="p-3 font-bold">RFC</th>
                             <th class="p-3 font-bold">Puesto</th>
                             <th class="p-3 font-bold">Departamento</th>
-                            <th class="p-3 font-bold">Correo</th>
-                            <th class="p-3 font-bold">Teléfono</th>
+                            <th class="p-3 font-bold">Ciudad / Estado</th>
                         </tr>
                     </thead>
                     <tbody id="tabla-personal-body">
                         <tr>
-                            <td colspan="5" class="p-6 text-center text-stone-400 italic">Cargando registros desde Google Sheets...</td>
+                            <td colspan="6" class="p-6 text-center text-stone-400 italic">Cargando registros desde Google Sheets...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -149,23 +154,30 @@ function ocultarFormularioPersonal() {
     if (formContainer) formContainer.classList.add('hidden');
 }
 
-// Función conectada a Google Sheets (Ajusta la URL con tu Web App de Google Apps Script)
+// Lectura de datos reales del Google Sheet
 async function cargarDatosPersonalSheets() {
     const tbody = document.getElementById('tabla-personal-body');
     if (!tbody) return;
 
-    tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-stone-400 italic">Sincronizando con Google Sheets...</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-stone-400 italic">Sincronizando con Google Sheets...</td></tr>`;
 
     try {
         // REEMPLAZA ESTA URL CON TU URL DE IMPLEMENTACIÓN DE GOOGLE APPS SCRIPT (WEB APP)
         const URL_GOOGLE_SHEETS = "TU_URL_DE_APPS_SCRIPT_AQUI"; 
 
         if (URL_GOOGLE_SHEETS === "TU_URL_DE_APPS_SCRIPT_AQUI") {
-            // Datos de prueba temporales mientras configuras tu Web App
+            // Simulación exacta con el registro que aparece en tu imagen de Sheets (Ilse Elena Tapia Lopez)
             setTimeout(() => {
                 renderizarTablaPersonal([
-                    { nombre: "Ana María Pérez", puesto: "Analista de RH", departamento: "Recursos Humanos", correo: "ana.perez@cor.gob.mx", telefono: "6621234567" },
-                    { nombre: "Carlos Gómez Ruiz", puesto: "Especialista de Nómina", departamento: "Recursos Humanos", correo: "carlos.gomez@cor.gob.mx", telefono: "6629876543" }
+                    { 
+                        numEmp: "4398", 
+                        nombre: "ILSE ELENA TAPIA LOPEZ", 
+                        rfc: "TALI9208039T1", 
+                        puesto: "COORDINADOF", 
+                        departamento: "DIRECCION DE...", 
+                        ciudad: "CAJEME", 
+                        estado: "SONORA" 
+                    }
                 ]);
             }, 400);
             return;
@@ -177,7 +189,7 @@ async function cargarDatosPersonalSheets() {
 
     } catch (error) {
         console.error("Error al cargar datos de Sheets:", error);
-        tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-red-500 italic">Error al conectar con Google Sheets. Verifica la URL.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-red-500 italic">Error al conectar con Google Sheets. Verifica la URL.</td></tr>`;
     }
 }
 
@@ -186,17 +198,18 @@ function renderizarTablaPersonal(registros) {
     if (!tbody) return;
 
     if (!registros || registros.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-stone-400 italic">No se encontraron registros en Google Sheets.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-stone-400 italic">No se encontraron registros en Google Sheets.</td></tr>`;
         return;
     }
 
     tbody.innerHTML = registros.map(row => `
         <tr class="border-b border-stone-100 hover:bg-stone-50 transition">
-            <td class="p-3 font-semibold text-stone-800">${row.nombre || row[0] || ''}</td>
-            <td class="p-3 text-stone-600">${row.puesto || row[1] || ''}</td>
-            <td class="p-3 text-stone-600">${row.departamento || row[2] || ''}</td>
-            <td class="p-3 text-stone-600">${row.correo || row[3] || 'N/A'}</td>
-            <td class="p-3 text-stone-600">${row.telefono || row[4] || 'N/A'}</td>
+            <td class="p-3 font-mono text-stone-600">${row.numEmp || row[3] || 'N/A'}</td>
+            <td class="p-3 font-semibold text-stone-800">${row.nombre || row[5] || ''}</td>
+            <td class="p-3 font-mono text-stone-600">${row.rfc || row[6] || 'N/A'}</td>
+            <td class="p-3 text-stone-600">${row.puesto || row[7] || ''}</td>
+            <td class="p-3 text-stone-600">${row.departamento || row[8] || ''}</td>
+            <td class="p-3 text-stone-600">${(row.ciudad || row[14] || '') + ', ' + (row.estado || row[13] || '')}</td>
         </tr>
     `).join('');
 }
@@ -207,7 +220,6 @@ async function guardarPersonalSheets(event) {
     const formData = new FormData(form);
     const nuevoRegistro = Object.fromEntries(formData.entries());
 
-    // REEMPLAZA ESTA URL CON TU URL DE IMPLEMENTACIÓN DE GOOGLE APPS SCRIPT (WEB APP)
     const URL_GOOGLE_SHEETS = "TU_URL_DE_APPS_SCRIPT_AQUI"; 
 
     if (URL_GOOGLE_SHEETS === "TU_URL_DE_APPS_SCRIPT_AQUI") {

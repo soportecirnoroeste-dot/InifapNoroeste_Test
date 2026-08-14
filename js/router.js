@@ -177,37 +177,31 @@ window.addEventListener('DOMContentLoaded', () => {
     if (btnRegresar) {
         const rutaCompleta = window.location.pathname;
         const paginaActual = rutaCompleta.split('/').pop().toLowerCase();
+        
+        // Vamos a leer directamente y ver qué hay
         const deptoGuardado = localStorage.getItem('depto_activo_actual');
 
-        // Detectar base path para GitHub Pages
         const pathSegments = rutaCompleta.split('/').filter(Boolean);
         let basePath = '';
         if (window.location.hostname.includes('github.io') && pathSegments.length > 0) {
             basePath = `/${pathSegments[0]}`;
         }
 
-        console.group("🔍 Depuración del Botón de Regreso");
-        console.log("Página actual:", paginaActual);
-        console.log("Departamento guardado:", deptoGuardado);
+        console.group("🚨 Diagnóstico estricto del botón de retorno");
+        console.log("Ruta completa:", rutaCompleta);
+        console.log("Página actual detectada:", paginaActual);
+        console.log("Valor exacto de depto_activo_actual en localStorage:", deptoGuardado);
 
-        // REGLA 1: Si la URL actual tiene explícitamente "main.html", el botón DEBE llevarte al index general.
         if (paginaActual === 'main.html') {
             btnRegresar.href = `${basePath}/index.html`;
-            btnRegresar.title = 'Regresar al panel principal';
-            console.log("Acción: Estás en main.html -> Ir a index.html");
-        } 
-        // REGLA 2: Si tenemos un departamento guardado y NO estamos en main.html (estamos en un submódulo), 
-        // el botón SIEMPRE debe regresarte al menú principal de ese departamento.
-        else if (deptoGuardado) {
+            console.log(">>> Asignado: Ir al INDEX general");
+        } else if (deptoGuardado && deptoGuardado.trim() !== '') {
             btnRegresar.href = `${basePath}/main.html?depto=${deptoGuardado}`;
-            btnRegresar.title = 'Regresar al menú del departamento';
-            console.log(`Acción: Estás en submódulo -> Volver a main.html?depto=${deptoGuardado}`);
-        } 
-        // REGLA 3: Por defecto, si no hay nada, al index.
-        else {
+            console.log(`>>> Asignado: Volver al main del depto -> ${deptoGuardado}`);
+        } else {
+            // Si entra aquí es porque localStorage está vacío
             btnRegresar.href = `${basePath}/index.html`;
-            btnRegresar.title = 'Regresar al inicio';
-            console.log("Acción por defecto: Ir a index.html");
+            console.warn("⚠️ ALERTA: depto_activo_actual está vacío, mandando al index por defecto.");
         }
         console.groupEnd();
     }

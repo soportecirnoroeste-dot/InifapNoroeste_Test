@@ -33,10 +33,10 @@ function cargarPersonalRh(cargarLista = true) {
             </h5>
             <form id="form-nuevo-personal" onsubmit="guardarOActualizarPersonal(event)" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
                 
-                <!-- Selectores dinámicos -->
+                <!-- Selectores dinámicos con eventos en cascada -->
                 <div>
                     <label class="block font-bold text-stone-700 mb-1">Clave Reg:</label>
-                    <select name="claveReg" id="select-claveReg" required class="w-full p-2.5 border border-stone-300 rounded-lg bg-white focus:outline-none focus:border-[#249444]">
+                    <select name="claveReg" id="select-claveReg" onchange="filtrarCentrosPorRegion()" required class="w-full p-2.5 border border-stone-300 rounded-lg bg-white focus:outline-none focus:border-[#249444]">
                         <option value="0">N/A</option>
                     </select>
                 </div>
@@ -102,7 +102,6 @@ window._catRegs = [];
 window._catCentros = [];
 window._catSitios = [];
 
-// Cargar catálogos y personal
 async function cargarDatosGenerales() {
     await cargarCatalogosSheets();
     await cargarDatosPersonalSheets();
@@ -118,87 +117,60 @@ async function cargarCatalogosSheets() {
 
         window._catRegs = regs || [];
         window._catCentros = centros || [];
-        // Esperamos que cada sitio venga con su propiedad que relacione la clave de centro, ej: `claveCentro` o `centroId`
         window._catSitios = sitios || [];
     } catch (error) {
         console.error("Error al cargar catálogos:", error);
     }
 }
 
-// js/cirnorh/RhPersonal.js
-
-// ... (código previo de renderizado se mantiene igual)
-
-/** 
- * Actualizado para manejar carga en cascada:
- * 1. Al cambiar Región -> Filtra y carga Centros de esa Región.
- * 2. Al cambiar Centro -> Filtra y carga Sitios de ese Centro.
- */
-
-function filtrarCentrosPorRegion() {
+// Funciones de Cascada (Región -> Centro -> Sitio)
+function filtrarCentrosPorRegion(centroActual = '0', sitActual = '0') {
     const selReg = document.getElementById('select-claveReg');
     const selCentro = document.getElementById('select-claveCentro');
     const selSit = document.getElementById('select-claveSit');
     
+    if (!selReg || !selCentro || !selSit) return;
     const regionSeleccionada = selReg.value;
 
-    // Limpiar niveles inferiores
     selCentro.innerHTML = `<option value="0">N/A</option>`;
     selSit.innerHTML = `<option value="0">N/A</option>`;
 
     if (regionSeleccionada !== "0") {
         const centrosFiltrados = window._catCentros.filter(c => String(c.claveReg) === String(regionSeleccionada));
-        selCentro.innerHTML += centrosFiltrados.map(c => `<option value="${c.clave}">${c.clave} - ${c.nombre}</option>`).join('');
+        selCentro.innerHTML += centrosFiltrados.map(c => 
+            `<option value="${c.clave}" ${String(c.clave) === String(centroActual) ? 'selected' : ''}>${c.nombre}</option>`
+        ).join('');
     }
+
+    filtrarSitiosPorCentro(sitActual);
 }
 
-function filtrarSitiosPorCentro() {
+function filtrarSitiosPorCentro(sitActual = '0') {
     const selCentro = document.getElementById('select-claveCentro');
     const selSit = document.getElementById('select-claveSit');
     
+    if (!selCentro || !selSit) return;
     const centroSeleccionado = selCentro.value;
 
-    // Limpiar nivel inferior
     selSit.innerHTML = `<option value="0">N/A</option>`;
 
     if (centroSeleccionado !== "0") {
         const sitiosFiltrados = window._catSitios.filter(s => String(s.claveCentro) === String(centroSeleccionado));
-        selSit.innerHTML += sitiosFiltrados.map(s => `<option value="${s.clave}">${s.clave} - ${s.nombre}</option>`).join('');
+        selSit.innerHTML += sitiosFiltrados.map(s => 
+            `<option value="${s.clave}" ${String(s.clave) === String(sitActual) ? 'selected' : ''}>${s.clave} - ${s.nombre}</option>`
+        ).join('');
     }
 }
 
-// Se actualiza el HTML dentro de cargarPersonalRh para incluir los eventos de cascada:
-/* 
-    <select name="claveReg" id="select-claveReg" onchange="filtrarCentrosPorRegion()" ...>
-    <select name="claveCentro" id="select-claveCentro" onchange="filtrarSitiosPorCentro()" ...>
-*/
-
-// Función para poblar al EDITAR (restaurar estado de cascada)
 function poblarSelectoresCascada(regActual = '0', centroActual = '0', sitActual = '0') {
     const selReg = document.getElementById('select-claveReg');
-    const selCentro = document.getElementById('select-claveCentro');
-    const selSit = document.getElementById('select-claveSit');
+    if (!selReg) return;
 
-    // 1. Cargar Regiones
-    selReg.innerHTML = `<option value="0">N/A</option>` + 
+    selReg.innerHTML = `<option value="0" ${(!regActual || regActual == '0' || regActual == 'N/A') ? 'selected' : ''}>N/A</option>` + 
         window._catRegs.map(r => `<option value="${r.clave}" ${String(r.clave) === String(regActual) ? 'selected' : ''}>${r.nombre}</option>`).join('');
 
-    // 2. Cargar Centros basados en la región actual
-    if (regActual !== '0') {
-        const centrosFiltrados = window._catCentros.filter(c => String(c.claveReg) === String(regActual));
-        selCentro.innerHTML = `<option value="0">N/A</option>` + 
-            centrosFiltrados.map(c => `<option value="${c.clave}" ${String(c.clave) === String(centroActual) ? 'selected' : ''}>${c.nombre}</option>`).join('');
-    }
-
-    // 3. Cargar Sitios basados en el centro actual
-    if (centroActual !== '0') {
-        const sitiosFiltrados = window._catSitios.filter(s => String(s.claveCentro) === String(centroActual));
-        selSit.innerHTML = `<option value="0">N/A</option>` + 
-            sitiosFiltrados.map(s => `<option value="${s.clave}" ${String(s.clave) === String(sitActual) ? 'selected' : ''}>${s.clave} - ${s.nombre}</option>`).join('');
-    }
+    filtrarCentrosPorRegion(centroActual, sitActual);
 }
-
-// ... (El resto de la lógica de guardado y carga inicial permanece igual)
 
 async function mostrarFormularioNuevoPersonal() {
     const formContainer = document.getElementById('contenedor-formulario-personal');
@@ -215,7 +187,7 @@ async function mostrarFormularioNuevoPersonal() {
             await cargarCatalogosSheets();
         }
 
-        poblarSelectores('0', '0', '0'); 
+        poblarSelectoresCascada('0', '0', '0'); 
         inputNumEmp.removeAttribute('readonly');
         titulo.innerHTML = `Capturar Nuevo Empleado`;
         formContainer.classList.remove('hidden');
@@ -301,7 +273,8 @@ async function seleccionarEmpleadoParaEditar(index) {
     if (formContainer && form) {
         const limpiarValor = (val) => (!val || val === 0 || val === '0' || String(val).trim() === '') ? 'N/A' : val;
 
-        poblarSelectores(emp.claveReg, emp.claveCentro, emp.claveSit);
+        // Se usa el nombre correcto de la función en cascada aquí
+        poblarSelectoresCascada(emp.claveReg, emp.claveCentro, emp.claveSit);
 
         form.elements['numEmp'].value = limpiarValor(emp.numEmp);
         inputNumEmp.setAttribute('readonly', true);

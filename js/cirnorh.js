@@ -93,16 +93,19 @@ function cargarGenerarOficiosRh() {
 }
 
 function renderizarVistaModulo(idOpt, descripcion) {
-    const opt = window.cirnorhConfig.options.find(o => o.id === idOpt);
-    const contenedor = obtenerContenedor();
+    // Buscamos dinámicamente sobre el objeto de configuración activo en la ventana (ej. window.cirnorhConfig o window.finanzasConfig)
+    const nombreCortoActual = localStorage.getItem('depto_activo_actual') || '';
+    const configActual = window[nombreCortoActual + 'Config'];
+    
+    const opt = configActual ? configActual.options.find(o => o.id === idOpt) : null;
+    const contenedor = document.getElementById('app-container');
     
     if (contenedor && opt) {
-        // 1. Cambiamos el comportamiento de la flecha superior para que al hacer clic regrese al menú del depto
+        // Le mandamos dinámicamente el nombre corto actual para que el botón sepa a dónde volver
         if (typeof window.actualizarBotonRegresar === 'function') {
-            window.actualizarBotonRegresar('submodulo', window.cirnorhConfig.deptoKey);
+            window.actualizarBotonRegresar('submodulo', nombreCortoActual);
         }
 
-        // 2. Pintamos la vista del submódulo en el contenedor
         contenedor.innerHTML = `
             <section class="bg-white rounded-2xl p-6 md:p-8 soft-shadow border border-[#249444]/10 mb-8 animate-fade-in">
                 <div class="flex items-center gap-3 mb-6 pb-4 border-b border-stone-100">
@@ -116,7 +119,7 @@ function renderizarVistaModulo(idOpt, descripcion) {
                 </div>
 
                 <div id="contenido-submodulo-dinamico" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                    <!-- Contenido dinámico del submódulo -->
+                    <!-- Contenido del submódulo -->
                 </div>
             </section>
         `;

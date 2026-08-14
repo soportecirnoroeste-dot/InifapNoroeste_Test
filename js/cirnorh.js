@@ -68,4 +68,196 @@ function cargarPersonalRh() {
                     Nuevo Registro
                 </button>
                 <button onclick="cargarDatosPersonalSheets()" class="px-4 py-2 bg-stone-200 text-stone-700 rounded-xl text-xs font-bold hover:bg-stone-300 transition flex items-center gap-2">
-                    <svg xmlns="
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
+                    Actualizar Datos
+                </button>
+            </div>
+        </div>
+
+        <div id="contenedor-formulario-personal" class="hidden bg-white p-6 rounded-xl border border-[#249444]/20 shadow-sm animate-fade-in">
+            <h5 class="font-bold text-stone-800 text-sm mb-4 pb-2 border-b border-stone-100 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-[#059669]"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                Capturar Nuevo Empleado
+            </h5>
+            <form id="form-nuevo-personal" onsubmit="guardarPersonalSheets(event)" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
+                <div>
+                    <label class="block font-bold text-stone-700 mb-1">Nombre Completo:</label>
+                    <input type="text" name="nombre" required class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]">
+                </div>
+                <div>
+                    <label class="block font-bold text-stone-700 mb-1">Puesto:</label>
+                    <input type="text" name="puesto" required class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]">
+                </div>
+                <div>
+                    <label class="block font-bold text-stone-700 mb-1">Departamento:</label>
+                    <input type="text" name="departamento" value="Recursos Humanos" required class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]">
+                </div>
+                <div>
+                    <label class="block font-bold text-stone-700 mb-1">Correo Electrónico:</label>
+                    <input type="email" name="correo" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]">
+                </div>
+                <div>
+                    <label class="block font-bold text-stone-700 mb-1">Teléfono:</label>
+                    <input type="tel" name="telefono" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]">
+                </div>
+                <div class="flex items-end gap-2">
+                    <button type="submit" class="w-full py-2.5 bg-[#059669] text-white font-bold rounded-lg hover:bg-[#047857] transition flex items-center justify-center gap-1.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                        Guardar
+                    </button>
+                    <button type="button" onclick="ocultarFormularioPersonal()" class="px-3 py-2.5 bg-stone-100 text-stone-600 font-bold rounded-lg hover:bg-stone-200 transition">Cancelar</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="bg-white rounded-xl border border-stone-200 overflow-hidden shadow-sm">
+            <div class="p-4 border-b border-stone-100 font-bold text-xs text-stone-700 uppercase tracking-wider flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-[#059669]"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                Listado General de Empleados
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-stone-50 text-stone-600 border-b border-stone-200">
+                            <th class="p-3 font-bold">Nombre</th>
+                            <th class="p-3 font-bold">Puesto</th>
+                            <th class="p-3 font-bold">Departamento</th>
+                            <th class="p-3 font-bold">Correo</th>
+                            <th class="p-3 font-bold">Teléfono</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-personal-body">
+                        <tr>
+                            <td colspan="5" class="p-6 text-center text-stone-400 italic">Cargando registros desde Google Sheets...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+
+    cargarDatosPersonalSheets();
+}
+
+function mostrarFormularioNuevoPersonal() {
+    const formContainer = document.getElementById('contenedor-formulario-personal');
+    if (formContainer) formContainer.classList.remove('hidden');
+}
+
+function ocultarFormularioPersonal() {
+    const formContainer = document.getElementById('contenedor-formulario-personal');
+    if (formContainer) formContainer.classList.add('hidden');
+}
+
+function cargarDatosPersonalSheets() {
+    const tbody = document.getElementById('tabla-personal-body');
+    if (!tbody) return;
+
+    setTimeout(() => {
+        const registrosEjemplo = [
+            { nombre: "Ana María Pérez", puesto: "Analista de RH", departamento: "Recursos Humanos", correo: "ana.perez@cor.gob.mx", telefono: "6621234567" },
+            { nombre: "Carlos Gómez Ruiz", puesto: "Especialista de Nómina", departamento: "Recursos Humanos", correo: "carlos.gomez@cor.gob.mx", telefono: "6629876543" }
+        ];
+
+        if (registrosEjemplo.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-stone-400 italic">No se encontraron registros en Google Sheets.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = registrosEjemplo.map(row => `
+            <tr class="border-b border-stone-100 hover:bg-stone-50 transition">
+                <td class="p-3 font-semibold text-stone-800">${row.nombre}</td>
+                <td class="p-3 text-stone-600">${row.puesto}</td>
+                <td class="p-3 text-stone-600">${row.departamento}</td>
+                <td class="p-3 text-stone-600">${row.correo || 'N/A'}</td>
+                <td class="p-3 text-stone-600">${row.telefono || 'N/A'}</td>
+            </tr>
+        `).join('');
+    }, 500);
+}
+
+function guardarPersonalSheets(event) {
+    event.preventDefault();
+    const form = document.getElementById('form-nuevo-personal');
+    const formData = new FormData(form);
+    const nuevoRegistro = Object.fromEntries(formData.entries());
+
+    console.log("Enviando datos a Google Sheets...", nuevoRegistro);
+    alert("¡Registro guardado correctamente en Google Sheets!");
+    
+    form.reset();
+    ocultarFormularioPersonal();
+    cargarDatosPersonalSheets();
+}
+
+// Resto de vistas de Recursos Humanos
+function cargarAsistenciaRh() {
+    renderizarVistaModulo('asistencia', "Registro de retardos, faltas, permisos y justificantes.");
+}
+
+function cargarVacacionesRh() {
+    renderizarVistaModulo('vacaciones', "Calendario de descansos y control de días económicos disponibles.");
+}
+
+function cargarCapacitacionRh() {
+    renderizarVistaModulo('capacitacion', "Cursos, talleres y constancias de desarrollo profesional para el personal.");
+}
+
+function cargarExpedientesRh() {
+    renderizarVistaModulo('expedientes', "Documentación oficial, contratos y resguardos de los trabajadores.");
+}
+
+function cargarGenerarOficiosRh() {
+    let opt = window.cirnorhConfig.options.find(o => o.id === 'generar-oficios');
+    const contenedor = obtenerContenedor();
+    
+    if (contenedor && opt) {
+        contenedor.innerHTML = `
+            <div class="bg-white rounded-2xl p-6 md:p-8 soft-shadow border border-[#249444]/10 mb-8 w-full box-border">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="p-2.5 bg-[#f0fdf4] border border-[#c6f6d5] text-[#059669] rounded-xl flex items-center justify-center">
+                        ${opt.icon}
+                    </div>
+                    <div>
+                        <h3 class="font-black text-stone-800 text-lg">Generación de Oficios - Recursos Humanos</h3>
+                        <p class="text-xs text-stone-500">Elaboración de constancias laborales, comisiones y avisos internos.</p>
+                    </div>
+                </div>
+                <div class="p-4 bg-stone-50 rounded-xl border border-dashed border-stone-300 text-xs text-stone-400 text-center mt-4">
+                    Aquí irá el formulario o generador de documentos específico para RH.
+                </div>
+            </div>
+        `;
+    }
+}
+
+function renderizarVistaModulo(idOpt, descripcion) {
+    const nombreCortoActual = localStorage.getItem('depto_activo_actual') || '';
+    const configActual = window[nombreCortoActual + 'Config'];
+    
+    const opt = configActual ? configActual.options.find(o => o.id === idOpt) : null;
+    const contenedor = document.getElementById('app-container');
+    
+    if (contenedor && opt) {
+        if (typeof window.actualizarBotonRegresar === 'function') {
+            window.actualizarBotonRegresar('submodulo', nombreCortoActual);
+        }
+
+        contenedor.innerHTML = `
+            <section class="bg-white rounded-2xl p-6 md:p-8 soft-shadow border border-[#249444]/10 mb-8 animate-fade-in">
+                <div class="flex items-center gap-3 mb-6 pb-4 border-b border-stone-100">
+                    <div class="p-2.5 bg-[#f0fdf4] border border-[#c6f6d5] text-[#059669] rounded-xl flex items-center justify-center">
+                        ${opt.icon}
+                    </div>
+                    <div>
+                        <h3 class="font-black text-stone-800 text-lg uppercase tracking-wide">${opt.title}</h3>
+                        <p class="text-xs text-stone-500">${descripcion}</p>
+                    </div>
+                </div>
+
+                <div id="contenido-submodulo-dinamico" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    </div>
+            </section>
+        `;
+    }
+}

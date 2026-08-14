@@ -11,8 +11,8 @@ function cargarPersonalRh() {
     contenedorDinamico.innerHTML = `
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-stone-50 p-4 rounded-xl border border-stone-200">
             <div>
-                <h4 class="font-bold text-stone-800 text-sm">Gestión de Personal</h4>
-                <p class="text-xs text-stone-500">Visualiza el padrón completo, da de alta o haz clice en un empleado para editar sus datos.</p>
+                <h4 class="font-bold text-stone-800 text-sm">Gestión de Personal - Conectado a Sheets</h4>
+                <p class="text-xs text-stone-500">Visualiza el padrón completo, da de alta o haz clic en un empleado para editar sus datos.</p>
             </div>
             <div class="flex gap-2">
                 <button onclick="mostrarFormularioNuevoPersonal()" class="px-4 py-2 bg-[#249444] text-white rounded-xl text-xs font-bold hover:bg-[#1e7a37] transition flex items-center gap-2">
@@ -31,14 +31,26 @@ function cargarPersonalRh() {
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-[#059669]"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                 Capturar Nuevo Empleado
             </h5>
-            <form id="form-nuevo-personal" onsubmit="guardarOActualizarPersonal(event)" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
+            <form id="form-nuevo-personal" onsubmit="guardarOActualizarPersonal(event)" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-xs">
                 <div>
-                    <label class="block font-bold text-stone-700 mb-1">Clave Reg:</label>
+                    <label class="block font-bold text-stone-700 mb-1">ClaveReg:</label>
                     <input type="text" name="claveReg" required class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]">
+                </div>
+                <div>
+                    <label class="block font-bold text-stone-700 mb-1">ClaveCentro:</label>
+                    <input type="text" name="claveCentro" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]">
+                </div>
+                <div>
+                    <label class="block font-bold text-stone-700 mb-1">ClaveSit:</label>
+                    <input type="text" name="claveSit" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]">
                 </div>
                 <div>
                     <label class="block font-bold text-stone-700 mb-1">Núm. Empleado:</label>
                     <input type="text" name="numEmp" id="input-numEmp" required class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]">
+                </div>
+                <div>
+                    <label class="block font-bold text-stone-700 mb-1">Pass:</label>
+                    <input type="text" name="pass" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]">
                 </div>
                 <div>
                     <label class="block font-bold text-stone-700 mb-1">Nombre Completo:</label>
@@ -57,14 +69,38 @@ function cargarPersonalRh() {
                     <input type="text" name="departamento" required class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]">
                 </div>
                 <div>
-                    <label class="block font-bold text-stone-700 mb-1">Ciudad:</label>
-                    <input type="text" name="ciudad" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]">
+                    <label class="block font-bold text-stone-700 mb-1">Ext:</label>
+                    <input type="text" name="ext" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]">
+                </div>
+                <div>
+                    <label class="block font-bold text-stone-700 mb-1">NumPers:</label>
+                    <input type="text" name="numPers" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]">
+                </div>
+                <div>
+                    <label class="block font-bold text-stone-700 mb-1">Escolaridad:</label>
+                    <input type="text" name="escolaridad" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]">
+                </div>
+                <div>
+                    <label class="block font-bold text-stone-700 mb-1">Dirección:</label>
+                    <input type="text" name="direccion" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]">
                 </div>
                 <div>
                     <label class="block font-bold text-stone-700 mb-1">Estado:</label>
                     <input type="text" name="estado" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]">
                 </div>
-                <div class="sm:col-span-2 md:col-span-3 flex items-end gap-2 pt-2">
+                <div>
+                    <label class="block font-bold text-stone-700 mb-1">Ciudad:</label>
+                    <input type="text" name="ciudad" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]">
+                </div>
+                <div>
+                    <label class="block font-bold text-stone-700 mb-1">CP:</label>
+                    <input type="text" name="cp" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]">
+                </div>
+                <div>
+                    <label class="block font-bold text-stone-700 mb-1">Email:</label>
+                    <input type="email" name="email" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]">
+                </div>
+                <div class="sm:col-span-2 md:col-span-3 lg:col-span-4 flex items-end gap-2 pt-2">
                     <button type="submit" class="py-2.5 px-6 bg-[#059669] text-white font-bold rounded-lg hover:bg-[#047857] transition flex items-center justify-center gap-1.5">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
                         Guardar en Sheets
@@ -77,7 +113,7 @@ function cargarPersonalRh() {
         <div class="bg-white rounded-xl border border-stone-200 overflow-hidden shadow-sm">
             <div class="p-4 border-b border-stone-100 font-bold text-xs text-stone-700 uppercase tracking-wider flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-[#059669]"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                Listado General de Empleados
+                Listado General de Empleados (Haz clic en un nombre para editar)
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse text-xs">
@@ -88,7 +124,7 @@ function cargarPersonalRh() {
                             <th class="p-3 font-bold">RFC</th>
                             <th class="p-3 font-bold">Puesto</th>
                             <th class="p-3 font-bold">Departamento</th>
-                            <th class="p-3 font-bold">Ciudad / Estado</th>
+                            <th class="p-3 font-bold">Email / Ext</th>
                         </tr>
                     </thead>
                     <tbody id="tabla-personal-body">
@@ -157,7 +193,7 @@ function renderizarTablaPersonal(registros) {
         const rfc = row.rfc || 'N/A';
         const puesto = row.puesto || '';
         const departamento = row.departamento || '';
-        const ciudadEstado = (row.ciudad || '') + ', ' + (row.estado || '');
+        const contacto = (row.email || '') + (row.ext ? ' (Ext: ' + row.ext + ')' : '');
 
         return `
             <tr class="border-b border-stone-100 hover:bg-stone-50 transition">
@@ -170,7 +206,7 @@ function renderizarTablaPersonal(registros) {
                 <td class="p-3 font-mono text-stone-600">${rfc}</td>
                 <td class="p-3 text-stone-600">${puesto}</td>
                 <td class="p-3 text-stone-600">${departamento}</td>
-                <td class="p-3 text-stone-600">${ciudadEstado}</td>
+                <td class="p-3 text-stone-600">${contacto}</td>
             </tr>
         `;
     }).join('');
@@ -187,14 +223,23 @@ function seleccionarEmpleadoParaEditar(index) {
 
     if (formContainer && form) {
         form.elements['claveReg'].value = emp.claveReg || '';
+        form.elements['claveCentro'].value = emp.claveCentro || '';
+        form.elements['claveSit'].value = emp.claveSit || '';
         form.elements['numEmp'].value = emp.numEmp || '';
         inputNumEmp.setAttribute('readonly', true);
+        form.elements['pass'].value = emp.pass || '';
         form.elements['nombre'].value = emp.nombre || '';
         form.elements['rfc'].value = emp.rfc || '';
         form.elements['puesto'].value = emp.puesto || '';
         form.elements['departamento'].value = emp.departamento || '';
-        form.elements['ciudad'].value = emp.ciudad || '';
+        form.elements['ext'].value = emp.ext || '';
+        form.elements['numPers'].value = emp.numPers || '';
+        form.elements['escolaridad'].value = emp.escolaridad || '';
+        form.elements['direccion'].value = emp.direccion || '';
         form.elements['estado'].value = emp.estado || '';
+        form.elements['ciudad'].value = emp.ciudad || '';
+        form.elements['cp'].value = emp.cp || '';
+        form.elements['email'].value = emp.email || '';
 
         titulo.innerHTML = `Editando Empleado: <span class="text-[#249444]">${emp.nombre || ''}</span>`;
         formContainer.classList.remove('hidden');

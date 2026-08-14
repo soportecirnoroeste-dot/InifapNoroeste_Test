@@ -3,13 +3,21 @@
     console.log("Router iniciado correctamente.");
 
     const params = new URLSearchParams(window.location.search);
-    const nombreCortoUrl = (params.get('depto') || '').toLowerCase().trim();
+    let nombreCortoUrl = (params.get('depto') || '').toLowerCase().trim();
+
+    // Si no viene en la URL, intentamos recuperarlo de la memoria local para mantener la continuidad
+    if (!nombreCortoUrl) {
+        nombreCortoUrl = (localStorage.getItem('depto_activo_actual') || '').toLowerCase().trim();
+    }
 
     if (!nombreCortoUrl) {
         console.warn("No se especificó ningún departamento en la URL.");
         mostrarErrorDepto("No se especificó ningún departamento.");
         return;
     }
+
+    // Guardar el departamento activo actual en memoria para los submódulos
+    localStorage.setItem('depto_activo_actual', nombreCortoUrl);
 
     // 1. Obtener el nombre oficial (intentando leer caché, si no, usa el de la URL)
     let nombreOficialDep = nombreCortoUrl;
@@ -164,24 +172,22 @@ window.addEventListener('DOMContentLoaded', () => {
         mainContainer.style.opacity = '1';
     }
 
-    const params = new URLSearchParams(window.location.search);
-    const depto = params.get('depto');
     const btnRegresar = document.getElementById('btn-regresar');
 
     if (btnRegresar) {
-        // Obtenemos la página actual (ej. 'main.html', 'submodulo.html', etc.)
         const paginaActual = window.location.pathname.split('/').pop();
+        const deptoGuardado = localStorage.getItem('depto_activo_actual');
 
-        if (paginaActual === 'main.html' || paginaActual === '') {
-            // Si ya estás en el menú del departamento, el botón te saca al inicio general
+        if (paginaActual === 'main.html') {
+            // Si ya estás en el menú principal del departamento, el botón te saca al inicio general
             btnRegresar.href = 'index.html';
             btnRegresar.title = 'Regresar al inicio';
-        } else if (depto) {
+        } else if (deptoGuardado) {
             // Si estás en un submódulo dentro del departamento, el primer clic te regresa al main.html de ese depto
-            btnRegresar.href = `main.html?depto=${depto}`;
+            btnRegresar.href = `main.html?depto=${deptoGuardado}`;
             btnRegresar.title = 'Regresar al menú del departamento';
         } else {
-            // Por defecto si no hay departamento
+            // Por defecto si no hay registro
             btnRegresar.href = 'index.html';
             btnRegresar.title = 'Regresar al inicio';
         }

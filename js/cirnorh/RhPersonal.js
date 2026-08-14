@@ -221,19 +221,41 @@ function renderizarTablaPersonal(registros) {
 async function seleccionarEmpleadoParaEditar(index) {
     const emp = window._empleadosCache[index];
     if (!emp) return;
-    cargarPersonalRh(false);
-    
+
+    // 1. Aseguramos descargar los catálogos y ESPERAMOS a que terminen antes de continuar
+    if (!window._catRegs || !window._catRegs.length || !window._catCentros || !window._catCentros.length) {
+        await cargarCatalogosSheets();
+    }
+
+    // 2. Pintamos la vista del formulario limpia
+    cargarPersonalRh(false); 
+
     const form = document.getElementById('form-nuevo-personal');
-    poblarSelectoresCascada(emp.claveReg, emp.claveCentro, emp.claveSit);
-    
-    const fields = ['numEmp', 'nombre', 'ext', 'numPers', 'escolaridad', 'direccion', 'cp', 'email', 'rfc', 'puesto', 'departamento', 'ciudad', 'estado'];
-    fields.forEach(f => form.elements[f].value = (emp[f] && emp[f] !== '0') ? emp[f] : '');
-    
-    document.getElementById('input-numEmp').setAttribute('readonly', true);
-    document.getElementById('titulo-formulario').innerHTML = `Editando: <span class="text-[#249444]">${emp.nombre}</span>`;
-    document.getElementById('contenedor-formulario-personal').classList.remove('hidden');
-    document.getElementById('contenedor-gestion-personal').classList.add('hidden');
-    document.getElementById('contenedor-listado-personal').classList.add('hidden');
+    const formContainer = document.getElementById('contenedor-formulario-personal');
+    const gestionContainer = document.getElementById('contenedor-gestion-personal');
+    const listadoContainer = document.getElementById('contenedor-listado-personal');
+    const titulo = document.getElementById('titulo-formulario');
+    const inputNumEmp = document.getElementById('input-numEmp');
+
+    if (formContainer && form) {
+        const limpiarValor = (val) => (!val || val === 0 || val === '0' || String(val).trim() === '') ? 'N/A' : val;
+
+        // 3. Ahora sí, como los catálogos ya están en memoria, la cascada detectará y seleccionará los datos del empleado
+        poblarSelectoresCascada(emp.claveReg, emp.claveCentro, emp.claveSit);
+
+        form.elements['numEmp'].value = limpiarValor(emp.numEmp);
+        inputNumEmp.setAttribute('readonly', true);
+        
+        const fields = ['nombre', 'ext', 'numPers', 'escolaridad', 'direccion', 'cp', 'email', 'rfc', 'puesto', 'departamento', 'ciudad', 'estado'];
+        fields.forEach(f => {
+            if (form.elements[f]) form.elements[f].value = limpiarValor(emp[f]);
+        });
+
+        titulo.innerHTML = `Editando: <span class="text-[#249444]">${limpiarValor(emp.nombre)}</span>`;
+        formContainer.classList.remove('hidden');
+        if (gestionContainer) gestionContainer.classList.add('hidden');
+        if (listadoContainer) listadoContainer.classList.add('hidden');
+    }
 }
 
 async function guardarOActualizarPersonal(event) {

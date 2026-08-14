@@ -47,7 +47,7 @@ function obtenerContenedor() {
     return document.getElementById('app-container') || document.querySelector('main') || document.body;
 }
 
-// Módulo de Personal con Sheets, Formulario y SVGs en botones
+// Módulo de Personal con conexión a Google Sheets y SVGs completos
 function cargarPersonalRh() {
     renderizarVistaModulo('personal', "Directorio de empleados, altas, bajas y estructura organizacional.");
     
@@ -103,7 +103,7 @@ function cargarPersonalRh() {
                 <div class="flex items-end gap-2">
                     <button type="submit" class="w-full py-2.5 bg-[#059669] text-white font-bold rounded-lg hover:bg-[#047857] transition flex items-center justify-center gap-1.5">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-                        Guardar
+                        Guardar en Sheets
                     </button>
                     <button type="button" onclick="ocultarFormularioPersonal()" class="px-3 py-2.5 bg-stone-100 text-stone-600 font-bold rounded-lg hover:bg-stone-200 transition">Cancelar</button>
                 </div>
@@ -149,45 +149,94 @@ function ocultarFormularioPersonal() {
     if (formContainer) formContainer.classList.add('hidden');
 }
 
-function cargarDatosPersonalSheets() {
+// Función conectada a Google Sheets (Ajusta la URL con tu Web App de Google Apps Script)
+async function cargarDatosPersonalSheets() {
     const tbody = document.getElementById('tabla-personal-body');
     if (!tbody) return;
 
-    setTimeout(() => {
-        const registrosEjemplo = [
-            { nombre: "Ana María Pérez", puesto: "Analista de RH", departamento: "Recursos Humanos", correo: "ana.perez@cor.gob.mx", telefono: "6621234567" },
-            { nombre: "Carlos Gómez Ruiz", puesto: "Especialista de Nómina", departamento: "Recursos Humanos", correo: "carlos.gomez@cor.gob.mx", telefono: "6629876543" }
-        ];
+    tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-stone-400 italic">Sincronizando con Google Sheets...</td></tr>`;
 
-        if (registrosEjemplo.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-stone-400 italic">No se encontraron registros en Google Sheets.</td></tr>`;
+    try {
+        // REEMPLAZA ESTA URL CON TU URL DE IMPLEMENTACIÓN DE GOOGLE APPS SCRIPT (WEB APP)
+        const URL_GOOGLE_SHEETS = "TU_URL_DE_APPS_SCRIPT_AQUI"; 
+
+        if (URL_GOOGLE_SHEETS === "TU_URL_DE_APPS_SCRIPT_AQUI") {
+            // Datos de prueba temporales mientras configuras tu Web App
+            setTimeout(() => {
+                renderizarTablaPersonal([
+                    { nombre: "Ana María Pérez", puesto: "Analista de RH", departamento: "Recursos Humanos", correo: "ana.perez@cor.gob.mx", telefono: "6621234567" },
+                    { nombre: "Carlos Gómez Ruiz", puesto: "Especialista de Nómina", departamento: "Recursos Humanos", correo: "carlos.gomez@cor.gob.mx", telefono: "6629876543" }
+                ]);
+            }, 400);
             return;
         }
 
-        tbody.innerHTML = registrosEjemplo.map(row => `
-            <tr class="border-b border-stone-100 hover:bg-stone-50 transition">
-                <td class="p-3 font-semibold text-stone-800">${row.nombre}</td>
-                <td class="p-3 text-stone-600">${row.puesto}</td>
-                <td class="p-3 text-stone-600">${row.departamento}</td>
-                <td class="p-3 text-stone-600">${row.correo || 'N/A'}</td>
-                <td class="p-3 text-stone-600">${row.telefono || 'N/A'}</td>
-            </tr>
-        `).join('');
-    }, 500);
+        const response = await fetch(URL_GOOGLE_SHEETS);
+        const data = await response.json();
+        renderizarTablaPersonal(data);
+
+    } catch (error) {
+        console.error("Error al cargar datos de Sheets:", error);
+        tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-red-500 italic">Error al conectar con Google Sheets. Verifica la URL.</td></tr>`;
+    }
 }
 
-function guardarPersonalSheets(event) {
+function renderizarTablaPersonal(registros) {
+    const tbody = document.getElementById('tabla-personal-body');
+    if (!tbody) return;
+
+    if (!registros || registros.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-stone-400 italic">No se encontraron registros en Google Sheets.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = registros.map(row => `
+        <tr class="border-b border-stone-100 hover:bg-stone-50 transition">
+            <td class="p-3 font-semibold text-stone-800">${row.nombre || row[0] || ''}</td>
+            <td class="p-3 text-stone-600">${row.puesto || row[1] || ''}</td>
+            <td class="p-3 text-stone-600">${row.departamento || row[2] || ''}</td>
+            <td class="p-3 text-stone-600">${row.correo || row[3] || 'N/A'}</td>
+            <td class="p-3 text-stone-600">${row.telefono || row[4] || 'N/A'}</td>
+        </tr>
+    `).join('');
+}
+
+async function guardarPersonalSheets(event) {
     event.preventDefault();
     const form = document.getElementById('form-nuevo-personal');
     const formData = new FormData(form);
     const nuevoRegistro = Object.fromEntries(formData.entries());
 
-    console.log("Enviando datos a Google Sheets...", nuevoRegistro);
-    alert("¡Registro guardado correctamente en Google Sheets!");
-    
-    form.reset();
-    ocultarFormularioPersonal();
-    cargarDatosPersonalSheets();
+    // REEMPLAZA ESTA URL CON TU URL DE IMPLEMENTACIÓN DE GOOGLE APPS SCRIPT (WEB APP)
+    const URL_GOOGLE_SHEETS = "TU_URL_DE_APPS_SCRIPT_AQUI"; 
+
+    if (URL_GOOGLE_SHEETS === "TU_URL_DE_APPS_SCRIPT_AQUI") {
+        alert("¡Registro simulado guardado con éxito! (Configura tu URL de Google Apps Script para guardar en vivo)");
+        form.reset();
+        ocultarFormularioPersonal();
+        cargarDatosPersonalSheets();
+        return;
+    }
+
+    try {
+        const response = await fetch(URL_GOOGLE_SHEETS, {
+            method: 'POST',
+            body: JSON.stringify(nuevoRegistro),
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        if (response.ok) {
+            alert("¡Registro guardado correctamente en Google Sheets!");
+            form.reset();
+            ocultarFormularioPersonal();
+            cargarDatosPersonalSheets();
+        } else {
+            alert("Hubo un error al guardar en Google Sheets.");
+        }
+    } catch (error) {
+        console.error("Error al enviar datos:", error);
+        alert("Error de red al intentar guardar los datos.");
+    }
 }
 
 // Resto de vistas de Recursos Humanos

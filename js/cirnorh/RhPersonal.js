@@ -152,8 +152,8 @@ function renderizarTablaPersonal(registros) {
     }
 
     tbody.innerHTML = registros.map((row, index) => {
-        const reg = row.nomCortoReg || 'N/A';
-        const centro = row.nomCortoCentro || 'N/A';
+        const reg = row.textoReg || row.claveReg || 'N/A';
+        const centro = row.textoCentro || row.claveCentro || 'N/A';
         const noEmp = row.numEmp || 'N/A';
         const nombre = row.nombre || 'Sin Nombre';
         const puesto = row.puesto || '';
@@ -161,8 +161,8 @@ function renderizarTablaPersonal(registros) {
 
         return `
             <tr class="border-b border-stone-100 hover:bg-stone-50 transition">
-                <td class="p-3 font-medium text-stone-700">${reg}</td>
-                <td class="p-3 font-medium text-stone-700">${centro}</td>
+                <td class="p-3 font-mono text-stone-600">${reg}</td>
+                <td class="p-3 font-mono text-stone-600">${centro}</td>
                 <td class="p-3 font-mono text-stone-600">${noEmp}</td>
                 <td class="p-3">
                     <button onclick="seleccionarEmpleadoParaEditar(${index})" class="font-semibold text-[#249444] hover:underline text-left">

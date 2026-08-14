@@ -1,5 +1,10 @@
 // js/cirnorh/RhPersonal.js
 
+window._empleadosCache = [];
+window._catRegs = [];
+window._catCentros = [];
+window._catSitios = [];
+
 function cargarPersonalRh(cargarLista = true) {
     renderizarVistaModulo('personal', "Directorio de empleados, altas, bajas y estructura organizacional.");
 
@@ -9,7 +14,6 @@ function cargarPersonalRh(cargarLista = true) {
     contenedorDinamico.className = "w-full space-y-6";
 
     contenedorDinamico.innerHTML = `
-        <!-- Contenedor del encabezado y botones de Gestión de Personal -->
         <div id="contenedor-gestion-personal" class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-stone-50 p-4 rounded-xl border border-stone-200">
             <div>
                 <h4 class="font-bold text-stone-800 text-sm">Gestión de Personal</h4>
@@ -28,21 +32,17 @@ function cargarPersonalRh(cargarLista = true) {
         </div>
 
         <div id="contenedor-formulario-personal" class="hidden bg-white p-6 rounded-xl border border-[#249444]/20 shadow-sm animate-fade-in">
-            <h5 id="titulo-formulario" class="font-bold text-stone-800 text-sm mb-4 pb-2 border-b border-stone-100 flex items-center gap-2">
-                Capturar Nuevo Empleado
-            </h5>
+            <h5 id="titulo-formulario" class="font-bold text-stone-800 text-sm mb-4 pb-2 border-b border-stone-100 flex items-center gap-2">Capturar Nuevo Empleado</h5>
             <form id="form-nuevo-personal" onsubmit="guardarOActualizarPersonal(event)" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
-                
-                <!-- Selectores dinámicos con eventos en cascada -->
                 <div>
                     <label class="block font-bold text-stone-700 mb-1">Clave Reg:</label>
-                    <select name="claveReg" id="select-claveReg" onchange="filtrarCentrosPorRegion()" required class="w-full p-2.5 border border-stone-300 rounded-lg bg-white focus:outline-none focus:border-[#249444]">
+                    <select name="claveReg" id="select-claveReg" onchange="filtrarCentrosPorRegionEfectiva(this.value)" required class="w-full p-2.5 border border-stone-300 rounded-lg bg-white focus:outline-none focus:border-[#249444]">
                         <option value="0">N/A</option>
                     </select>
                 </div>
                 <div>
                     <label class="block font-bold text-stone-700 mb-1">Clave Centro:</label>
-                    <select name="claveCentro" id="select-claveCentro" onchange="filtrarSitiosPorCentro()" required class="w-full p-2.5 border border-stone-300 rounded-lg bg-white focus:outline-none focus:border-[#249444]">
+                    <select name="claveCentro" id="select-claveCentro" onchange="filtrarSitiosPorCentroEfectivo(this.value)" required class="w-full p-2.5 border border-stone-300 rounded-lg bg-white focus:outline-none focus:border-[#249444]">
                         <option value="0">N/A</option>
                     </select>
                 </div>
@@ -55,7 +55,6 @@ function cargarPersonalRh(cargarLista = true) {
                 
                 <div><label class="block font-bold text-stone-700 mb-1">Núm. Empleado:</label><input type="text" name="numEmp" id="input-numEmp" required class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
                 <div><label class="block font-bold text-stone-700 mb-1">Nombre Completo:</label><input type="text" name="nombre" required class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
-                
                 <div><label class="block font-bold text-stone-700 mb-1">Extensión:</label><input type="text" name="ext" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
                 <div><label class="block font-bold text-stone-700 mb-1">Núm. Personal:</label><input type="text" name="numPers" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
                 <div><label class="block font-bold text-stone-700 mb-1">Escolaridad:</label><input type="text" name="escolaridad" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
@@ -69,9 +68,7 @@ function cargarPersonalRh(cargarLista = true) {
                 <div><label class="block font-bold text-stone-700 mb-1">Estado:</label><input type="text" name="estado" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
                 
                 <div class="sm:col-span-2 md:col-span-3 flex items-end gap-2 pt-2">
-                    <button type="submit" class="py-2.5 px-6 bg-[#059669] text-white font-bold rounded-lg hover:bg-[#047857] transition flex items-center justify-center gap-1.5">
-                        Guardar en Sheets
-                    </button>
+                    <button type="submit" class="py-2.5 px-6 bg-[#059669] text-white font-bold rounded-lg hover:bg-[#047857] transition">Guardar en Sheets</button>
                     <button type="button" onclick="ocultarFormularioPersonal()" class="px-4 py-2.5 bg-stone-100 text-stone-600 font-bold rounded-lg hover:bg-stone-200 transition">Cancelar</button>
                 </div>
             </form>
@@ -92,15 +89,70 @@ function cargarPersonalRh(cargarLista = true) {
         </div>
     `;
 
-    if (cargarLista) {
-        cargarDatosGenerales();
+    if (cargarLista) cargarDatosGenerales();
+}
+
+/** Funciones de Cascada (Ordenadas correctamente) **/
+
+function filtrarSitiosPorCentroEfectivo(centroClave, sitActual = '0') {
+    const selSit = document.getElementById('select-claveSit');
+    if (!selSit) return;
+    selSit.innerHTML = `<option value="0">N/A</option>`;
+
+    const sitiosArray = Array.isArray(window._catSitios) ? window._catSitios : [];
+    const sitClean = (!sitActual || sitActual === '0' || sitActual === 'N/A' || sitActual === 0) ? '0' : String(sitActual).trim();
+
+    if (centroClave !== "0") {
+        const sitiosFiltrados = sitiosArray.filter(s => String(s.claveCentro).trim() === String(centroClave).trim());
+        selSit.innerHTML += sitiosFiltrados.map(s => {
+            const match = String(s.clave).trim() === sitClean || String(s.nombre).trim().toLowerCase() === sitClean.toLowerCase();
+            return `<option value="${s.clave}" ${match ? 'selected' : ''}>${s.clave} - ${s.nombre}</option>`;
+        }).join('');
     }
 }
 
-window._empleadosCache = [];
-window._catRegs = [];
-window._catCentros = [];
-window._catSitios = [];
+function filtrarCentrosPorRegionEfectiva(regionClave, centroActual = '0', sitActual = '0') {
+    const selCentro = document.getElementById('select-claveCentro');
+    const selSit = document.getElementById('select-claveSit');
+    if (!selCentro || !selSit) return;
+
+    selCentro.innerHTML = `<option value="0">N/A</option>`;
+    selSit.innerHTML = `<option value="0">N/A</option>`;
+
+    const centrosArray = Array.isArray(window._catCentros) ? window._catCentros : [];
+    const centroClean = (!centroActual || centroActual === '0' || centroActual === 'N/A' || centroActual === 0) ? '0' : String(centroActual).trim();
+
+    if (regionClave !== "0") {
+        const centrosFiltrados = centrosArray.filter(c => String(c.claveReg).trim() === String(regionClave).trim());
+        selCentro.innerHTML += centrosFiltrados.map(c => {
+            const match = String(c.clave).trim() === centroClean || String(c.nombre).trim().toLowerCase() === centroClean.toLowerCase();
+            return `<option value="${c.clave}" ${match ? 'selected' : ''}>${c.clave} - ${c.nombre}</option>`;
+        }).join('');
+    }
+
+    const optionCentroSel = selCentro.selectedIndex >= 0 ? selCentro.options[selCentro.selectedIndex] : null;
+    const claveCentroEfectiva = optionCentroSel && optionCentroSel.value !== "0" ? optionCentroSel.value : centroClean;
+    filtrarSitiosPorCentroEfectivo(claveCentroEfectiva, sitActual);
+}
+
+function poblarSelectoresCascada(regActual = '0', centroActual = '0', sitActual = '0') {
+    const selReg = document.getElementById('select-claveReg');
+    if (!selReg) return;
+    const regsArray = Array.isArray(window._catRegs) ? window._catRegs : [];
+    const regClean = (!regActual || regActual === '0' || regActual === 'N/A' || regActual === 0) ? '0' : String(regActual).trim();
+
+    selReg.innerHTML = `<option value="0" ${regClean === '0' ? 'selected' : ''}>N/A</option>` + 
+        regsArray.map(r => {
+            const match = String(r.clave).trim() === regClean || String(r.nombre).trim().toLowerCase() === regClean.toLowerCase();
+            return `<option value="${r.clave}" ${match ? 'selected' : ''}>${r.clave} - ${r.nombre}</option>`;
+        }).join('');
+
+    const optionSeleccionada = selReg.selectedIndex >= 0 ? selReg.options[selReg.selectedIndex] : null;
+    const claveRegEfectiva = optionSeleccionada && optionSeleccionada.value !== "0" ? optionSeleccionada.value : regClean;
+    filtrarCentrosPorRegionEfectiva(claveRegEfectiva, centroActual, sitActual);
+}
+
+/** Lógica de carga y edición **/
 
 async function cargarDatosGenerales() {
     await cargarCatalogosSheets();
@@ -114,160 +166,62 @@ async function cargarCatalogosSheets() {
             FetchAPI('obtenerCentros').catch(() => []),
             FetchAPI('obtenerSitios').catch(() => [])
         ]);
-
-        // Blindaje estricto: aseguramos que siempre sean arreglos
         window._catRegs = Array.isArray(regs) ? regs : (regs?.data || []);
         window._catCentros = Array.isArray(centros) ? centros : (centros?.data || []);
         window._catSitios = Array.isArray(sitios) ? sitios : (sitios?.data || []);
-    } catch (error) {
-        console.error("Error al cargar catálogos:", error);
-        window._catRegs = [];
-        window._catCentros = [];
-        window._catSitios = [];
-    }
-}
-
-// Funciones de Cascada (Región -> Centro -> Sitio)
-function filtrarCentrosPorRegion(centroActual = '0', sitActual = '0') {
-    const selReg = document.getElementById('select-claveReg');
-    const selCentro = document.getElementById('select-claveCentro');
-    const selSit = document.getElementById('select-claveSit');
-    
-    if (!selReg || !selCentro || !selSit) return;
-    const regionSeleccionada = selReg.value;
-
-    selCentro.innerHTML = `<option value="0">N/A</option>`;
-    selSit.innerHTML = `<option value="0">N/A</option>`;
-
-    const centrosArray = Array.isArray(window._catCentros) ? window._catCentros : [];
-
-    if (regionSeleccionada !== "0") {
-        const centrosFiltrados = centrosArray.filter(c => String(c.claveReg) === String(regionSeleccionada));
-        selCentro.innerHTML += centrosFiltrados.map(c => 
-            `<option value="${c.clave}" ${String(c.clave) === String(centroActual) ? 'selected' : ''}>${c.nombre}</option>`
-        ).join('');
-    }
-
-    filtrarSitiosPorCentro(sitActual);
-}
-
-function filtrarSitiosPorCentro(sitActual = '0') {
-    const selCentro = document.getElementById('select-claveCentro');
-    const selSit = document.getElementById('select-claveSit');
-    
-    if (!selCentro || !selSit) return;
-    const centroSeleccionado = selCentro.value;
-
-    selSit.innerHTML = `<option value="0">N/A</option>`;
-
-    const sitiosArray = Array.isArray(window._catSitios) ? window._catSitios : [];
-
-    if (centroSeleccionado !== "0") {
-        const sitiosFiltrados = sitiosArray.filter(s => String(s.claveCentro) === String(centroSeleccionado));
-        selSit.innerHTML += sitiosFiltrados.map(s => 
-            `<option value="${s.clave}" ${String(s.clave) === String(sitActual) ? 'selected' : ''}>${s.clave} - ${s.nombre}</option>`
-        ).join('');
-    }
-}
-
-function poblarSelectoresCascada(regActual = '0', centroActual = '0', sitActual = '0') {
-    const selReg = document.getElementById('select-claveReg');
-    if (!selReg) return;
-
-    const regsArray = Array.isArray(window._catRegs) ? window._catRegs : [];
-
-    // Limpiamos y normalizamos el valor actual de la región
-    const regClean = (!regActual || regActual === '0' || regActual === 'N/A' || regActual === 0) ? '0' : String(regActual).trim();
-
-    selReg.innerHTML = `<option value="0" ${regClean === '0' ? 'selected' : ''}>N/A</option>` + 
-        regsArray.map(r => {
-            const match = String(r.clave).trim() === regClean || String(r.nombre).trim().toLowerCase() === regClean.toLowerCase();
-            return `<option value="${r.clave}" ${match ? 'selected' : ''}>${r.nombre}</option>`;
-        }).join('');
-
-    // Si por texto encontró coincidencia pero guardaba el nombre, aseguramos pasar la clave real para los centros
-    const optionSeleccionada = selReg.selectedIndex >= 0 ? selReg.options[selReg.selectedIndex] : null;
-    const claveRegEfectiva = optionSeleccionada && optionSeleccionada.value !== "0" ? optionSeleccionada.value : regClean;
-
-    filtrarCentrosPorRegionEfectiva(claveRegEfectiva, centroActual, sitActual);
+    } catch (error) { console.error("Error al cargar catálogos:", error); }
 }
 
 async function mostrarFormularioNuevoPersonal() {
     const formContainer = document.getElementById('contenedor-formulario-personal');
-    const gestionContainer = document.getElementById('contenedor-gestion-personal');
-    const listadoContainer = document.getElementById('contenedor-listado-personal');
     const form = document.getElementById('form-nuevo-personal');
-    const titulo = document.getElementById('titulo-formulario');
-    const inputNumEmp = document.getElementById('input-numEmp');
-
-    if (formContainer && form) {
-        form.reset();
-        
-        if (!window._catRegs.length && !window._catCentros.length) {
-            await cargarCatalogosSheets();
-        }
-
-        poblarSelectoresCascada('0', '0', '0'); 
-        inputNumEmp.removeAttribute('readonly');
-        titulo.innerHTML = `Capturar Nuevo Empleado`;
-        formContainer.classList.remove('hidden');
-        if (gestionContainer) gestionContainer.classList.add('hidden');
-        if (listadoContainer) listadoContainer.classList.add('hidden');
-        formContainer.scrollIntoView({ behavior: 'smooth' });
-    }
+    if (!formContainer || !form) return;
+    form.reset();
+    poblarSelectoresCascada('0', '0', '0');
+    document.getElementById('input-numEmp').removeAttribute('readonly');
+    document.getElementById('titulo-formulario').innerText = `Capturar Nuevo Empleado`;
+    formContainer.classList.remove('hidden');
+    document.getElementById('contenedor-gestion-personal').classList.add('hidden');
+    document.getElementById('contenedor-listado-personal').classList.add('hidden');
 }
 
 function ocultarFormularioPersonal() {
-    const formContainer = document.getElementById('contenedor-formulario-personal');
-    const gestionContainer = document.getElementById('contenedor-gestion-personal');
-    const listadoContainer = document.getElementById('contenedor-listado-personal');
-    if (formContainer) formContainer.classList.add('hidden');
-    if (gestionContainer) gestionContainer.classList.remove('hidden');
-    if (listadoContainer) listadoContainer.classList.remove('hidden');
+    document.getElementById('contenedor-formulario-personal').classList.add('hidden');
+    document.getElementById('contenedor-gestion-personal').classList.remove('hidden');
+    document.getElementById('contenedor-listado-personal').classList.remove('hidden');
 }
 
 async function cargarDatosPersonalSheets() {
     const tbody = document.getElementById('tabla-personal-body');
     if (!tbody) return;
-
     tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-stone-400 italic">Sincronizando...</td></tr>`;
-
     try {
         const data = await FetchAPI('obtenerPersonal');
         window._empleadosCache = data || [];
         renderizarTablaPersonal(window._empleadosCache);
-    } catch (error) {
-        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-red-500 italic">Error al conectar con Sheets.</td></tr>`;
-    }
+    } catch (e) { tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-red-500 italic">Error de conexión.</td></tr>`; }
 }
 
 function renderizarTablaPersonal(registros) {
     const tbody = document.getElementById('tabla-personal-body');
     if (!tbody) return;
-
-    if (!registros.length) {
-        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-stone-400 italic">No hay registros.</td></tr>`;
-        return;
-    }
-
+    if (!registros.length) { tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-stone-400 italic">No hay registros.</td></tr>`; return; }
+    
     tbody.innerHTML = registros.map((row, index) => {
-        const reg = row.textoReg || row.claveReg;
-        const centro = row.textoCentro || row.claveCentro;
-        const noEmp = row.numEmp;
-        const nombre = row.nombre;
-        const puesto = row.puesto;
-        const departamento = row.departamento;
+        const regObj = window._catRegs.find(r => String(r.clave).trim() === String(row.claveReg).trim());
+        const centroObj = window._catCentros.find(c => String(c.clave).trim() === String(row.claveCentro).trim());
 
-        const valNa = (v) => (!v || v === 0 || v === '0' || String(v).trim() === '') ? 'N/A' : v;
+        const textoReg = regObj ? `${regObj.clave} - ${regObj.nombre}` : (row.claveReg || 'N/A');
+        const textoCentro = centroObj ? `${centroObj.clave} - ${centroObj.nombre}` : (row.claveCentro || 'N/A');
 
         return `
             <tr class="border-b border-stone-100 hover:bg-stone-50 transition">
-                <td class="p-3 font-mono text-stone-600">${valNa(reg)}</td>
-                <td class="p-3 font-mono text-stone-600">${valNa(centro)}</td>
-                <td class="p-3 font-mono text-stone-600">${valNa(noEmp)}</td>
-                <td class="p-3"><button onclick="seleccionarEmpleadoParaEditar(${index})" class="font-semibold text-[#249444] hover:underline">${valNa(nombre)}</button></td>
-                <td class="p-3 text-stone-600">${valNa(puesto)}</td>
-                <td class="p-3 text-stone-600">${valNa(departamento)}</td>
+                <td class="p-3 font-mono text-stone-600">${textoReg}</td>
+                <td class="p-3 font-mono text-stone-600">${textoCentro}</td>
+                <td class="p-3 font-mono text-stone-600">${row.numEmp || 'N/A'}</td>
+                <td class="p-3"><button onclick="seleccionarEmpleadoParaEditar(${index})" class="font-semibold text-[#249444] hover:underline">${row.nombre || 'N/A'}</button></td>
+                <td class="p-3 text-stone-600">${row.puesto || 'N/A'}</td>
+                <td class="p-3 text-stone-600">${row.departamento || 'N/A'}</td>
             </tr>
         `;
     }).join('');
@@ -277,12 +231,10 @@ async function seleccionarEmpleadoParaEditar(index) {
     const emp = window._empleadosCache[index];
     if (!emp) return;
 
-    // 1. PRIMERO aseguramos que los catálogos estén descargados y listos en memoria
     if (!window._catRegs || !window._catRegs.length || !window._catCentros || !window._catCentros.length) {
         await cargarCatalogosSheets();
     }
 
-    // 2. DESPUÉS pintamos la estructura del submódulo en modo edición
     cargarPersonalRh(false); 
 
     const form = document.getElementById('form-nuevo-personal');
@@ -295,24 +247,15 @@ async function seleccionarEmpleadoParaEditar(index) {
     if (formContainer && form) {
         const limpiarValor = (val) => (!val || val === 0 || val === '0' || String(val).trim() === '') ? 'N/A' : val;
 
-        // 3. Poblamos los selectores con seguridad total sabiendo que los arreglos ya existen
         poblarSelectoresCascada(emp.claveReg, emp.claveCentro, emp.claveSit);
 
         form.elements['numEmp'].value = limpiarValor(emp.numEmp);
         inputNumEmp.setAttribute('readonly', true);
         
-        form.elements['nombre'].value = limpiarValor(emp.nombre);
-        form.elements['ext'].value = limpiarValor(emp.ext);
-        form.elements['numPers'].value = limpiarValor(emp.numPers);
-        form.elements['escolaridad'].value = limpiarValor(emp.escolaridad);
-        form.elements['direccion'].value = limpiarValor(emp.direccion);
-        form.elements['cp'].value = limpiarValor(emp.cp);
-        form.elements['email'].value = limpiarValor(emp.email);9
-        form.elements['rfc'].value = limpiarValor(emp.rfc);
-        form.elements['puesto'].value = limpiarValor(emp.puesto);
-        form.elements['departamento'].value = limpiarValor(emp.departamento);
-        form.elements['ciudad'].value = limpiarValor(emp.ciudad);
-        form.elements['estado'].value = limpiarValor(emp.estado);
+        const fields = ['nombre', 'ext', 'numPers', 'escolaridad', 'direccion', 'cp', 'email', 'rfc', 'puesto', 'departamento', 'ciudad', 'estado'];
+        fields.forEach(f => {
+            if (form.elements[f]) form.elements[f].value = limpiarValor(emp[f]);
+        });
 
         titulo.innerHTML = `Editando: <span class="text-[#249444]">${limpiarValor(emp.nombre)}</span>`;
         formContainer.classList.remove('hidden');
@@ -325,13 +268,10 @@ async function guardarOActualizarPersonal(event) {
     event.preventDefault();
     const datosEmpleado = Object.fromEntries(new FormData(event.target).entries());
     const actionName = window._empleadosCache.some(e => String(e.numEmp).trim() === String(datosEmpleado.numEmp).trim()) ? 'actualizarPersonal' : 'guardarPersonal';
-
     try {
         const res = await FetchAPI(actionName, datosEmpleado);
         alert(res.message || "Guardado exitoso");
         ocultarFormularioPersonal();
         cargarDatosPersonalSheets();
-    } catch (e) {
-        alert("Error al guardar");
-    }
+    } catch (e) { alert("Error al guardar"); }
 }

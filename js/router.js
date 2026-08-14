@@ -5,7 +5,6 @@
     const params = new URLSearchParams(window.location.search);
     let nombreCortoUrl = (params.get('depto') || '').toLowerCase().trim();
 
-    // Si no viene en la URL, intentamos recuperarlo de la memoria local para mantener la continuidad
     if (!nombreCortoUrl) {
         nombreCortoUrl = (localStorage.getItem('depto_activo_actual') || '').toLowerCase().trim();
     }
@@ -16,10 +15,9 @@
         return;
     }
 
-    // Guardar el departamento activo actual en memoria para los submódulos
     localStorage.setItem('depto_activo_actual', nombreCortoUrl);
 
-    // 1. Obtener el nombre oficial (intentando leer caché, si no, usa el de la URL)
+    // 1. Obtener el nombre oficial de la caché
     let nombreOficialDep = nombreCortoUrl;
     try {
         const cacheBruto = localStorage.getItem('sistema_cache_datos');
@@ -36,36 +34,46 @@
             }
         }
     } catch (e) {
-        console.warn("No se pudo leer la caché local, usando nombre por defecto.");
+        console.warn("No se pudo leer la caché local.");
     }
 
-    // 2. Cargar dinámicamente el archivo de script del departamento correspondiente
+    // 2. Cargar dinámicamente el script del departamento
     const script = document.createElement('script');
     script.src = `js/${nombreCortoUrl}.js`;
 
     script.onload = () => {
-        const nombreVariableConfig = nombreCortoUrl + 'Config';
-        const deptoData = window[nombreVariableConfig];
+        // Buscamos de forma flexible la variable de configuración global sin importar mayúsculas/minúsculas exactas
+        let deptoData = null;
+        
+        // Intentar nombres comunes: [depto]Config, [depto], o buscar en window la que termine en Config
+        const posiblesNombres = [
+            nombreCortoUrl + 'Config',
+            nombreCortoUrl.toUpperCase() + 'Config',
+            Object.keys(window).find(k => k.toLowerCase() === nombreCortoUrl + 'config')
+        ];
+
+        for (let nombreVar of posiblesNombres) {
+            if (nombreVar && window[nombreVar]) {
+                deptoData = window[nombreVar];
+                break;
+            }
+        }
 
         if (deptoData && deptoData.options) {
-            // Actualizar dinámicamente el título superior con la ruta completa
             const headerDeptoTitle = document.getElementById('header-depto-title');
             if (headerDeptoTitle) {
                 headerDeptoTitle.textContent = `SISTEMA REGIONAL INTERNO / ${nombreOficialDep.toUpperCase()}`;
             }
 
             const contenedorApp = document.getElementById('app-container');
-            if (!contenedorApp) {
-                console.error("No se encontró el contenedor #app-container");
-                return;
-            }
+            if (!contenedorApp) return;
 
-            // Renderizar por primera vez el menú principal del departamento de forma dinámica
+            // Renderizamos el menú de tarjetas correctamente para este departamento
             window.restaurarMenuDepto(nombreCortoUrl);
 
         } else {
-            console.error("No se encontró la configuración global para: " + nombreVariableConfig);
-            mostrarErrorConfig(nombreCortoUrl, "No se encontró el objeto " + nombreVariableConfig);
+            console.error("No se encontró una estructura de opciones válida para el depto: " + nombreCortoUrl);
+            mostrarErrorConfig(nombreCortoUrl, "El script cargó pero falta el objeto de configuración de opciones.");
         }
     };
 
@@ -77,34 +85,30 @@
     document.head.appendChild(script);
 })();
 
-// Función global y dinámica para redibujar el menú principal de CUALQUIER departamento
+// Función global para redibujar el menú principal (tarjetas) de cualquier depto
 window.restaurarMenuDepto = function(nombreCortoUrl) {
     if (!nombreCortoUrl) {
         nombreCortoUrl = localStorage.getItem('depto_activo_actual') || '';
     }
     
-    const nombreVariableConfig = nombreCortoUrl + 'Config';
-    const deptoData = window[nombreVariableConfig];
+    // Buscar la configuración activa en la ventana
+    const nombreVarEncontrada = Object.keys(window).find(k => k.toLowerCase() === nombreCortoUrl.toLowerCase() + 'config');
+    const deptoData = nombreVarEncontrada ? window[nombreVarEncontrada] : null;
     const contenedorApp = document.getElementById('app-container');
 
-    if (!contenedorApp || !deptoData) return;
+    if (!contenedorApp || !deptoData || !deptoData.options) return;
 
-    // Limpiar contenedor de forma segura
     contenedorApp.innerHTML = '';
 
-    // Crear contenedor principal visual con nodos nativos
     const wrapper = document.createElement('section');
     wrapper.className = "bg-white rounded-2xl p-6 md:p-8 soft-shadow border border-[#249444]/10 mb-8 w-full box-border animate-fade-in";
 
-    // Cabecera dinámicamente adaptada
     const headerDiv = document.createElement('div');
     headerDiv.style.cssText = "display: flex; align-items: center; gap: 16px; margin-bottom: 24px; padding-bottom: 24px; border-bottom: 2px solid #f3f4f6;";
 
-    const iconoCabecera = deptoData.icon || '';
-
     headerDiv.innerHTML = `
         <div style="font-size: 24px; background: #f0fdf4; color: #059669; padding: 12px; border-radius: 12px; border: 1px solid #c6f6d5; display: flex; align-items: center; justify-content: center;">
-            ${iconoCabecera}
+            ${deptoData.icon || ''}
         </div>
         <div>
             <h2 style="font-size: 20px; font-weight: 900; color: #249444; margin: 0 0 4px 0;">MENÚ DEL DEPARTAMENTO</h2>
@@ -113,7 +117,6 @@ window.restaurarMenuDepto = function(nombreCortoUrl) {
     `;
     wrapper.appendChild(headerDiv);
 
-    // Grid de tarjetas dinámico basado en las opciones del JSON/config del depto cargado
     const gridDiv = document.createElement('div');
     gridDiv.style.cssText = "display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: stretch;";
 
@@ -143,13 +146,11 @@ window.restaurarMenuDepto = function(nombreCortoUrl) {
     wrapper.appendChild(gridDiv);
     contenedorApp.appendChild(wrapper);
 
-    // Ajustar el botón de retroceso a modo principal (va al index.html)
     if (typeof window.actualizarBotonRegresar === 'function') {
         window.actualizarBotonRegresar('principal', nombreCortoUrl);
     }
 };
 
-// Control dinámico del botón de retroceso (SPA Nativo genérico)
 window.actualizarBotonRegresar = function(modo, deptoKey = '') {
     const btnRegresar = document.getElementById('btn-regresar');
     if (!btnRegresar) return;
@@ -160,7 +161,6 @@ window.actualizarBotonRegresar = function(modo, deptoKey = '') {
         basePath = `/${pathSegments[0]}`;
     }
 
-    // Reemplazamos el nodo para limpiar listeners anteriores
     const nuevoBtn = btnRegresar.cloneNode(true);
     btnRegresar.parentNode.replaceChild(nuevoBtn, btnRegresar);
 
@@ -169,43 +169,27 @@ window.actualizarBotonRegresar = function(modo, deptoKey = '') {
         nuevoBtn.title = "Regresar al menú del departamento";
         nuevoBtn.onclick = (e) => {
             e.preventDefault();
-            // Restaura el menú principal del departamento activo actual sin importar cuál sea
             window.restaurarMenuDepto(deptoKey);
         };
-        console.log(`Modo botón: Regresar al menú de tarjetas del depto (${deptoKey})`);
     } else {
         nuevoBtn.href = `${basePath}/index.html`;
         nuevoBtn.title = "Regresar al panel principal";
         nuevoBtn.onclick = null;
-        console.log("Modo botón: Regresar al index.html general");
     }
 };
 
-function activarSubmenu(idOpt, btnElement) {
-    document.querySelectorAll('.dept-opt-btn').forEach(btn => {
-        btn.classList.remove('bg-white', 'shadow-xs', 'text-[#249444]');
-        btn.classList.add('text-stone-600');
-    });
-    btnElement.classList.remove('text-stone-600');
-    btnElement.classList.add('bg-white', 'shadow-xs', 'text-[#249444]');
-}
-
 function mostrarErrorDepto(mensaje) {
-    const navElem = document.getElementById('dept-options-nav');
     const appElem = document.getElementById('app-container');
-    if (navElem) navElem.innerHTML = `<span class="text-xs text-red-500 font-bold px-3">Sin departamento</span>`;
     if (appElem) appElem.innerHTML = `<div class="text-center py-20 font-bold text-red-500">${mensaje}</div>`;
 }
 
 function mostrarErrorConfig(nombreCorto, detalle) {
-    const navElem = document.getElementById('dept-options-nav');
     const appElem = document.getElementById('app-container');
-    if (navElem) navElem.innerHTML = `<span class="text-xs text-red-500 font-bold px-3">Sin configuración</span>`;
     if (appElem) {
         appElem.innerHTML = `
         <div class="text-center py-20 bg-white rounded-2xl border border-stone-200 shadow-sm">
             <h2 class="text-2xl font-bold text-red-500">Departamento no configurado</h2>
-            <p class="text-xs text-stone-500 mt-2">No se pudo cargar correctamente el archivo o la estructura para: <strong class="text-stone-800">"${nombreCorto}"</strong> (<code class="bg-stone-100 px-2 py-1 rounded text-stone-700">${detalle}</code>)</p>
+            <p class="text-xs text-stone-500 mt-2">No se pudo cargar correctamente para: <strong class="text-stone-800">"${nombreCorto}"</strong> (<code class="bg-stone-100 px-2 py-1 rounded text-stone-700">${detalle}</code>)</p>
             <a href="index.html" class="inline-block mt-6 px-6 py-2 bg-[#249444] text-white rounded-xl text-xs font-bold">Regresar al inicio</a>
         </div>
     `;
@@ -214,16 +198,6 @@ function mostrarErrorConfig(nombreCorto, detalle) {
 
 window.addEventListener('DOMContentLoaded', () => {
     document.body.classList.add('auth-checked');
-
-    const mainContainer = document.getElementById('app-container');
-    if (mainContainer) {
-        mainContainer.style.position = 'relative';
-        mainContainer.style.zIndex = '9999';
-        mainContainer.style.display = 'block';
-        mainContainer.style.visibility = 'visible';
-        mainContainer.style.opacity = '1';
-    }
-
     const deptoGuardado = localStorage.getItem('depto_activo_actual') || '';
     window.actualizarBotonRegresar('principal', deptoGuardado);
 });

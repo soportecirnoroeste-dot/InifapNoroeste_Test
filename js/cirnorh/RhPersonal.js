@@ -83,14 +83,12 @@ function cargarPersonalRh() {
                 <table class="w-full text-left border-collapse text-xs">
                     <thead>
                         <tr class="bg-stone-50 text-stone-600 border-b border-stone-200">
-                            <th class="p-3 font-bold">Clave Reg</th>
-                            <th class="p-3 font-bold">Clave Cen</th>
-                            <th class="p-3 font-bold">Núm. Emp</th>
-                            <th class="p-3 font-bold">Nombre</th>
-                            <th class="p-3 font-bold">RFC</th>
-                            <th class="p-3 font-bold">Puesto</th>
-                            <th class="p-3 font-bold">Departamento</th>
-                            <th class="p-3 font-bold">Ciudad / Estado</th>
+                            <th class="p-3 font-bold">REG</th>
+                            <th class="p-3 font-bold">CENTRO</th>
+                            <th class="p-3 font-bold">NO. EMP</th>
+                            <th class="p-3 font-bold">NOMBRE</th>
+                            <th class="p-3 font-bold">PUESTO</th>
+                            <th class="p-3 font-bold">DEPARTAMENTO</th>
                         </tr>
                     </thead>
                     <tbody id="tabla-personal-body">
@@ -149,34 +147,30 @@ function renderizarTablaPersonal(registros) {
     if (!tbody) return;
 
     if (!registros || registros.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-stone-400 italic">No se encontraron registros.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-stone-400 italic">No se encontraron registros.</td></tr>`;
         return;
     }
 
     tbody.innerHTML = registros.map((row, index) => {
-        const claveReg = row.claveReg || 'N/A';
-        const claveCen = row.claveCen || 'N/A';
-        const numEmp = row.numEmp || 'N/A';
+        const reg = row.claveReg || 'N/A';
+        const centro = row.claveCentro || 'N/A';
+        const noEmp = row.numEmp || 'N/A';
         const nombre = row.nombre || 'Sin Nombre';
-        const rfc = row.rfc || 'N/A';
         const puesto = row.puesto || '';
         const departamento = row.departamento || '';
-        const ciudadEstado = ((row.ciudad || '') + ', ' + (row.estado || '')).replace(/^,\s*/, '');
 
         return `
             <tr class="border-b border-stone-100 hover:bg-stone-50 transition">
-                <td class="p-3 font-mono text-stone-600">${claveReg}</td>
-                <td class="p-3 font-mono text-stone-600">${claveCen}</td>
-                <td class="p-3 font-mono text-stone-600">${numEmp}</td>
+                <td class="p-3 font-mono text-stone-600">${reg}</td>
+                <td class="p-3 font-mono text-stone-600">${centro}</td>
+                <td class="p-3 font-mono text-stone-600">${noEmp}</td>
                 <td class="p-3">
                     <button onclick="seleccionarEmpleadoParaEditar(${index})" class="font-semibold text-[#249444] hover:underline text-left">
                         ${nombre}
                     </button>
                 </td>
-                <td class="p-3 font-mono text-stone-600">${rfc}</td>
                 <td class="p-3 text-stone-600">${puesto}</td>
                 <td class="p-3 text-stone-600">${departamento}</td>
-                <td class="p-3 text-stone-600">${ciudadEstado}</td>
             </tr>
         `;
     }).join('');

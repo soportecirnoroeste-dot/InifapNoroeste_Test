@@ -92,7 +92,7 @@ function cargarPersonalRh(cargarLista = true) {
     if (cargarLista) cargarDatosGenerales();
 }
 
-/** Funciones de Cascada (Corregidas y Robustecidas) **/
+/** Funciones de Cascada **/
 
 function poblarSelectoresCascada(regActual = '0', centroActual = '0', sitActual = '0') {
     const selReg = document.getElementById('select-claveReg');
@@ -103,7 +103,7 @@ function poblarSelectoresCascada(regActual = '0', centroActual = '0', sitActual 
     selReg.innerHTML = `<option value="0" ${regClean === '0' ? 'selected' : ''}>N/A</option>` + 
         regsArray.map(r => {
             const match = String(r.clave).trim() === regClean || String(r.nombre).trim().toLowerCase() === regClean.toLowerCase();
-            return `<option value="${r.clave}" ${match ? 'selected' : ''}>${r.nombre}</option>`;
+            return `<option value="${r.clave}" ${match ? 'selected' : ''}>${r.clave} - ${r.nombre}</option>`;
         }).join('');
 
     const optionSeleccionada = selReg.selectedIndex >= 0 ? selReg.options[selReg.selectedIndex] : null;
@@ -126,7 +126,7 @@ function filtrarCentrosPorRegionEfectiva(regionClave, centroActual = '0', sitAct
         const centrosFiltrados = centrosArray.filter(c => String(c.claveReg).trim() === String(regionClave).trim());
         selCentro.innerHTML += centrosFiltrados.map(c => {
             const match = String(c.clave).trim() === centroClean || String(c.nombre).trim().toLowerCase() === centroClean.toLowerCase();
-            return `<option value="${c.clave}" ${match ? 'selected' : ''}>${c.nombre}</option>`;
+            return `<option value="${c.clave}" ${match ? 'selected' : ''}>${c.clave} - ${c.nombre}</option>`;
         }).join('');
     }
 
@@ -206,28 +206,36 @@ function renderizarTablaPersonal(registros) {
     const tbody = document.getElementById('tabla-personal-body');
     if (!tbody) return;
     if (!registros.length) { tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-stone-400 italic">No hay registros.</td></tr>`; return; }
-    tbody.innerHTML = registros.map((row, index) => `
-        <tr class="border-b border-stone-100 hover:bg-stone-50 transition">
-            <td class="p-3 font-mono text-stone-600">${row.claveReg || 'N/A'}</td>
-            <td class="p-3 font-mono text-stone-600">${row.claveCentro || 'N/A'}</td>
-            <td class="p-3 font-mono text-stone-600">${row.numEmp || 'N/A'}</td>
-            <td class="p-3"><button onclick="seleccionarEmpleadoParaEditar(${index})" class="font-semibold text-[#249444] hover:underline">${row.nombre || 'N/A'}</button></td>
-            <td class="p-3 text-stone-600">${row.puesto || 'N/A'}</td>
-            <td class="p-3 text-stone-600">${row.departamento || 'N/A'}</td>
-        </tr>
-    `).join('');
+    
+    tbody.innerHTML = registros.map((row, index) => {
+        // Buscamos los nombres descriptivos usando los catálogos en caché
+        const regObj = window._catRegs.find(r => String(r.clave).trim() === String(row.claveReg).trim());
+        const centroObj = window._catCentros.find(c => String(c.clave).trim() === String(row.claveCentro).trim());
+
+        const textoReg = regObj ? `${regObj.clave} - ${regObj.nombre}` : (row.claveReg || 'N/A');
+        const textoCentro = centroObj ? `${centroObj.clave} - ${centroObj.nombre}` : (row.claveCentro || 'N/A');
+
+        return `
+            <tr class="border-b border-stone-100 hover:bg-stone-50 transition">
+                <td class="p-3 font-mono text-stone-600">${textoReg}</td>
+                <td class="p-3 font-mono text-stone-600">${textoCentro}</td>
+                <td class="p-3 font-mono text-stone-600">${row.numEmp || 'N/A'}</td>
+                <td class="p-3"><button onclick="seleccionarEmpleadoParaEditar(${index})" class="font-semibold text-[#249444] hover:underline">${row.nombre || 'N/A'}</button></td>
+                <td class="p-3 text-stone-600">${row.puesto || 'N/A'}</td>
+                <td class="p-3 text-stone-600">${row.departamento || 'N/A'}</td>
+            </tr>
+        `;
+    }).join('');
 }
 
 async function seleccionarEmpleadoParaEditar(index) {
     const emp = window._empleadosCache[index];
     if (!emp) return;
 
-    // 1. Aseguramos descargar los catálogos antes de continuar si están vacíos
     if (!window._catRegs || !window._catRegs.length || !window._catCentros || !window._catCentros.length) {
         await cargarCatalogosSheets();
     }
 
-    // 2. PRIMERO renderizamos el contenedor/formulario limpio con el DOM base
     cargarPersonalRh(false); 
 
     const form = document.getElementById('form-nuevo-personal');
@@ -240,7 +248,6 @@ async function seleccionarEmpleadoParaEditar(index) {
     if (formContainer && form) {
         const limpiarValor = (val) => (!val || val === 0 || val === '0' || String(val).trim() === '') ? 'N/A' : val;
 
-        // 3. SEGUNDO poblamos la cascada y seleccionamos las claves del empleado ahora que el DOM existe
         poblarSelectoresCascada(emp.claveReg, emp.claveCentro, emp.claveSit);
 
         form.elements['numEmp'].value = limpiarValor(emp.numEmp);

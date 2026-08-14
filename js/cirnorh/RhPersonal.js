@@ -9,7 +9,8 @@ function cargarPersonalRh(cargarLista = true) {
     contenedorDinamico.className = "w-full space-y-6";
 
     contenedorDinamico.innerHTML = `
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-stone-50 p-4 rounded-xl border border-stone-200">
+        <!-- Contenedor del encabezado y botones de Gestión de Personal -->
+        <div id="contenedor-gestion-personal" class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-stone-50 p-4 rounded-xl border border-stone-200">
             <div>
                 <h4 class="font-bold text-stone-800 text-sm">Gestión de Personal</h4>
                 <p class="text-xs text-stone-500">Visualiza el padrón completo, da de alta o haz clic en un empleado para editar sus datos.</p>
@@ -83,6 +84,7 @@ window._empleadosCache = [];
 
 function mostrarFormularioNuevoPersonal() {
     const formContainer = document.getElementById('contenedor-formulario-personal');
+    const gestionContainer = document.getElementById('contenedor-gestion-personal');
     const listadoContainer = document.getElementById('contenedor-listado-personal');
     const form = document.getElementById('form-nuevo-personal');
     const titulo = document.getElementById('titulo-formulario');
@@ -93,16 +95,19 @@ function mostrarFormularioNuevoPersonal() {
         inputNumEmp.removeAttribute('readonly');
         titulo.innerHTML = `Capturar Nuevo Empleado`;
         formContainer.classList.remove('hidden');
-        if (listadoContainer) listadoContainer.classList.add('hidden');
+        if (gestionContainer) gestionContainer.classList.add('hidden'); // Ocultar gestión
+        if (listadoContainer) listadoContainer.classList.add('hidden'); // Ocultar tabla
         formContainer.scrollIntoView({ behavior: 'smooth' });
     }
 }
 
 function ocultarFormularioPersonal() {
     const formContainer = document.getElementById('contenedor-formulario-personal');
+    const gestionContainer = document.getElementById('contenedor-gestion-personal');
     const listadoContainer = document.getElementById('contenedor-listado-personal');
     if (formContainer) formContainer.classList.add('hidden');
-    if (listadoContainer) listadoContainer.classList.remove('hidden');
+    if (gestionContainer) gestionContainer.classList.remove('hidden'); // Mostrar gestión de nuevo
+    if (listadoContainer) listadoContainer.classList.remove('hidden'); // Mostrar tabla de nuevo
 }
 
 async function cargarDatosPersonalSheets() {
@@ -160,12 +165,12 @@ function seleccionarEmpleadoParaEditar(index) {
 
     const form = document.getElementById('form-nuevo-personal');
     const formContainer = document.getElementById('contenedor-formulario-personal');
+    const gestionContainer = document.getElementById('contenedor-gestion-personal');
     const listadoContainer = document.getElementById('contenedor-listado-personal');
     const titulo = document.getElementById('titulo-formulario');
     const inputNumEmp = document.getElementById('input-numEmp');
 
     if (formContainer && form) {
-        // Función para colocar "N/A" si viene vacío, 0 o nulo
         const limpiarValor = (val) => (!val || val === 0 || val === '0' || String(val).trim() === '') ? 'N/A' : val;
 
         form.elements['claveReg'].value = limpiarValor(emp.claveReg);
@@ -190,7 +195,8 @@ function seleccionarEmpleadoParaEditar(index) {
 
         titulo.innerHTML = `Editando: <span class="text-[#249444]">${limpiarValor(emp.nombre)}</span>`;
         formContainer.classList.remove('hidden');
-        if (listadoContainer) listadoContainer.classList.add('hidden');
+        if (gestionContainer) gestionContainer.classList.add('hidden'); // Ocultar gestión arriba
+        if (listadoContainer) listadoContainer.classList.add('hidden'); // Ocultar tabla abajo
     }
 }
 

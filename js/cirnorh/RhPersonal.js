@@ -12,7 +12,7 @@ function cargarPersonalRh() {
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-stone-50 p-4 rounded-xl border border-stone-200">
             <div>
                 <h4 class="font-bold text-stone-800 text-sm">Gestión de Personal - Conectado a Sheets</h4>
-                <p class="text-xs text-stone-500">Visualiza el padrón de empleados o registra un nuevo elemento.</p>
+                <p class="text-xs text-stone-500">Visualiza el padrón, da de alta o haz clic en el nombre de un empleado para editar sus datos.</p>
             </div>
             <div class="flex gap-2">
                 <button onclick="mostrarFormularioNuevoPersonal()" class="px-4 py-2 bg-[#249444] text-white rounded-xl text-xs font-bold hover:bg-[#1e7a37] transition flex items-center gap-2">
@@ -27,18 +27,18 @@ function cargarPersonalRh() {
         </div>
 
         <div id="contenedor-formulario-personal" class="hidden bg-white p-6 rounded-xl border border-[#249444]/20 shadow-sm animate-fade-in">
-            <h5 class="font-bold text-stone-800 text-sm mb-4 pb-2 border-b border-stone-100 flex items-center gap-2">
+            <h5 id="titulo-formulario" class="font-bold text-stone-800 text-sm mb-4 pb-2 border-b border-stone-100 flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-[#059669]"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                 Capturar Nuevo Empleado
             </h5>
-            <form id="form-nuevo-personal" onsubmit="guardarPersonalSheets(event)" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
+            <form id="form-nuevo-personal" onsubmit="guardarOActualizarPersonal(event)" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
                 <div>
                     <label class="block font-bold text-stone-700 mb-1">Clave Reg:</label>
                     <input type="text" name="claveReg" required class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]">
                 </div>
                 <div>
                     <label class="block font-bold text-stone-700 mb-1">Núm. Empleado:</label>
-                    <input type="text" name="numEmp" required class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]">
+                    <input type="text" name="numEmp" id="input-numEmp" required class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]">
                 </div>
                 <div>
                     <label class="block font-bold text-stone-700 mb-1">Nombre Completo:</label>
@@ -56,6 +56,14 @@ function cargarPersonalRh() {
                     <label class="block font-bold text-stone-700 mb-1">Departamento:</label>
                     <input type="text" name="departamento" required class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]">
                 </div>
+                <div>
+                    <label class="block font-bold text-stone-700 mb-1">Ciudad:</label>
+                    <input type="text" name="ciudad" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]">
+                </div>
+                <div>
+                    <label class="block font-bold text-stone-700 mb-1">Estado:</label>
+                    <input type="text" name="estado" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]">
+                </div>
                 <div class="sm:col-span-2 md:col-span-3 flex items-end gap-2 pt-2">
                     <button type="submit" class="py-2.5 px-6 bg-[#059669] text-white font-bold rounded-lg hover:bg-[#047857] transition flex items-center justify-center gap-1.5">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
@@ -69,7 +77,8 @@ function cargarPersonalRh() {
         <div class="bg-white rounded-xl border border-stone-200 overflow-hidden shadow-sm">
             <div class="p-4 border-b border-stone-100 font-bold text-xs text-stone-700 uppercase tracking-wider flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-[#059669]"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                Listado General de Empleados
+                Listado General de Empleados (Haz clic en un nombre para editar)
+            </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse text-xs">
                     <thead>
@@ -95,9 +104,22 @@ function cargarPersonalRh() {
     cargarDatosPersonalSheets();
 }
 
+// Caché global para lectura instantánea al editar
+window._empleadosCache = [];
+
 function mostrarFormularioNuevoPersonal() {
     const formContainer = document.getElementById('contenedor-formulario-personal');
-    if (formContainer) formContainer.classList.remove('hidden');
+    const form = document.getElementById('form-nuevo-personal');
+    const titulo = document.getElementById('titulo-formulario');
+    const inputNumEmp = document.getElementById('input-numEmp');
+    
+    if (formContainer && form) {
+        form.reset();
+        inputNumEmp.removeAttribute('readonly'); // Habilitar ID si es alta nueva
+        titulo.innerHTML = `Capturar Nuevo Empleado`;
+        formContainer.classList.remove('hidden');
+        formContainer.scrollIntoView({ behavior: 'smooth' });
+    }
 }
 
 function ocultarFormularioPersonal() {
@@ -113,12 +135,12 @@ async function cargarDatosPersonalSheets() {
     tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-stone-400 italic">Sincronizando los datos...</td></tr>`;
 
     try {
-        // Usamos la función global FetchAPI pasando la acción correspondiente para el backend en Apps Script
         const data = await FetchAPI('obtenerPersonal');
-        renderizarTablaPersonal(data);
+        window._empleadosCache = data || []; // Guardamos en memoria para edición rápida
+        renderizarTablaPersonal(window._empleadosCache);
     } catch (error) {
         console.error("Error al cargar datos de Sheets:", error);
-        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-red-500 italic">Error al conectar con  Sheets. Comucate son soporte.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-red-500 italic">Error al conectar con Sheets. Comunicate con soporte.</td></tr>`;
     }
 }
 
@@ -131,37 +153,79 @@ function renderizarTablaPersonal(registros) {
         return;
     }
 
-    tbody.innerHTML = registros.map(row => `
-        <tr class="border-b border-stone-100 hover:bg-stone-50 transition">
-            <td class="p-3 font-mono text-stone-600">${row.numEmp || row[3] || 'N/A'}</td>
-            <td class="p-3 font-semibold text-stone-800">${row.nombre || row[5] || ''}</td>
-            <td class="p-3 font-mono text-stone-600">${row.rfc || row[6] || 'N/A'}</td>
-            <td class="p-3 text-stone-600">${row.puesto || row[7] || ''}</td>
-            <td class="p-3 text-stone-600">${row.departamento || row[8] || ''}</td>
-            <td class="p-3 text-stone-600">${(row.ciudad || row[14] || '') + ', ' + (row.estado || row[13] || '')}</td>
-        </tr>
-    `).join('');
+    tbody.innerHTML = registros.map((row, index) => {
+        const numEmp = row.numEmp || row[3] || 'N/A';
+        const nombre = row.nombre || row[5] || 'Sin Nombre';
+        const rfc = row.rfc || row[6] || 'N/A';
+        const puesto = row.puesto || row[7] || '';
+        const departamento = row.departamento || row[8] || '';
+        const ciudadEstado = (row.ciudad || row[14] || '') + ', ' + (row.estado || row[13] || '');
+
+        return `
+            <tr class="border-b border-stone-100 hover:bg-stone-50 transition">
+                <td class="p-3 font-mono text-stone-600">${numEmp}</td>
+                <td class="p-3">
+                    <button onclick="seleccionarEmpleadoParaEditar(${index})" class="font-semibold text-[#249444] hover:underline text-left">
+                        ${nombre}
+                    </button>
+                </td>
+                <td class="p-3 font-mono text-stone-600">${rfc}</td>
+                <td class="p-3 text-stone-600">${puesto}</td>
+                <td class="p-3 text-stone-600">${departamento}</td>
+                <td class="p-3 text-stone-600">${ciudadEstado}</td>
+            </tr>
+        `;
+    }).join('');
 }
 
-// Guardar datos usando FetchAPI global
-async function guardarPersonalSheets(event) {
+// Cargar datos en el formulario al dar clic en el nombre del empleado
+function seleccionarEmpleadoParaEditar(index) {
+    const emp = window._empleadosCache[index];
+    if (!emp) return;
+
+    const formContainer = document.getElementById('contenedor-formulario-personal');
+    const form = document.getElementById('form-nuevo-personal');
+    const titulo = document.getElementById('titulo-formulario');
+    const inputNumEmp = document.getElementById('input-numEmp');
+
+    if (formContainer && form) {
+        form.elements['claveReg'].value = emp.claveReg || emp[0] || '';
+        form.elements['numEmp'].value = emp.numEmp || emp[3] || '';
+        inputNumEmp.setAttribute('readonly', true); // Bloquear el número de empleado para asegurar la edición correcta en Sheets
+        form.elements['nombre'].value = emp.nombre || emp[5] || '';
+        form.elements['rfc'].value = emp.rfc || emp[6] || '';
+        form.elements['puesto'].value = emp.puesto || emp[7] || '';
+        form.elements['departamento'].value = emp.departamento || emp[8] || '';
+        form.elements['ciudad'].value = emp.ciudad || emp[14] || '';
+        form.elements['estado'].value = emp.estado || emp[13] || '';
+
+        titulo.innerHTML = `Editando Empleado: <span class="text-[#249444]">${emp.nombre || emp[5] || ''}</span>`;
+        formContainer.classList.remove('hidden');
+        formContainer.scrollIntoView({ behavior: 'smooth' });
+    }
+}
+
+// Función unificada que detecta si debe crear un registro nuevo o actualizar uno existente
+async function guardarOActualizarPersonal(event) {
     event.preventDefault();
     const form = document.getElementById('form-nuevo-personal');
     const formData = new FormData(form);
-    const nuevoRegistro = Object.fromEntries(formData.entries());
+    const datosEmpleado = Object.fromEntries(formData.entries());
+
+    // Validamos si el número de empleado ya existe en caché para elegir la acción adecuada
+    const existe = window._empleadosCache.some(e => String(e.numEmp || e[3]).trim() === String(datosEmpleado.numEmp).trim());
+    const actionName = existe ? 'actualizarPersonal' : 'guardarPersonal';
 
     try {
-        // Llamado centralizado enviando la acción de guardado
-        const resultado = await FetchAPI('guardarPersonal', nuevoRegistro);
+        const resultado = await FetchAPI(actionName, datosEmpleado);
         
-        // Puedes ajustar la validación de acuerdo a cómo responda tu Apps Script (ej: resultado.status === 'success')
-        alert("¡Registro guardado correctamente en Google Sheets!");
+        alert(resultado.message || "¡Operación realizada correctamente en Google Sheets!");
         form.reset();
         ocultarFormularioPersonal();
         cargarDatosPersonalSheets();
 
     } catch (error) {
-        console.error("Error al enviar datos:", error);
+        console.error("Error al procesar los datos:", error);
         alert("Error de red al intentar guardar los datos.");
     }
 }

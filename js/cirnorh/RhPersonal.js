@@ -253,13 +253,16 @@ function renderizarTablaPersonal(registros) {
     }).join('');
 }
 
+// js/cirnorh/RhPersonal.js
+
 async function seleccionarEmpleadoParaEditar(index) {
     const emp = window._empleadosCache[index];
     if (!emp) return;
 
+    // 1. Renderizamos la vista sin disparar la carga general vacía
     cargarPersonalRh(false); 
 
-    // Asegurarnos de esperar a que los catálogos tengan datos si están vacíos
+    // 2. Forzamos la carga de catálogos y esperamos a que terminen antes de continuar
     if (!window._catRegs.length || !window._catCentros.length || !window._catSitios.length) {
         await cargarCatalogosSheets();
     }
@@ -274,6 +277,7 @@ async function seleccionarEmpleadoParaEditar(index) {
     if (formContainer && form) {
         const limpiarValor = (val) => (!val || val === 0 || val === '0' || String(val).trim() === '') ? 'N/A' : val;
 
+        // 3. Poblamos los selectores con la cascada ya teniendo los datos listos
         poblarSelectoresCascada(emp.claveReg, emp.claveCentro, emp.claveSit);
 
         form.elements['numEmp'].value = limpiarValor(emp.numEmp);
@@ -298,7 +302,6 @@ async function seleccionarEmpleadoParaEditar(index) {
         if (listadoContainer) listadoContainer.classList.add('hidden');
     }
 }
-
 async function guardarOActualizarPersonal(event) {
     event.preventDefault();
     const datosEmpleado = Object.fromEntries(new FormData(event.target).entries());

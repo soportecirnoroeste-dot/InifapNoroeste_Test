@@ -11,8 +11,8 @@ function cargarPersonalRh() {
     contenedorDinamico.innerHTML = `
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-stone-50 p-4 rounded-xl border border-stone-200">
             <div>
-                <h4 class="font-bold text-stone-800 text-sm">Gestión de Personal - Conectado a Sheets</h4>
-                <p class="text-xs text-stone-500">Visualiza el padrón completo, da de alta o haz clic en un empleado para editar sus datos.</p>
+                <h4 class="font-bold text-stone-800 text-sm">Gestión de Personal</h4>
+                <p class="text-xs text-stone-500">Visualiza el padrón completo, da de alta o haz clice en un empleado para editar sus datos.</p>
             </div>
             <div class="flex gap-2">
                 <button onclick="mostrarFormularioNuevoPersonal()" class="px-4 py-2 bg-[#249444] text-white rounded-xl text-xs font-bold hover:bg-[#1e7a37] transition flex items-center gap-2">

@@ -1,4 +1,5 @@
 // js/cirnorh/RhPersonal.js
+
 function cargarPersonalRh(cargarLista = true) {
     renderizarVistaModulo('personal', "Directorio de empleados, altas, bajas y estructura organizacional.");
 
@@ -92,7 +93,7 @@ function mostrarFormularioNuevoPersonal() {
         inputNumEmp.removeAttribute('readonly');
         titulo.innerHTML = `Capturar Nuevo Empleado`;
         formContainer.classList.remove('hidden');
-        if (listadoContainer) listadoContainer.classList.add('hidden'); // Ocultar tabla
+        if (listadoContainer) listadoContainer.classList.add('hidden');
         formContainer.scrollIntoView({ behavior: 'smooth' });
     }
 }
@@ -101,7 +102,7 @@ function ocultarFormularioPersonal() {
     const formContainer = document.getElementById('contenedor-formulario-personal');
     const listadoContainer = document.getElementById('contenedor-listado-personal');
     if (formContainer) formContainer.classList.add('hidden');
-    if (listadoContainer) listadoContainer.classList.remove('hidden'); // Mostrar tabla de nuevo
+    if (listadoContainer) listadoContainer.classList.remove('hidden');
 }
 
 async function cargarDatosPersonalSheets() {
@@ -128,16 +129,27 @@ function renderizarTablaPersonal(registros) {
         return;
     }
 
-    tbody.innerHTML = registros.map((row, index) => `
-        <tr class="border-b border-stone-100 hover:bg-stone-50 transition">
-            <td class="p-3 font-mono text-stone-600">${row.textoReg || row.claveReg || 'N/A'}</td>
-            <td class="p-3 font-mono text-stone-600">${row.textoCentro || row.claveCentro || 'N/A'}</td>
-            <td class="p-3 font-mono text-stone-600">${row.numEmp || 'N/A'}</td>
-            <td class="p-3"><button onclick="seleccionarEmpleadoParaEditar(${index})" class="font-semibold text-[#249444] hover:underline">${row.nombre}</button></td>
-            <td class="p-3 text-stone-600">${row.puesto}</td>
-            <td class="p-3 text-stone-600">${row.departamento}</td>
-        </tr>
-    `).join('');
+    tbody.innerHTML = registros.map((row, index) => {
+        const reg = row.textoReg || row.claveReg;
+        const centro = row.textoCentro || row.claveCentro;
+        const noEmp = row.numEmp;
+        const nombre = row.nombre;
+        const puesto = row.puesto;
+        const departamento = row.departamento;
+
+        const valNa = (v) => (!v || v === 0 || v === '0' || String(v).trim() === '') ? 'N/A' : v;
+
+        return `
+            <tr class="border-b border-stone-100 hover:bg-stone-50 transition">
+                <td class="p-3 font-mono text-stone-600">${valNa(reg)}</td>
+                <td class="p-3 font-mono text-stone-600">${valNa(centro)}</td>
+                <td class="p-3 font-mono text-stone-600">${valNa(noEmp)}</td>
+                <td class="p-3"><button onclick="seleccionarEmpleadoParaEditar(${index})" class="font-semibold text-[#249444] hover:underline">${valNa(nombre)}</button></td>
+                <td class="p-3 text-stone-600">${valNa(puesto)}</td>
+                <td class="p-3 text-stone-600">${valNa(departamento)}</td>
+            </tr>
+        `;
+    }).join('');
 }
 
 function seleccionarEmpleadoParaEditar(index) {
@@ -153,7 +165,8 @@ function seleccionarEmpleadoParaEditar(index) {
     const inputNumEmp = document.getElementById('input-numEmp');
 
     if (formContainer && form) {
-        const limpiarValor = (val) => (!val || val === 0 || val === '0') ? '' : val;
+        // Función para colocar "N/A" si viene vacío, 0 o nulo
+        const limpiarValor = (val) => (!val || val === 0 || val === '0' || String(val).trim() === '') ? 'N/A' : val;
 
         form.elements['claveReg'].value = limpiarValor(emp.claveReg);
         form.elements['claveCentro'].value = limpiarValor(emp.claveCentro);
@@ -164,7 +177,7 @@ function seleccionarEmpleadoParaEditar(index) {
         
         form.elements['nombre'].value = limpiarValor(emp.nombre);
         form.elements['ext'].value = limpiarValor(emp.ext);
-        form.elements['numPers'].value = limpiarValor(emp.numPers); // Nuevo campo
+        form.elements['numPers'].value = limpiarValor(emp.numPers);
         form.elements['escolaridad'].value = limpiarValor(emp.escolaridad);
         form.elements['direccion'].value = limpiarValor(emp.direccion);
         form.elements['cp'].value = limpiarValor(emp.cp);
@@ -175,7 +188,7 @@ function seleccionarEmpleadoParaEditar(index) {
         form.elements['ciudad'].value = limpiarValor(emp.ciudad);
         form.elements['estado'].value = limpiarValor(emp.estado);
 
-        titulo.innerHTML = `Editando: <span class="text-[#249444]">${limpiarValor(emp.nombre) || 'Sin Nombre'}</span>`;
+        titulo.innerHTML = `Editando: <span class="text-[#249444]">${limpiarValor(emp.nombre)}</span>`;
         formContainer.classList.remove('hidden');
         if (listadoContainer) listadoContainer.classList.add('hidden');
     }

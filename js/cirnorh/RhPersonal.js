@@ -32,9 +32,15 @@ function cargarPersonalRh(cargarLista = true) {
             </h5>
             <form id="form-nuevo-personal" onsubmit="guardarOActualizarPersonal(event)" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
                 <div><label class="block font-bold text-stone-700 mb-1">Clave Reg:</label><input type="text" name="claveReg" required class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
+                <div><label class="block font-bold text-stone-700 mb-1">Clave Centro:</label><input type="text" name="claveCentro" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
+                <div><label class="block font-bold text-stone-700 mb-1">Clave Sitio:</label><input type="text" name="claveSit" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
+                
                 <div><label class="block font-bold text-stone-700 mb-1">Núm. Empleado:</label><input type="text" name="numEmp" id="input-numEmp" required class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
                 <div><label class="block font-bold text-stone-700 mb-1">Nombre Completo:</label><input type="text" name="nombre" required class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
-                <div><label class="block font-bold text-stone-700 mb-1">Password:</label><input type="text" name="pass" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
+                
+                <!-- Password enmascarado (type="password") -->
+                <div><label class="block font-bold text-stone-700 mb-1">Password:</label><input type="password" name="pass" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
+                
                 <div><label class="block font-bold text-stone-700 mb-1">Extensión:</label><input type="text" name="ext" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
                 <div><label class="block font-bold text-stone-700 mb-1">Escolaridad:</label><input type="text" name="escolaridad" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
                 <div><label class="block font-bold text-stone-700 mb-1">Dirección:</label><input type="text" name="direccion" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
@@ -48,14 +54,15 @@ function cargarPersonalRh(cargarLista = true) {
                 
                 <div class="sm:col-span-2 md:col-span-3 flex items-end gap-2 pt-2">
                     <button type="submit" class="py-2.5 px-6 bg-[#059669] text-white font-bold rounded-lg hover:bg-[#047857] transition flex items-center justify-center gap-1.5">
-                        Guardar
+                        Guardar en Sheets
                     </button>
                     <button type="button" onclick="ocultarFormularioPersonal()" class="px-4 py-2.5 bg-stone-100 text-stone-600 font-bold rounded-lg hover:bg-stone-200 transition">Cancelar</button>
                 </div>
             </form>
         </div>
 
-        <div class="bg-white rounded-xl border border-stone-200 overflow-hidden shadow-sm">
+        <!-- Contenedor del listado general para poder ocultarlo/mostrarlo fácilmente -->
+        <div id="contenedor-listado-personal" class="bg-white rounded-xl border border-stone-200 overflow-hidden shadow-sm">
             <div class="p-4 border-b border-stone-100 font-bold text-xs text-stone-700 uppercase tracking-wider">Listado General de Empleados</div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse text-xs">
@@ -79,6 +86,7 @@ window._empleadosCache = [];
 
 function mostrarFormularioNuevoPersonal() {
     const formContainer = document.getElementById('contenedor-formulario-personal');
+    const listadoContainer = document.getElementById('contenedor-listado-personal');
     const form = document.getElementById('form-nuevo-personal');
     const titulo = document.getElementById('titulo-formulario');
     const inputNumEmp = document.getElementById('input-numEmp');
@@ -88,13 +96,16 @@ function mostrarFormularioNuevoPersonal() {
         inputNumEmp.removeAttribute('readonly');
         titulo.innerHTML = `Capturar Nuevo Empleado`;
         formContainer.classList.remove('hidden');
+        if (listadoContainer) listadoContainer.classList.add('hidden'); // Ocultar tabla
         formContainer.scrollIntoView({ behavior: 'smooth' });
     }
 }
 
 function ocultarFormularioPersonal() {
     const formContainer = document.getElementById('contenedor-formulario-personal');
+    const listadoContainer = document.getElementById('contenedor-listado-personal');
     if (formContainer) formContainer.classList.add('hidden');
+    if (listadoContainer) listadoContainer.classList.remove('hidden'); // Mostrar tabla de nuevo
 }
 
 async function cargarDatosPersonalSheets() {
@@ -137,19 +148,24 @@ function seleccionarEmpleadoParaEditar(index) {
     const emp = window._empleadosCache[index];
     if (!emp) return;
 
-    // Abrimos el formulario pero NO recargamos la lista
+    // Abrimos el formulario sin recargar la lista
     cargarPersonalRh(false); 
 
     const form = document.getElementById('form-nuevo-personal');
     const formContainer = document.getElementById('contenedor-formulario-personal');
+    const listadoContainer = document.getElementById('contenedor-listado-personal');
     const titulo = document.getElementById('titulo-formulario');
     const inputNumEmp = document.getElementById('input-numEmp');
 
     if (formContainer && form) {
-        // Llenado de campos
+        // Llenado de todos los campos incluyendo claves y password
         form.elements['claveReg'].value = emp.claveReg || '';
+        form.elements['claveCentro'].value = emp.claveCentro || '';
+        form.elements['claveSit'].value = emp.claveSit || '';
+        
         form.elements['numEmp'].value = emp.numEmp || '';
         inputNumEmp.setAttribute('readonly', true);
+        
         form.elements['nombre'].value = emp.nombre || '';
         form.elements['pass'].value = emp.pass || '';
         form.elements['ext'].value = emp.ext || '';
@@ -165,6 +181,7 @@ function seleccionarEmpleadoParaEditar(index) {
 
         titulo.innerHTML = `Editando: <span class="text-[#249444]">${emp.nombre}</span>`;
         formContainer.classList.remove('hidden');
+        if (listadoContainer) listadoContainer.classList.add('hidden'); // Ocultar la tabla de abajo
     }
 }
 

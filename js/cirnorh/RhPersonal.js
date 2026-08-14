@@ -32,9 +32,26 @@ function cargarPersonalRh(cargarLista = true) {
                 Capturar Nuevo Empleado
             </h5>
             <form id="form-nuevo-personal" onsubmit="guardarOActualizarPersonal(event)" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
-                <div><label class="block font-bold text-stone-700 mb-1">Clave Reg:</label><input type="text" name="claveReg" required class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
-                <div><label class="block font-bold text-stone-700 mb-1">Clave Centro:</label><input type="text" name="claveCentro" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
-                <div><label class="block font-bold text-stone-700 mb-1">Clave Sitio:</label><input type="text" name="claveSit" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
+                
+                <!-- Selectores transformados -->
+                <div>
+                    <label class="block font-bold text-stone-700 mb-1">Clave Reg:</label>
+                    <select name="claveReg" id="select-claveReg" required class="w-full p-2.5 border border-stone-300 rounded-lg bg-white focus:outline-none focus:border-[#249444]">
+                        <option value="">Seleccionar Reg</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-bold text-stone-700 mb-1">Clave Centro:</label>
+                    <select name="claveCentro" id="select-claveCentro" required class="w-full p-2.5 border border-stone-300 rounded-lg bg-white focus:outline-none focus:border-[#249444]">
+                        <option value="">Seleccionar Centro</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-bold text-stone-700 mb-1">Clave Sitio:</label>
+                    <select name="claveSit" id="select-claveSit" required class="w-full p-2.5 border border-stone-300 rounded-lg bg-white focus:outline-none focus:border-[#249444]">
+                        <option value="">Seleccionar Sitio</option>
+                    </select>
+                </div>
                 
                 <div><label class="block font-bold text-stone-700 mb-1">Núm. Empleado:</label><input type="text" name="numEmp" id="input-numEmp" required class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
                 <div><label class="block font-bold text-stone-700 mb-1">Nombre Completo:</label><input type="text" name="nombre" required class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
@@ -82,6 +99,48 @@ function cargarPersonalRh(cargarLista = true) {
 
 window._empleadosCache = [];
 
+// Catálogos por defecto con formato "clave - nombreCorto"
+window._catRegs = [
+    { clave: "100", nombre: "100 - REGIONAL NOROESTE" },
+    { clave: "101", nombre: "101 - REGIONAL NORTE" }
+];
+
+window._catCentros = [
+    { clave: "102", nombre: "102 - C.E. NORMAN E. BORLAUG" },
+    { clave: "103", nombre: "103 - C.E. COSTA DE HERMOSILLO" },
+    { clave: "104", nombre: "104 - C.E. VALLE DE CULIACAN" },
+    { clave: "105", nombre: "105 - C.E. VALLE DEL FUERTE" },
+    { clave: "106", nombre: "106 - C.E. MEXICALI" },
+    { clave: "107", nombre: "107 - C.E. TODOS SANTOS" },
+    { clave: "108", nombre: "108 - DIRECCIÓN CIR-NOROESTE" }
+];
+
+window._catSitios = [
+    { clave: "201", nombre: "201 - SITIO EXPERIMENTAL BAJA CALIFORNIA" },
+    { clave: "202", nombre: "202 - SITIO EXPERIMENTAL CABORCA" }
+];
+
+function poblarSelectores(regActual = '', centroActual = '', sitActual = '') {
+    const selReg = document.getElementById('select-claveReg');
+    const selCentro = document.getElementById('select-claveCentro');
+    const selSit = document.getElementById('select-claveSit');
+
+    if (selReg) {
+        selReg.innerHTML = `<option value="">Seleccionar Reg</option>` + 
+            window._catRegs.map(r => `<option value="${r.clave}" ${String(r.clave) === String(regActual) ? 'selected' : ''}>${r.nombre}</option>`).join('');
+    }
+
+    if (selCentro) {
+        selCentro.innerHTML = `<option value="">Seleccionar Centro</option>` + 
+            window._catCentros.map(c => `<option value="${c.clave}" ${String(c.clave) === String(centroActual) ? 'selected' : ''}>${c.nombre}</option>`).join('');
+    }
+
+    if (selSit) {
+        selSit.innerHTML = `<option value="N/A">N/A</option>` + 
+            window._catSitios.map(s => `<option value="${s.clave}" ${String(s.clave) === String(sitActual) ? 'selected' : ''}>${s.nombre}</option>`).join('');
+    }
+}
+
 function mostrarFormularioNuevoPersonal() {
     const formContainer = document.getElementById('contenedor-formulario-personal');
     const gestionContainer = document.getElementById('contenedor-gestion-personal');
@@ -92,11 +151,12 @@ function mostrarFormularioNuevoPersonal() {
 
     if (formContainer && form) {
         form.reset();
+        poblarSelectores(); // Llenar selects vacíos por defecto
         inputNumEmp.removeAttribute('readonly');
         titulo.innerHTML = `Capturar Nuevo Empleado`;
         formContainer.classList.remove('hidden');
-        if (gestionContainer) gestionContainer.classList.add('hidden'); // Ocultar gestión
-        if (listadoContainer) listadoContainer.classList.add('hidden'); // Ocultar tabla
+        if (gestionContainer) gestionContainer.classList.add('hidden');
+        if (listadoContainer) listadoContainer.classList.add('hidden');
         formContainer.scrollIntoView({ behavior: 'smooth' });
     }
 }
@@ -106,8 +166,8 @@ function ocultarFormularioPersonal() {
     const gestionContainer = document.getElementById('contenedor-gestion-personal');
     const listadoContainer = document.getElementById('contenedor-listado-personal');
     if (formContainer) formContainer.classList.add('hidden');
-    if (gestionContainer) gestionContainer.classList.remove('hidden'); // Mostrar gestión de nuevo
-    if (listadoContainer) listadoContainer.classList.remove('hidden'); // Mostrar tabla de nuevo
+    if (gestionContainer) gestionContainer.classList.remove('hidden');
+    if (listadoContainer) listadoContainer.classList.remove('hidden');
 }
 
 async function cargarDatosPersonalSheets() {
@@ -173,10 +233,9 @@ function seleccionarEmpleadoParaEditar(index) {
     if (formContainer && form) {
         const limpiarValor = (val) => (!val || val === 0 || val === '0' || String(val).trim() === '') ? 'N/A' : val;
 
-        form.elements['claveReg'].value = limpiarValor(emp.claveReg);
-        form.elements['claveCentro'].value = limpiarValor(emp.claveCentro);
-        form.elements['claveSit'].value = limpiarValor(emp.claveSit);
-        
+        // Cargar los selectores seleccionando la clave correspondiente del empleado
+        poblarSelectores(emp.claveReg, emp.claveCentro, emp.claveSit);
+
         form.elements['numEmp'].value = limpiarValor(emp.numEmp);
         inputNumEmp.setAttribute('readonly', true);
         
@@ -195,8 +254,8 @@ function seleccionarEmpleadoParaEditar(index) {
 
         titulo.innerHTML = `Editando: <span class="text-[#249444]">${limpiarValor(emp.nombre)}</span>`;
         formContainer.classList.remove('hidden');
-        if (gestionContainer) gestionContainer.classList.add('hidden'); // Ocultar gestión arriba
-        if (listadoContainer) listadoContainer.classList.add('hidden'); // Ocultar tabla abajo
+        if (gestionContainer) gestionContainer.classList.add('hidden');
+        if (listadoContainer) listadoContainer.classList.add('hidden');
     }
 }
 

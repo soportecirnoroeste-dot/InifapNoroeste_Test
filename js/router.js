@@ -174,30 +174,40 @@ window.addEventListener('DOMContentLoaded', () => {
 
     const btnRegresar = document.getElementById('btn-regresar');
 
-    // Imprimimos en consola para depurar el estado actual
-    const paginaActual = window.location.pathname.split('/').pop();
-    const deptoGuardado = localStorage.getItem('depto_activo_actual');
-    
-    console.group("🔍 Depuración del Botón de Regreso");
-    console.log("Página actual detectada:", paginaActual);
-    console.log("Departamento guardado en localStorage:", deptoGuardado);
-
     if (btnRegresar) {
+        const rutaCompleta = window.location.pathname;
+        const paginaActual = rutaCompleta.split('/').pop();
+        const deptoGuardado = localStorage.getItem('depto_activo_actual');
+
+        console.group("🔍 Depuración del Botón de Regreso");
+        console.log("Ruta completa:", rutaCompleta);
+        console.log("Página actual detectada:", paginaActual);
+        console.log("Departamento guardado:", deptoGuardado);
+
+        // Si estamos exactamente en main.html, el botón debe ir al index general
         if (paginaActual === 'main.html') {
             btnRegresar.href = 'index.html';
-            btnRegresar.title = 'Regresar al inicio';
-            console.log("Acción asignada: Ir al índice general (index.html)");
-        } else if (deptoGuardado) {
+            btnRegresar.title = 'Regresar al panel principal';
+            console.log("Acción: Ir a index.html");
+        } 
+        // Si estamos en el index general de GitHub Pages (la raíz o index.html principal)
+        else if (paginaActual === 'index.html' || rutaCompleta.endsWith('/InifapNoroeste_Test/') || paginaActual === '') {
+            btnRegresar.href = 'index.html';
+            btnRegresar.title = 'Ya estás en el inicio';
+            console.log("Acción: Ya en inicio");
+        } 
+        // Si estamos en cualquier submódulo y tenemos un departamento guardado
+        else if (deptoGuardado) {
             btnRegresar.href = `main.html?depto=${deptoGuardado}`;
             btnRegresar.title = 'Regresar al menú del departamento';
-            console.log(`Acción asignada: Volver al menú del depto (${deptoGuardado})`);
-        } else {
+            console.log(`Acción: Volver a main.html?depto=${deptoGuardado}`);
+        } 
+        // Fallback seguro
+        else {
             btnRegresar.href = 'index.html';
             btnRegresar.title = 'Regresar al inicio';
-            console.log("Acción asignada por seguridad: Ir al índice general (index.html)");
+            console.log("Acción por defecto: Ir a index.html");
         }
-    } else {
-        console.warn("No se encontró el elemento #btn-regresar en esta vista.");
+        console.groupEnd();
     }
-    console.groupEnd();
 });

@@ -60,7 +60,7 @@
                 return;
             }
 
-            // Renderizar por primera vez el menú principal del departamento
+            // Renderizar por primera vez el menú principal del departamento de forma dinámica
             window.restaurarMenuDepto(nombreCortoUrl);
 
         } else {
@@ -77,7 +77,7 @@
     document.head.appendChild(script);
 })();
 
-// Función global para redibujar el menú principal del depto (las tarjetas)
+// Función global y dinámica para redibujar el menú principal de CUALQUIER departamento
 window.restaurarMenuDepto = function(nombreCortoUrl) {
     if (!nombreCortoUrl) {
         nombreCortoUrl = localStorage.getItem('depto_activo_actual') || '';
@@ -96,7 +96,7 @@ window.restaurarMenuDepto = function(nombreCortoUrl) {
     const wrapper = document.createElement('section');
     wrapper.className = "bg-white rounded-2xl p-6 md:p-8 soft-shadow border border-[#249444]/10 mb-8 w-full box-border animate-fade-in";
 
-    // Cabecera
+    // Cabecera dinámicamente adaptada
     const headerDiv = document.createElement('div');
     headerDiv.style.cssText = "display: flex; align-items: center; gap: 16px; margin-bottom: 24px; padding-bottom: 24px; border-bottom: 2px solid #f3f4f6;";
 
@@ -113,7 +113,7 @@ window.restaurarMenuDepto = function(nombreCortoUrl) {
     `;
     wrapper.appendChild(headerDiv);
 
-    // Grid de tarjetas
+    // Grid de tarjetas dinámico basado en las opciones del JSON/config del depto cargado
     const gridDiv = document.createElement('div');
     gridDiv.style.cssText = "display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: stretch;";
 
@@ -149,7 +149,7 @@ window.restaurarMenuDepto = function(nombreCortoUrl) {
     }
 };
 
-// Control dinámico del botón de retroceso (SPA Nativo)
+// Control dinámico del botón de retroceso (SPA Nativo genérico)
 window.actualizarBotonRegresar = function(modo, deptoKey = '') {
     const btnRegresar = document.getElementById('btn-regresar');
     if (!btnRegresar) return;
@@ -160,7 +160,7 @@ window.actualizarBotonRegresar = function(modo, deptoKey = '') {
         basePath = `/${pathSegments[0]}`;
     }
 
-    // Reemplazamos el nodo para limpiar listeners anteriores y evitar acumulación
+    // Reemplazamos el nodo para limpiar listeners anteriores
     const nuevoBtn = btnRegresar.cloneNode(true);
     btnRegresar.parentNode.replaceChild(nuevoBtn, btnRegresar);
 
@@ -169,10 +169,10 @@ window.actualizarBotonRegresar = function(modo, deptoKey = '') {
         nuevoBtn.title = "Regresar al menú del departamento";
         nuevoBtn.onclick = (e) => {
             e.preventDefault();
-            // Restaura el menú principal del depto sin cambiar de página física
+            // Restaura el menú principal del departamento activo actual sin importar cuál sea
             window.restaurarMenuDepto(deptoKey);
         };
-        console.log("Modo botón: Regresar al menú de tarjetas del depto (SPA)");
+        console.log(`Modo botón: Regresar al menú de tarjetas del depto (${deptoKey})`);
     } else {
         nuevoBtn.href = `${basePath}/index.html`;
         nuevoBtn.title = "Regresar al panel principal";

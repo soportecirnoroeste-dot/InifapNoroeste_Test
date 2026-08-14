@@ -174,22 +174,30 @@ window.addEventListener('DOMContentLoaded', () => {
 
     const btnRegresar = document.getElementById('btn-regresar');
 
-    if (btnRegresar) {
-        const paginaActual = window.location.pathname.split('/').pop();
-        const deptoGuardado = localStorage.getItem('depto_activo_actual');
+    // Imprimimos en consola para depurar el estado actual
+    const paginaActual = window.location.pathname.split('/').pop();
+    const deptoGuardado = localStorage.getItem('depto_activo_actual');
+    
+    console.group("🔍 Depuración del Botón de Regreso");
+    console.log("Página actual detectada:", paginaActual);
+    console.log("Departamento guardado en localStorage:", deptoGuardado);
 
+    if (btnRegresar) {
         if (paginaActual === 'main.html') {
-            // Si ya estás en el menú principal del departamento, el botón te saca al inicio general
             btnRegresar.href = 'index.html';
             btnRegresar.title = 'Regresar al inicio';
+            console.log("Acción asignada: Ir al índice general (index.html)");
         } else if (deptoGuardado) {
-            // Si estás en un submódulo dentro del departamento, el primer clic te regresa al main.html de ese depto
             btnRegresar.href = `main.html?depto=${deptoGuardado}`;
             btnRegresar.title = 'Regresar al menú del departamento';
+            console.log(`Acción asignada: Volver al menú del depto (${deptoGuardado})`);
         } else {
-            // Por defecto si no hay registro
             btnRegresar.href = 'index.html';
             btnRegresar.title = 'Regresar al inicio';
+            console.log("Acción asignada por seguridad: Ir al índice general (index.html)");
         }
+    } else {
+        console.warn("No se encontró el elemento #btn-regresar en esta vista.");
     }
+    console.groupEnd();
 });

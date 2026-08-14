@@ -60,59 +60,9 @@
                 return;
             }
 
-            // Limpiar contenedor de forma segura
-            contenedorApp.innerHTML = '';
+            // Renderizar por primera vez el menú principal del departamento
+            window.restaurarMenuDepto(nombreCortoUrl);
 
-            // Crear contenedor principal visual con nodos nativos
-            const wrapper = document.createElement('section');
-            wrapper.className = "bg-white rounded-2xl p-6 md:p-8 soft-shadow border border-[#249444]/10 mb-8 w-full box-border animate-fade-in";
-
-            // Cabecera
-            const headerDiv = document.createElement('div');
-            headerDiv.style.cssText = "display: flex; align-items: center; gap: 16px; margin-bottom: 24px; padding-bottom: 24px; border-bottom: 2px solid #f3f4f6;";
-
-            const iconoCabecera = deptoData.icon || '';
-
-            headerDiv.innerHTML = `
-                <div style="font-size: 24px; background: #f0fdf4; color: #059669; padding: 12px; border-radius: 12px; border: 1px solid #c6f6d5; display: flex; align-items: center; justify-content: center;">
-                    ${iconoCabecera}
-                </div>
-                <div>
-                    <h2 style="font-size: 20px; font-weight: 900; color: #249444; margin: 0 0 4px 0;">MENÚ DEL DEPARTAMENTO</h2>
-                    <p style="font-size: 14px; color: #4b5563; margin: 0;">${deptoData.subtitle || 'Selecciona una opción para comenzar.'}</p>
-                </div>
-            `;
-            wrapper.appendChild(headerDiv);
-
-            // Grid de tarjetas
-            const gridDiv = document.createElement('div');
-            gridDiv.style.cssText = "display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: stretch;";
-
-            deptoData.options.forEach((opt) => {
-                const card = document.createElement('div');
-                card.style.cssText = "background: #f9fafb; border: 1px solid #e5e7eb; padding: 20px; border-radius: 12px; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; height: 100%; box-sizing: border-box;";
-
-                if (opt.action) {
-                    card.onclick = new Function(opt.action);
-                }
-
-                card.innerHTML = `
-                <div>
-                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-                        <span style="font-size: 20px; background: #d1fae5; color: #065f46; padding: 8px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">${opt.icon}</span>
-                        <h4 style="font-size: 14px; font-weight: 700; color: #1f2937; margin: 0;">${opt.title}</h4>
-                    </div>
-                    <p style="font-size: 12px; color: #4b5563; margin: 0;">Módulo de gestión para ${opt.title.toLowerCase()}.</p>
-                </div>
-                <div style="margin-top: 16px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #059669;">
-                    Abrir módulo &rarr;
-                </div>
-            `;
-                gridDiv.appendChild(card);
-            });
-
-            wrapper.appendChild(gridDiv);
-            contenedorApp.appendChild(wrapper);
         } else {
             console.error("No se encontró la configuración global para: " + nombreVariableConfig);
             mostrarErrorConfig(nombreCortoUrl, "No se encontró el objeto " + nombreVariableConfig);
@@ -126,6 +76,110 @@
 
     document.head.appendChild(script);
 })();
+
+// Función global para redibujar el menú principal del depto (las tarjetas)
+window.restaurarMenuDepto = function(nombreCortoUrl) {
+    if (!nombreCortoUrl) {
+        nombreCortoUrl = localStorage.getItem('depto_activo_actual') || '';
+    }
+    
+    const nombreVariableConfig = nombreCortoUrl + 'Config';
+    const deptoData = window[nombreVariableConfig];
+    const contenedorApp = document.getElementById('app-container');
+
+    if (!contenedorApp || !deptoData) return;
+
+    // Limpiar contenedor de forma segura
+    contenedorApp.innerHTML = '';
+
+    // Crear contenedor principal visual con nodos nativos
+    const wrapper = document.createElement('section');
+    wrapper.className = "bg-white rounded-2xl p-6 md:p-8 soft-shadow border border-[#249444]/10 mb-8 w-full box-border animate-fade-in";
+
+    // Cabecera
+    const headerDiv = document.createElement('div');
+    headerDiv.style.cssText = "display: flex; align-items: center; gap: 16px; margin-bottom: 24px; padding-bottom: 24px; border-bottom: 2px solid #f3f4f6;";
+
+    const iconoCabecera = deptoData.icon || '';
+
+    headerDiv.innerHTML = `
+        <div style="font-size: 24px; background: #f0fdf4; color: #059669; padding: 12px; border-radius: 12px; border: 1px solid #c6f6d5; display: flex; align-items: center; justify-content: center;">
+            ${iconoCabecera}
+        </div>
+        <div>
+            <h2 style="font-size: 20px; font-weight: 900; color: #249444; margin: 0 0 4px 0;">MENÚ DEL DEPARTAMENTO</h2>
+            <p style="font-size: 14px; color: #4b5563; margin: 0;">${deptoData.subtitle || 'Selecciona una opción para comenzar.'}</p>
+        </div>
+    `;
+    wrapper.appendChild(headerDiv);
+
+    // Grid de tarjetas
+    const gridDiv = document.createElement('div');
+    gridDiv.style.cssText = "display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: stretch;";
+
+    deptoData.options.forEach((opt) => {
+        const card = document.createElement('div');
+        card.style.cssText = "background: #f9fafb; border: 1px solid #e5e7eb; padding: 20px; border-radius: 12px; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; height: 100%; box-sizing: border-box;";
+
+        if (opt.action) {
+            card.onclick = new Function(opt.action);
+        }
+
+        card.innerHTML = `
+            <div>
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                    <span style="font-size: 20px; background: #d1fae5; color: #065f46; padding: 8px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">${opt.icon}</span>
+                    <h4 style="font-size: 14px; font-weight: 700; color: #1f2937; margin: 0;">${opt.title}</h4>
+                </div>
+                <p style="font-size: 12px; color: #4b5563; margin: 0;">Módulo de gestión para ${opt.title.toLowerCase()}.</p>
+            </div>
+            <div style="margin-top: 16px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #059669;">
+                Abrir módulo &rarr;
+            </div>
+        `;
+        gridDiv.appendChild(card);
+    });
+
+    wrapper.appendChild(gridDiv);
+    contenedorApp.appendChild(wrapper);
+
+    // Ajustar el botón de retroceso a modo principal (va al index.html)
+    if (typeof window.actualizarBotonRegresar === 'function') {
+        window.actualizarBotonRegresar('principal', nombreCortoUrl);
+    }
+};
+
+// Control dinámico del botón de retroceso (SPA Nativo)
+window.actualizarBotonRegresar = function(modo, deptoKey = '') {
+    const btnRegresar = document.getElementById('btn-regresar');
+    if (!btnRegresar) return;
+
+    const pathSegments = window.location.pathname.split('/').filter(Boolean);
+    let basePath = '';
+    if (window.location.hostname.includes('github.io') && pathSegments.length > 0) {
+        basePath = `/${pathSegments[0]}`;
+    }
+
+    // Reemplazamos el nodo para limpiar listeners anteriores y evitar acumulación
+    const nuevoBtn = btnRegresar.cloneNode(true);
+    btnRegresar.parentNode.replaceChild(nuevoBtn, btnRegresar);
+
+    if (modo === 'submodulo') {
+        nuevoBtn.href = "#";
+        nuevoBtn.title = "Regresar al menú del departamento";
+        nuevoBtn.onclick = (e) => {
+            e.preventDefault();
+            // Restaura el menú principal del depto sin cambiar de página física
+            window.restaurarMenuDepto(deptoKey);
+        };
+        console.log("Modo botón: Regresar al menú de tarjetas del depto (SPA)");
+    } else {
+        nuevoBtn.href = `${basePath}/index.html`;
+        nuevoBtn.title = "Regresar al panel principal";
+        nuevoBtn.onclick = null;
+        console.log("Modo botón: Regresar al index.html general");
+    }
+};
 
 function activarSubmenu(idOpt, btnElement) {
     document.querySelectorAll('.dept-opt-btn').forEach(btn => {
@@ -170,42 +224,6 @@ window.addEventListener('DOMContentLoaded', () => {
         mainContainer.style.opacity = '1';
     }
 
-    const btnRegresar = document.getElementById('btn-regresar');
-
-    if (btnRegresar) {
-        const urlActual = window.location.href.toLowerCase();
-        const deptoGuardado = localStorage.getItem('depto_activo_actual');
-
-        // Detectar base path para GitHub Pages de forma robusta
-        const pathSegments = window.location.pathname.split('/').filter(Boolean);
-        let basePath = '';
-        if (window.location.hostname.includes('github.io') && pathSegments.length > 0) {
-            basePath = `/${pathSegments[0]}`;
-        }
-
-        console.group("🔍 Control Definitivo del Botón Regresar");
-        console.log("URL actual:", urlActual);
-        console.log("Base Path:", basePath);
-        console.log("Departamento en localStorage:", deptoGuardado);
-
-        // Si la URL actual contiene 'main.html', estamos en el menú del depto y el botón va al index general.
-        if (urlActual.includes('main.html')) {
-            btnRegresar.href = `${basePath}/index.html`;
-            btnRegresar.title = 'Regresar al panel principal';
-            console.log("Acción: Estás en main -> Ir a index.html");
-        } 
-        // Si la URL NO contiene 'main.html' (estás en un submódulo como personal), regresamos al main del depto.
-        else if (deptoGuardado) {
-            btnRegresar.href = `${basePath}/main.html?depto=${deptoGuardado}`;
-            btnRegresar.title = 'Regresar al menú del departamento';
-            console.log(`Acción: Estás en submódulo -> Ir a main.html?depto=${deptoGuardado}`);
-        } 
-        // Fallback por si acaso
-        else {
-            btnRegresar.href = `${basePath}/index.html`;
-            btnRegresar.title = 'Regresar al inicio';
-            console.log("Acción por defecto -> index.html");
-        }
-        console.groupEnd();
-    }
+    const deptoGuardado = localStorage.getItem('depto_activo_actual') || '';
+    window.actualizarBotonRegresar('principal', deptoGuardado);
 });

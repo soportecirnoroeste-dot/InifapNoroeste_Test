@@ -259,7 +259,8 @@ async function seleccionarEmpleadoParaEditar(index) {
 
     cargarPersonalRh(false); 
 
-    if (!window._catRegs.length && !window._catCentros.length) {
+    // Asegurarnos de esperar a que los catálogos tengan datos si están vacíos
+    if (!window._catRegs.length || !window._catCentros.length || !window._catSitios.length) {
         await cargarCatalogosSheets();
     }
 
@@ -273,7 +274,6 @@ async function seleccionarEmpleadoParaEditar(index) {
     if (formContainer && form) {
         const limpiarValor = (val) => (!val || val === 0 || val === '0' || String(val).trim() === '') ? 'N/A' : val;
 
-        // Se usa el nombre correcto de la función en cascada aquí
         poblarSelectoresCascada(emp.claveReg, emp.claveCentro, emp.claveSit);
 
         form.elements['numEmp'].value = limpiarValor(emp.numEmp);

@@ -84,7 +84,7 @@
             `;
             wrapper.appendChild(headerDiv);
 
-            // Grid de tarjetas con un diseño de columnas controlado para que no se estire de más
+            // Grid de tarjetas
             const gridDiv = document.createElement('div');
             gridDiv.style.cssText = "display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: stretch;";
 
@@ -92,7 +92,6 @@
                 const card = document.createElement('div');
                 card.style.cssText = "background: #f9fafb; border: 1px solid #e5e7eb; padding: 20px; border-radius: 12px; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; height: 100%; box-sizing: border-box;";
 
-                // Asignar la acción de manera segura
                 if (opt.action) {
                     card.onclick = new Function(opt.action);
                 }
@@ -114,7 +113,6 @@
 
             wrapper.appendChild(gridDiv);
             contenedorApp.appendChild(wrapper);
-            console.log("¡Interfaz pintada con éxito!");
         } else {
             console.error("No se encontró la configuración global para: " + nombreVariableConfig);
             mostrarErrorConfig(nombreCortoUrl, "No se encontró el objeto " + nombreVariableConfig);
@@ -177,8 +175,6 @@ window.addEventListener('DOMContentLoaded', () => {
     if (btnRegresar) {
         const rutaCompleta = window.location.pathname;
         const paginaActual = rutaCompleta.split('/').pop().toLowerCase();
-        
-        // Vamos a leer directamente y ver qué hay
         const deptoGuardado = localStorage.getItem('depto_activo_actual');
 
         const pathSegments = rutaCompleta.split('/').filter(Boolean);
@@ -187,21 +183,27 @@ window.addEventListener('DOMContentLoaded', () => {
             basePath = `/${pathSegments[0]}`;
         }
 
-        console.group("🚨 Diagnóstico estricto del botón de retorno");
-        console.log("Ruta completa:", rutaCompleta);
-        console.log("Página actual detectada:", paginaActual);
-        console.log("Valor exacto de depto_activo_actual en localStorage:", deptoGuardado);
+        console.group("🔍 Control del Botón Regresar");
+        console.log("Página actual:", paginaActual);
+        console.log("Departamento en localStorage:", deptoGuardado);
 
+        // Si estamos en main.html, el botón de retroceso debe llevar al panel principal (index.html)
         if (paginaActual === 'main.html') {
             btnRegresar.href = `${basePath}/index.html`;
-            console.log(">>> Asignado: Ir al INDEX general");
-        } else if (deptoGuardado && deptoGuardado.trim() !== '') {
+            btnRegresar.title = 'Regresar al panel principal';
+            console.log("Acción: main.html -> index.html");
+        } 
+        // Si estamos en cualquier submódulo (ej. personal, asistencia, etc.), el botón SIEMPRE debe regresar al main.html de ese depto
+        else if (deptoGuardado) {
             btnRegresar.href = `${basePath}/main.html?depto=${deptoGuardado}`;
-            console.log(`>>> Asignado: Volver al main del depto -> ${deptoGuardado}`);
-        } else {
-            // Si entra aquí es porque localStorage está vacío
+            btnRegresar.title = 'Regresar al menú del departamento';
+            console.log(`Acción: Submódulo -> main.html?depto=${deptoGuardado}`);
+        } 
+        // Si no hay nada guardado, mandamos al index por seguridad
+        else {
             btnRegresar.href = `${basePath}/index.html`;
-            console.warn("⚠️ ALERTA: depto_activo_actual está vacío, mandando al index por defecto.");
+            btnRegresar.title = 'Regresar al inicio';
+            console.log("Acción por defecto -> index.html");
         }
         console.groupEnd();
     }

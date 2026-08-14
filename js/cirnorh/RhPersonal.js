@@ -20,7 +20,7 @@ function cargarPersonalRh(cargarLista = true) {
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
                     Nuevo Registro
                 </button>
-                <button onclick="cargarDatosPersonalSheets()" class="px-4 py-2 bg-stone-200 text-stone-700 rounded-xl text-xs font-bold hover:bg-stone-300 transition flex items-center gap-2">
+                <button onclick="cargarDatosGenerales()" class="px-4 py-2 bg-stone-200 text-stone-700 rounded-xl text-xs font-bold hover:bg-stone-300 transition flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
                     Actualizar Datos
                 </button>
@@ -33,23 +33,23 @@ function cargarPersonalRh(cargarLista = true) {
             </h5>
             <form id="form-nuevo-personal" onsubmit="guardarOActualizarPersonal(event)" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
                 
-                <!-- Selectores transformados -->
+                <!-- Selectores dinámicos -->
                 <div>
                     <label class="block font-bold text-stone-700 mb-1">Clave Reg:</label>
                     <select name="claveReg" id="select-claveReg" required class="w-full p-2.5 border border-stone-300 rounded-lg bg-white focus:outline-none focus:border-[#249444]">
-                        <option value="">Seleccionar Reg</option>
+                        <option value="0">N/A</option>
                     </select>
                 </div>
                 <div>
                     <label class="block font-bold text-stone-700 mb-1">Clave Centro:</label>
-                    <select name="claveCentro" id="select-claveCentro" required class="w-full p-2.5 border border-stone-300 rounded-lg bg-white focus:outline-none focus:border-[#249444]">
-                        <option value="">Seleccionar Centro</option>
+                    <select name="claveCentro" id="select-claveCentro" onchange="filtrarSitiosPorCentro()" required class="w-full p-2.5 border border-stone-300 rounded-lg bg-white focus:outline-none focus:border-[#249444]">
+                        <option value="0">N/A</option>
                     </select>
                 </div>
                 <div>
                     <label class="block font-bold text-stone-700 mb-1">Clave Sitio:</label>
                     <select name="claveSit" id="select-claveSit" required class="w-full p-2.5 border border-stone-300 rounded-lg bg-white focus:outline-none focus:border-[#249444]">
-                        <option value="">Seleccionar Sitio</option>
+                        <option value="0">N/A</option>
                     </select>
                 </div>
                 
@@ -93,55 +93,81 @@ function cargarPersonalRh(cargarLista = true) {
     `;
 
     if (cargarLista) {
-        cargarDatosPersonalSheets();
+        cargarDatosGenerales();
     }
 }
 
 window._empleadosCache = [];
+window._catRegs = [];
+window._catCentros = [];
+window._catSitios = [];
 
-// Catálogos por defecto con formato "clave - nombreCorto"
-window._catRegs = [
-    { clave: "100", nombre: "100 - REGIONAL NOROESTE" },
-    { clave: "101", nombre: "101 - REGIONAL NORTE" }
-];
+// Cargar catálogos y personal
+async function cargarDatosGenerales() {
+    await cargarCatalogosSheets();
+    await cargarDatosPersonalSheets();
+}
 
-window._catCentros = [
-    { clave: "102", nombre: "102 - C.E. NORMAN E. BORLAUG" },
-    { clave: "103", nombre: "103 - C.E. COSTA DE HERMOSILLO" },
-    { clave: "104", nombre: "104 - C.E. VALLE DE CULIACAN" },
-    { clave: "105", nombre: "105 - C.E. VALLE DEL FUERTE" },
-    { clave: "106", nombre: "106 - C.E. MEXICALI" },
-    { clave: "107", nombre: "107 - C.E. TODOS SANTOS" },
-    { clave: "108", nombre: "108 - DIRECCIÓN CIR-NOROESTE" }
-];
+async function cargarCatalogosSheets() {
+    try {
+        const [regs, centros, sitios] = await Promise.all([
+            FetchAPI('obtenerRegiones').catch(() => []),
+            FetchAPI('obtenerCentros').catch(() => []),
+            FetchAPI('obtenerSitios').catch(() => [])
+        ]);
 
-window._catSitios = [
-    { clave: "201", nombre: "201 - SITIO EXPERIMENTAL BAJA CALIFORNIA" },
-    { clave: "202", nombre: "202 - SITIO EXPERIMENTAL CABORCA" }
-];
-
-function poblarSelectores(regActual = '', centroActual = '', sitActual = '') {
-    const selReg = document.getElementById('select-claveReg');
-    const selCentro = document.getElementById('select-claveCentro');
-    const selSit = document.getElementById('select-claveSit');
-
-    if (selReg) {
-        selReg.innerHTML = `<option value="">Seleccionar Reg</option>` + 
-            window._catRegs.map(r => `<option value="${r.clave}" ${String(r.clave) === String(regActual) ? 'selected' : ''}>${r.nombre}</option>`).join('');
-    }
-
-    if (selCentro) {
-        selCentro.innerHTML = `<option value="">Seleccionar Centro</option>` + 
-            window._catCentros.map(c => `<option value="${c.clave}" ${String(c.clave) === String(centroActual) ? 'selected' : ''}>${c.nombre}</option>`).join('');
-    }
-
-    if (selSit) {
-        selSit.innerHTML = `<option value="N/A">N/A</option>` + 
-            window._catSitios.map(s => `<option value="${s.clave}" ${String(s.clave) === String(sitActual) ? 'selected' : ''}>${s.nombre}</option>`).join('');
+        window._catRegs = regs || [];
+        window._catCentros = centros || [];
+        // Esperamos que cada sitio venga con su propiedad que relacione la clave de centro, ej: `claveCentro` o `centroId`
+        window._catSitios = sitios || [];
+    } catch (error) {
+        console.error("Error al cargar catálogos:", error);
     }
 }
 
-function mostrarFormularioNuevoPersonal() {
+function poblarSelectores(regActual = '0', centroActual = '0', sitActual = '0') {
+    const selReg = document.getElementById('select-claveReg');
+    const selCentro = document.getElementById('select-claveCentro');
+
+    const esSeleccionado = (valCat, valAct) => {
+        if (!valAct || valAct === '0' || valAct === 0 || valAct === 'N/A') return false;
+        return String(valCat) === String(valAct);
+    };
+
+    if (selReg) {
+        selReg.innerHTML = `<option value="0" ${(!regActual || regActual == '0' || regActual == 'N/A') ? 'selected' : ''}>N/A</option>` + 
+            window._catRegs.map(r => `<option value="${r.clave}" ${esSeleccionado(r.clave, regActual) ? 'selected' : ''}>${r.nombre}</option>`).join('');
+    }
+
+    if (selCentro) {
+        selCentro.innerHTML = `<option value="0" ${(!centroActual || centroActual == '0' || centroActual == 'N/A') ? 'selected' : ''}>N/A</option>` + 
+            window._catCentros.map(c => `<option value="${c.clave}" ${esSeleccionado(c.clave, centroActual) ? 'selected' : ''}>${c.nombre}</option>`).join('');
+    }
+
+    // Actualizamos los sitios filtrados según el centro seleccionado actualmente
+    filtrarSitiosPorCentro(sitActual);
+}
+
+function filtrarSitiosPorCentro(sitActual = '0') {
+    const selCentro = document.getElementById('select-claveCentro');
+    const selSit = document.getElementById('select-claveSit');
+    if (!selCentro || !selSit) return;
+
+    const centroSeleccionado = selCentro.value;
+
+    // Filtramos los sitios que correspondan a la clave del centro seleccionado (asumiendo que la propiedad se llama `claveCentro` en el catálogo de sitios)
+    const sitiosFiltrados = window._catSitios.filter(s => String(s.claveCentro) === String(centroSeleccionado));
+
+    const esSeleccionado = (valCat, valAct) => {
+        if (!valAct || valAct === '0' || valAct === 0 || valAct === 'N/A') return false;
+        return String(valCat) === String(valAct);
+    };
+
+    selSit.innerHTML = `<option value="0" ${(!sitActual || sitActual == '0' || sitActual == 'N/A') ? 'selected' : ''}>N/A</option>` + 
+        sitiosFiltrados.map(s => `<option value="${s.clave}" ${esSeleccionado(s.clave, sitActual) ? 'selected' : ''}>${s.clave} - ${s.nombre}</option>`).join('');
+}
+
+async function mostrarFormularioNuevoPersonal() {
     const formContainer = document.getElementById('contenedor-formulario-personal');
     const gestionContainer = document.getElementById('contenedor-gestion-personal');
     const listadoContainer = document.getElementById('contenedor-listado-personal');
@@ -151,7 +177,12 @@ function mostrarFormularioNuevoPersonal() {
 
     if (formContainer && form) {
         form.reset();
-        poblarSelectores(); // Llenar selects vacíos por defecto
+        
+        if (!window._catRegs.length && !window._catCentros.length) {
+            await cargarCatalogosSheets();
+        }
+
+        poblarSelectores('0', '0', '0'); 
         inputNumEmp.removeAttribute('readonly');
         titulo.innerHTML = `Capturar Nuevo Empleado`;
         formContainer.classList.remove('hidden');
@@ -217,11 +248,15 @@ function renderizarTablaPersonal(registros) {
     }).join('');
 }
 
-function seleccionarEmpleadoParaEditar(index) {
+async function seleccionarEmpleadoParaEditar(index) {
     const emp = window._empleadosCache[index];
     if (!emp) return;
 
     cargarPersonalRh(false); 
+
+    if (!window._catRegs.length && !window._catCentros.length) {
+        await cargarCatalogosSheets();
+    }
 
     const form = document.getElementById('form-nuevo-personal');
     const formContainer = document.getElementById('contenedor-formulario-personal');
@@ -233,7 +268,6 @@ function seleccionarEmpleadoParaEditar(index) {
     if (formContainer && form) {
         const limpiarValor = (val) => (!val || val === 0 || val === '0' || String(val).trim() === '') ? 'N/A' : val;
 
-        // Cargar los selectores seleccionando la clave correspondiente del empleado
         poblarSelectores(emp.claveReg, emp.claveCentro, emp.claveSit);
 
         form.elements['numEmp'].value = limpiarValor(emp.numEmp);

@@ -152,8 +152,8 @@ function renderizarTablaPersonal(registros) {
     }
 
     tbody.innerHTML = registros.map((row, index) => {
-        const reg = row.claveReg || 'N/A';
-        const centro = row.claveCentro || 'N/A';
+        const reg = row.textoReg || row.claveReg || 'N/A';
+        const centro = row.textoCentro || row.claveCentro || 'N/A';
         const noEmp = row.numEmp || 'N/A';
         const nombre = row.nombre || 'Sin Nombre';
         const puesto = row.puesto || '';

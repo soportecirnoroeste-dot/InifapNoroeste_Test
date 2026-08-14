@@ -222,12 +222,12 @@ async function seleccionarEmpleadoParaEditar(index) {
     const emp = window._empleadosCache[index];
     if (!emp) return;
 
-    // 1. Aseguramos descargar los catálogos y ESPERAMOS a que terminen antes de continuar
+    // 1. Aseguramos descargar los catálogos antes de continuar si están vacíos
     if (!window._catRegs || !window._catRegs.length || !window._catCentros || !window._catCentros.length) {
         await cargarCatalogosSheets();
     }
 
-    // 2. Pintamos la vista del formulario limpia
+    // 2. PRIMERO renderizamos el contenedor/formulario limpio con el DOM base
     cargarPersonalRh(false); 
 
     const form = document.getElementById('form-nuevo-personal');
@@ -240,7 +240,7 @@ async function seleccionarEmpleadoParaEditar(index) {
     if (formContainer && form) {
         const limpiarValor = (val) => (!val || val === 0 || val === '0' || String(val).trim() === '') ? 'N/A' : val;
 
-        // 3. Ahora sí, como los catálogos ya están en memoria, la cascada detectará y seleccionará los datos del empleado
+        // 3. SEGUNDO poblamos la cascada y seleccionamos las claves del empleado ahora que el DOM existe
         poblarSelectoresCascada(emp.claveReg, emp.claveCentro, emp.claveSit);
 
         form.elements['numEmp'].value = limpiarValor(emp.numEmp);

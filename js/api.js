@@ -3,6 +3,9 @@
 // ========================================================
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDs5fvFxykQniWFZnbUqpbuDAmrIDhMHlVwU4r5B3iPLxBp4FDG7uKrtDBDQEXxEX8fQ/exec";
 
+// Hacemos la URL global para que cualquier submódulo pueda usarla
+window.APPS_SCRIPT_URL = APPS_SCRIPT_URL;
+
 async function FetchAPI(action, payload = {}) {
     try {
         payload.action = action;

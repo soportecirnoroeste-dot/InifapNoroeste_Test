@@ -146,8 +146,9 @@ function renderizarTablaPersonal(registros) {
     const tbody = document.getElementById('tabla-personal-body');
     if (!tbody) return;
 
-    if (!registros || registros.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-stone-400 italic">No se encontraron registros.</td></tr>`;
+    // Blindaje por si no llega un arreglo
+    if (!Array.isArray(registros) || registros.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-stone-400 italic">No se encontraron registros o hubo un problema al sincronizar.</td></tr>`;
         return;
     }
 

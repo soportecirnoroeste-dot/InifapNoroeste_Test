@@ -1,90 +1,93 @@
-// js/oficios.js
+// js/cirnoof.js
 window.cirnoofConfig = {
-    deptoKey: "oficios",
+    deptoKey: "cirnoof",
     subtitle: "Control centralizado de correspondencia, folios y documentación oficial.",
+    icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>`,
     options: [
-        { id: "recibidos", title: "Recibidos", icon: "📥", action: "cargarRecibidosOfiGen()" },
-        { id: "emitidos", title: "Emitidos", icon: "📤", action: "cargarEmitidosOfiGen()" },
-        { id: "pendientes", title: "Pendientes", icon: "⏳", action: "cargarPendientesOfiGen()" },
-        { id: "busqueda", title: "Buscar Folio", icon: "🔍", action: "cargarBusquedaOfiGen()" },
-        { id: "nuevo", title: "Nuevo Oficio", icon: "➕", action: "cargarNuevoOfiGen()" }
+        { 
+            id: "recibidos", 
+            title: "Recibidos", 
+            icon: "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242'/><path d='M12 12v9'/><path d='m8 17 4 4 4-4'/></svg>", 
+            action: "cargarRecibidosOfiGen()" 
+        },
+        { 
+            id: "emitidos", 
+            title: "Emitidos", 
+            icon: "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242'/><path d='M12 21v-9'/><path d='m16 16-4-4-4 4'/></svg>", 
+            action: "cargarEmitidosOfiGen()" 
+        },
+        { 
+            id: "pendientes", 
+            title: "Pendientes", 
+            icon: "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'/><polyline points='12 6 12 12 16 14'/></svg>", 
+            action: "cargarPendientesOfiGen()" 
+        },
+        { 
+            id: "busqueda", 
+            title: "Buscar Folio", 
+            icon: "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='11' cy='11' r='8'/><path d='m21 21-4.3-4.3'/></svg>", 
+            action: "cargarBusquedaOfiGen()" 
+        },
+        { 
+            id: "nuevo", 
+            title: "Nuevo Oficio", 
+            icon: "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 12h14'/><path d='M12 5v14'/></svg>", 
+            action: "cargarNuevoOfiGen()" 
+        }
     ]
 };
 
-// Función de Bienvenida Específica para Oficios / Oficialía
-function cargarBienvenidaOfiGen() {
-    const nombreUsuario = localStorage.getItem('session_userName') || 'Usuario';
-    document.getElementById('app-container').innerHTML = `
-        <div class="bg-white rounded-2xl p-8 border border-stone-200 shadow-sm animate-fade-in">
-            <div class="flex items-center gap-4 mb-6 pb-6 border-b border-stone-100">
-                <div class="p-3 bg-stone-100 rounded-2xl text-2xl">✍️</div>
-                <div>
-                    <h2 class="font-black text-stone-900 text-2xl mb-1">👋 ¡Bienvenido/a, ${nombreUsuario}!</h2>
-                    <p class="text-sm text-stone-600 max-w-xl">Te encuentras en el portal de Control de Correspondencia y Oficios (CIRNOOF). Selecciona una opción en el menú superior para comenzar.</p>
-                </div>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="p-5 bg-[#f0fdf4] rounded-xl border border-[#c6f6d5]">
-                    <h4 class="font-bold text-[#059669] text-sm mb-1.5">Control de Folios</h4>
-                    <p class="text-xs text-stone-700">Gestiona de forma centralizada la recepción y salida de correspondencia oficial.</p>
-                </div>
-                <div class="p-5 bg-[#fffbeb] rounded-xl border border-[#fef3c7]">
-                    <h4 class="font-bold text-[#d97706] text-sm mb-1.5">Seguimiento Oportuno</h4>
-                    <p class="text-xs text-stone-700">Revisa turnos, pendientes y documentos en proceso por cada área de la institución.</p>
-                </div>
-                <div class="p-5 bg-[#eff6ff] rounded-xl border border-[#bfdbfe]">
-                    <h4 class="font-bold text-[#2563eb] text-sm mb-1.5">Búsqueda Rápida</h4>
-                    <p class="text-xs text-stone-700">Localiza expedientes y oficios al instante mediante filtros por número, emisor o asunto.</p>
-                </div>
-            </div>
-            <p class="mt-6 text-xs text-stone-400 italic text-center">Última actualización de datos: ${new Date().toLocaleDateString()}</p>
-        </div>
-    `;
+function obtenerContenedor() {
+    return document.getElementById('app-container') || document.querySelector('main') || document.body;
 }
 
-// Funciones de visualización específicas del módulo de Oficios
 function cargarRecibidosOfiGen() {
-    document.getElementById('app-container').innerHTML = `
-        <div class="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm animate-fade-in">
-            <h3 class="font-black text-stone-800 text-lg mb-2">📥 Oficios Recibidos</h3>
-            <p class="text-xs text-stone-500">Listado general de documentos oficiales ingresados a la institución.</p>
-        </div>
-    `;
+    renderizarVistaModuloOfi('recibidos', "Listado general de documentos oficiales ingresados a la institución.");
 }
 
 function cargarEmitidosOfiGen() {
-    document.getElementById('app-container').innerHTML = `
-        <div class="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm animate-fade-in">
-            <h3 class="font-black text-stone-800 text-lg mb-2">📤 Oficios Emitidos</h3>
-            <p class="text-xs text-stone-500">Registro y seguimiento de salidas de correspondencia y circulares.</p>
-        </div>
-    `;
+    renderizarVistaModuloOfi('emitidos', "Registro y seguimiento de salidas de correspondencia y circulares.");
 }
 
 function cargarPendientesOfiGen() {
-    document.getElementById('app-container').innerHTML = `
-        <div class="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm animate-fade-in">
-            <h3 class="font-black text-stone-800 text-lg mb-2">⏳ Oficios en Proceso / Pendientes</h3>
-            <p class="text-xs text-stone-500">Seguimiento de turnos y respuestas pendientes por área.</p>
-        </div>
-    `;
+    renderizarVistaModuloOfi('pendientes', "Seguimiento de turnos y respuestas pendientes por área.");
 }
 
 function cargarBusquedaOfiGen() {
-    document.getElementById('app-container').innerHTML = `
-        <div class="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm animate-fade-in">
-            <h3 class="font-black text-stone-800 text-lg mb-2">🔍 Búsqueda Avanzada de Folios</h3>
-            <p class="text-xs text-stone-500">Localiza rápidamente documentos por número de folio, emisor o asunto.</p>
-        </div>
-    `;
+    renderizarVistaModuloOfi('busqueda', "Localiza rápidamente documentos por número de folio, emisor o asunto.");
 }
 
 function cargarNuevoOfiGen() {
-    document.getElementById('app-container').innerHTML = `
-        <div class="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm animate-fade-in">
-            <h3 class="font-black text-stone-800 text-lg mb-2">➕ Registrar Nuevo Oficio</h3>
-            <p class="text-xs text-stone-500">Formulario de captura para alta y asignación de folios oficiales.</p>
-        </div>
-    `;
+    renderizarVistaModuloOfi('nuevo', "Formulario de captura para alta y asignación de folios oficiales.");
+}
+
+function renderizarVistaModuloOfi(idOpt, descripcion) {
+    const nombreCortoActual = localStorage.getItem('depto_activo_actual') || 'cirnoof';
+    const configActual = window[nombreCortoActual + 'Config'];
+    
+    const opt = configActual ? configActual.options.find(o => o.id === idOpt) : null;
+    const contenedor = obtenerContenedor();
+    
+    if (contenedor && opt) {
+        if (typeof window.actualizarBotonRegresar === 'function') {
+            window.actualizarBotonRegresar('submodulo', nombreCortoActual);
+        }
+
+        contenedor.innerHTML = `
+            <section class="bg-white rounded-2xl p-6 md:p-8 soft-shadow border border-[#249444]/10 mb-8 animate-fade-in">
+                <div class="flex items-center gap-3 mb-6 pb-4 border-b border-stone-100">
+                    <div class="p-2.5 bg-[#f0fdf4] border border-[#c6f6d5] text-[#059669] rounded-xl flex items-center justify-center">
+                        ${opt.icon}
+                    </div>
+                    <div>
+                        <h3 class="font-black text-stone-800 text-lg uppercase tracking-wide">${opt.title} - Oficialía</h3>
+                        <p class="text-xs text-stone-500">${descripcion}</p>
+                    </div>
+                </div>
+
+                <div id="contenido-submodulo-dinamico" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    </div>
+            </section>
+        `;
+    }
 }

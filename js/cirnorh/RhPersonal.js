@@ -128,14 +128,14 @@ async function cargarCatalogosSheets() {
 
 // Funciones de Cascada ajustadas sin opción N/A
 function poblarSelectoresCascada(regActual = '', centroActual = '', sitActual = '') {
-    console.warn('poblarSelectoresCascada: '+regActual+', '+centroActual+', '+sitActual);
+    console.warn('poblarSelectoresCascada: ' + regActual + ', ' + centroActual + ', ' + sitActual);
     const selReg = document.getElementById('select-claveReg');
     if (!selReg) return;
 
     const regsArray = Array.isArray(window._catRegs) ? window._catRegs : [];
     const regClean = (!regActual || regActual === '0' || regActual === 'N/A' || regActual === 0) ? '' : String(regActual).trim();
 
-    selReg.innerHTML = `<option value="" disabled selected>Seleccione una región...</option>` + 
+    selReg.innerHTML = `<option value="" disabled selected>Seleccione una región...</option>` +
         regsArray.map(r => `<option value="${r.clave}">${r.clave} - ${r.nombre}</option>`).join('');
 
     let matchReg = "";
@@ -152,7 +152,7 @@ function filtrarCentrosPorRegion(centroActual = '', sitActual = '') {
     const selReg = document.getElementById('select-claveReg');
     const selCentro = document.getElementById('select-claveCentro');
     const selSit = document.getElementById('select-claveSit');
-    
+
     if (!selReg || !selCentro || !selSit) return;
     const regionSeleccionada = selReg.value;
 
@@ -163,7 +163,7 @@ function filtrarCentrosPorRegion(centroActual = '', sitActual = '') {
 
     if (regionSeleccionada) {
         const centrosFiltrados = centrosArray.filter(c => String(c.claveReg).trim() === String(regionSeleccionada).trim());
-        selCentro.innerHTML += centrosFiltrados.map(c => 
+        selCentro.innerHTML += centrosFiltrados.map(c =>
             `<option value="${c.clave}">${c.clave} - ${c.nombre}</option>`
         ).join('');
     }
@@ -182,7 +182,7 @@ function filtrarCentrosPorRegion(centroActual = '', sitActual = '') {
 function filtrarSitiosPorCentro(sitActual = '') {
     const selCentro = document.getElementById('select-claveCentro');
     const selSit = document.getElementById('select-claveSit');
-    
+
     if (!selCentro || !selSit) return;
     const centroSeleccionado = selCentro.value;
 
@@ -192,7 +192,7 @@ function filtrarSitiosPorCentro(sitActual = '') {
 
     if (centroSeleccionado) {
         const sitiosFiltrados = sitiosArray.filter(s => String(s.claveCentro).trim() === String(centroSeleccionado).trim());
-        selSit.innerHTML += sitiosFiltrados.map(s => 
+        selSit.innerHTML += sitiosFiltrados.map(s =>
             `<option value="${s.clave}">${s.clave} - ${s.nombre}</option>`
         ).join('');
     }
@@ -217,12 +217,12 @@ async function mostrarFormularioNuevoPersonal() {
 
     if (formContainer && form) {
         form.reset();
-        
+
         if (!window._catRegs.length && !window._catCentros.length) {
             await cargarCatalogosSheets();
         }
 
-        poblarSelectoresCascada('', '', ''); 
+        poblarSelectoresCascada('', '', '');
         inputNumEmp.removeAttribute('readonly');
         titulo.innerHTML = `Capturar Nuevo Empleado`;
         formContainer.classList.remove('hidden');
@@ -312,15 +312,26 @@ async function seleccionarEmpleadoParaEditar(index) {
     if (formContainer && form) {
         const limpiarValor = (val) => (!val || val === 0 || val === '0' || String(val).trim() === '') ? '' : val;
 
-        const regVal = emp.textoReg || emp.claveReg || '';
-        const centroVal = emp.textoCentro || emp.claveCentro || '';
-        const sitVal = emp.textoSit || emp.claveSit || '';
-        console.warn('seleccionarEmpleadoParaEditar: '+regVal+', '+centroVal+', '+sitVal);
+        const extraerClave = (val) => {
+            if (!val) return '';
+            const str = String(val).trim();
+            // Si viene en formato "100 - CIRNO", tomamos lo que está antes del guion
+            if (str.includes(' - ')) {
+                return str.split(' - ')[0].trim();
+            }
+            return str;
+        };
+
+        const regVal = extraerClave(emp.claveReg || emp.textoReg);
+        const centroVal = extraerClave(emp.claveCentro || emp.textoCentro);
+        const sitVal = extraerClave(emp.claveSit || emp.textoSit);
+        
+        console.warn('seleccionarEmpleadoParaEditar: ' + regVal + ', ' + centroVal + ', ' + sitVal);
         poblarSelectoresCascada(regVal, centroVal, sitVal);
 
         form.elements['numEmp'].value = limpiarValor(emp.numEmp);
         inputNumEmp.setAttribute('readonly', true);
-        
+
         form.elements['nombre'].value = limpiarValor(emp.nombre);
         form.elements['ext'].value = limpiarValor(emp.ext);
         form.elements['numPers'].value = limpiarValor(emp.numPers);

@@ -134,8 +134,8 @@ function poblarSelectoresCascada(regActual = '', centroActual = '', sitActual = 
     const regsArray = Array.isArray(window._catRegs) ? window._catRegs : [];
     const regClean = (!regActual || regActual === '0' || regActual === 'N/A' || regActual === 0) ? '' : String(regActual).trim();
 
-    selReg.innerHTML = `<option value="" disabled selected>Seleccione una región...</option>` + 
-        regsArray.map(r => `<option value="${r.clave}">${r.clave} - ${r.nombre}</option>`).join('');
+    //selReg.innerHTML = `<option value="" disabled selected>Seleccione una región...</option>` + 
+      //  regsArray.map(r => `<option value="${r.clave}">${r.clave} - ${r.nombre}</option>`).join('');
 
     let matchReg = "";
     if (regClean !== "") {
@@ -333,7 +333,7 @@ async function seleccionarEmpleadoParaEditar(index) {
         const sitVal = extraerClave(emp.claveSit || emp.textoSit);
 
         console.warn('seleccionarEmpleadoParaEditar: ' + regVal + ', ' + centroVal + ', ' + sitVal);
-        //poblarSelectoresCascada(regVal, centroVal, sitVal);
+        poblarSelectoresCascada(regVal, centroVal, sitVal);
 
         form.elements['numEmp'].value = limpiarValor(emp.numEmp);
         inputNumEmp.setAttribute('readonly', true);

@@ -128,6 +128,7 @@ async function cargarCatalogosSheets() {
 
 // Funciones de Cascada ajustadas sin opción N/A
 function poblarSelectoresCascada(regActual = '', centroActual = '', sitActual = '') {
+    console.warn('poblarSelectoresCascada: '+regActual+', '+centroActual+', '+sitActual);
     const selReg = document.getElementById('select-claveReg');
     if (!selReg) return;
 
@@ -303,6 +304,7 @@ async function seleccionarEmpleadoParaEditar(index) {
     const form = document.getElementById('form-nuevo-personal');
     const formContainer = document.getElementById('contenedor-formulario-personal');
     const gestionContainer = document.getElementById('contenedor-gestion-personal');
+
     const listadoContainer = document.getElementById('contenedor-listado-personal');
     const titulo = document.getElementById('titulo-formulario');
     const inputNumEmp = document.getElementById('input-numEmp');
@@ -313,7 +315,7 @@ async function seleccionarEmpleadoParaEditar(index) {
         const regVal = emp.textoReg || emp.claveReg || '';
         const centroVal = emp.textoCentro || emp.claveCentro || '';
         const sitVal = emp.textoSit || emp.claveSit || '';
-
+        console.warn('seleccionarEmpleadoParaEditar: '+regVal+', '+centroVal+', '+sitVal);
         poblarSelectoresCascada(regVal, centroVal, sitVal);
 
         form.elements['numEmp'].value = limpiarValor(emp.numEmp);

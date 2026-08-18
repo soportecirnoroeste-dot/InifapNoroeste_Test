@@ -242,18 +242,31 @@ function ocultarFormularioPersonal() {
     if (listadoContainer) listadoContainer.classList.remove('hidden');
 }
 
-async function cargarDatosPersonalSheets() {
-    const tbody = document.getElementById('tabla-personal-body');
-    if (!tbody) return;
-
-    tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-stone-400 italic">Sincronizando...</td></tr>`;
-
+async function cargarCatalogosSheets() {
+    console.log("📥 Iniciando descarga de catálogos desde Sheets...");
     try {
-        const data = await FetchAPI('obtenerPersonal');
-        window._empleadosCache = data || [];
-        renderizarTablaPersonal(window._empleadosCache);
+        const [regs, centros, sitios] = await Promise.all([
+            FetchAPI('obtenerRegiones').catch(err => { console.error("Error en regiones:", err); return []; }),
+            FetchAPI('obtenerCentros').catch(err => { console.error("Error en centros:", err); return []; }),
+            FetchAPI('obtenerSitios').catch(err => { console.error("Error en sitios:", err); return []; })
+        ]);
+
+        console.log("✅ Respuestas recibidas de catálogos:", { regs, centros, sitios });
+
+        window._catRegs = Array.isArray(regs) ? regs : (regs?.data || []);
+        window._catCentros = Array.isArray(centros) ? centros : (centros?.data || []);
+        window._catSitios = Array.isArray(sitios) ? sitios : (sitios?.data || []);
+        
+        console.log("📂 Catálogos procesados en memoria:", {
+            regiones: window._catRegs.length,
+            centros: window._catCentros.length,
+            sitios: window._catSitios.length
+        });
     } catch (error) {
-        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-red-500 italic">Error al conectar con Sheets.</td></tr>`;
+        console.error("❌ Error crítico al cargar catálogos:", error);
+        window._catRegs = [];
+        window._catCentros = [];
+        window._catSitios = [];
     }
 }
 

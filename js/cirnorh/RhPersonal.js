@@ -242,21 +242,29 @@ function ocultarFormularioPersonal() {
     if (listadoContainer) listadoContainer.classList.remove('hidden');
 }
 
+// 1. Corrección para asegurar la lectura correcta de los catálogos
 async function cargarCatalogosSheets() {
     console.log("📥 Iniciando descarga de catálogos desde Sheets...");
     try {
         const [regs, centros, sitios] = await Promise.all([
-            FetchAPI('obtenerRegiones').catch(err => { console.error("Error en regiones:", err); return []; }),
-            FetchAPI('obtenerCentros').catch(err => { console.error("Error en centros:", err); return []; }),
-            FetchAPI('obtenerSitios').catch(err => { console.error("Error en sitios:", err); return []; })
+            FetchAPI('obtenerRegiones').catch(() => []),
+            FetchAPI('obtenerCentros').catch(() => []),
+            FetchAPI('obtenerSitios').catch(() => [])
         ]);
 
-        console.log("✅ Respuestas recibidas de catálogos:", { regs, centros, sitios });
+        // Extraemos el arreglo de donde sea que venga (directo, en .data o en .resultado)
+        const extraerArray = (res) => {
+            if (Array.isArray(res)) return res;
+            if (res && Array.isArray(res.data)) return res.data;
+            if (res && Array.isArray(res.resultado)) return res.resultado;
+            if (res && Array.isArray(res.list)) return res.list;
+            return [];
+        };
 
-        window._catRegs = Array.isArray(regs) ? regs : (regs?.data || []);
-        window._catCentros = Array.isArray(centros) ? centros : (centros?.data || []);
-        window._catSitios = Array.isArray(sitios) ? sitios : (sitios?.data || []);
-        
+        window._catRegs = extraerArray(regs);
+        window._catCentros = extraerArray(centros);
+        window._catSitios = extraerArray(sitios);
+
         console.log("📂 Catálogos procesados en memoria:", {
             regiones: window._catRegs.length,
             centros: window._catCentros.length,
@@ -267,6 +275,70 @@ async function cargarCatalogosSheets() {
         window._catRegs = [];
         window._catCentros = [];
         window._catSitios = [];
+    }
+}
+
+// 2. Corrección en la función de edición para buscar por número de empleado si el índice falla
+async function seleccionarEmpleadoParaEditar(indexOrNumEmp) {
+    if (!window._empleadosCache || !window._empleadosCache.length) {
+        console.error("❌ El caché de empleados está vacío.");
+        return;
+    }
+
+    // Buscamos por índice o por número de empleado para evitar que falle
+    let emp = window._empleadosCache[indexOrNumEmp];
+    if (!emp) {
+        emp = window._empleadosCache.find(e => String(e.numEmp) === String(indexOrNumEmp));
+    }
+
+    if (!emp) {
+        console.error("❌ No se encontró el empleado con identificador:", indexOrNumEmp);
+        return;
+    }
+
+    // Aseguramos catálogos antes de abrir
+    if (!window._catRegs.length || !window._catCentros.length || !window._catSitios.length) {
+        await cargarCatalogosSheets();
+    }
+
+    cargarPersonalRh(false);
+
+    const form = document.getElementById('form-nuevo-personal');
+    const formContainer = document.getElementById('contenedor-formulario-personal');
+    const gestionContainer = document.getElementById('contenedor-gestion-personal');
+    const listadoContainer = document.getElementById('contenedor-listado-personal');
+    const titulo = document.getElementById('titulo-formulario');
+    const inputNumEmp = document.getElementById('input-numEmp');
+
+    if (formContainer && form) {
+        const limpiarValor = (val) => (!val || val === 0 || val === '0' || String(val).trim() === '') ? 'N/A' : val;
+
+        const regVal = emp.textoReg || emp.region || emp.claveReg || '0';
+        const centroVal = emp.textoCentro || emp.centro || emp.claveCentro || '0';
+        const sitVal = emp.textoSit || emp.sitio || emp.claveSit || '0';
+
+        poblarSelectoresCascada(regVal, centroVal, sitVal);
+
+        form.elements['numEmp'].value = limpiarValor(emp.numEmp);
+        inputNumEmp.setAttribute('readonly', true);
+        
+        form.elements['nombre'].value = limpiarValor(emp.nombre);
+        form.elements['ext'].value = limpiarValor(emp.ext);
+        form.elements['numPers'].value = limpiarValor(emp.numPers);
+        form.elements['escolaridad'].value = limpiarValor(emp.escolaridad);
+        form.elements['direccion'].value = limpiarValor(emp.direccion);
+        form.elements['cp'].value = limpiarValor(emp.cp);
+        form.elements['email'].value = limpiarValor(emp.email);
+        form.elements['rfc'].value = limpiarValor(emp.rfc);
+        form.elements['puesto'].value = limpiarValor(emp.puesto);
+        form.elements['departamento'].value = limpiarValor(emp.departamento);
+        form.elements['ciudad'].value = limpiarValor(emp.ciudad);
+        form.elements['estado'].value = limpiarValor(emp.estado);
+
+        titulo.innerHTML = `Editando: <span class="text-[#249444]">${limpiarValor(emp.nombre)}</span>`;
+        formContainer.classList.remove('hidden');
+        if (gestionContainer) gestionContainer.classList.add('hidden');
+        if (listadoContainer) listadoContainer.classList.add('hidden');
     }
 }
 

@@ -119,17 +119,18 @@ async function cargarCatalogosSheets() {
         window._catCentros = Array.isArray(centros) ? centros : (centros?.data || centros?.resultado || []);
         window._catSitios = Array.isArray(sitios) ? sitios : (sitios?.data || sitios?.resultado || []);
 
-        // Plan B: Rescate seguro solo para los selectores, sin alterar las propiedades originales de la tabla
+        // Plan B: Si la API de catálogos viene vacía, los armamos limpio del caché de empleados
         if (window._catRegs.length === 0 && window._empleadosCache.length > 0) {
             const regsMap = new Map();
             const centrosMap = new Map();
 
             window._empleadosCache.forEach(e => {
-                // Si la tabla usa textoReg para mostrarse, lo respetamos y usamos su clave pura para el catálogo
                 if (e.claveReg) {
                     let claveR = String(e.claveReg).trim();
+                    // Limpiamos por si el empleado ya trae texto pegado tipo "100 - CIRNO"
                     if (claveR.includes(' - ')) claveR = claveR.split(' - ')[0].trim();
                     const nombreR = e.textoReg ? String(e.textoReg).replace(new RegExp(`^${claveR}\\s*-\\s*`), '').trim() : claveR;
+                    
                     regsMap.set(claveR, { clave: claveR, nombre: nombreR });
                 }
                 if (e.claveCentro) {
@@ -137,6 +138,7 @@ async function cargarCatalogosSheets() {
                     if (claveC.includes(' - ')) claveC = claveC.split(' - ')[0].trim();
                     const nombreC = e.textoCentro ? String(e.textoCentro).replace(new RegExp(`^${claveC}\\s*-\\s*`), '').trim() : claveC;
                     const regAsociada = e.claveReg ? String(e.claveReg).split(' - ')[0].trim() : '';
+
                     centrosMap.set(claveC, { clave: claveC, claveReg: regAsociada, nombre: nombreC });
                 }
             });
@@ -144,6 +146,12 @@ async function cargarCatalogosSheets() {
             window._catRegs = Array.from(regsMap.values());
             window._catCentros = Array.from(centrosMap.values());
         }
+
+        console.log("Catálogos listos:", {
+            regs: window._catRegs.length,
+            centros: window._catCentros.length,
+            sitios: window._catSitios.length
+        });
     } catch (error) {
         console.error("Error al cargar catálogos:", error);
     }
@@ -356,10 +364,6 @@ async function seleccionarEmpleadoParaEditar(index) {
 
         const regVal = extraerClave(emp.claveReg || emp.textoReg);
         const centroVal = extraerClave(emp.claveCentro || emp.textoCentro);
-        
-        // Regla solicitada: Si el sitio es 0, '0', vacío o N/A, lo convertimos a 'N/A'
-        let rawSit = extraerClave(emp.claveSit || emp.textoSit);
-        const sitVal = (!rawSit || rawSit === 0 || rawSit === '0' || String(rawSit).trim().toUpperCase() === 'N/A') ? 'N/A' : rawSit;
         const sitVal = extraerClave(emp.claveSit || emp.textoSit);
 
         // 3. Poblamos los selectores ya con los datos seguros en memoria

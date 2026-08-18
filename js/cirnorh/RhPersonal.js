@@ -33,7 +33,7 @@ function cargarPersonalRh(cargarLista = true) {
             </h5>
             <form id="form-nuevo-personal" onsubmit="guardarOActualizarPersonal(event)" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
                 
-                <!-- Selectores dinámicos en cascada sin opción N/A -->
+                <!-- Selectores dinámicos en cascada -->
                 <div>
                     <label class="block font-bold text-stone-700 mb-1">Clave Reg:</label>
                     <select name="claveReg" id="select-claveReg" onchange="filtrarCentrosPorRegion()" required class="w-full p-2.5 border border-stone-300 rounded-lg bg-white focus:outline-none focus:border-[#249444]">
@@ -126,7 +126,7 @@ async function cargarCatalogosSheets() {
     }
 }
 
-// Funciones de Cascada ajustadas sin opción N/A
+// Funciones de Cascada corregidas con las líneas de llenado activas
 function poblarSelectoresCascada(regActual = '', centroActual = '', sitActual = '') {
     const selReg = document.getElementById('select-claveReg');
     if (!selReg) return;
@@ -134,7 +134,9 @@ function poblarSelectoresCascada(regActual = '', centroActual = '', sitActual = 
     const regsArray = Array.isArray(window._catRegs) ? window._catRegs : [];
     const regClean = (!regActual || regActual === '0' || regActual === 'N/A' || regActual === 0) ? '' : String(regActual).trim();
 
-    //selReg.innerHTML = `<option value="" disabled selected>Seleccione una región...</option>` + regsArray.map(r => `<option value="${r.clave}">${r.clave} - ${r.nombre}</option>`).join('');
+    // DESCOMENTADO: Rellenar opciones de región
+    selReg.innerHTML = `<option value="" disabled selected>Seleccione una región...</option>` + 
+        regsArray.map(r => `<option value="${r.clave}">${r.clave} - ${r.nombre}</option>`).join('');
 
     let matchReg = "";
     if (regClean !== "") {
@@ -144,7 +146,6 @@ function poblarSelectoresCascada(regActual = '', centroActual = '', sitActual = 
 
     selReg.value = matchReg;
 
-    // IMPORTANTE: Damos un respiro al DOM para que pinte los centros y luego seleccione
     setTimeout(() => {
         filtrarCentrosPorRegion(centroActual, sitActual);
     }, 50);
@@ -158,7 +159,8 @@ function filtrarCentrosPorRegion(centroActual = '', sitActual = '') {
     if (!selReg || !selCentro || !selSit) return;
     const regionSeleccionada = selReg.value;
 
-   // selCentro.innerHTML = `<option value="" disabled selected>Seleccione un centro...</option>`;
+    // DESCOMENTADO: Limpiar e inicializar la opción por defecto del centro
+    selCentro.innerHTML = `<option value="" disabled selected>Seleccione un centro...</option>`;
     selSit.innerHTML = `<option value="" disabled selected>Seleccione un sitio...</option>`;
 
     const centrosArray = Array.isArray(window._catCentros) ? window._catCentros : [];
@@ -191,7 +193,8 @@ function filtrarSitiosPorCentro(sitActual = '') {
     if (!selCentro || !selSit) return;
     const centroSeleccionado = selCentro.value;
 
-   // selSit.innerHTML = `<option value="" disabled selected>Seleccione un sitio...</option>`;
+    // DESCOMENTADO: Limpiar e inicializar la opción por defecto del sitio
+    selSit.innerHTML = `<option value="" disabled selected>Seleccione un sitio...</option>`;
 
     const sitiosArray = Array.isArray(window._catSitios) ? window._catSitios : [];
 
@@ -309,7 +312,6 @@ async function seleccionarEmpleadoParaEditar(index) {
     const form = document.getElementById('form-nuevo-personal');
     const formContainer = document.getElementById('contenedor-formulario-personal');
     const gestionContainer = document.getElementById('contenedor-gestion-personal');
-
     const listadoContainer = document.getElementById('contenedor-listado-personal');
     const titulo = document.getElementById('titulo-formulario');
     const inputNumEmp = document.getElementById('input-numEmp');
@@ -320,7 +322,6 @@ async function seleccionarEmpleadoParaEditar(index) {
         const extraerClave = (val) => {
             if (!val) return '';
             const str = String(val).trim();
-            // Si viene en formato "100 - CIRNO", tomamos lo que está antes del guion
             if (str.includes(' - ')) {
                 return str.split(' - ')[0].trim();
             }

@@ -55,7 +55,9 @@ function manejarAccionSeccion(idOpt) {
     const nuevaUrl = `main.html?depto=${deptoActual}&seccion=${idOpt}`;
     window.history.replaceState({}, '', nuevaUrl);
 
+    // Guardamos en sessionStorage para asegurar persistencia ante recargas F5
     sessionStorage.setItem('submodulo_activo_cirnorh', idOpt);
+
     ejecutarCargaSeccion(idOpt);
 }
 
@@ -179,11 +181,40 @@ document.addEventListener('click', (event) => {
     }
 });
 
-// Única inicialización limpia y rápida basada en DOMContentLoaded (sin retrasos artificiales)
+// Autodetección al presionar F5 evitando el parpadeo visual
+window.addEventListener('load', () => {
+    const contenedor = obtenerContenedor();
+    if (contenedor) {
+        // Ocultamos temporalmente el contenedor para que no se vea el menú parpadeando
+        contenedor.style.opacity = '0';
+        contenedor.style.transition = 'opacity 0.2s ease-in-out';
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    let seccionEnUrl = urlParams.get('seccion') || sessionStorage.getItem('submodulo_activo_cirnorh');
+
+    if (seccionEnUrl) {
+        const deptoActual = urlParams.get('depto') || 'cirnorh';
+        window.history.replaceState({}, '', `main.html?depto=${deptoActual}&seccion=${seccionEnUrl}`);
+        sessionStorage.setItem('submodulo_activo_cirnorh', seccionEnUrl);
+
+        setTimeout(() => {
+            ejecutarCargaSeccion(seccionEnUrl);
+            // Volvemos a mostrar el contenedor ya con el submódulo pintado
+            if (contenedor) contenedor.style.opacity = '1';
+        }, 120);
+    } else {
+        limpiarSeccionUrl();
+        if (contenedor) contenedor.style.opacity = '1';
+    }
+});
+
+// Ejecutar de inmediato al cargar el DOM (mucho antes que 'load')
 document.addEventListener('DOMContentLoaded', () => {
     procesarCargaInicialSeccion();
 });
 
+// Por si el script se carga de forma diferida (async/defer) y DOMContentLoaded ya pasó
 if (document.readyState === 'interactive' || document.readyState === 'complete') {
     procesarCargaInicialSeccion();
 }
@@ -198,11 +229,13 @@ function procesarCargaInicialSeccion() {
         window.history.replaceState({}, '', `main.html?depto=${deptoActual}&seccion=${seccionEnUrl}`);
         sessionStorage.setItem('submodulo_activo_cirnorh', seccionEnUrl);
 
+        // Cargamos la sección de inmediato sin esperas artificiales
         ejecutarCargaSeccion(seccionEnUrl);
     } else {
         limpiarSeccionUrl();
     }
 
+    // Revelamos el contenedor instantáneamente una vez procesado el estado
     if (contenedor) {
         contenedor.classList.add('listo');
         contenedor.style.transition = 'opacity 0.2s ease-in';

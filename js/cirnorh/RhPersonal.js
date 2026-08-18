@@ -132,21 +132,20 @@ function poblarSelectoresCascada(regActual = '0', centroActual = '0', sitActual 
     if (!selReg) return;
 
     const regsArray = Array.isArray(window._catRegs) ? window._catRegs : [];
+
+    // Si viene 0, vacío o N/A, asignamos '0'
     const regClean = (!regActual || regActual === '0' || regActual === 'N/A' || regActual === 0) ? '0' : String(regActual).trim();
 
-    selReg.innerHTML = `<option value="0">N/A</option>` + 
+    selReg.innerHTML = `<option value="0">N/A</option>` +
         regsArray.map(r => `<option value="${r.clave}">${r.clave} - ${r.nombre}</option>`).join('');
 
-    let matchEncontrado = "0";
+    let matchReg = "0";
     if (regClean !== "0") {
-        const encontrada = regsArray.find(r => 
-            String(r.clave).trim().toLowerCase() === regClean.toLowerCase() || 
-            String(r.nombre).trim().toLowerCase() === regClean.toLowerCase()
-        );
-        if (encontrada) matchEncontrado = encontrada.clave;
+        const encontrada = regsArray.find(r => String(r.clave).trim().toLowerCase() === regClean.toLowerCase());
+        if (encontrada) matchReg = encontrada.clave;
     }
 
-    selReg.value = matchEncontrado;
+    selReg.value = matchReg;
     filtrarCentrosPorRegion(centroActual, sitActual);
 }
 
@@ -154,7 +153,7 @@ function filtrarCentrosPorRegion(centroActual = '0', sitActual = '0') {
     const selReg = document.getElementById('select-claveReg');
     const selCentro = document.getElementById('select-claveCentro');
     const selSit = document.getElementById('select-claveSit');
-    
+
     if (!selReg || !selCentro || !selSit) return;
     const regionSeleccionada = selReg.value;
 
@@ -165,29 +164,26 @@ function filtrarCentrosPorRegion(centroActual = '0', sitActual = '0') {
 
     if (regionSeleccionada !== "0") {
         const centrosFiltrados = centrosArray.filter(c => String(c.claveReg).trim() === String(regionSeleccionada).trim());
-        selCentro.innerHTML += centrosFiltrados.map(c => 
+        selCentro.innerHTML += centrosFiltrados.map(c =>
             `<option value="${c.clave}">${c.clave} - ${c.nombre}</option>`
         ).join('');
     }
 
     const centroClean = (!centroActual || centroActual === '0' || centroActual === 'N/A' || centroActual === 0) ? '0' : String(centroActual).trim();
-    let centroMatch = "0";
+    let matchCentro = "0";
     if (centroClean !== "0") {
-        const encontrada = centrosArray.find(c => 
-            String(c.clave).trim().toLowerCase() === centroClean.toLowerCase() || 
-            String(c.nombre).trim().toLowerCase() === centroClean.toLowerCase()
-        );
-        if (encontrada) centroMatch = encontrada.clave;
+        const encontrada = centrosArray.find(c => String(c.clave).trim().toLowerCase() === centroClean.toLowerCase());
+        if (encontrada) matchCentro = encontrada.clave;
     }
 
-    selCentro.value = centroMatch;
+    selCentro.value = matchCentro;
     filtrarSitiosPorCentro(sitActual);
 }
 
 function filtrarSitiosPorCentro(sitActual = '0') {
     const selCentro = document.getElementById('select-claveCentro');
     const selSit = document.getElementById('select-claveSit');
-    
+
     if (!selCentro || !selSit) return;
     const centroSeleccionado = selCentro.value;
 
@@ -197,22 +193,19 @@ function filtrarSitiosPorCentro(sitActual = '0') {
 
     if (centroSeleccionado !== "0") {
         const sitiosFiltrados = sitiosArray.filter(s => String(s.claveCentro).trim() === String(centroSeleccionado).trim());
-        selSit.innerHTML += sitiosFiltrados.map(s => 
+        selSit.innerHTML += sitiosFiltrados.map(s =>
             `<option value="${s.clave}">${s.clave} - ${s.nombre}</option>`
         ).join('');
     }
 
     const sitClean = (!sitActual || sitActual === '0' || sitActual === 'N/A' || sitActual === 0) ? '0' : String(sitActual).trim();
-    let sitMatch = "0";
+    let matchSit = "0";
     if (sitClean !== "0") {
-        const encontrada = sitiosArray.find(s => 
-            String(s.clave).trim().toLowerCase() === sitClean.toLowerCase() || 
-            String(s.nombre).trim().toLowerCase() === sitClean.toLowerCase()
-        );
-        if (encontrada) sitMatch = encontrada.clave;
+        const encontrada = sitiosArray.find(s => String(s.clave).trim().toLowerCase() === sitClean.toLowerCase());
+        if (encontrada) matchSit = encontrada.clave;
     }
 
-    selSit.value = sitMatch;
+    selSit.value = matchSit;
 }
 
 async function mostrarFormularioNuevoPersonal() {
@@ -225,12 +218,12 @@ async function mostrarFormularioNuevoPersonal() {
 
     if (formContainer && form) {
         form.reset();
-        
+
         if (!window._catRegs.length && !window._catCentros.length) {
             await cargarCatalogosSheets();
         }
 
-        poblarSelectoresCascada('0', '0', '0'); 
+        poblarSelectoresCascada('0', '0', '0');
         inputNumEmp.removeAttribute('readonly');
         titulo.innerHTML = `Capturar Nuevo Empleado`;
         formContainer.classList.remove('hidden');
@@ -306,7 +299,7 @@ async function seleccionarEmpleadoParaEditar(index) {
     }
 
     // 2. PRIMERO renderizamos la vista/formulario en el DOM para que los elementos <select> existan
-    cargarPersonalRh(false); 
+    cargarPersonalRh(false);
 
     const form = document.getElementById('form-nuevo-personal');
     const formContainer = document.getElementById('contenedor-formulario-personal');
@@ -327,7 +320,7 @@ async function seleccionarEmpleadoParaEditar(index) {
 
         form.elements['numEmp'].value = limpiarValor(emp.numEmp);
         inputNumEmp.setAttribute('readonly', true);
-        
+
         form.elements['nombre'].value = limpiarValor(emp.nombre);
         form.elements['ext'].value = limpiarValor(emp.ext);
         form.elements['numPers'].value = limpiarValor(emp.numPers);

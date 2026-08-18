@@ -189,7 +189,11 @@ function poblarSelectoresCascada(regActual = '0', centroActual = '0', sitActual 
     const optionSeleccionada = selReg.selectedIndex >= 0 ? selReg.options[selReg.selectedIndex] : null;
     const claveRegEfectiva = optionSeleccionada && optionSeleccionada.value !== "0" ? optionSeleccionada.value : regClean;
 
-    filtrarCentrosPorRegionEfectiva(claveRegEfectiva, centroActual, sitActual);
+    // Asignamos el valor efectivo al select de región si cambió
+    selReg.value = claveRegEfectiva;
+
+    // CORRECCIÓN: Llamamos a la función que SÍ existe en tu código pasando los parámetros correctos
+    filtrarCentrosPorRegion(centroActual, sitActual);
 }
 
 async function mostrarFormularioNuevoPersonal() {

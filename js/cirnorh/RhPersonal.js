@@ -119,18 +119,17 @@ async function cargarCatalogosSheets() {
         window._catCentros = Array.isArray(centros) ? centros : (centros?.data || centros?.resultado || []);
         window._catSitios = Array.isArray(sitios) ? sitios : (sitios?.data || sitios?.resultado || []);
 
-        // Plan B: Si la API de catálogos viene vacía, los armamos limpio del caché de empleados
+        // Plan B: Rescatar catálogos completos (incluyendo Sitios) del caché de empleados si vienen vacíos
         if (window._catRegs.length === 0 && window._empleadosCache.length > 0) {
             const regsMap = new Map();
             const centrosMap = new Map();
+            const sitiosMap = new Map();
 
             window._empleadosCache.forEach(e => {
                 if (e.claveReg) {
                     let claveR = String(e.claveReg).trim();
-                    // Limpiamos por si el empleado ya trae texto pegado tipo "100 - CIRNO"
                     if (claveR.includes(' - ')) claveR = claveR.split(' - ')[0].trim();
                     const nombreR = e.textoReg ? String(e.textoReg).replace(new RegExp(`^${claveR}\\s*-\\s*`), '').trim() : claveR;
-                    
                     regsMap.set(claveR, { clave: claveR, nombre: nombreR });
                 }
                 if (e.claveCentro) {
@@ -138,13 +137,20 @@ async function cargarCatalogosSheets() {
                     if (claveC.includes(' - ')) claveC = claveC.split(' - ')[0].trim();
                     const nombreC = e.textoCentro ? String(e.textoCentro).replace(new RegExp(`^${claveC}\\s*-\\s*`), '').trim() : claveC;
                     const regAsociada = e.claveReg ? String(e.claveReg).split(' - ')[0].trim() : '';
-
                     centrosMap.set(claveC, { clave: claveC, claveReg: regAsociada, nombre: nombreC });
                 }
+                // Rescate y normalización del sitio (si es 0 o vacío, lo guardamos como N/A)
+                let rawSit = e.claveSit || e.textoSit;
+                let claveS = (!rawSit || rawSit === 0 || rawSit === '0' || String(rawSit).trim().toUpperCase() === 'N/A') ? 'N/A' : String(rawSit).trim();
+                if (claveS.includes(' - ')) claveS = claveS.split(' - ')[0].trim();
+                
+                const centroAsociado = e.claveCentro ? String(e.claveCentro).split(' - ')[0].trim() : '';
+                sitiosMap.set(claveS, { clave: claveS, claveCentro: centroAsociado, nombre: claveS === 'N/A' ? 'N/A' : (e.textoSit || claveS) });
             });
 
             window._catRegs = Array.from(regsMap.values());
             window._catCentros = Array.from(centrosMap.values());
+            window._catSitios = Array.from(sitiosMap.values());
         }
 
         console.log("Catálogos listos:", {
@@ -155,6 +161,43 @@ async function cargarCatalogosSheets() {
     } catch (error) {
         console.error("Error al cargar catálogos:", error);
     }
+}
+
+function filtrarSitiosPorCentro(sitActual = '') {
+    const selCentro = document.getElementById('select-claveCentro');
+    const selSit = document.getElementById('select-claveSit');
+    
+    if (!selCentro || !selSit) return;
+    const centroSeleccionado = selCentro.value;
+
+    selSit.innerHTML = `<option value="" disabled selected>Seleccione un sitio...</option>`;
+
+    const sitiosArray = Array.isArray(window._catSitios) ? window._catSitios : [];
+
+    // Filtramos los sitios que correspondan al centro, o permitimos 'N/A' si aplica
+    if (centroSeleccionado) {
+        const sitiosFiltrados = sitiosArray.filter(s => {
+            const cAsociado = String(s.claveCentro || '').trim();
+            const esNA = String(s.clave).trim().toUpperCase() === 'N/A';
+            return cAsociado === String(centroSeleccionado).trim() || esNA;
+        });
+
+        selSit.innerHTML += sitiosFiltrados.map(s => 
+            `<option value="${s.clave}">${s.clave} - ${s.nombre}</option>`
+        ).join('');
+    }
+
+    // Aplicar regla de limpieza a N/A si es 0, vacío o N/A
+    const sitClean = (!sitActual || sitActual === '0' || sitActual === 'N/A' || sitActual === 0 || String(sitActual).trim() === '') ? 'N/A' : String(sitActual).trim();
+    
+    let matchSit = "";
+    if (sitClean !== "") {
+        const encontrada = sitiosArray.find(s => String(s.clave).trim().toLowerCase() === sitClean.toLowerCase());
+        if (encontrada) matchSit = encontrada.clave;
+    }
+
+    selSit.value = matchSit;
+    console.log("Sitio seleccionado intentado:", sitClean, "-> Match encontrado:", matchSit);
 }
 
 function poblarSelectoresCascada(regActual = '', centroActual = '', sitActual = '') {

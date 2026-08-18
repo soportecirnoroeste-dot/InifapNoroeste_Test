@@ -115,9 +115,10 @@ async function cargarCatalogosSheets() {
             FetchAPI('obtenerSitios').catch(() => [])
         ]);
 
-        window._catRegs = Array.isArray(regs) ? regs : (regs?.data || []);
-        window._catCentros = Array.isArray(centros) ? centros : (centros?.data || []);
-        window._catSitios = Array.isArray(sitios) ? sitios : (sitios?.data || []);
+        // Asegurarnos de extraer la propiedad .data si la API la envuelve ahí, o usar el array directo
+        window._catRegs = Array.isArray(regs) ? regs : (regs?.data || regs?.resultado || []);
+        window._catCentros = Array.isArray(centros) ? centros : (centros?.data || centros?.resultado || []);
+        window._catSitios = Array.isArray(sitios) ? sitios : (sitios?.data || sitios?.resultado || []);
 
         console.log("Catálogos cargados correctamente:", {
             regs: window._catRegs.length,
@@ -312,10 +313,10 @@ async function seleccionarEmpleadoParaEditar(index) {
         return;
     }
 
-    if (!window._catRegs || !window._catRegs.length || !window._catCentros || !window._catCentros.length || !window._catSitios || !window._catSitios.length) {
-        await cargarCatalogosSheets();
-    }
+    // 1. PRIMERO cargamos y esperamos obligatoriamente a que los catálogos tengan datos antes de hacer nada más
+    await cargarCatalogosSheets();
 
+    // 2. Renderizamos la estructura base del formulario sin lista
     cargarPersonalRh(false);
 
     const form = document.getElementById('form-nuevo-personal');
@@ -341,7 +342,7 @@ async function seleccionarEmpleadoParaEditar(index) {
         const centroVal = extraerClave(emp.claveCentro || emp.textoCentro);
         const sitVal = extraerClave(emp.claveSit || emp.textoSit);
 
-        console.warn('seleccionarEmpleadoParaEditar: ' + regVal + ', ' + centroVal + ', ' + sitVal);
+        // 3. Poblamos los selectores ya con los datos seguros en memoria
         poblarSelectoresCascada(regVal, centroVal, sitVal);
 
         form.elements['numEmp'].value = limpiarValor(emp.numEmp);
@@ -366,7 +367,6 @@ async function seleccionarEmpleadoParaEditar(index) {
         if (listadoContainer) listadoContainer.classList.add('hidden');
     }
 }
-
 async function guardarOActualizarPersonal(event) {
     event.preventDefault();
     const datosEmpleado = Object.fromEntries(new FormData(event.target).entries());

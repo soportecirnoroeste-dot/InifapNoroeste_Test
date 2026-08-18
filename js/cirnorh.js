@@ -165,7 +165,7 @@ function renderizarVistaModulo(idOpt, descripcion, itemsIndice = []) {
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const seccionEnUrl = urlParams.get('seccion');
-
+    console.warn("ENTRADA DEL if");
     if (seccionEnUrl) {
         manejarAccionSeccion(seccionEnUrl);
         console.warn("if");

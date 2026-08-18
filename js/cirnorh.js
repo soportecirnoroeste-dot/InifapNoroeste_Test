@@ -47,21 +47,37 @@ function obtenerContenedor() {
     return document.getElementById('app-container') || document.querySelector('main') || document.body;
 }
 
-// Funciones generales de los otros submódulos que no requieren tanta extensión
+// Funciones específicas con índices y tarjetas para cada submódulo
 function cargarAsistenciaRh() {
-    renderizarVistaModulo('asistencia', "Registro de retardos, faltas, permisos y justificantes.");
+    renderizarVistaModulo('asistencia', "Registro de retardos, faltas, permisos y justificantes.", [
+        { titulo: "Control de Retardos", desc: "Monitoreo y acumulación quincenal de entradas tarde." },
+        { titulo: "Justificantes Médicos", desc: "Carga y validación de incapacidades o permisos oficiales." },
+        { titulo: "Reporte de Asistencia", desc: "Generación de listas de asistencia globales por centro." }
+    ]);
 }
 
 function cargarVacacionesRh() {
-    renderizarVistaModulo('vacaciones', "Calendario de descansos y control de días económicos disponibles.");
+    renderizarVistaModulo('vacaciones', "Calendario de descansos y control de días económicos disponibles.", [
+        { titulo: "Solicitud de Vacaciones", desc: "Formulario para periodos vacacionales del trabajador." },
+        { titulo: "Días Económicos", desc: "Consulta de saldos y días disfrutados en el año en curso." },
+        { titulo: "Calendario General", desc: "Vista general de ausencias programadas por área." }
+    ]);
 }
 
 function cargarCapacitacionRh() {
-    renderizarVistaModulo('capacitacion', "Cursos, talleres y constancias de desarrollo profesional para el personal.");
+    renderizarVistaModulo('capacitacion', "Cursos, talleres y constancias de desarrollo profesional para el personal.", [
+        { titulo: "Catálogo de Cursos", desc: "Inscripciones a talleres internos y externos." },
+        { titulo: "Historial de Constancias", desc: "Registro de acreditaciones y diplomas obtenidos." },
+        { titulo: "Evaluaciones de Desempeño", desc: "Seguimiento al plan de capacitación anual." }
+    ]);
 }
 
 function cargarExpedientesRh() {
-    renderizarVistaModulo('expedientes', "Documentación oficial, contratos y resguardos de los trabajadores.");
+    renderizarVistaModulo('expedientes', "Documentación oficial, contratos y resguardos de los trabajadores.", [
+        { titulo: "Documentos Digitales", desc: "Actas de nacimiento, CURP, INE y comprobantes." },
+        { titulo: "Contratos y Nombramientos", desc: "Historial laboral y vigencia de contratos." },
+        { titulo: "Resguardo de Activos", desc: "Inventario de equipos y bienes asignados al empleado." }
+    ]);
 }
 
 function cargarGenerarOficiosRh() {
@@ -69,18 +85,39 @@ function cargarGenerarOficiosRh() {
     const contenedor = obtenerContenedor();
     
     if (contenedor && opt) {
+        if (typeof window.actualizarBotonRegresar === 'function') {
+            window.actualizarBotonRegresar('submodulo', localStorage.getItem('depto_activo_actual') || 'cirnorh');
+        }
+
         contenedor.innerHTML = `
-            <div class="bg-white rounded-2xl p-6 md:p-8 soft-shadow border border-[#249444]/10 mb-8 w-full box-border">
-                <div class="flex items-center gap-3 mb-4">
+            <div class="bg-white rounded-2xl p-6 md:p-8 soft-shadow border border-[#249444]/10 mb-8 w-full box-border animate-fade-in">
+                <div class="flex items-center gap-3 mb-6 pb-4 border-b border-stone-100">
                     <div class="p-2.5 bg-[#f0fdf4] border border-[#c6f6d5] text-[#059669] rounded-xl flex items-center justify-center">
                         ${opt.icon}
                     </div>
                     <div>
-                        <h3 class="font-black text-stone-800 text-lg">Generación de Oficios - Recursos Humanos</h3>
+                        <h3 class="font-black text-stone-800 text-lg uppercase tracking-wide">Generación de Oficios - Recursos Humanos</h3>
                         <p class="text-xs text-stone-500">Elaboración de constancias laborales, comisiones y avisos internos.</p>
                     </div>
                 </div>
-                <div class="p-4 bg-stone-50 rounded-xl border border-dashed border-stone-300 text-xs text-stone-400 text-center mt-4">
+
+                <!-- Índice / Opciones internas del submódulo -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+                    <div class="p-4 rounded-xl border border-stone-200 bg-stone-50/50 hover:border-[#249444] transition-all cursor-pointer group">
+                        <h4 class="font-bold text-xs text-stone-800 uppercase group-hover:text-[#249444] mb-1">Constancias Laborales</h4>
+                        <p class="text-[11px] text-stone-500">Generación de cartas de antigüedad y sueldos.</p>
+                    </div>
+                    <div class="p-4 rounded-xl border border-stone-200 bg-stone-50/50 hover:border-[#249444] transition-all cursor-pointer group">
+                        <h4 class="font-bold text-xs text-stone-800 uppercase group-hover:text-[#249444] mb-1">Oficios de Comisión</h4>
+                        <p class="text-[11px] text-stone-500">Autorización de viáticos y traslados oficiales.</p>
+                    </div>
+                    <div class="p-4 rounded-xl border border-stone-200 bg-stone-50/50 hover:border-[#249444] transition-all cursor-pointer group">
+                        <h4 class="font-bold text-xs text-stone-800 uppercase group-hover:text-[#249444] mb-1">Avisos y Sanciones</h4>
+                        <p class="text-[11px] text-stone-500">Emisión de actas administrativas y recordatorios.</p>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-stone-50 rounded-xl border border-dashed border-stone-300 text-xs text-stone-400 text-center">
                     Aquí irá el formulario o generador de documentos específico para RH.
                 </div>
             </div>
@@ -88,7 +125,7 @@ function cargarGenerarOficiosRh() {
     }
 }
 
-function renderizarVistaModulo(idOpt, descripcion) {
+function renderizarVistaModulo(idOpt, descripcion, itemsIndice = []) {
     const nombreCortoActual = localStorage.getItem('depto_activo_actual') || '';
     const configActual = window[nombreCortoActual + 'Config'];
     
@@ -98,6 +135,17 @@ function renderizarVistaModulo(idOpt, descripcion) {
     if (contenedor && opt) {
         if (typeof window.actualizarBotonRegresar === 'function') {
             window.actualizarBotonRegresar('submodulo', nombreCortoActual);
+        }
+
+        // Generar dinámicamente las tarjetas del índice si existen
+        let htmlTarjetasIndice = '';
+        if (itemsIndice && itemsIndice.length > 0) {
+            htmlTarjetasIndice = itemsIndice.map(item => `
+                <div class="p-4 rounded-xl border border-stone-200 bg-stone-50/50 hover:border-[#249444] hover:bg-emerald-50/30 transition-all cursor-pointer group shadow-xs">
+                    <h4 class="font-bold text-xs text-stone-800 uppercase group-hover:text-[#249444] mb-1">${item.titulo}</h4>
+                    <p class="text-[11px] text-stone-500 leading-relaxed">${item.desc}</p>
+                </div>
+            `).join('');
         }
 
         contenedor.innerHTML = `
@@ -112,8 +160,10 @@ function renderizarVistaModulo(idOpt, descripcion) {
                     </div>
                 </div>
 
+                <!-- Índice interno del submódulo -->
                 <div id="contenido-submodulo-dinamico" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                    </div>
+                    ${htmlTarjetasIndice}
+                </div>
             </section>
         `;
     }

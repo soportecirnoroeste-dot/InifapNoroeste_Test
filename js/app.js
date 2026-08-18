@@ -1,10 +1,11 @@
 // ==========================================
-// 1. CONTROLADOR DE AUTENTICACIÓN Y SESIÓN
+// 1. CONTROLADOR DE AUTENTICACIÓN Y SESIÓN (MEJORADO CON HISTORIAL)
 // ==========================================
 const AuthGuard = {
     verificarAcceso: () => {
         const usuarioSesion = localStorage.getItem('usuario_sesion');
         const paginaActual = window.location.pathname;
+        const queryActual = window.location.search; // Captura los parámetros (ej. ?depto=cirnodir)
 
         if (!usuarioSesion && !paginaActual.includes('login.html')) {
             window.location.href = 'login.html';
@@ -19,14 +20,28 @@ const AuthGuard = {
             }
 
             if (!paginaActual.includes('login.html')) {
-                // Respaldamos la página actual en sessionStorage para evitar saltos raros al refrescar
-                sessionStorage.setItem('ultima_pagina_activa', paginaActual);
-                SistemaGlobal.init();
+                // Si la URL actual trae parámetros (como ?depto=...), los guardamos como ruta activa completa
+                if (queryActual) {
+                    sessionStorage.setItem('ultima_ruta_completa', paginaActual + queryActual);
+                } else {
+                    sessionStorage.setItem('ultima_ruta_completa', paginaActual);
+                }
+
+                // Verificamos si estamos en el menú principal o en un submódulo
+                if (paginaActual.includes('index.html') || paginaActual.endsWith('/')) {
+                    SistemaGlobal.init();
+                } else if (paginaActual.includes('main.html')) {
+                    // Si estamos en main.html y por el F5 se perdieron los parámetros, 
+                    // los recuperamos automáticamente de nuestra memoria de ruta
+                    const rutaGuardada = sessionStorage.getItem('ultima_ruta_completa');
+                    if (rutaGuardada && !queryActual && rutaGuardada.includes('?')) {
+                        window.history.replaceState({}, '', rutaGuardada);
+                    }
+                }
             }
         }
     }
 };
-
 // ==========================================
 // 2. NÚCLEO CENTRAL DEL SISTEMA (CON CACHÉ Y FILTRO INICIAL)
 // ==========================================

@@ -109,27 +109,44 @@ async function cargarDatosGenerales() {
 
 async function cargarCatalogosSheets() {
     try {
+        // Intentamos traer los catálogos normales
         const [regs, centros, sitios] = await Promise.all([
-            FetchAPI('obtenerRegiones').catch(() => []),
-            FetchAPI('obtenerCentros').catch(() => []),
-            FetchAPI('obtenerSitios').catch(() => [])
+            FetchAPI('obtenerRegiones').catch(() => null),
+            FetchAPI('obtenerCentros').catch(() => null),
+            FetchAPI('obtenerSitios').catch(() => null)
         ]);
 
-        // Asegurarnos de extraer la propiedad .data si la API la envuelve ahí, o usar el array directo
         window._catRegs = Array.isArray(regs) ? regs : (regs?.data || regs?.resultado || []);
         window._catCentros = Array.isArray(centros) ? centros : (centros?.data || centros?.resultado || []);
         window._catSitios = Array.isArray(sitios) ? sitios : (sitios?.data || sitios?.resultado || []);
 
-        console.log("Catálogos cargados correctamente:", {
+        // 💡 PLAN B: Si la API de catálogos viene vacía, los construimos automáticamente 
+        // de los datos que ya cargó la tabla de empleados (_empleadosCache)
+        if (window._catRegs.length === 0 && window._empleadosCache.length > 0) {
+            const regsMap = new Map();
+            const centrosMap = new Map();
+
+            window._empleadosCache.forEach(e => {
+                if (e.claveReg) {
+                    regsMap.set(String(e.claveReg).trim(), { clave: e.claveReg, nombre: e.textoReg || e.claveReg });
+                }
+                if (e.claveCentro) {
+                    centrosMap.set(String(e.claveCentro).trim(), { clave: e.claveCentro, claveReg: e.claveReg, nombre: e.textoCentro || e.claveCentro });
+                }
+            });
+
+            window._catRegs = Array.from(regsMap.values());
+            window._catCentros = Array.from(centrosMap.values());
+            console.warn("⚠️ Catálogos rescatados automáticamente del caché de empleados para evitar que queden en 0.");
+        }
+
+        console.log("Catálogos listos:", {
             regs: window._catRegs.length,
             centros: window._catCentros.length,
             sitios: window._catSitios.length
         });
     } catch (error) {
         console.error("Error al cargar catálogos:", error);
-        window._catRegs = [];
-        window._catCentros = [];
-        window._catSitios = [];
     }
 }
 

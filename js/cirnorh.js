@@ -70,16 +70,14 @@ function manejarAccionSeccion(idOpt) {
     }
 }
 
-// Función para limpiar la sección de la URL cuando regresas al menú principal del departamento
+// Función para limpiar la sección de la URL
 function limpiarSeccionUrl() {
-    console.warn("entra");
     const urlParams = new URLSearchParams(window.location.search);
-    const deptoActual = urlParams.get('depto') || 'cirnorh';
-    
-    // Deja únicamente el parámetro del departamento, barriendo el de sección
-    const nuevaUrl = `main.html?depto=${deptoActual}`;
-    console.warn(nuevaUrl);
-    window.history.replaceState({}, '', nuevaUrl);
+    if (urlParams.has('seccion')) {
+        const deptoActual = urlParams.get('depto') || 'cirnorh';
+        const nuevaUrl = `main.html?depto=${deptoActual}`;
+        window.history.replaceState({}, '', nuevaUrl);
+    }
 }
 
 // Funciones de índice para las demás secciones
@@ -161,18 +159,28 @@ function renderizarVistaModulo(idOpt, descripcion, itemsIndice = []) {
     }
 }
 
-// Autodetección al cargar o hacer F5
+// Monitor global para detectar clics en el botón de "Regresar" del sistema y limpiar la URL automáticamente
+document.addEventListener('click', (event) => {
+    const target = event.target.closest('button, a');
+    if (!target) return;
+
+    // Detecta si el elemento corresponde al botón de regresar al menú del departamento
+    const textoBoton = target.textContent || '';
+    const idOClase = (target.id + ' ' + target.className).toLowerCase();
+    
+    if (textoBoton.includes('Regresar') || idOClase.includes('regresar') || idOClase.includes('back')) {
+        limpiarSeccionUrl();
+    }
+});
+
+// Autodetección inicial al cargar la página o hacer F5
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const seccionEnUrl = urlParams.get('seccion');
-    console.warn("ENTRADA DEL if");
+
     if (seccionEnUrl) {
         manejarAccionSeccion(seccionEnUrl);
-        console.warn("if");
     } else {
-        // Si no hay sección en la URL, aseguramos limpiar cualquier rastro anterior
-        console.warn("else");
-        console.warn(seccionEnUrl);
         limpiarSeccionUrl();
     }
 });

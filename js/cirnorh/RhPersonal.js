@@ -331,8 +331,13 @@ async function seleccionarEmpleadoParaEditar(index) {
     if (formContainer && form) {
         const limpiarValor = (val) => (!val || val === 0 || val === '0' || String(val).trim() === '') ? 'N/A' : val;
 
-        // 3. Poblamos los selectores con seguridad total sabiendo que los arreglos ya existen
-        poblarSelectoresCascada(emp.claveReg, emp.claveCentro, emp.claveSit);
+        // Tomamos los mismos valores con los que se alimenta la tabla visualmente
+        const regVal = emp.textoReg || emp.claveReg || '0';
+        const centroVal = emp.textoCentro || emp.claveCentro || '0';
+        const sitVal = emp.textoSit || emp.claveSit || '0';
+
+        // 3. Poblamos los selectores pasando los valores prioritarios
+        poblarSelectoresCascada(regVal, centroVal, sitVal);
 
         form.elements['numEmp'].value = limpiarValor(emp.numEmp);
         inputNumEmp.setAttribute('readonly', true);
@@ -343,7 +348,7 @@ async function seleccionarEmpleadoParaEditar(index) {
         form.elements['escolaridad'].value = limpiarValor(emp.escolaridad);
         form.elements['direccion'].value = limpiarValor(emp.direccion);
         form.elements['cp'].value = limpiarValor(emp.cp);
-        form.elements['email'].value = limpiarValor(emp.email);9
+        form.elements['email'].value = limpiarValor(emp.email);
         form.elements['rfc'].value = limpiarValor(emp.rfc);
         form.elements['puesto'].value = limpiarValor(emp.puesto);
         form.elements['departamento'].value = limpiarValor(emp.departamento);

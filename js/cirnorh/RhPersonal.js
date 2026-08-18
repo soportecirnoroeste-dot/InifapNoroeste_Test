@@ -300,12 +300,12 @@ async function seleccionarEmpleadoParaEditar(index) {
     const emp = window._empleadosCache[index];
     if (!emp) return;
 
-    // 1. Aseguramos que los catálogos estén completamente descargados ANTES de continuar
+    // 1. Aseguramos que los catálogos estén descargados
     if (!window._catRegs || !window._catRegs.length || !window._catCentros || !window._catCentros.length || !window._catSitios || !window._catSitios.length) {
         await cargarCatalogosSheets();
     }
 
-    // 2. Pintamos la estructura del submódulo en modo edición
+    // 2. PRIMERO renderizamos la vista/formulario en el DOM para que los elementos <select> existan
     cargarPersonalRh(false); 
 
     const form = document.getElementById('form-nuevo-personal');
@@ -322,7 +322,7 @@ async function seleccionarEmpleadoParaEditar(index) {
         const centroVal = emp.textoCentro || emp.claveCentro || '0';
         const sitVal = emp.textoSit || emp.claveSit || '0';
 
-        // 3. Poblamos los selectores ya teniendo los catálogos seguros en memoria
+        // 3. DESPUÉS poblamos los selectores ahora que el HTML ya fue inyectado
         poblarSelectoresCascada(regVal, centroVal, sitVal);
 
         form.elements['numEmp'].value = limpiarValor(emp.numEmp);

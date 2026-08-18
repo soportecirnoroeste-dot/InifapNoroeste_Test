@@ -174,7 +174,6 @@ function filtrarSitiosPorCentro(sitActual = '') {
 
     const sitiosArray = Array.isArray(window._catSitios) ? window._catSitios : [];
 
-    // Filtramos los sitios que correspondan al centro, o permitimos 'N/A' si aplica
     if (centroSeleccionado) {
         const sitiosFiltrados = sitiosArray.filter(s => {
             const cAsociado = String(s.claveCentro || '').trim();
@@ -182,12 +181,22 @@ function filtrarSitiosPorCentro(sitActual = '') {
             return cAsociado === String(centroSeleccionado).trim() || esNA;
         });
 
-        selSit.innerHTML += sitiosFiltrados.map(s => 
-            `<option value="${s.clave}">${s.clave} - ${s.nombre}</option>`
-        ).join('');
+        // Evitamos duplicados y aseguramos que N/A se muestre limpio con una sola vez la etiqueta
+        const unicosMap = new Map();
+        sitiosFiltrados.forEach(s => {
+            const claveStr = String(s.clave).trim();
+            if (!unicosMap.has(claveStr)) {
+                unicosMap.set(claveStr, s);
+            }
+        });
+
+        selSit.innerHTML += Array.from(unicosMap.values()).map(s => {
+            const claveStr = String(s.clave).trim();
+            const textoDisplay = (claveStr.toUpperCase() === 'N/A') ? 'N/A' : `${s.clave} - ${s.nombre}`;
+            return `<option value="${s.clave}">${textoDisplay}</option>`;
+        }).join('');
     }
 
-    // Aplicar regla de limpieza a N/A si es 0, vacío o N/A
     const sitClean = (!sitActual || sitActual === '0' || sitActual === 'N/A' || sitActual === 0 || String(sitActual).trim() === '') ? 'N/A' : String(sitActual).trim();
     
     let matchSit = "";
@@ -197,7 +206,6 @@ function filtrarSitiosPorCentro(sitActual = '') {
     }
 
     selSit.value = matchSit;
-    console.log("Sitio seleccionado intentado:", sitClean, "-> Match encontrado:", matchSit);
 }
 
 function poblarSelectoresCascada(regActual = '', centroActual = '', sitActual = '') {

@@ -364,7 +364,11 @@ async function seleccionarEmpleadoParaEditar(index) {
 
         const regVal = extraerClave(emp.claveReg || emp.textoReg);
         const centroVal = extraerClave(emp.claveCentro || emp.textoCentro);
-        const sitVal = extraerClave(emp.claveSit || emp.textoSit);
+
+        // Regla solicitada: Si el sitio es 0, '0', vacío o N/A, lo convertimos a 'N/A'
+        let rawSit = extraerClave(emp.claveSit || emp.textoSit);
+        const sitVal = (!rawSit || rawSit === 0 || rawSit === '0' || String(rawSit).trim().toUpperCase() === 'N/A') ? 'N/A' : rawSit;
+        
 
         // 3. Poblamos los selectores ya con los datos seguros en memoria
         poblarSelectoresCascada(regVal, centroVal, sitVal);

@@ -109,7 +109,6 @@ async function cargarDatosGenerales() {
 
 async function cargarCatalogosSheets() {
     try {
-        // Intentamos traer los catálogos normales
         const [regs, centros, sitios] = await Promise.all([
             FetchAPI('obtenerRegiones').catch(() => null),
             FetchAPI('obtenerCentros').catch(() => null),
@@ -120,24 +119,32 @@ async function cargarCatalogosSheets() {
         window._catCentros = Array.isArray(centros) ? centros : (centros?.data || centros?.resultado || []);
         window._catSitios = Array.isArray(sitios) ? sitios : (sitios?.data || sitios?.resultado || []);
 
-        // 💡 PLAN B: Si la API de catálogos viene vacía, los construimos automáticamente 
-        // de los datos que ya cargó la tabla de empleados (_empleadosCache)
+        // Plan B: Si la API de catálogos viene vacía, los armamos limpio del caché de empleados
         if (window._catRegs.length === 0 && window._empleadosCache.length > 0) {
             const regsMap = new Map();
             const centrosMap = new Map();
 
             window._empleadosCache.forEach(e => {
                 if (e.claveReg) {
-                    regsMap.set(String(e.claveReg).trim(), { clave: e.claveReg, nombre: e.textoReg || e.claveReg });
+                    let claveR = String(e.claveReg).trim();
+                    // Limpiamos por si el empleado ya trae texto pegado tipo "100 - CIRNO"
+                    if (claveR.includes(' - ')) claveR = claveR.split(' - ')[0].trim();
+                    const nombreR = e.textoReg ? String(e.textoReg).replace(new RegExp(`^${claveR}\\s*-\\s*`), '').trim() : claveR;
+                    
+                    regsMap.set(claveR, { clave: claveR, nombre: nombreR });
                 }
                 if (e.claveCentro) {
-                    centrosMap.set(String(e.claveCentro).trim(), { clave: e.claveCentro, claveReg: e.claveReg, nombre: e.textoCentro || e.claveCentro });
+                    let claveC = String(e.claveCentro).trim();
+                    if (claveC.includes(' - ')) claveC = claveC.split(' - ')[0].trim();
+                    const nombreC = e.textoCentro ? String(e.textoCentro).replace(new RegExp(`^${claveC}\\s*-\\s*`), '').trim() : claveC;
+                    const regAsociada = e.claveReg ? String(e.claveReg).split(' - ')[0].trim() : '';
+
+                    centrosMap.set(claveC, { clave: claveC, claveReg: regAsociada, nombre: nombreC });
                 }
             });
 
             window._catRegs = Array.from(regsMap.values());
             window._catCentros = Array.from(centrosMap.values());
-            console.warn("⚠️ Catálogos rescatados automáticamente del caché de empleados para evitar que queden en 0.");
         }
 
         console.log("Catálogos listos:", {

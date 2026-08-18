@@ -55,9 +55,14 @@ function manejarAccionSeccion(idOpt) {
     const nuevaUrl = `main.html?depto=${deptoActual}&seccion=${idOpt}`;
     window.history.replaceState({}, '', nuevaUrl);
 
-    // Guardamos en sessionStorage que estamos dentro de un submódulo activo
+    // Guardamos en sessionStorage para asegurar persistencia ante recargas F5
     sessionStorage.setItem('submodulo_activo_cirnorh', idOpt);
 
+    ejecutarCargaSeccion(idOpt);
+}
+
+// Función aislada para disparar la carga visual de la sección correspondiente
+function ejecutarCargaSeccion(idOpt) {
     if (idOpt === 'personal') {
         if (typeof cargarPersonalRh === 'function') cargarPersonalRh(true);
     } else if (idOpt === 'asistencia') {
@@ -176,22 +181,21 @@ document.addEventListener('click', (event) => {
     }
 });
 
-// Autodetección robusta al presionar F5 usando la URL o el indicador persistente de respaldo
-document.addEventListener('DOMContentLoaded', () => {
+// Autodetección al presionar F5 usando un pequeño retraso (setTimeout) 
+// para garantizar que el menú principal termine de montar y nuestro submódulo lo sobrescriba correctamente.
+window.addEventListener('load', () => {
     const urlParams = new URLSearchParams(window.location.search);
-    let seccionEnUrl = urlParams.get('seccion');
-
-    // Si la URL no trae la sección pero la memoria interna sabe que estábamos dentro de un submódulo, restauramos con seguridad
-    if (!seccionEnUrl) {
-        seccionEnUrl = sessionStorage.getItem('submodulo_activo_cirnorh');
-        if (seccionEnUrl) {
-            const deptoActual = urlParams.get('depto') || 'cirnorh';
-            window.history.replaceState({}, '', `main.html?depto=${deptoActual}&seccion=${seccionEnUrl}`);
-        }
-    }
+    let seccionEnUrl = urlParams.get('seccion') || sessionStorage.getItem('submodulo_activo_cirnorh');
 
     if (seccionEnUrl) {
-        manejarAccionSeccion(seccionEnUrl);
+        const deptoActual = urlParams.get('depto') || 'cirnorh';
+        window.history.replaceState({}, '', `main.html?depto=${deptoActual}&seccion=${seccionEnUrl}`);
+        sessionStorage.setItem('submodulo_activo_cirnorh', seccionEnUrl);
+
+        // Damos un respiro de 150ms para que el script general pinte el menú y nosotros lo reemplacemos directo con el submódulo
+        setTimeout(() => {
+            ejecutarCargaSeccion(seccionEnUrl);
+        }, 150);
     } else {
         limpiarSeccionUrl();
     }

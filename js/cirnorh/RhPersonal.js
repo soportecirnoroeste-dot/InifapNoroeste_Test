@@ -291,24 +291,18 @@ function renderizarTablaPersonal(registros) {
 
 async function seleccionarEmpleadoParaEditar(index) {
     const emp = window._empleadosCache[index];
-    console.log("--- 🕵️ RASTREO DE EMPLEADO [Índice:", index, "] ---");
-    console.log("Objeto empleado completo:", emp);
-    console.log("Catálogo Regiones en memoria:", window._catRegs);
-    console.log("Catálogo Centros en memoria:", window._catCentros);
-    console.log("Catálogo Sitios en memoria:", window._catSitios);
-
     if (!emp) {
         console.error("❌ No se encontró el empleado en _empleadosCache");
         return;
     }
 
-    // 1. Aseguramos catálogos
+    // 1. PRIMERO nos aseguramos de esperar a que los catálogos bajen completamente de Google Sheets
     if (!window._catRegs || !window._catRegs.length || !window._catCentros || !window._catCentros.length || !window._catSitios || !window._catSitios.length) {
-        console.log("⚠️ Catálogos vacíos detectados, descargando...");
+        console.log("⚠️ Catálogos vacíos detectados, esperando descarga...");
         await cargarCatalogosSheets();
     }
 
-    // 2. Renderizamos formulario
+    // 2. DESPUÉS renderizamos el formulario en el DOM ya con los datos seguros en memoria
     cargarPersonalRh(false);
 
     const form = document.getElementById('form-nuevo-personal');
@@ -321,18 +315,11 @@ async function seleccionarEmpleadoParaEditar(index) {
     if (formContainer && form) {
         const limpiarValor = (val) => (!val || val === 0 || val === '0' || String(val).trim() === '') ? 'N/A' : val;
 
-        // Extraemos las propiedades tal como vienen en tu objeto del Sheet
-        console.log("Valores crudos -> claveReg:", emp.claveReg, "| textoReg:", emp.textoReg);
-        console.log("Valores crudos -> claveCentro:", emp.claveCentro, "| textoCentro:", emp.textoCentro);
-        console.log("Valores crudos -> claveSit:", emp.claveSit, "| textoSit:", emp.textoSit);
-
         const regVal = emp.textoReg || emp.claveReg || '0';
         const centroVal = emp.textoCentro || emp.claveCentro || '0';
         const sitVal = emp.textoSit || emp.claveSit || '0';
 
-        console.log("Valores seleccionados para la cascada -> Reg:", regVal, "| Centro:", centroVal, "| Sitio:", sitVal);
-
-        // 3. Poblamos selectores
+        // 3. FINALMENTE poblamos la cascada sabiendo que los selectores y catálogos ya existen
         poblarSelectoresCascada(regVal, centroVal, sitVal);
 
         form.elements['numEmp'].value = limpiarValor(emp.numEmp);

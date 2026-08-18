@@ -118,6 +118,12 @@ async function cargarCatalogosSheets() {
         window._catRegs = Array.isArray(regs) ? regs : (regs?.data || []);
         window._catCentros = Array.isArray(centros) ? centros : (centros?.data || []);
         window._catSitios = Array.isArray(sitios) ? sitios : (sitios?.data || []);
+
+        console.log("Catálogos cargados correctamente:", {
+            regs: window._catRegs.length,
+            centros: window._catCentros.length,
+            sitios: window._catSitios.length
+        });
     } catch (error) {
         console.error("Error al cargar catálogos:", error);
         window._catRegs = [];
@@ -126,15 +132,20 @@ async function cargarCatalogosSheets() {
     }
 }
 
-// Funciones de Cascada corregidas con las líneas de llenado activas
 function poblarSelectoresCascada(regActual = '', centroActual = '', sitActual = '') {
     const selReg = document.getElementById('select-claveReg');
     if (!selReg) return;
 
     const regsArray = Array.isArray(window._catRegs) ? window._catRegs : [];
+    
+    // Verificamos si hay datos en el catálogo
+    if (regsArray.length === 0) {
+        console.warn("⚠️ _catRegs está vacío al intentar poblar los selectores.");
+    }
+
     const regClean = (!regActual || regActual === '0' || regActual === 'N/A' || regActual === 0) ? '' : String(regActual).trim();
 
-    // 1. Poblamos la región
+    // Rellenamos de manera directa
     selReg.innerHTML = `<option value="" disabled selected>Seleccione una región...</option>` + 
         regsArray.map(r => `<option value="${r.clave}">${r.clave} - ${r.nombre}</option>`).join('');
 
@@ -145,11 +156,9 @@ function poblarSelectoresCascada(regActual = '', centroActual = '', sitActual = 
     }
 
     selReg.value = matchReg;
+    console.log("Región seleccionada intentada:", regClean, "-> Match encontrado:", matchReg);
 
-    // 2. Usamos requestAnimationFrame para garantizar que el DOM renderizó la región antes de buscar el centro
-    requestAnimationFrame(() => {
-        filtrarCentrosPorRegion(centroActual, sitActual);
-    });
+    filtrarCentrosPorRegion(centroActual, sitActual);
 }
 
 function filtrarCentrosPorRegion(centroActual = '', sitActual = '') {

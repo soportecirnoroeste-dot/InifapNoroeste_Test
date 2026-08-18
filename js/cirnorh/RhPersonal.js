@@ -333,7 +333,7 @@ async function seleccionarEmpleadoParaEditar(index) {
         const sitVal = extraerClave(emp.claveSit || emp.textoSit);
 
         console.warn('seleccionarEmpleadoParaEditar: ' + regVal + ', ' + centroVal + ', ' + sitVal);
-        poblarSelectoresCascada(regVal, centroVal, sitVal);
+        //poblarSelectoresCascada(regVal, centroVal, sitVal);
 
         form.elements['numEmp'].value = limpiarValor(emp.numEmp);
         inputNumEmp.setAttribute('readonly', true);

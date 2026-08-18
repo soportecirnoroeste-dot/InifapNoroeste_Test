@@ -17,32 +17,23 @@ const AuthGuard = {
             if (labelUser) {
                 labelUser.textContent = localStorage.getItem('session_userName') || 'Usuario';
             }
+
+            if (!paginaActual.includes('login.html')) {
+                // Respaldamos la página actual en sessionStorage para evitar saltos raros al refrescar
+                sessionStorage.setItem('ultima_pagina_activa', paginaActual);
+                SistemaGlobal.init();
+            }
         }
     }
 };
 
 // ==========================================
-// 2. NÚCLEO CENTRAL DEL SISTEMA
+// 2. NÚCLEO CENTRAL DEL SISTEMA (CON CACHÉ Y FILTRO INICIAL)
 // ==========================================
 const SistemaGlobal = {
     datos: null,
 
     init() {
-        const paginaActual = window.location.pathname;
-
-        // Si estamos en main.html, aseguramos que la URL refleje el depto activo guardado
-        if (paginaActual.includes('main.html')) {
-            const deptoGuardado = sessionStorage.getItem('depto_activo');
-            const urlParams = new URLSearchParams(window.location.search);
-            
-            if (deptoGuardado && !urlParams.get('depto')) {
-                window.history.replaceState({}, '', `main.html?depto=${deptoGuardado}`);
-            }
-            // Si estás en main.html, detenemos la ejecución de index.html para evitar conflictos
-            return;
-        }
-
-        // Lógica exclusiva para index.html / menú principal
         const datosEnCache = localStorage.getItem('sistema_cache_datos');
         const tiempoCache = localStorage.getItem('sistema_cache_tiempo');
         const ahora = new Date().getTime();
@@ -53,7 +44,7 @@ const SistemaGlobal = {
                 this.procesarRespuestaServidor(datosProcesados);
                 return;
             } catch (e) {
-                console.error("Error al leer la caché:", e);
+                console.error("Error al leer la caché, procediendo a red...", e);
             }
         }
 
@@ -131,6 +122,7 @@ const SistemaGlobal = {
 
         this.renderizarFiltroCampos(todosLosCampos, claveRegUsuario);
 
+        // Búsqueda inteligente del campo inicial
         const camposDeLaRegional = todosLosCampos.filter(c => String(c.claveReg).trim() === claveRegUsuario);
         const depDelUsuarioLogueado = departamentosDeLaRegional.find(dep =>
             String(dep.nomCorDep).trim().toUpperCase() === areaUsuario ||
@@ -276,7 +268,7 @@ const SistemaGlobal = {
 
         const deptoKey = NomCorDep.toString().toLowerCase().trim().replace(/\s+/g, '');
         
-        // Guardamos de forma persistente el departamento activo
+        // Guardamos el departamento activo en sessionStorage para respaldarlo ante un F5
         sessionStorage.setItem('depto_activo', deptoKey);
 
         setTimeout(() => {
@@ -297,11 +289,15 @@ function seleccionarDepartamento(NomCorDep, elementoBtn) {
 }
 
 // ==========================================
-// 4. DISPARADOR DE INICIO
+// 4. DISPARADOR ÚNICO DE INICIO
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
-    if (typeof AuthGuard !== 'undefined' && typeof AuthGuard.verificarAcceso === 'function') {
-        AuthGuard.verificarAcceso();
+    AuthGuard.verificarAcceso();
+
+    // Verificación automática de F5 / restauración si el usuario ya tenía un departamento activo seleccionado
+    const deptoGuardado = sessionStorage.getItem('depto_activo');
+    const urlParams = new URLSearchParams(window.location.search);
+    if (!urlParams.get('depto') && deptoGuardado && window.location.pathname.includes('main.html')) {
+        window.history.replaceState({}, '', `main.html?depto=${deptoGuardado}`);
     }
-    SistemaGlobal.init();
 });

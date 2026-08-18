@@ -181,8 +181,15 @@ document.addEventListener('click', (event) => {
     }
 });
 
-// Autodetección al presionar F5
+// Autodetección al presionar F5 evitando el parpadeo visual
 window.addEventListener('load', () => {
+    const contenedor = obtenerContenedor();
+    if (contenedor) {
+        // Ocultamos temporalmente el contenedor para que no se vea el menú parpadeando
+        contenedor.style.opacity = '0';
+        contenedor.style.transition = 'opacity 0.2s ease-in-out';
+    }
+
     const urlParams = new URLSearchParams(window.location.search);
     let seccionEnUrl = urlParams.get('seccion') || sessionStorage.getItem('submodulo_activo_cirnorh');
 
@@ -193,8 +200,11 @@ window.addEventListener('load', () => {
 
         setTimeout(() => {
             ejecutarCargaSeccion(seccionEnUrl);
-        }, 150);
+            // Volvemos a mostrar el contenedor ya con el submódulo pintado
+            if (contenedor) contenedor.style.opacity = '1';
+        }, 120);
     } else {
         limpiarSeccionUrl();
+        if (contenedor) contenedor.style.opacity = '1';
     }
 });

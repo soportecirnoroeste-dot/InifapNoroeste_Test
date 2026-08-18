@@ -1,31 +1,29 @@
 // ==========================================
-// 1. CONTROLADOR DE AUTENTICACIÓN Y SESIÓN
+// RECUPERACIÓN DE ESTADO ANTE F5 (EN MAIN.HTML)
 // ==========================================
-const AuthGuard = {
-    verificarAcceso: () => {
-        const usuarioSesion = localStorage.getItem('usuario_sesion');
-        const paginaActual = window.location.pathname;
+document.addEventListener("DOMContentLoaded", () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    let deptoUrl = urlParams.get('depto');
 
-        if (!usuarioSesion && !paginaActual.includes('login.html')) {
-            window.location.href = 'login.html';
-        } else if (usuarioSesion && paginaActual.includes('login.html')) {
-            window.location.href = 'index.html';
+    if (!deptoUrl) {
+        // Si la URL se limpió por el F5, lo rescatamos de la sesión
+        const deptoGuardado = sessionStorage.getItem('depto_activo');
+        if (deptoGuardado) {
+            // Restauramos la URL de forma limpia sin recargar de más la página
+            window.history.replaceState({}, '', `main.html?depto=${deptoGuardado}`);
+            // Ejecutamos la función que inicializa el submódulo de ese depto
+            if (typeof inicializarModuloDepto === 'function') {
+                inicializarModuloDepto(deptoGuardado);
+            }
         } else {
-            document.body.classList.add('auth-checked');
-
-            const labelUser = document.getElementById('user-display-name');
-            if (labelUser) {
-                labelUser.textContent = localStorage.getItem('session_userName') || 'Usuario';
-            }
-
-            if (!paginaActual.includes('login.html')) {
-                // Respaldamos la página actual en sessionStorage para evitar saltos raros al refrescar
-                sessionStorage.setItem('ultima_pagina_activa', paginaActual);
-                SistemaGlobal.init();
-            }
+            // Si de plano no hay registro, regresamos de forma segura al menú
+            window.location.href = 'index.html';
         }
+    } else {
+        // Si la URL sí tiene el depto, nos aseguramos de guardarlo en la sesión
+        sessionStorage.setItem('depto_activo', deptoUrl);
     }
-};
+});
 
 // ==========================================
 // 2. NÚCLEO CENTRAL DEL SISTEMA (CON CACHÉ Y FILTRO INICIAL)

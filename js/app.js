@@ -1,15 +1,23 @@
 // ==========================================
-// 1. CONTROLADOR DE AUTENTICACIÓN Y RUTA
+// 1. CONTROLADOR CON DEPURACIÓN EN CONSOLA
 // ==========================================
 const AuthGuard = {
     verificarAcceso: () => {
         const usuarioSesion = localStorage.getItem('usuario_sesion');
         const paginaActual = window.location.pathname;
         const queryActual = window.location.search;
+        const rutaCompletaActual = paginaActual + queryActual;
+
+        console.log("--- [AuthGuard Debug] ---");
+        console.log("Página actual (pathname):", paginaActual);
+        console.log("Query actual (search):", queryActual);
+        console.log("Última ruta guardada previa:", sessionStorage.getItem('ultima_ruta_completa'));
 
         if (!usuarioSesion && !paginaActual.includes('login.html')) {
+            console.warn("Redirigiendo a login: No hay sesión activa.");
             window.location.href = 'login.html';
         } else if (usuarioSesion && paginaActual.includes('login.html')) {
+            console.warn("Redirigiendo a index: Ya hay sesión activa.");
             window.location.href = 'index.html';
         } else {
             document.body.classList.add('auth-checked');
@@ -20,17 +28,16 @@ const AuthGuard = {
             }
 
             if (!paginaActual.includes('login.html')) {
-                const rutaCompleta = paginaActual + queryActual;
-                sessionStorage.setItem('ultima_ruta_activa', rutaCompleta);
-
-                console.log("[AuthGuard] Ubicación detectada:", rutaCompleta);
+                // Guardamos la ruta actual antes de hacer nada
+                sessionStorage.setItem('ultima_ruta_completa', rutaCompletaActual);
+                console.log("Guardando en sessionStorage:", rutaCompletaActual);
 
                 if (paginaActual.includes('index.html') || paginaActual.endsWith('/')) {
                     SistemaGlobal.init();
-                } else if (paginaActual.includes('main.html')) {
-                    const urlParams = new URLSearchParams(queryActual);
-                    const deptoActual = urlParams.get('depto') || sessionStorage.getItem('depto_activo') || 'desconocido';
-                    console.log(`[AuthGuard] Estás dentro del submódulo activo: ${deptoActual.toUpperCase()}`);
+                } else {
+                    // Verificamos si al recargar perdimos los parámetros o el estado
+                    const rutaGuardada = sessionStorage.getItem('ultima_ruta_completa');
+                    console.log("Ruta consolidada lista para operar:", rutaGuardada);
                 }
             }
         }
@@ -132,6 +139,7 @@ const SistemaGlobal = {
 
         this.renderizarFiltroCampos(todosLosCampos, claveRegUsuario);
 
+        // Búsqueda inteligente del campo inicial
         const camposDeLaRegional = todosLosCampos.filter(c => String(c.claveReg).trim() === claveRegUsuario);
         const depDelUsuarioLogueado = departamentosDeLaRegional.find(dep =>
             String(dep.nomCorDep).trim().toUpperCase() === areaUsuario ||
@@ -277,9 +285,6 @@ const SistemaGlobal = {
 
         const deptoKey = NomCorDep.toString().toLowerCase().trim().replace(/\s+/g, '');
         
-        // AQUÍ SE CAPTURA Y MUESTRA EN CONSOLA QUÉ SUBMÓDULO FUE SELECCIONADO AL DAR CLIC
-        console.log(`[Selección] El usuario dio clic y seleccionó el departamento:`, NomCorDep);
-
         // Guardamos el departamento activo en sessionStorage para respaldarlo ante un F5
         sessionStorage.setItem('depto_activo', deptoKey);
 
@@ -301,11 +306,12 @@ function seleccionarDepartamento(NomCorDep, elementoBtn) {
 }
 
 // ==========================================
-// 4. DISPARADOR ÚNICO DE INICIO Y RESTAURACIÓN F5
+// 4. DISPARADOR ÚNICO DE INICIO
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
     AuthGuard.verificarAcceso();
 
+    // Verificación automática de F5 / restauración si el usuario ya tenía un departamento activo seleccionado
     const deptoGuardado = sessionStorage.getItem('depto_activo');
     const urlParams = new URLSearchParams(window.location.search);
     if (!urlParams.get('depto') && deptoGuardado && window.location.pathname.includes('main.html')) {

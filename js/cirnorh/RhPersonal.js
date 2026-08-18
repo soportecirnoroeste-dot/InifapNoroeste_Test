@@ -134,7 +134,7 @@ function poblarSelectoresCascada(regActual = '', centroActual = '', sitActual = 
     const regsArray = Array.isArray(window._catRegs) ? window._catRegs : [];
     const regClean = (!regActual || regActual === '0' || regActual === 'N/A' || regActual === 0) ? '' : String(regActual).trim();
 
-    // DESCOMENTADO: Rellenar opciones de región
+    // 1. Poblamos la región
     selReg.innerHTML = `<option value="" disabled selected>Seleccione una región...</option>` + 
         regsArray.map(r => `<option value="${r.clave}">${r.clave} - ${r.nombre}</option>`).join('');
 
@@ -146,9 +146,10 @@ function poblarSelectoresCascada(regActual = '', centroActual = '', sitActual = 
 
     selReg.value = matchReg;
 
-    setTimeout(() => {
+    // 2. Usamos requestAnimationFrame para garantizar que el DOM renderizó la región antes de buscar el centro
+    requestAnimationFrame(() => {
         filtrarCentrosPorRegion(centroActual, sitActual);
-    }, 50);
+    });
 }
 
 function filtrarCentrosPorRegion(centroActual = '', sitActual = '') {
@@ -159,7 +160,6 @@ function filtrarCentrosPorRegion(centroActual = '', sitActual = '') {
     if (!selReg || !selCentro || !selSit) return;
     const regionSeleccionada = selReg.value;
 
-    // DESCOMENTADO: Limpiar e inicializar la opción por defecto del centro
     selCentro.innerHTML = `<option value="" disabled selected>Seleccione un centro...</option>`;
     selSit.innerHTML = `<option value="" disabled selected>Seleccione un sitio...</option>`;
 
@@ -181,9 +181,10 @@ function filtrarCentrosPorRegion(centroActual = '', sitActual = '') {
 
     selCentro.value = matchCentro;
 
-    setTimeout(() => {
+    // 3. Garantizamos la renderización antes de buscar el sitio
+    requestAnimationFrame(() => {
         filtrarSitiosPorCentro(sitActual);
-    }, 50);
+    });
 }
 
 function filtrarSitiosPorCentro(sitActual = '') {
@@ -193,7 +194,6 @@ function filtrarSitiosPorCentro(sitActual = '') {
     if (!selCentro || !selSit) return;
     const centroSeleccionado = selCentro.value;
 
-    // DESCOMENTADO: Limpiar e inicializar la opción por defecto del sitio
     selSit.innerHTML = `<option value="" disabled selected>Seleccione un sitio...</option>`;
 
     const sitiosArray = Array.isArray(window._catSitios) ? window._catSitios : [];

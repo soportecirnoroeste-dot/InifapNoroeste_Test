@@ -47,13 +47,16 @@ function obtenerContenedor() {
     return document.getElementById('app-container') || document.querySelector('main') || document.body;
 }
 
-// Enrutador para entrar a un submódulo
+// Enrutador para entrar a un submódulo y actualizar la URL
 function manejarAccionSeccion(idOpt) {
     const urlParams = new URLSearchParams(window.location.search);
     const deptoActual = urlParams.get('depto') || 'cirnorh';
 
     const nuevaUrl = `main.html?depto=${deptoActual}&seccion=${idOpt}`;
     window.history.replaceState({}, '', nuevaUrl);
+
+    // Guardamos en sessionStorage que estamos dentro de un submódulo activo
+    sessionStorage.setItem('submodulo_activo_cirnorh', idOpt);
 
     if (idOpt === 'personal') {
         if (typeof cargarPersonalRh === 'function') cargarPersonalRh(true);
@@ -70,8 +73,9 @@ function manejarAccionSeccion(idOpt) {
     }
 }
 
-// Función para limpiar la sección de la URL
+// Función para limpiar la sección de la URL cuando se regresa al menú principal
 function limpiarSeccionUrl() {
+    sessionStorage.removeItem('submodulo_activo_cirnorh');
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.has('seccion')) {
         const deptoActual = urlParams.get('depto') || 'cirnorh';
@@ -159,12 +163,11 @@ function renderizarVistaModulo(idOpt, descripcion, itemsIndice = []) {
     }
 }
 
-// Monitor global para detectar clics en el botón de "Regresar" del sistema y limpiar la URL automáticamente
+// Interceptor global de clics para detectar cualquier retorno al menú principal
 document.addEventListener('click', (event) => {
     const target = event.target.closest('button, a');
     if (!target) return;
 
-    // Detecta si el elemento corresponde al botón de regresar al menú del departamento
     const textoBoton = target.textContent || '';
     const idOClase = (target.id + ' ' + target.className).toLowerCase();
     
@@ -173,10 +176,19 @@ document.addEventListener('click', (event) => {
     }
 });
 
-// Autodetección inicial al cargar la página o hacer F5
+// Autodetección robusta al presionar F5 usando la URL o el indicador persistente de respaldo
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
-    const seccionEnUrl = urlParams.get('seccion');
+    let seccionEnUrl = urlParams.get('seccion');
+
+    // Si la URL no trae la sección pero la memoria interna sabe que estábamos dentro de un submódulo, restauramos con seguridad
+    if (!seccionEnUrl) {
+        seccionEnUrl = sessionStorage.getItem('submodulo_activo_cirnorh');
+        if (seccionEnUrl) {
+            const deptoActual = urlParams.get('depto') || 'cirnorh';
+            window.history.replaceState({}, '', `main.html?depto=${deptoActual}&seccion=${seccionEnUrl}`);
+        }
+    }
 
     if (seccionEnUrl) {
         manejarAccionSeccion(seccionEnUrl);

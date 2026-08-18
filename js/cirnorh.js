@@ -8,37 +8,37 @@ window.cirnorhConfig = {
             id: "personal", 
             title: "Personal", 
             icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 21a8 8 0 0 0-16 0"/><circle cx="10" cy="8" r="5"/><path d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3"/></svg>`, 
-            action: "cargarPersonalRh()" 
+            action: "manejarAccionSeccion('personal')" 
         },
         { 
             id: "asistencia", 
             title: "Asistencia", 
             icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 21a8 8 0 0 1 13.292-6"/><circle cx="10" cy="8" r="5"/><path d="m16 19 2 2 4-4"/></svg>`, 
-            action: "cargarAsistenciaRh()" 
+            action: "manejarAccionSeccion('asistencia')" 
         },
         { 
             id: "vacaciones", 
             title: "Vacaciones", 
             icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 11.134 18.196 21"/><path d="M20.425 5.299a10 10 0 0 0-16.941 9.78c.183.563.843.774 1.355.478L20.16 6.711c.512-.296.66-.973.264-1.413"/><path d="M21 21H3"/></svg>`, 
-            action: "cargarVacacionesRh()" 
+            action: "manejarAccionSeccion('vacaciones')" 
         },
         { 
             id: "capacitacion", 
             title: "Capacitación", 
             icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="18" x="3" y="3" rx="1"/><path d="M7 3v18"/><path d="M20.4 18.9c.2.5-.1 1.1-.6 1.3l-1.9.7c-.5.2-1.1-.1-1.3-.6L11.1 5.1c-.2-.5.1-1.1.6-1.3l1.9-.7c.5-.2 1.1.1 1.3.6Z"/></svg>`, 
-            action: "cargarCapacitacionRh()" 
+            action: "manejarAccionSeccion('capacitacion')" 
         },
         { 
             id: "expedientes", 
             title: "Expedientes", 
             icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></svg>`, 
-            action: "cargarExpedientesRh()" 
+            action: "manejarAccionSeccion('expedientes')" 
         },
         { 
             id: "generar-oficios", 
             title: "Generar Oficios", 
             icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>`, 
-            action: "cargarGenerarOficiosRh()" 
+            action: "manejarAccionSeccion('generar-oficios')" 
         }
     ]
 };
@@ -47,16 +47,34 @@ function obtenerContenedor() {
     return document.getElementById('app-container') || document.querySelector('main') || document.body;
 }
 
-// Funciones específicas con actualización de URL
-function cargarPersonalRh() {
-    actualizarUrlYRenderizar('personal', "Listado general y administración de expedientes de personal.", [
-        { titulo: "Directorio Activo", desc: "Consulta general de trabajadores y estatus." },
-        { titulo: "Altas y Bajas", desc: "Registro de movimientos de personal en el centro." }
-    ]);
+// Enrutador centralizado para actualizar la URL y disparar la función correspondiente
+function manejarAccionSeccion(idOpt) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const deptoActual = urlParams.get('depto') || 'cirnorh';
+
+    // Actualiza la URL limpiamente sin recargar la página
+    const nuevaUrl = `main.html?depto=${deptoActual}&seccion=${idOpt}`;
+    window.history.replaceState({}, '', nuevaUrl);
+
+    // Dispara la función específica de cada módulo
+    if (idOpt === 'personal') {
+        if (typeof cargarPersonalRh === 'function') cargarPersonalRh(true);
+    } else if (idOpt === 'asistencia') {
+        cargarAsistenciaRh();
+    } else if (idOpt === 'vacaciones') {
+        cargarVacacionesRh();
+    } else if (idOpt === 'capacitacion') {
+        cargarCapacitacionRh();
+    } else if (idOpt === 'expedientes') {
+        cargarExpedientesRh();
+    } else if (idOpt === 'generar-oficios') {
+        cargarGenerarOficiosRh();
+    }
 }
 
+// Funciones de índice para las demás secciones
 function cargarAsistenciaRh() {
-    actualizarUrlYRenderizar('asistencia', "Registro de retardos, faltas, permisos y justificantes.", [
+    renderizarVistaModulo('asistencia', "Registro de retardos, faltas, permisos y justificantes.", [
         { titulo: "Control de Retardos", desc: "Monitoreo y acumulación quincenal de entradas tarde." },
         { titulo: "Justificantes Médicos", desc: "Carga y validación de incapacidades o permisos oficiales." },
         { titulo: "Reporte de Asistencia", desc: "Generación de listas de asistencia globales por centro." }
@@ -64,7 +82,7 @@ function cargarAsistenciaRh() {
 }
 
 function cargarVacacionesRh() {
-    actualizarUrlYRenderizar('vacaciones', "Calendario de descansos y control de días económicos disponibles.", [
+    renderizarVistaModulo('vacaciones', "Calendario de descansos y control de días económicos disponibles.", [
         { titulo: "Solicitud de Vacaciones", desc: "Formulario para periodos vacacionales del trabajador." },
         { titulo: "Días Económicos", desc: "Consulta de saldos y días disfrutados en el año en curso." },
         { titulo: "Calendario General", desc: "Vista general de ausencias programadas por área." }
@@ -72,36 +90,24 @@ function cargarVacacionesRh() {
 }
 
 function cargarCapacitacionRh() {
-    actualizarUrlYRenderizar('capacitacion', "Cursos, talleres y constancias de desarrollo profesional para el personal.", [
+    renderizarVistaModulo('capacitacion', "Cursos, talleres y constancias de desarrollo profesional para el personal.", [
         { titulo: "Catálogo de Cursos", desc: "Inscripciones a talleres internos y externos." },
         { titulo: "Historial de Constancias", desc: "Registro de acreditaciones y diplomas obtenidos." }
     ]);
 }
 
 function cargarExpedientesRh() {
-    actualizarUrlYRenderizar('expedientes', "Documentación oficial, contratos y resguardos de los trabajadores.", [
+    renderizarVistaModulo('expedientes', "Documentación oficial, contratos y resguardos de los trabajadores.", [
         { titulo: "Documentos Digitales", desc: "Actas de nacimiento, CURP, INE y comprobantes." },
         { titulo: "Contratos y Nombramientos", desc: "Historial laboral y vigencia de contratos." }
     ]);
 }
 
 function cargarGenerarOficiosRh() {
-    actualizarUrlYRenderizar('generar-oficios', "Elaboración de constancias laborales, comisiones y avisos internos.", [
+    renderizarVistaModulo('generar-oficios', "Elaboración de constancias laborales, comisiones y avisos internos.", [
         { titulo: "Constancias Laborales", desc: "Generación de cartas de antigüedad y sueldos." },
         { titulo: "Oficios de Comisión", desc: "Autorización de viáticos y traslados oficiales." }
     ]);
-}
-
-// Función central para inyectar el parámetro 'seccion' en la URL y pintar la vista
-function actualizarUrlYRenderizar(idOpt, descripcion, itemsIndice = []) {
-    const urlParams = new URLSearchParams(window.location.search);
-    const deptoActual = urlParams.get('depto') || 'cirnorh';
-
-    // Modifica la URL actual agregando o actualizando ?depto=...&seccion=... sin recargar la página
-    const nuevaUrl = `main.html?depto=${deptoActual}&seccion=${idOpt}`;
-    window.history.replaceState({}, '', nuevaUrl);
-
-    renderizarVistaModulo(idOpt, descripcion, itemsIndice);
 }
 
 function renderizarVistaModulo(idOpt, descripcion, itemsIndice = []) {
@@ -137,7 +143,7 @@ function renderizarVistaModulo(idOpt, descripcion, itemsIndice = []) {
                     </div>
                 </div>
 
-                <div id="contenido-submodulo-dinamico" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                <div id="contenido-submodulo-dinamico" class="${idOpt === 'personal' ? 'w-full space-y-6' : 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4'}">
                     ${htmlTarjetasIndice}
                 </div>
             </section>
@@ -145,16 +151,12 @@ function renderizarVistaModulo(idOpt, descripcion, itemsIndice = []) {
     }
 }
 
-// Autodetección al cargar o hacer F5: Lee la URL y despliega la sección exacta
+// Autodetección al recargar (F5): Lee la URL y ejecuta exactamente la sección guardada
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const seccionEnUrl = urlParams.get('seccion');
 
     if (seccionEnUrl) {
-        const opcionEncontrada = window.cirnorhConfig.options.find(o => o.id === seccionEnUrl);
-        if (opcionEncontrada && opcionEncontrada.action) {
-            // Ejecuta de forma automática la función correspondiente basada en la URL tras un F5
-            eval(opcionEncontrada.action);
-        }
+        manejarAccionSeccion(seccionEnUrl);
     }
 });

@@ -47,16 +47,14 @@ function obtenerContenedor() {
     return document.getElementById('app-container') || document.querySelector('main') || document.body;
 }
 
-// Enrutador centralizado para actualizar la URL y disparar la función correspondiente
+// Enrutador para entrar a un submódulo
 function manejarAccionSeccion(idOpt) {
     const urlParams = new URLSearchParams(window.location.search);
     const deptoActual = urlParams.get('depto') || 'cirnorh';
 
-    // Actualiza la URL limpiamente sin recargar la página
     const nuevaUrl = `main.html?depto=${deptoActual}&seccion=${idOpt}`;
     window.history.replaceState({}, '', nuevaUrl);
 
-    // Dispara la función específica de cada módulo
     if (idOpt === 'personal') {
         if (typeof cargarPersonalRh === 'function') cargarPersonalRh(true);
     } else if (idOpt === 'asistencia') {
@@ -70,6 +68,16 @@ function manejarAccionSeccion(idOpt) {
     } else if (idOpt === 'generar-oficios') {
         cargarGenerarOficiosRh();
     }
+}
+
+// Función para limpiar la sección de la URL cuando regresas al menú principal del departamento
+function limpiarSeccionUrl() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const deptoActual = urlParams.get('depto') || 'cirnorh';
+    
+    // Deja únicamente el parámetro del departamento, barriendo el de sección
+    const nuevaUrl = `main.html?depto=${deptoActual}`;
+    window.history.replaceState({}, '', nuevaUrl);
 }
 
 // Funciones de índice para las demás secciones
@@ -151,12 +159,15 @@ function renderizarVistaModulo(idOpt, descripcion, itemsIndice = []) {
     }
 }
 
-// Autodetección al recargar (F5): Lee la URL y ejecuta exactamente la sección guardada
+// Autodetección al cargar o hacer F5
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const seccionEnUrl = urlParams.get('seccion');
 
     if (seccionEnUrl) {
         manejarAccionSeccion(seccionEnUrl);
+    } else {
+        // Si no hay sección en la URL, aseguramos limpiar cualquier rastro anterior
+        limpiarSeccionUrl();
     }
 });

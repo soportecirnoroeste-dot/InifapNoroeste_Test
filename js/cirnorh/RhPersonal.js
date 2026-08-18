@@ -264,34 +264,6 @@ function filtrarCentrosPorRegion(centroActual = '', sitActual = '') {
     });
 }
 
-function filtrarSitiosPorCentro(sitActual = '') {
-    const selCentro = document.getElementById('select-claveCentro');
-    const selSit = document.getElementById('select-claveSit');
-    
-    if (!selCentro || !selSit) return;
-    const centroSeleccionado = selCentro.value;
-
-    selSit.innerHTML = `<option value="" disabled selected>Seleccione un sitio...</option>`;
-
-    const sitiosArray = Array.isArray(window._catSitios) ? window._catSitios : [];
-
-    if (centroSeleccionado) {
-        const sitiosFiltrados = sitiosArray.filter(s => String(s.claveCentro).trim() === String(centroSeleccionado).trim());
-        selSit.innerHTML += sitiosFiltrados.map(s => 
-            `<option value="${s.clave}">${s.clave} - ${s.nombre}</option>`
-        ).join('');
-    }
-
-    const sitClean = (!sitActual || sitActual === '0' || sitActual === 'N/A' || sitActual === 0) ? '' : String(sitActual).trim();
-    let matchSit = "";
-    if (sitClean !== "") {
-        const encontrada = sitiosArray.find(s => String(s.clave).trim().toLowerCase() === sitClean.toLowerCase());
-        if (encontrada) matchSit = encontrada.clave;
-    }
-
-    selSit.value = matchSit;
-}
-
 async function mostrarFormularioNuevoPersonal() {
     const formContainer = document.getElementById('contenedor-formulario-personal');
     const gestionContainer = document.getElementById('contenedor-gestion-personal');

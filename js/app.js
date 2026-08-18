@@ -30,14 +30,7 @@ const AuthGuard = {
                 } else if (paginaActual.includes('main.html')) {
                     const urlParams = new URLSearchParams(queryActual);
                     const deptoActual = urlParams.get('depto') || sessionStorage.getItem('depto_activo') || 'desconocido';
-                    
-                    // Si quieres que el mensaje de la consola sea totalmente personalizado o diga "Personal" cuando sea cirnorh:
-                    let nombreMostrado = deptoActual.toUpperCase();
-                    if (nombreMostrado === 'CIRNORH') {
-                        nombreMostrado = 'Personal / Recursos Humanos';
-                    }
-
-                    console.log(`[AuthGuard] Estás dentro del submódulo: ${nombreMostrado}. Manteniendo estado actual.`);
+                    console.log(`[AuthGuard] Estás dentro del submódulo activo: ${deptoActual.toUpperCase()}`);
                 }
             }
         }
@@ -139,7 +132,6 @@ const SistemaGlobal = {
 
         this.renderizarFiltroCampos(todosLosCampos, claveRegUsuario);
 
-        // Búsqueda inteligente del campo inicial
         const camposDeLaRegional = todosLosCampos.filter(c => String(c.claveReg).trim() === claveRegUsuario);
         const depDelUsuarioLogueado = departamentosDeLaRegional.find(dep =>
             String(dep.nomCorDep).trim().toUpperCase() === areaUsuario ||
@@ -285,6 +277,9 @@ const SistemaGlobal = {
 
         const deptoKey = NomCorDep.toString().toLowerCase().trim().replace(/\s+/g, '');
         
+        // AQUÍ SE CAPTURA Y MUESTRA EN CONSOLA QUÉ SUBMÓDULO FUE SELECCIONADO AL DAR CLIC
+        console.log(`[Selección] El usuario dio clic y seleccionó el departamento:`, NomCorDep);
+
         // Guardamos el departamento activo en sessionStorage para respaldarlo ante un F5
         sessionStorage.setItem('depto_activo', deptoKey);
 
@@ -311,7 +306,6 @@ function seleccionarDepartamento(NomCorDep, elementoBtn) {
 document.addEventListener('DOMContentLoaded', () => {
     AuthGuard.verificarAcceso();
 
-    // Verificación automática de F5 / restauración si el usuario ya tenía un departamento activo seleccionado
     const deptoGuardado = sessionStorage.getItem('depto_activo');
     const urlParams = new URLSearchParams(window.location.search);
     if (!urlParams.get('depto') && deptoGuardado && window.location.pathname.includes('main.html')) {

@@ -33,23 +33,23 @@ function cargarPersonalRh(cargarLista = true) {
             </h5>
             <form id="form-nuevo-personal" onsubmit="guardarOActualizarPersonal(event)" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
                 
-                <!-- Selectores dinámicos con eventos en cascada -->
+                <!-- Selectores dinámicos en cascada sin opción N/A -->
                 <div>
                     <label class="block font-bold text-stone-700 mb-1">Clave Reg:</label>
                     <select name="claveReg" id="select-claveReg" onchange="filtrarCentrosPorRegion()" required class="w-full p-2.5 border border-stone-300 rounded-lg bg-white focus:outline-none focus:border-[#249444]">
-                        <option value="0">N/A</option>
+                        <option value="" disabled selected>Seleccione una región...</option>
                     </select>
                 </div>
                 <div>
                     <label class="block font-bold text-stone-700 mb-1">Clave Centro:</label>
                     <select name="claveCentro" id="select-claveCentro" onchange="filtrarSitiosPorCentro()" required class="w-full p-2.5 border border-stone-300 rounded-lg bg-white focus:outline-none focus:border-[#249444]">
-                        <option value="0">N/A</option>
+                        <option value="" disabled selected>Seleccione un centro...</option>
                     </select>
                 </div>
                 <div>
                     <label class="block font-bold text-stone-700 mb-1">Clave Sitio:</label>
                     <select name="claveSit" id="select-claveSit" required class="w-full p-2.5 border border-stone-300 rounded-lg bg-white focus:outline-none focus:border-[#249444]">
-                        <option value="0">N/A</option>
+                        <option value="" disabled selected>Seleccione un sitio...</option>
                     </select>
                 </div>
                 
@@ -126,21 +126,19 @@ async function cargarCatalogosSheets() {
     }
 }
 
-// Funciones de Cascada mejoradas para hacer match tanto por clave como por nombre/texto
-function poblarSelectoresCascada(regActual = '0', centroActual = '0', sitActual = '0') {
+// Funciones de Cascada ajustadas sin opción N/A
+function poblarSelectoresCascada(regActual = '', centroActual = '', sitActual = '') {
     const selReg = document.getElementById('select-claveReg');
     if (!selReg) return;
 
     const regsArray = Array.isArray(window._catRegs) ? window._catRegs : [];
-    
-    // Si viene 0, vacío o N/A, asignamos '0'
-    const regClean = (!regActual || regActual === '0' || regActual === 'N/A' || regActual === 0) ? '0' : String(regActual).trim();
+    const regClean = (!regActual || regActual === '0' || regActual === 'N/A' || regActual === 0) ? '' : String(regActual).trim();
 
-    selReg.innerHTML = `<option value="0">N/A</option>` + 
+    selReg.innerHTML = `<option value="" disabled selected>Seleccione una región...</option>` + 
         regsArray.map(r => `<option value="${r.clave}">${r.clave} - ${r.nombre}</option>`).join('');
 
-    let matchReg = "0";
-    if (regClean !== "0") {
+    let matchReg = "";
+    if (regClean !== "") {
         const encontrada = regsArray.find(r => String(r.clave).trim().toLowerCase() === regClean.toLowerCase());
         if (encontrada) matchReg = encontrada.clave;
     }
@@ -149,7 +147,7 @@ function poblarSelectoresCascada(regActual = '0', centroActual = '0', sitActual 
     filtrarCentrosPorRegion(centroActual, sitActual);
 }
 
-function filtrarCentrosPorRegion(centroActual = '0', sitActual = '0') {
+function filtrarCentrosPorRegion(centroActual = '', sitActual = '') {
     const selReg = document.getElementById('select-claveReg');
     const selCentro = document.getElementById('select-claveCentro');
     const selSit = document.getElementById('select-claveSit');
@@ -157,21 +155,21 @@ function filtrarCentrosPorRegion(centroActual = '0', sitActual = '0') {
     if (!selReg || !selCentro || !selSit) return;
     const regionSeleccionada = selReg.value;
 
-    selCentro.innerHTML = `<option value="0">N/A</option>`;
-    selSit.innerHTML = `<option value="0">N/A</option>`;
+    selCentro.innerHTML = `<option value="" disabled selected>Seleccione un centro...</option>`;
+    selSit.innerHTML = `<option value="" disabled selected>Seleccione un sitio...</option>`;
 
     const centrosArray = Array.isArray(window._catCentros) ? window._catCentros : [];
 
-    if (regionSeleccionada !== "0") {
+    if (regionSeleccionada) {
         const centrosFiltrados = centrosArray.filter(c => String(c.claveReg).trim() === String(regionSeleccionada).trim());
         selCentro.innerHTML += centrosFiltrados.map(c => 
             `<option value="${c.clave}">${c.clave} - ${c.nombre}</option>`
         ).join('');
     }
 
-    const centroClean = (!centroActual || centroActual === '0' || centroActual === 'N/A' || centroActual === 0) ? '0' : String(centroActual).trim();
-    let matchCentro = "0";
-    if (centroClean !== "0") {
+    const centroClean = (!centroActual || centroActual === '0' || centroActual === 'N/A' || centroActual === 0) ? '' : String(centroActual).trim();
+    let matchCentro = "";
+    if (centroClean !== "") {
         const encontrada = centrosArray.find(c => String(c.clave).trim().toLowerCase() === centroClean.toLowerCase());
         if (encontrada) matchCentro = encontrada.clave;
     }
@@ -180,27 +178,27 @@ function filtrarCentrosPorRegion(centroActual = '0', sitActual = '0') {
     filtrarSitiosPorCentro(sitActual);
 }
 
-function filtrarSitiosPorCentro(sitActual = '0') {
+function filtrarSitiosPorCentro(sitActual = '') {
     const selCentro = document.getElementById('select-claveCentro');
     const selSit = document.getElementById('select-claveSit');
     
     if (!selCentro || !selSit) return;
     const centroSeleccionado = selCentro.value;
 
-    selSit.innerHTML = `<option value="0">N/A</option>`;
+    selSit.innerHTML = `<option value="" disabled selected>Seleccione un sitio...</option>`;
 
     const sitiosArray = Array.isArray(window._catSitios) ? window._catSitios : [];
 
-    if (centroSeleccionado !== "0") {
+    if (centroSeleccionado) {
         const sitiosFiltrados = sitiosArray.filter(s => String(s.claveCentro).trim() === String(centroSeleccionado).trim());
         selSit.innerHTML += sitiosFiltrados.map(s => 
             `<option value="${s.clave}">${s.clave} - ${s.nombre}</option>`
         ).join('');
     }
 
-    const sitClean = (!sitActual || sitActual === '0' || sitActual === 'N/A' || sitActual === 0) ? '0' : String(sitActual).trim();
-    let matchSit = "0";
-    if (sitClean !== "0") {
+    const sitClean = (!sitActual || sitActual === '0' || sitActual === 'N/A' || sitActual === 0) ? '' : String(sitActual).trim();
+    let matchSit = "";
+    if (sitClean !== "") {
         const encontrada = sitiosArray.find(s => String(s.clave).trim().toLowerCase() === sitClean.toLowerCase());
         if (encontrada) matchSit = encontrada.clave;
     }
@@ -223,7 +221,7 @@ async function mostrarFormularioNuevoPersonal() {
             await cargarCatalogosSheets();
         }
 
-        poblarSelectoresCascada('0', '0', '0'); 
+        poblarSelectoresCascada('', '', ''); 
         inputNumEmp.removeAttribute('readonly');
         titulo.innerHTML = `Capturar Nuevo Empleado`;
         formContainer.classList.remove('hidden');
@@ -291,24 +289,15 @@ function renderizarTablaPersonal(registros) {
 
 async function seleccionarEmpleadoParaEditar(index) {
     const emp = window._empleadosCache[index];
-    console.log("--- 🕵️ RASTREO DE EMPLEADO [Índice:", index, "] ---");
-    console.log("Objeto empleado completo:", emp);
-    console.log("Catálogo Regiones en memoria:", window._catRegs);
-    console.log("Catálogo Centros en memoria:", window._catCentros);
-    console.log("Catálogo Sitios en memoria:", window._catSitios);
-
     if (!emp) {
         console.error("❌ No se encontró el empleado en _empleadosCache");
         return;
     }
 
-    // 1. Aseguramos catálogos
     if (!window._catRegs || !window._catRegs.length || !window._catCentros || !window._catCentros.length || !window._catSitios || !window._catSitios.length) {
-        console.log("⚠️ Catálogos vacíos detectados, descargando...");
         await cargarCatalogosSheets();
     }
 
-    // 2. Renderizamos formulario
     cargarPersonalRh(false);
 
     const form = document.getElementById('form-nuevo-personal');
@@ -319,20 +308,12 @@ async function seleccionarEmpleadoParaEditar(index) {
     const inputNumEmp = document.getElementById('input-numEmp');
 
     if (formContainer && form) {
-        const limpiarValor = (val) => (!val || val === 0 || val === '0' || String(val).trim() === '') ? 'N/A' : val;
+        const limpiarValor = (val) => (!val || val === 0 || val === '0' || String(val).trim() === '') ? '' : val;
 
-        // Extraemos las propiedades tal como vienen en tu objeto del Sheet
-        console.log("Valores crudos -> claveReg:", emp.claveReg, "| textoReg:", emp.textoReg);
-        console.log("Valores crudos -> claveCentro:", emp.claveCentro, "| textoCentro:", emp.textoCentro);
-        console.log("Valores crudos -> claveSit:", emp.claveSit, "| textoSit:", emp.textoSit);
+        const regVal = emp.textoReg || emp.claveReg || '';
+        const centroVal = emp.textoCentro || emp.claveCentro || '';
+        const sitVal = emp.textoSit || emp.claveSit || '';
 
-        const regVal = emp.textoReg || emp.claveReg || '0';
-        const centroVal = emp.textoCentro || emp.claveCentro || '0';
-        const sitVal = emp.textoSit || emp.claveSit || '0';
-
-        console.log("Valores seleccionados para la cascada -> Reg:", regVal, "| Centro:", centroVal, "| Sitio:", sitVal);
-
-        // 3. Poblamos selectores
         poblarSelectoresCascada(regVal, centroVal, sitVal);
 
         form.elements['numEmp'].value = limpiarValor(emp.numEmp);

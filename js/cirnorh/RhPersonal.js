@@ -134,8 +134,7 @@ function poblarSelectoresCascada(regActual = '', centroActual = '', sitActual = 
     const regsArray = Array.isArray(window._catRegs) ? window._catRegs : [];
     const regClean = (!regActual || regActual === '0' || regActual === 'N/A' || regActual === 0) ? '' : String(regActual).trim();
 
-    //selReg.innerHTML = `<option value="" disabled selected>Seleccione una región...</option>` + 
-      //  regsArray.map(r => `<option value="${r.clave}">${r.clave} - ${r.nombre}</option>`).join('');
+    //selReg.innerHTML = `<option value="" disabled selected>Seleccione una región...</option>` + regsArray.map(r => `<option value="${r.clave}">${r.clave} - ${r.nombre}</option>`).join('');
 
     let matchReg = "";
     if (regClean !== "") {
@@ -159,7 +158,7 @@ function filtrarCentrosPorRegion(centroActual = '', sitActual = '') {
     if (!selReg || !selCentro || !selSit) return;
     const regionSeleccionada = selReg.value;
 
-    selCentro.innerHTML = `<option value="" disabled selected>Seleccione un centro...</option>`;
+   // selCentro.innerHTML = `<option value="" disabled selected>Seleccione un centro...</option>`;
     selSit.innerHTML = `<option value="" disabled selected>Seleccione un sitio...</option>`;
 
     const centrosArray = Array.isArray(window._catCentros) ? window._catCentros : [];
@@ -192,7 +191,7 @@ function filtrarSitiosPorCentro(sitActual = '') {
     if (!selCentro || !selSit) return;
     const centroSeleccionado = selCentro.value;
 
-    selSit.innerHTML = `<option value="" disabled selected>Seleccione un sitio...</option>`;
+   // selSit.innerHTML = `<option value="" disabled selected>Seleccione un sitio...</option>`;
 
     const sitiosArray = Array.isArray(window._catSitios) ? window._catSitios : [];
 

@@ -131,7 +131,7 @@ function renderizarVistaModulo(idOpt, descripcion, itemsIndice = []) {
     const nombreCortoActual = localStorage.getItem('depto_activo_actual') || 'cirnorh';
     const configActual = window[nombreCortoActual + 'Config'];
     const opt = configActual ? configActual.options.find(o => o.id === idOpt) : null;
-    const contenedor = document.getElementById('app-container');
+    const contenedor = obtenerContenedor();
     
     if (contenedor && opt) {
         if (typeof window.actualizarBotonRegresar === 'function') {
@@ -181,8 +181,7 @@ document.addEventListener('click', (event) => {
     }
 });
 
-// Autodetección al presionar F5 usando un pequeño retraso (setTimeout) 
-// para garantizar que el menú principal termine de montar y nuestro submódulo lo sobrescriba correctamente.
+// Autodetección al presionar F5
 window.addEventListener('load', () => {
     const urlParams = new URLSearchParams(window.location.search);
     let seccionEnUrl = urlParams.get('seccion') || sessionStorage.getItem('submodulo_activo_cirnorh');
@@ -192,7 +191,6 @@ window.addEventListener('load', () => {
         window.history.replaceState({}, '', `main.html?depto=${deptoActual}&seccion=${seccionEnUrl}`);
         sessionStorage.setItem('submodulo_activo_cirnorh', seccionEnUrl);
 
-        // Damos un respiro de 150ms para que el script general pinte el menú y nosotros lo reemplacemos directo con el submódulo
         setTimeout(() => {
             ejecutarCargaSeccion(seccionEnUrl);
         }, 150);

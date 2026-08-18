@@ -309,13 +309,12 @@ async function seleccionarEmpleadoParaEditar(index) {
         return;
     }
 
-    // 1. PRIMERO nos aseguramos de esperar a que los catálogos bajen completamente de Google Sheets
+    // 1. Aseguramos catálogos en memoria
     if (!window._catRegs || !window._catRegs.length || !window._catCentros || !window._catCentros.length || !window._catSitios || !window._catSitios.length) {
-        console.log("⚠️ Catálogos vacíos detectados, esperando descarga...");
         await cargarCatalogosSheets();
     }
 
-    // 2. DESPUÉS renderizamos el formulario en el DOM ya con los datos seguros en memoria
+    // 2. Renderizamos formulario
     cargarPersonalRh(false);
 
     const form = document.getElementById('form-nuevo-personal');
@@ -328,11 +327,12 @@ async function seleccionarEmpleadoParaEditar(index) {
     if (formContainer && form) {
         const limpiarValor = (val) => (!val || val === 0 || val === '0' || String(val).trim() === '') ? 'N/A' : val;
 
-        const regVal = emp.textoReg || emp.claveReg || '0';
-        const centroVal = emp.textoCentro || emp.claveCentro || '0';
-        const sitVal = emp.textoSit || emp.claveSit || '0';
+        // Capturamos con respaldo por si el nombre de la propiedad varía
+        const regVal = emp.textoReg || emp.region || emp.claveReg || '0';
+        const centroVal = emp.textoCentro || emp.centro || emp.claveCentro || '0';
+        const sitVal = emp.textoSit || emp.sitio || emp.claveSit || '0';
 
-        // 3. FINALMENTE poblamos la cascada sabiendo que los selectores y catálogos ya existen
+        // 3. Poblamos los selectores en cascada con los valores correctos
         poblarSelectoresCascada(regVal, centroVal, sitVal);
 
         form.elements['numEmp'].value = limpiarValor(emp.numEmp);

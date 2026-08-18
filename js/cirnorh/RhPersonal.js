@@ -153,11 +153,7 @@ async function cargarCatalogosSheets() {
             window._catSitios = Array.from(sitiosMap.values());
         }
 
-        console.log("Catálogos listos:", {
-            regs: window._catRegs.length,
-            centros: window._catCentros.length,
-            sitios: window._catSitios.length
-        });
+        
     } catch (error) {
         console.error("Error al cargar catálogos:", error);
     }
@@ -232,7 +228,6 @@ function poblarSelectoresCascada(regActual = '', centroActual = '', sitActual = 
     }
 
     selReg.value = matchReg;
-    console.log("Región seleccionada intentada:", regClean, "-> Match encontrado:", matchReg);
 
     filtrarCentrosPorRegion(centroActual, sitActual);
 }
@@ -392,7 +387,6 @@ async function seleccionarEmpleadoParaEditar(index) {
         let rawSit = extraerClave(emp.claveSit || emp.textoSit);
         const sitVal = (!rawSit || rawSit === 0 || rawSit === '0' || String(rawSit).trim().toUpperCase() === 'N/A') ? 'N/A' : rawSit;
         
-        console.warn(sitVal);
         // 3. Poblamos los selectores ya con los datos seguros en memoria
         poblarSelectoresCascada(regVal, centroVal, sitVal);
 

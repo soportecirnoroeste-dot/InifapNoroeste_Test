@@ -1,23 +1,15 @@
 // ==========================================
-// 1. CONTROLADOR CON DEPURACIÓN EN CONSOLA
+// 1. CONTROLADOR DE AUTENTICACIÓN Y RUTA
 // ==========================================
 const AuthGuard = {
     verificarAcceso: () => {
         const usuarioSesion = localStorage.getItem('usuario_sesion');
         const paginaActual = window.location.pathname;
         const queryActual = window.location.search;
-        const rutaCompletaActual = paginaActual + queryActual;
-
-        console.log("--- [AuthGuard Debug] ---");
-        console.log("Página actual (pathname):", paginaActual);
-        console.log("Query actual (search):", queryActual);
-        console.log("Última ruta guardada previa:", sessionStorage.getItem('ultima_ruta_completa'));
 
         if (!usuarioSesion && !paginaActual.includes('login.html')) {
-            console.warn("Redirigiendo a login: No hay sesión activa.");
             window.location.href = 'login.html';
         } else if (usuarioSesion && paginaActual.includes('login.html')) {
-            console.warn("Redirigiendo a index: Ya hay sesión activa.");
             window.location.href = 'index.html';
         } else {
             document.body.classList.add('auth-checked');
@@ -28,22 +20,35 @@ const AuthGuard = {
             }
 
             if (!paginaActual.includes('login.html')) {
-                // Guardamos la ruta actual antes de hacer nada
-                sessionStorage.setItem('ultima_ruta_completa', rutaCompletaActual);
-                console.log("Guardando en sessionStorage:", rutaCompletaActual);
+                // Guardamos la ruta exacta actual (incluyendo subdirectorio y parámetros)
+                const rutaCompleta = paginaActual + queryActual;
+                sessionStorage.setItem('ultima_ruta_activa', rutaCompleta);
 
+                console.log("[AuthGuard] Ubicación detectada:", rutaCompleta);
+
+                // Validamos en qué sección estamos exactamente
                 if (paginaActual.includes('index.html') || paginaActual.endsWith('/')) {
+                    // Estamos en el menú principal
                     SistemaGlobal.init();
-                } else {
-                    // Verificamos si al recargar perdimos los parámetros o el estado
-                    const rutaGuardada = sessionStorage.getItem('ultima_ruta_completa');
-                    console.log("Ruta consolidada lista para operar:", rutaGuardada);
+                } else if (paginaActual.includes('main.html')) {
+                    // Estamos dentro de un submódulo/departamento (ej. cirnorh)
+                    console.log("[AuthGuard] Estás dentro de un submódulo, manteniendo estado actual.");
+                    // Aquí puedes inicializar las funciones específicas de los submódulos si las hay, 
+                    // asegurando que no ejecute lógica del index.html
                 }
             }
         }
     }
 };
 
+// ==========================================
+// 2. DISPARADOR GENERAL AL CARGAR LA PÁGINA
+// ==========================================
+document.addEventListener('DOMContentLoaded', () => {
+    if (typeof AuthGuard !== 'undefined' && typeof AuthGuard.verificarAcceso === 'function') {
+        AuthGuard.verificarAcceso();
+    }
+});
 // ==========================================
 // 2. NÚCLEO CENTRAL DEL SISTEMA (CON CACHÉ Y FILTRO INICIAL)
 // ==========================================

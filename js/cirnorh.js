@@ -77,6 +77,7 @@ function limpiarSeccionUrl() {
     
     // Deja únicamente el parámetro del departamento, barriendo el de sección
     const nuevaUrl = `main.html?depto=${deptoActual}`;
+    console.warn(nuevaUrl);
     window.history.replaceState({}, '', nuevaUrl);
 }
 
@@ -168,6 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
         manejarAccionSeccion(seccionEnUrl);
     } else {
         // Si no hay sección en la URL, aseguramos limpiar cualquier rastro anterior
+        console.warn(seccionEnUrl);
         limpiarSeccionUrl();
     }
 });

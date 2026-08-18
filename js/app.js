@@ -32,23 +32,18 @@ const AuthGuard = {
                     SistemaGlobal.init();
                 } else if (paginaActual.includes('main.html')) {
                     // Estamos dentro de un submódulo/departamento (ej. cirnorh)
-                    console.log("[AuthGuard] Estás dentro de un submódulo, manteniendo estado actual.");
-                    // Aquí puedes inicializar las funciones específicas de los submódulos si las hay, 
-                    // asegurando que no ejecute lógica del index.html
+                    const urlParams = new URLSearchParams(queryActual);
+                    const deptoActual = urlParams.get('depto') || sessionStorage.getItem('depto_activo') || 'desconocido';
+                    
+                    console.log(`[AuthGuard] Estás dentro del submódulo: ${deptoActual.toUpperCase()}. Manteniendo estado actual.`);
+                    
+                    // Aquí puedes inicializar lógica específica del submódulo si lo requieres tras el F5
                 }
             }
         }
     }
 };
 
-// ==========================================
-// 2. DISPARADOR GENERAL AL CARGAR LA PÁGINA
-// ==========================================
-document.addEventListener('DOMContentLoaded', () => {
-    if (typeof AuthGuard !== 'undefined' && typeof AuthGuard.verificarAcceso === 'function') {
-        AuthGuard.verificarAcceso();
-    }
-});
 // ==========================================
 // 2. NÚCLEO CENTRAL DEL SISTEMA (CON CACHÉ Y FILTRO INICIAL)
 // ==========================================
@@ -311,7 +306,7 @@ function seleccionarDepartamento(NomCorDep, elementoBtn) {
 }
 
 // ==========================================
-// 4. DISPARADOR ÚNICO DE INICIO
+// 4. DISPARADOR ÚNICO DE INICIO Y RESTAURACIÓN F5
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
     AuthGuard.verificarAcceso();

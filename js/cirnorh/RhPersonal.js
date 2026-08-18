@@ -242,103 +242,18 @@ function ocultarFormularioPersonal() {
     if (listadoContainer) listadoContainer.classList.remove('hidden');
 }
 
-// 1. Corrección para asegurar la lectura correcta de los catálogos
-async function cargarCatalogosSheets() {
-    console.log("📥 Iniciando descarga de catálogos desde Sheets...");
+async function cargarDatosPersonalSheets() {
+    const tbody = document.getElementById('tabla-personal-body');
+    if (!tbody) return;
+
+    tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-stone-400 italic">Sincronizando...</td></tr>`;
+
     try {
-        const [regs, centros, sitios] = await Promise.all([
-            FetchAPI('obtenerRegiones').catch(() => []),
-            FetchAPI('obtenerCentros').catch(() => []),
-            FetchAPI('obtenerSitios').catch(() => [])
-        ]);
-
-        // Extraemos el arreglo de donde sea que venga (directo, en .data o en .resultado)
-        const extraerArray = (res) => {
-            if (Array.isArray(res)) return res;
-            if (res && Array.isArray(res.data)) return res.data;
-            if (res && Array.isArray(res.resultado)) return res.resultado;
-            if (res && Array.isArray(res.list)) return res.list;
-            return [];
-        };
-
-        window._catRegs = extraerArray(regs);
-        window._catCentros = extraerArray(centros);
-        window._catSitios = extraerArray(sitios);
-
-        console.log("📂 Catálogos procesados en memoria:", {
-            regiones: window._catRegs.length,
-            centros: window._catCentros.length,
-            sitios: window._catSitios.length
-        });
+        const data = await FetchAPI('obtenerPersonal');
+        window._empleadosCache = data || [];
+        renderizarTablaPersonal(window._empleadosCache);
     } catch (error) {
-        console.error("❌ Error crítico al cargar catálogos:", error);
-        window._catRegs = [];
-        window._catCentros = [];
-        window._catSitios = [];
-    }
-}
-
-// 2. Corrección en la función de edición para buscar por número de empleado si el índice falla
-async function seleccionarEmpleadoParaEditar(indexOrNumEmp) {
-    if (!window._empleadosCache || !window._empleadosCache.length) {
-        console.error("❌ El caché de empleados está vacío.");
-        return;
-    }
-
-    // Buscamos por índice o por número de empleado para evitar que falle
-    let emp = window._empleadosCache[indexOrNumEmp];
-    if (!emp) {
-        emp = window._empleadosCache.find(e => String(e.numEmp) === String(indexOrNumEmp));
-    }
-
-    if (!emp) {
-        console.error("❌ No se encontró el empleado con identificador:", indexOrNumEmp);
-        return;
-    }
-
-    // Aseguramos catálogos antes de abrir
-    if (!window._catRegs.length || !window._catCentros.length || !window._catSitios.length) {
-        await cargarCatalogosSheets();
-    }
-
-    cargarPersonalRh(false);
-
-    const form = document.getElementById('form-nuevo-personal');
-    const formContainer = document.getElementById('contenedor-formulario-personal');
-    const gestionContainer = document.getElementById('contenedor-gestion-personal');
-    const listadoContainer = document.getElementById('contenedor-listado-personal');
-    const titulo = document.getElementById('titulo-formulario');
-    const inputNumEmp = document.getElementById('input-numEmp');
-
-    if (formContainer && form) {
-        const limpiarValor = (val) => (!val || val === 0 || val === '0' || String(val).trim() === '') ? 'N/A' : val;
-
-        const regVal = emp.textoReg || emp.region || emp.claveReg || '0';
-        const centroVal = emp.textoCentro || emp.centro || emp.claveCentro || '0';
-        const sitVal = emp.textoSit || emp.sitio || emp.claveSit || '0';
-
-        poblarSelectoresCascada(regVal, centroVal, sitVal);
-
-        form.elements['numEmp'].value = limpiarValor(emp.numEmp);
-        inputNumEmp.setAttribute('readonly', true);
-        
-        form.elements['nombre'].value = limpiarValor(emp.nombre);
-        form.elements['ext'].value = limpiarValor(emp.ext);
-        form.elements['numPers'].value = limpiarValor(emp.numPers);
-        form.elements['escolaridad'].value = limpiarValor(emp.escolaridad);
-        form.elements['direccion'].value = limpiarValor(emp.direccion);
-        form.elements['cp'].value = limpiarValor(emp.cp);
-        form.elements['email'].value = limpiarValor(emp.email);
-        form.elements['rfc'].value = limpiarValor(emp.rfc);
-        form.elements['puesto'].value = limpiarValor(emp.puesto);
-        form.elements['departamento'].value = limpiarValor(emp.departamento);
-        form.elements['ciudad'].value = limpiarValor(emp.ciudad);
-        form.elements['estado'].value = limpiarValor(emp.estado);
-
-        titulo.innerHTML = `Editando: <span class="text-[#249444]">${limpiarValor(emp.nombre)}</span>`;
-        formContainer.classList.remove('hidden');
-        if (gestionContainer) gestionContainer.classList.add('hidden');
-        if (listadoContainer) listadoContainer.classList.add('hidden');
+        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-red-500 italic">Error al conectar con Sheets.</td></tr>`;
     }
 }
 
@@ -376,13 +291,20 @@ function renderizarTablaPersonal(registros) {
 
 async function seleccionarEmpleadoParaEditar(index) {
     const emp = window._empleadosCache[index];
+    console.log("--- 🕵️ RASTREO DE EMPLEADO [Índice:", index, "] ---");
+    console.log("Objeto empleado completo:", emp);
+    console.log("Catálogo Regiones en memoria:", window._catRegs);
+    console.log("Catálogo Centros en memoria:", window._catCentros);
+    console.log("Catálogo Sitios en memoria:", window._catSitios);
+
     if (!emp) {
         console.error("❌ No se encontró el empleado en _empleadosCache");
         return;
     }
 
-    // 1. Aseguramos catálogos en memoria
+    // 1. Aseguramos catálogos
     if (!window._catRegs || !window._catRegs.length || !window._catCentros || !window._catCentros.length || !window._catSitios || !window._catSitios.length) {
+        console.log("⚠️ Catálogos vacíos detectados, descargando...");
         await cargarCatalogosSheets();
     }
 
@@ -399,12 +321,18 @@ async function seleccionarEmpleadoParaEditar(index) {
     if (formContainer && form) {
         const limpiarValor = (val) => (!val || val === 0 || val === '0' || String(val).trim() === '') ? 'N/A' : val;
 
-        // Capturamos con respaldo por si el nombre de la propiedad varía
-        const regVal = emp.textoReg || emp.region || emp.claveReg || '0';
-        const centroVal = emp.textoCentro || emp.centro || emp.claveCentro || '0';
-        const sitVal = emp.textoSit || emp.sitio || emp.claveSit || '0';
+        // Extraemos las propiedades tal como vienen en tu objeto del Sheet
+        console.log("Valores crudos -> claveReg:", emp.claveReg, "| textoReg:", emp.textoReg);
+        console.log("Valores crudos -> claveCentro:", emp.claveCentro, "| textoCentro:", emp.textoCentro);
+        console.log("Valores crudos -> claveSit:", emp.claveSit, "| textoSit:", emp.textoSit);
 
-        // 3. Poblamos los selectores en cascada con los valores correctos
+        const regVal = emp.textoReg || emp.claveReg || '0';
+        const centroVal = emp.textoCentro || emp.claveCentro || '0';
+        const sitVal = emp.textoSit || emp.claveSit || '0';
+
+        console.log("Valores seleccionados para la cascada -> Reg:", regVal, "| Centro:", centroVal, "| Sitio:", sitVal);
+
+        // 3. Poblamos selectores
         poblarSelectoresCascada(regVal, centroVal, sitVal);
 
         form.elements['numEmp'].value = limpiarValor(emp.numEmp);

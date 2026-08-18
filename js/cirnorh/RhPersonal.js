@@ -128,6 +128,41 @@ async function cargarCatalogosSheets() {
 }
 
 // Funciones de Cascada (Región -> Centro -> Sitio)
+function poblarSelectoresCascada(regActual = '0', centroActual = '0', sitActual = '0') {
+    const selReg = document.getElementById('select-claveReg');
+    if (!selReg) return;
+
+    const regsArray = Array.isArray(window._catRegs) ? window._catRegs : [];
+
+    // Limpiamos y normalizamos el valor actual de la región
+    const regClean = (!regActual || regActual === '0' || regActual === 'N/A' || regActual === 0) ? '0' : String(regActual).trim();
+
+    // 1. Construimos las opciones del selector de regiones
+    selReg.innerHTML = `<option value="0">N/A</option>` + 
+        regsArray.map(r => {
+            return `<option value="${r.clave}">${r.nombre}</option>`;
+        }).join('');
+
+    // 2. Buscamos si el valor guardado coincide con la clave o con el nombre del catálogo
+    let matchEncontrado = "0";
+    if (regClean !== "0") {
+        const encontradaPorClave = regsArray.find(r => String(r.clave).trim().toLowerCase() === regClean.toLowerCase());
+        const encontradaPorNombre = regsArray.find(r => String(r.nombre).trim().toLowerCase() === regClean.toLowerCase());
+        
+        if (encontradaPorClave) {
+            matchEncontrado = encontradaPorClave.clave;
+        } else if (encontradaPorNombre) {
+            matchEncontrado = encontradaPorNombre.clave;
+        }
+    }
+
+    // 3. Forzamos la selección correcta en el DOM
+    selReg.value = matchEncontrado;
+
+    // 4. Disparamos el filtrado en cascada para centros y sitios con sus valores actuales
+    filtrarCentrosPorRegion(centroActual, sitActual);
+}
+
 function filtrarCentrosPorRegion(centroActual = '0', sitActual = '0') {
     const selReg = document.getElementById('select-claveReg');
     const selCentro = document.getElementById('select-claveCentro');
@@ -142,12 +177,23 @@ function filtrarCentrosPorRegion(centroActual = '0', sitActual = '0') {
     const centrosArray = Array.isArray(window._catCentros) ? window._catCentros : [];
 
     if (regionSeleccionada !== "0") {
-        const centrosFiltrados = centrosArray.filter(c => String(c.claveReg) === String(regionSeleccionada));
+        const centrosFiltrados = centrosArray.filter(c => String(c.claveReg).trim() === String(regionSeleccionada).trim());
         selCentro.innerHTML += centrosFiltrados.map(c => 
-            `<option value="${c.clave}" ${String(c.clave) === String(centroActual) ? 'selected' : ''}>${c.nombre}</option>`
+            `<option value="${c.clave}">${c.nombre}</option>`
         ).join('');
     }
 
+    // Buscamos coincidencia para el centro (por clave o por nombre)
+    const centroClean = (!centroActual || centroActual === '0' || centroActual === 'N/A' || centroActual === 0) ? '0' : String(centroActual).trim();
+    let centroMatch = "0";
+    if (centroClean !== "0") {
+        const matchC = Array.from(selCentro.options).find(opt => 
+            opt.value.toLowerCase() === centroClean.toLowerCase() || opt.text.toLowerCase().includes(centroClean.toLowerCase())
+        );
+        if (matchC) centroMatch = matchC.value;
+    }
+
+    selCentro.value = centroMatch;
     filtrarSitiosPorCentro(sitActual);
 }
 
@@ -163,37 +209,23 @@ function filtrarSitiosPorCentro(sitActual = '0') {
     const sitiosArray = Array.isArray(window._catSitios) ? window._catSitios : [];
 
     if (centroSeleccionado !== "0") {
-        const sitiosFiltrados = sitiosArray.filter(s => String(s.claveCentro) === String(centroSeleccionado));
+        const sitiosFiltrados = sitiosArray.filter(s => String(s.claveCentro).trim() === String(centroSeleccionado).trim());
         selSit.innerHTML += sitiosFiltrados.map(s => 
-            `<option value="${s.clave}" ${String(s.clave) === String(sitActual) ? 'selected' : ''}>${s.clave} - ${s.nombre}</option>`
+            `<option value="${s.clave}">${s.clave} - ${s.nombre}</option>`
         ).join('');
     }
-}
 
-function poblarSelectoresCascada(regActual = '0', centroActual = '0', sitActual = '0') {
-    const selReg = document.getElementById('select-claveReg');
-    if (!selReg) return;
+    // Buscamos coincidencia para el sitio (por clave o por nombre)
+    const sitClean = (!sitActual || sitActual === '0' || sitActual === 'N/A' || sitActual === 0) ? '0' : String(sitActual).trim();
+    let sitMatch = "0";
+    if (sitClean !== "0") {
+        const matchS = Array.from(selSit.options).find(opt => 
+            opt.value.toLowerCase() === sitClean.toLowerCase() || opt.text.toLowerCase().includes(sitClean.toLowerCase())
+        );
+        if (matchS) sitMatch = matchS.value;
+    }
 
-    const regsArray = Array.isArray(window._catRegs) ? window._catRegs : [];
-
-    // Limpiamos y normalizamos el valor actual de la región
-    const regClean = (!regActual || regActual === '0' || regActual === 'N/A' || regActual === 0) ? '0' : String(regActual).trim();
-
-    selReg.innerHTML = `<option value="0" ${regClean === '0' ? 'selected' : ''}>N/A</option>` + 
-        regsArray.map(r => {
-            const match = String(r.clave).trim() === regClean || String(r.nombre).trim().toLowerCase() === regClean.toLowerCase();
-            return `<option value="${r.clave}" ${match ? 'selected' : ''}>${r.nombre}</option>`;
-        }).join('');
-
-    // Si por texto encontró coincidencia pero guardaba el nombre, aseguramos pasar la clave real para los centros
-    const optionSeleccionada = selReg.selectedIndex >= 0 ? selReg.options[selReg.selectedIndex] : null;
-    const claveRegEfectiva = optionSeleccionada && optionSeleccionada.value !== "0" ? optionSeleccionada.value : regClean;
-
-    // Asignamos el valor efectivo al select de región si cambió
-    selReg.value = claveRegEfectiva;
-
-    // CORRECCIÓN: Llamamos a la función que SÍ existe en tu código pasando los parámetros correctos
-    filtrarCentrosPorRegion(centroActual, sitActual);
+    selSit.value = sitMatch;
 }
 
 async function mostrarFormularioNuevoPersonal() {

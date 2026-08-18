@@ -35,6 +35,7 @@ const AuthGuard = {
                     // los recuperamos automáticamente de nuestra memoria de ruta
                     const rutaGuardada = sessionStorage.getItem('ultima_ruta_completa');
                     if (rutaGuardada && !queryActual && rutaGuardada.includes('?')) {
+                        console.warn(rutaGuardada);
                         window.history.replaceState({}, '', rutaGuardada);
                     }
                 }

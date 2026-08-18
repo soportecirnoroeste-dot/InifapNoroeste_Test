@@ -156,3 +156,8 @@ body:not(.auth-checked) {
     position: relative;
     width: 100%;
 }
+
+#app-container:not(.listo) {
+    opacity: 0;
+    visibility: hidden;
+}

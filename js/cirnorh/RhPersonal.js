@@ -115,7 +115,6 @@ async function cargarCatalogosSheets() {
             FetchAPI('obtenerSitios').catch(() => [])
         ]);
 
-        // Blindaje estricto: aseguramos que siempre sean arreglos
         window._catRegs = Array.isArray(regs) ? regs : (regs?.data || []);
         window._catCentros = Array.isArray(centros) ? centros : (centros?.data || []);
         window._catSitios = Array.isArray(sitios) ? sitios : (sitios?.data || []);
@@ -127,39 +126,27 @@ async function cargarCatalogosSheets() {
     }
 }
 
-// Funciones de Cascada (Región -> Centro -> Sitio)
+// Funciones de Cascada mejoradas para hacer match tanto por clave como por nombre/texto
 function poblarSelectoresCascada(regActual = '0', centroActual = '0', sitActual = '0') {
     const selReg = document.getElementById('select-claveReg');
     if (!selReg) return;
 
     const regsArray = Array.isArray(window._catRegs) ? window._catRegs : [];
-
-    // Limpiamos y normalizamos el valor actual de la región
     const regClean = (!regActual || regActual === '0' || regActual === 'N/A' || regActual === 0) ? '0' : String(regActual).trim();
 
-    // 1. Construimos las opciones del selector de regiones
     selReg.innerHTML = `<option value="0">N/A</option>` + 
-        regsArray.map(r => {
-            return `<option value="${r.clave}">${r.nombre}</option>`;
-        }).join('');
+        regsArray.map(r => `<option value="${r.clave}">${r.clave} - ${r.nombre}</option>`).join('');
 
-    // 2. Buscamos si el valor guardado coincide con la clave o con el nombre del catálogo
     let matchEncontrado = "0";
     if (regClean !== "0") {
-        const encontradaPorClave = regsArray.find(r => String(r.clave).trim().toLowerCase() === regClean.toLowerCase());
-        const encontradaPorNombre = regsArray.find(r => String(r.nombre).trim().toLowerCase() === regClean.toLowerCase());
-        
-        if (encontradaPorClave) {
-            matchEncontrado = encontradaPorClave.clave;
-        } else if (encontradaPorNombre) {
-            matchEncontrado = encontradaPorNombre.clave;
-        }
+        const encontrada = regsArray.find(r => 
+            String(r.clave).trim().toLowerCase() === regClean.toLowerCase() || 
+            String(r.nombre).trim().toLowerCase() === regClean.toLowerCase()
+        );
+        if (encontrada) matchEncontrado = encontrada.clave;
     }
 
-    // 3. Forzamos la selección correcta en el DOM
     selReg.value = matchEncontrado;
-
-    // 4. Disparamos el filtrado en cascada para centros y sitios con sus valores actuales
     filtrarCentrosPorRegion(centroActual, sitActual);
 }
 
@@ -179,18 +166,18 @@ function filtrarCentrosPorRegion(centroActual = '0', sitActual = '0') {
     if (regionSeleccionada !== "0") {
         const centrosFiltrados = centrosArray.filter(c => String(c.claveReg).trim() === String(regionSeleccionada).trim());
         selCentro.innerHTML += centrosFiltrados.map(c => 
-            `<option value="${c.clave}">${c.nombre}</option>`
+            `<option value="${c.clave}">${c.clave} - ${c.nombre}</option>`
         ).join('');
     }
 
-    // Buscamos coincidencia para el centro (por clave o por nombre)
     const centroClean = (!centroActual || centroActual === '0' || centroActual === 'N/A' || centroActual === 0) ? '0' : String(centroActual).trim();
     let centroMatch = "0";
     if (centroClean !== "0") {
-        const matchC = Array.from(selCentro.options).find(opt => 
-            opt.value.toLowerCase() === centroClean.toLowerCase() || opt.text.toLowerCase().includes(centroClean.toLowerCase())
+        const encontrada = centrosArray.find(c => 
+            String(c.clave).trim().toLowerCase() === centroClean.toLowerCase() || 
+            String(c.nombre).trim().toLowerCase() === centroClean.toLowerCase()
         );
-        if (matchC) centroMatch = matchC.value;
+        if (encontrada) centroMatch = encontrada.clave;
     }
 
     selCentro.value = centroMatch;
@@ -215,14 +202,14 @@ function filtrarSitiosPorCentro(sitActual = '0') {
         ).join('');
     }
 
-    // Buscamos coincidencia para el sitio (por clave o por nombre)
     const sitClean = (!sitActual || sitActual === '0' || sitActual === 'N/A' || sitActual === 0) ? '0' : String(sitActual).trim();
     let sitMatch = "0";
     if (sitClean !== "0") {
-        const matchS = Array.from(selSit.options).find(opt => 
-            opt.value.toLowerCase() === sitClean.toLowerCase() || opt.text.toLowerCase().includes(sitClean.toLowerCase())
+        const encontrada = sitiosArray.find(s => 
+            String(s.clave).trim().toLowerCase() === sitClean.toLowerCase() || 
+            String(s.nombre).trim().toLowerCase() === sitClean.toLowerCase()
         );
-        if (matchS) sitMatch = matchS.value;
+        if (encontrada) sitMatch = encontrada.clave;
     }
 
     selSit.value = sitMatch;
@@ -313,12 +300,10 @@ async function seleccionarEmpleadoParaEditar(index) {
     const emp = window._empleadosCache[index];
     if (!emp) return;
 
-    // 1. PRIMERO aseguramos que los catálogos estén descargados y listos en memoria
     if (!window._catRegs || !window._catRegs.length || !window._catCentros || !window._catCentros.length) {
         await cargarCatalogosSheets();
     }
 
-    // 2. DESPUÉS pintamos la estructura del submódulo en modo edición
     cargarPersonalRh(false); 
 
     const form = document.getElementById('form-nuevo-personal');
@@ -331,12 +316,10 @@ async function seleccionarEmpleadoParaEditar(index) {
     if (formContainer && form) {
         const limpiarValor = (val) => (!val || val === 0 || val === '0' || String(val).trim() === '') ? 'N/A' : val;
 
-        // Tomamos los mismos valores con los que se alimenta la tabla visualmente
         const regVal = emp.textoReg || emp.claveReg || '0';
         const centroVal = emp.textoCentro || emp.claveCentro || '0';
         const sitVal = emp.textoSit || emp.claveSit || '0';
 
-        // 3. Poblamos los selectores pasando los valores prioritarios
         poblarSelectoresCascada(regVal, centroVal, sitVal);
 
         form.elements['numEmp'].value = limpiarValor(emp.numEmp);

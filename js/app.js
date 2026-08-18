@@ -1,29 +1,35 @@
 // ==========================================
-// RECUPERACIÓN DE ESTADO ANTE F5 (EN MAIN.HTML)
+// 1. CONTROLADOR DE AUTENTICACIÓN Y SESIÓN
 // ==========================================
-document.addEventListener("DOMContentLoaded", () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    let deptoUrl = urlParams.get('depto');
+const AuthGuard = {
+    verificarAcceso: () => {
+        const usuarioSesion = localStorage.getItem('usuario_sesion');
+        const paginaActual = window.location.pathname;
 
-    if (!deptoUrl) {
-        // Si la URL se limpió por el F5, lo rescatamos de la sesión
-        const deptoGuardado = sessionStorage.getItem('depto_activo');
-        if (deptoGuardado) {
-            // Restauramos la URL de forma limpia sin recargar de más la página
-            window.history.replaceState({}, '', `main.html?depto=${deptoGuardado}`);
-            // Ejecutamos la función que inicializa el submódulo de ese depto
-            if (typeof inicializarModuloDepto === 'function') {
-                inicializarModuloDepto(deptoGuardado);
-            }
-        } else {
-            // Si de plano no hay registro, regresamos de forma segura al menú
+        if (!usuarioSesion && !paginaActual.includes('login.html')) {
+            window.location.href = 'login.html';
+        } else if (usuarioSesion && paginaActual.includes('login.html')) {
             window.location.href = 'index.html';
+        } else {
+            document.body.classList.add('auth-checked');
+
+            const labelUser = document.getElementById('user-display-name');
+            if (labelUser) {
+                labelUser.textContent = localStorage.getItem('session_userName') || 'Usuario';
+            }
+
+            if (!paginaActual.includes('login.html')) {
+                // Respaldamos la página actual en sessionStorage para evitar saltos raros al refrescar
+                sessionStorage.setItem('ultima_pagina_activa', paginaActual);
+                
+                // Si estamos en el menú principal, iniciamos el sistema global
+                if (paginaActual.includes('index.html') || paginaActual.endsWith('/')) {
+                    SistemaGlobal.init();
+                }
+            }
         }
-    } else {
-        // Si la URL sí tiene el depto, nos aseguramos de guardarlo en la sesión
-        sessionStorage.setItem('depto_activo', deptoUrl);
     }
-});
+};
 
 // ==========================================
 // 2. NÚCLEO CENTRAL DEL SISTEMA (CON CACHÉ Y FILTRO INICIAL)
@@ -287,15 +293,28 @@ function seleccionarDepartamento(NomCorDep, elementoBtn) {
 }
 
 // ==========================================
-// 4. DISPARADOR ÚNICO DE INICIO
+// 4. DISPARADOR ÚNICO DE INICIO (CORREGIDO PARA F5 Y SUBMÓDULOS)
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
-    AuthGuard.verificarAcceso();
+    // Verificamos que AuthGuard exista antes de llamarlo para evitar errores de referencia
+    if (typeof AuthGuard !== 'undefined' && typeof AuthGuard.verificarAcceso === 'function') {
+        AuthGuard.verificarAcceso();
+    } else {
+        console.warn("AuthGuard no está disponible en este ámbito, omitiendo verificación.");
+    }
 
-    // Verificación automática de F5 / restauración si el usuario ya tenía un departamento activo seleccionado
-    const deptoGuardado = sessionStorage.getItem('depto_activo');
+    // Lógica específica para mantener la sesión del depto al presionar F5 en main.html
     const urlParams = new URLSearchParams(window.location.search);
-    if (!urlParams.get('depto') && deptoGuardado && window.location.pathname.includes('main.html')) {
-        window.history.replaceState({}, '', `main.html?depto=${deptoGuardado}`);
+    const deptoUrl = urlParams.get('depto');
+    const deptoGuardado = sessionStorage.getItem('depto_activo');
+
+    if (window.location.pathname.includes('main.html')) {
+        if (!deptoUrl && deptoGuardado) {
+            // Si la URL se limpió por el F5, la restauramos al vuelo sin sacar al usuario
+            window.history.replaceState({}, '', `main.html?depto=${deptoGuardado}`);
+        } else if (deptoUrl) {
+            // Si la URL tiene el parámetro, nos aseguramos de guardarlo en la sesión
+            sessionStorage.setItem('depto_activo', deptoUrl);
+        }
     }
 });

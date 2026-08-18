@@ -72,6 +72,7 @@ function manejarAccionSeccion(idOpt) {
 
 // Función para limpiar la sección de la URL cuando regresas al menú principal del departamento
 function limpiarSeccionUrl() {
+    console.warn("entra");
     const urlParams = new URLSearchParams(window.location.search);
     const deptoActual = urlParams.get('depto') || 'cirnorh';
     
@@ -167,8 +168,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (seccionEnUrl) {
         manejarAccionSeccion(seccionEnUrl);
+        console.warn("if");
     } else {
         // Si no hay sección en la URL, aseguramos limpiar cualquier rastro anterior
+        console.warn("else");
         console.warn(seccionEnUrl);
         limpiarSeccionUrl();
     }

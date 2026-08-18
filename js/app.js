@@ -20,24 +20,24 @@ const AuthGuard = {
             }
 
             if (!paginaActual.includes('login.html')) {
-                // Guardamos la ruta exacta actual (incluyendo subdirectorio y parámetros)
                 const rutaCompleta = paginaActual + queryActual;
                 sessionStorage.setItem('ultima_ruta_activa', rutaCompleta);
 
                 console.log("[AuthGuard] Ubicación detectada:", rutaCompleta);
 
-                // Validamos en qué sección estamos exactamente
                 if (paginaActual.includes('index.html') || paginaActual.endsWith('/')) {
-                    // Estamos en el menú principal
                     SistemaGlobal.init();
                 } else if (paginaActual.includes('main.html')) {
-                    // Estamos dentro de un submódulo/departamento (ej. cirnorh)
                     const urlParams = new URLSearchParams(queryActual);
                     const deptoActual = urlParams.get('depto') || sessionStorage.getItem('depto_activo') || 'desconocido';
                     
-                    console.log(`[AuthGuard] Estás dentro del submódulo: ${deptoActual.toUpperCase()}. Manteniendo estado actual.`);
-                    
-                    // Aquí puedes inicializar lógica específica del submódulo si lo requieres tras el F5
+                    // Si quieres que el mensaje de la consola sea totalmente personalizado o diga "Personal" cuando sea cirnorh:
+                    let nombreMostrado = deptoActual.toUpperCase();
+                    if (nombreMostrado === 'CIRNORH') {
+                        nombreMostrado = 'Personal / Recursos Humanos';
+                    }
+
+                    console.log(`[AuthGuard] Estás dentro del submódulo: ${nombreMostrado}. Manteniendo estado actual.`);
                 }
             }
         }

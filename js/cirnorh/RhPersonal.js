@@ -20,7 +20,7 @@ function cargarPersonalRh(cargarLista = true) {
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
                     Nuevo Registro
                 </button>
-                <button onclick="cargarDatosGenerales()" class="px-4 py-2 bg-stone-200 text-stone-700 rounded-xl text-xs font-bold hover:bg-stone-300 transition flex items-center gap-2">
+                <button onclick="cargarDatosGenerales(true)" class="px-4 py-2 bg-stone-200 text-stone-700 rounded-xl text-xs font-bold hover:bg-stone-300 transition flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
                     Actualizar Datos
                 </button>
@@ -93,19 +93,38 @@ function cargarPersonalRh(cargarLista = true) {
     `;
 
     if (cargarLista) {
-        cargarDatosGenerales();
+        cargarDatosGenerales(false);
     }
 }
 
-async function cargarDatosGenerales() {
-    await cargarCatalogosSheets();
-    await cargarDatosPersonalSheets();
+// Variables globales de caché
+window._catRegsCache = window._catRegsCache || null;
+window._catCentrosCache = window._catCentrosCache || null;
+window._catSitiosCache = window._catSitiosCache || null;
+window._empleadosCache = window._empleadosCache || [];
+
+async function cargarDatosGenerales(forzarRecarga = false) {
+    if (!forzarRecarga && window._empleadosCache.length > 0) {
+        renderizarTablaPersonal(window._empleadosCache);
+        cargarCatalogosSheets();
+        return;
+    }
+
+    if (window._empleadosCache.length === 0) {
+        const tbody = document.getElementById('tabla-personal-body');
+        if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-stone-400 italic">Sincronizando con Sheets...</td></tr>`;
+    }
+
+    await Promise.all([
+        cargarCatalogosSheets(forzarRecarga),
+        cargarDatosPersonalSheets(forzarRecarga)
+    ]);
 }
 
 // Variables globales de caché de catálogos
-window._catRegsCache = null;
-window._catCentrosCache = null;
-window._catSitiosCache = null;
+//window._catRegsCache = null;
+//window._catCentrosCache = null;
+//window._catSitiosCache = null;
 
 async function cargarCatalogosSheets() {
     // Si ya los tenemos en memoria, no volvemos a hacer peticiones a la red
@@ -289,7 +308,7 @@ async function mostrarFormularioNuevoPersonal() {
     if (formContainer && form) {
         form.reset();
 
-        if (!window._catRegs.length && !window._catCentros.length) {
+        if (!window._catRegs || !window._catRegs.length) {
             await cargarCatalogosSheets();
         }
 
@@ -312,11 +331,14 @@ function ocultarFormularioPersonal() {
     if (listadoContainer) listadoContainer.classList.remove('hidden');
 }
 
-async function cargarDatosPersonalSheets() {
+async function cargarDatosPersonalSheets(forzar = false) {
     const tbody = document.getElementById('tabla-personal-body');
     if (!tbody) return;
 
-    tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-stone-400 italic">Sincronizando...</td></tr>`;
+    if (!forzar && window._empleadosCache.length > 0) {
+        renderizarTablaPersonal(window._empleadosCache);
+        return;
+    }
 
     try {
         const data = await FetchAPI('obtenerPersonal');
@@ -366,10 +388,10 @@ async function seleccionarEmpleadoParaEditar(index) {
         return;
     }
 
-    // 1. PRIMERO cargamos y esperamos obligatoriamente a que los catálogos tengan datos antes de hacer nada más
+    // 1. Aseguramos que los catálogos estén listos antes de tocar el DOM
     await cargarCatalogosSheets();
 
-    // 2. Renderizamos la estructura base del formulario sin lista
+    // 2. Renderizamos la estructura base del módulo (esto dibuja el HTML y los selectores vacíos)
     cargarPersonalRh(false);
 
     const form = document.getElementById('form-nuevo-personal');
@@ -385,20 +407,16 @@ async function seleccionarEmpleadoParaEditar(index) {
         const extraerClave = (val) => {
             if (!val) return '';
             const str = String(val).trim();
-            if (str.includes(' - ')) {
-                return str.split(' - ')[0].trim();
-            }
+            if (str.includes(' - ')) return str.split(' - ')[0].trim();
             return str;
         };
 
         const regVal = extraerClave(emp.claveReg || emp.textoReg);
         const centroVal = extraerClave(emp.claveCentro || emp.textoCentro);
-
-        // Regla solicitada: Si el sitio es 0, '0', vacío o N/A, lo convertimos a 'N/A'
         let rawSit = extraerClave(emp.claveSit || emp.textoSit);
         const sitVal = (!rawSit || rawSit === 0 || rawSit === '0' || String(rawSit).trim().toUpperCase() === 'N/A') ? 'N/A' : rawSit;
         
-        // 3. Poblamos los selectores ya con los datos seguros en memoria
+        // 3. Poblamos los selectores YA QUE EL FORMULARIO EXISTE EN EL DOM
         poblarSelectoresCascada(regVal, centroVal, sitVal);
 
         form.elements['numEmp'].value = limpiarValor(emp.numEmp);
@@ -432,7 +450,7 @@ async function guardarOActualizarPersonal(event) {
         const res = await FetchAPI(actionName, datosEmpleado);
         alert(res.message || "Guardado exitoso");
         ocultarFormularioPersonal();
-        cargarDatosPersonalSheets();
+        cargarDatosGenerales(true);
     } catch (e) {
         alert("Error al guardar");
     }

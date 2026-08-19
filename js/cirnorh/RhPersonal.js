@@ -97,18 +97,23 @@ function cargarPersonalRh(cargarLista = true) {
     }
 }
 
+window._empleadosCache = [];
+window._catRegs = [];
+window._catCentros = [];
+window._catSitios = [];
+
+// Caché en memoria para evitar ráfagas de red en catálogos
+window._catRegsCache = null;
+window._catCentrosCache = null;
+window._catSitiosCache = null;
+
 async function cargarDatosGenerales() {
     await cargarCatalogosSheets();
     await cargarDatosPersonalSheets();
 }
 
-// Variables globales de caché de catálogos
-window._catRegsCache = null;
-window._catCentrosCache = null;
-window._catSitiosCache = null;
-
 async function cargarCatalogosSheets() {
-    // Si ya los tenemos en memoria, no volvemos a hacer peticiones a la red
+    // Si ya están en memoria, se reutilizan de inmediato a velocidad 0ms
     if (window._catRegsCache && window._catCentrosCache && window._catSitiosCache) {
         window._catRegs = window._catRegsCache;
         window._catCentros = window._catCentrosCache;
@@ -127,7 +132,7 @@ async function cargarCatalogosSheets() {
         window._catCentros = Array.isArray(centros) ? centros : (centros?.data || centros?.resultado || []);
         window._catSitios = Array.isArray(sitios) ? sitios : (sitios?.data || sitios?.resultado || []);
 
-        // Plan B: Rescatar catálogos completos del caché de empleados si vienen vacíos
+        // Plan B: Rescatar catálogos completos (incluyendo Sitios) del caché de empleados si vienen vacíos
         if (window._catRegs.length === 0 && window._empleadosCache.length > 0) {
             const regsMap = new Map();
             const centrosMap = new Map();
@@ -147,6 +152,7 @@ async function cargarCatalogosSheets() {
                     const regAsociada = e.claveReg ? String(e.claveReg).split(' - ')[0].trim() : '';
                     centrosMap.set(claveC, { clave: claveC, claveReg: regAsociada, nombre: nombreC });
                 }
+                // Rescate y normalización del sitio (si es 0 o vacío, lo guardamos como N/A)
                 let rawSit = e.claveSit || e.textoSit;
                 let claveS = (!rawSit || rawSit === 0 || rawSit === '0' || String(rawSit).trim().toUpperCase() === 'N/A') ? 'N/A' : String(rawSit).trim();
                 if (claveS.includes(' - ')) claveS = claveS.split(' - ')[0].trim();
@@ -160,7 +166,7 @@ async function cargarCatalogosSheets() {
             window._catSitios = Array.from(sitiosMap.values());
         }
 
-        // Guardar en caché definitivo para futuras consultas en la misma sesión
+        // Guardar en caché definitivo para la sesión
         window._catRegsCache = window._catRegs;
         window._catCentrosCache = window._catCentros;
         window._catSitiosCache = window._catSitios;
@@ -221,14 +227,12 @@ function poblarSelectoresCascada(regActual = '', centroActual = '', sitActual = 
 
     const regsArray = Array.isArray(window._catRegs) ? window._catRegs : [];
     
-    // Verificamos si hay datos en el catálogo
     if (regsArray.length === 0) {
         console.warn("⚠️ _catRegs está vacío al intentar poblar los selectores.");
     }
 
     const regClean = (!regActual || regActual === '0' || regActual === 'N/A' || regActual === 0) ? '' : String(regActual).trim();
 
-    // Rellenamos de manera directa
     selReg.innerHTML = `<option value="" disabled selected>Seleccione una región...</option>` + 
         regsArray.map(r => `<option value="${r.clave}">${r.clave} - ${r.nombre}</option>`).join('');
 
@@ -272,7 +276,6 @@ function filtrarCentrosPorRegion(centroActual = '', sitActual = '') {
 
     selCentro.value = matchCentro;
 
-    // 3. Garantizamos la renderización antes de buscar el sitio
     requestAnimationFrame(() => {
         filtrarSitiosPorCentro(sitActual);
     });
@@ -366,10 +369,8 @@ async function seleccionarEmpleadoParaEditar(index) {
         return;
     }
 
-    // 1. PRIMERO cargamos y esperamos obligatoriamente a que los catálogos tengan datos antes de hacer nada más
     await cargarCatalogosSheets();
 
-    // 2. Renderizamos la estructura base del formulario sin lista
     cargarPersonalRh(false);
 
     const form = document.getElementById('form-nuevo-personal');
@@ -394,11 +395,9 @@ async function seleccionarEmpleadoParaEditar(index) {
         const regVal = extraerClave(emp.claveReg || emp.textoReg);
         const centroVal = extraerClave(emp.claveCentro || emp.textoCentro);
 
-        // Regla solicitada: Si el sitio es 0, '0', vacío o N/A, lo convertimos a 'N/A'
         let rawSit = extraerClave(emp.claveSit || emp.textoSit);
         const sitVal = (!rawSit || rawSit === 0 || rawSit === '0' || String(rawSit).trim().toUpperCase() === 'N/A') ? 'N/A' : rawSit;
         
-        // 3. Poblamos los selectores ya con los datos seguros en memoria
         poblarSelectoresCascada(regVal, centroVal, sitVal);
 
         form.elements['numEmp'].value = limpiarValor(emp.numEmp);
@@ -423,6 +422,7 @@ async function seleccionarEmpleadoParaEditar(index) {
         if (listadoContainer) listadoContainer.classList.add('hidden');
     }
 }
+
 async function guardarOActualizarPersonal(event) {
     event.preventDefault();
     const datosEmpleado = Object.fromEntries(new FormData(event.target).entries());

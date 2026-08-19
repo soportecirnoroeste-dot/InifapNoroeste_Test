@@ -379,7 +379,10 @@ async function seleccionarEmpleadoParaEditar(index) {
         return;
     }
 
+    // 1. Aseguramos que los catálogos estén listos antes de tocar el DOM
     await cargarCatalogosSheets();
+
+    // 2. Renderizamos la estructura base del módulo (esto dibuja el HTML y los selectores vacíos)
     cargarPersonalRh(false);
 
     const form = document.getElementById('form-nuevo-personal');
@@ -404,6 +407,7 @@ async function seleccionarEmpleadoParaEditar(index) {
         let rawSit = extraerClave(emp.claveSit || emp.textoSit);
         const sitVal = (!rawSit || rawSit === 0 || rawSit === '0' || String(rawSit).trim().toUpperCase() === 'N/A') ? 'N/A' : rawSit;
         
+        // 3. Poblamos los selectores YA QUE EL FORMULARIO EXISTE EN EL DOM
         poblarSelectoresCascada(regVal, centroVal, sitVal);
 
         form.elements['numEmp'].value = limpiarValor(emp.numEmp);
@@ -428,7 +432,6 @@ async function seleccionarEmpleadoParaEditar(index) {
         if (listadoContainer) listadoContainer.classList.add('hidden');
     }
 }
-
 async function guardarOActualizarPersonal(event) {
     event.preventDefault();
     const datosEmpleado = Object.fromEntries(new FormData(event.target).entries());

@@ -20,7 +20,7 @@ function cargarPersonalRh(cargarLista = true) {
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
                     Nuevo Registro
                 </button>
-                <button onclick="cargarDatosGenerales()" class="px-4 py-2 bg-stone-200 text-stone-700 rounded-xl text-xs font-bold hover:bg-stone-300 transition flex items-center gap-2">
+                <button onclick="cargarDatosGenerales(true)" class="px-4 py-2 bg-stone-200 text-stone-700 rounded-xl text-xs font-bold hover:bg-stone-300 transition flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
                     Actualizar Datos
                 </button>
@@ -102,14 +102,21 @@ window._catRegs = [];
 window._catCentros = [];
 window._catSitios = [];
 
-// Caché en memoria para evitar ráfagas de red en catálogos
+// Caché en memoria para evitar ráfagas de red en catálogos y empleados
 window._catRegsCache = null;
 window._catCentrosCache = null;
 window._catSitiosCache = null;
+window._cargandoPersonalPromise = null;
 
-async function cargarDatosGenerales() {
+async function cargarDatosGenerales(forzarRecarga = false) {
+    if (forzarRecarga) {
+        window._catRegsCache = null;
+        window._catCentrosCache = null;
+        window._catSitiosCache = null;
+        window._empleadosCache = [];
+    }
     await cargarCatalogosSheets();
-    await cargarDatosPersonalSheets();
+    await cargarDatosPersonalSheets(forzarRecarga);
 }
 
 async function cargarCatalogosSheets() {
@@ -315,19 +322,36 @@ function ocultarFormularioPersonal() {
     if (listadoContainer) listadoContainer.classList.remove('hidden');
 }
 
-async function cargarDatosPersonalSheets() {
+async function cargarDatosPersonalSheets(forzarRecarga = false) {
     const tbody = document.getElementById('tabla-personal-body');
     if (!tbody) return;
 
-    tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-stone-400 italic">Sincronizando...</td></tr>`;
-
-    try {
-        const data = await FetchAPI('obtenerPersonal');
-        window._empleadosCache = data || [];
+    // Si ya tenemos empleados en caché y NO se fuerza recarga, se muestran al instante (0ms)
+    if (!forzarRecarga && window._empleadosCache && window._empleadosCache.length > 0) {
         renderizarTablaPersonal(window._empleadosCache);
-    } catch (error) {
-        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-red-500 italic">Error al conectar con Sheets.</td></tr>`;
+        return;
     }
+
+    // Evitar ráfagas de peticiones simultáneas idénticas en paralelo
+    if (window._cargandoPersonalPromise && !forzarRecarga) {
+        return window._cargandoPersonalPromise;
+    }
+
+    tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-stone-400 italic">Sincronizando con Sheets...</td></tr>`;
+
+    window._cargandoPersonalPromise = (async () => {
+        try {
+            const data = await FetchAPI('obtenerPersonal');
+            window._empleadosCache = data || [];
+            renderizarTablaPersonal(window._empleadosCache);
+        } catch (error) {
+            tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-red-500 italic">Error al conectar con Sheets.</td></tr>`;
+        } finally {
+            window._cargandoPersonalPromise = null;
+        }
+    })();
+
+    return window._cargandoPersonalPromise;
 }
 
 function renderizarTablaPersonal(registros) {
@@ -432,7 +456,8 @@ async function guardarOActualizarPersonal(event) {
         const res = await FetchAPI(actionName, datosEmpleado);
         alert(res.message || "Guardado exitoso");
         ocultarFormularioPersonal();
-        cargarDatosPersonalSheets();
+        // Forzamos la recarga limpia tras guardar para reflejar el cambio en Sheets
+        cargarDatosGenerales(true);
     } catch (e) {
         alert("Error al guardar");
     }

@@ -93,7 +93,7 @@ function cargarPersonalRh(cargarLista = true) {
     `;
 
     if (cargarLista) {
-        cargarDatosGenerales(false);
+        cargarDatosGenerales(false); // Carga rápida inicial con caché si existe
     }
 }
 
@@ -104,12 +104,15 @@ window._catSitiosCache = window._catSitiosCache || null;
 window._empleadosCache = window._empleadosCache || [];
 
 async function cargarDatosGenerales(forzarRecarga = false) {
+    // Si ya tenemos empleados en memoria y no se fuerza la recarga, los mostramos de inmediato
     if (!forzarRecarga && window._empleadosCache.length > 0) {
         renderizarTablaPersonal(window._empleadosCache);
+        // Cargamos catálogos en segundo plano de manera silenciosa
         cargarCatalogosSheets();
         return;
     }
 
+    // Si es forzado o no hay caché, mostramos estado de carga rápido en la tabla si está vacía
     if (window._empleadosCache.length === 0) {
         const tbody = document.getElementById('tabla-personal-body');
         if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-stone-400 italic">Sincronizando con Sheets...</td></tr>`;
@@ -286,7 +289,7 @@ async function mostrarFormularioNuevoPersonal() {
     if (formContainer && form) {
         form.reset();
 
-        if (!window._catRegs || !window._catRegs.length) {
+        if (!window._catRegs.length && !window._catCentros.length) {
             await cargarCatalogosSheets();
         }
 
@@ -313,6 +316,7 @@ async function cargarDatosPersonalSheets(forzar = false) {
     const tbody = document.getElementById('tabla-personal-body');
     if (!tbody) return;
 
+    // Si ya tenemos caché y no se fuerza, renderizamos inmediatamente
     if (!forzar && window._empleadosCache.length > 0) {
         renderizarTablaPersonal(window._empleadosCache);
         return;
@@ -366,12 +370,7 @@ async function seleccionarEmpleadoParaEditar(index) {
         return;
     }
 
-    // 1. Garantizamos que los catálogos estén listos en memoria ANTES de alterar la vista del formulario
-    if (!window._catRegs || !window._catRegs.length || !window._catCentros || !window._catCentros.length) {
-        await cargarCatalogosSheets();
-    }
-
-    // 2. Renderizamos el layout del formulario manteniendo el estado limpio de la lista
+    await cargarCatalogosSheets();
     cargarPersonalRh(false);
 
     const form = document.getElementById('form-nuevo-personal');
@@ -396,7 +395,6 @@ async function seleccionarEmpleadoParaEditar(index) {
         let rawSit = extraerClave(emp.claveSit || emp.textoSit);
         const sitVal = (!rawSit || rawSit === 0 || rawSit === '0' || String(rawSit).trim().toUpperCase() === 'N/A') ? 'N/A' : rawSit;
         
-        // 3. Poblamos los selectores ya teniendo los datos listos en caché (instantáneo)
         poblarSelectoresCascada(regVal, centroVal, sitVal);
 
         form.elements['numEmp'].value = limpiarValor(emp.numEmp);
@@ -431,6 +429,7 @@ async function guardarOActualizarPersonal(event) {
         const res = await FetchAPI(actionName, datosEmpleado);
         alert(res.message || "Guardado exitoso");
         ocultarFormularioPersonal();
+        // Forzamos actualización de caché tras guardar para reflejar cambios reales
         cargarDatosGenerales(true);
     } catch (e) {
         alert("Error al guardar");

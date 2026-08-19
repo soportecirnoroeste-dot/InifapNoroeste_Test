@@ -97,17 +97,25 @@ function cargarPersonalRh(cargarLista = true) {
     }
 }
 
-window._empleadosCache = [];
-window._catRegs = [];
-window._catCentros = [];
-window._catSitios = [];
-
 async function cargarDatosGenerales() {
     await cargarCatalogosSheets();
     await cargarDatosPersonalSheets();
 }
 
+// Variables globales de caché de catálogos
+window._catRegsCache = null;
+window._catCentrosCache = null;
+window._catSitiosCache = null;
+
 async function cargarCatalogosSheets() {
+    // Si ya los tenemos en memoria, no volvemos a hacer peticiones a la red
+    if (window._catRegsCache && window._catCentrosCache && window._catSitiosCache) {
+        window._catRegs = window._catRegsCache;
+        window._catCentros = window._catCentrosCache;
+        window._catSitios = window._catSitiosCache;
+        return;
+    }
+
     try {
         const [regs, centros, sitios] = await Promise.all([
             FetchAPI('obtenerRegiones').catch(() => null),
@@ -119,7 +127,7 @@ async function cargarCatalogosSheets() {
         window._catCentros = Array.isArray(centros) ? centros : (centros?.data || centros?.resultado || []);
         window._catSitios = Array.isArray(sitios) ? sitios : (sitios?.data || sitios?.resultado || []);
 
-        // Plan B: Rescatar catálogos completos (incluyendo Sitios) del caché de empleados si vienen vacíos
+        // Plan B: Rescatar catálogos completos del caché de empleados si vienen vacíos
         if (window._catRegs.length === 0 && window._empleadosCache.length > 0) {
             const regsMap = new Map();
             const centrosMap = new Map();
@@ -139,7 +147,6 @@ async function cargarCatalogosSheets() {
                     const regAsociada = e.claveReg ? String(e.claveReg).split(' - ')[0].trim() : '';
                     centrosMap.set(claveC, { clave: claveC, claveReg: regAsociada, nombre: nombreC });
                 }
-                // Rescate y normalización del sitio (si es 0 o vacío, lo guardamos como N/A)
                 let rawSit = e.claveSit || e.textoSit;
                 let claveS = (!rawSit || rawSit === 0 || rawSit === '0' || String(rawSit).trim().toUpperCase() === 'N/A') ? 'N/A' : String(rawSit).trim();
                 if (claveS.includes(' - ')) claveS = claveS.split(' - ')[0].trim();
@@ -153,6 +160,10 @@ async function cargarCatalogosSheets() {
             window._catSitios = Array.from(sitiosMap.values());
         }
 
+        // Guardar en caché definitivo para futuras consultas en la misma sesión
+        window._catRegsCache = window._catRegs;
+        window._catCentrosCache = window._catCentros;
+        window._catSitiosCache = window._catSitios;
         
     } catch (error) {
         console.error("Error al cargar catálogos:", error);

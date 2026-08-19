@@ -379,12 +379,7 @@ async function seleccionarEmpleadoParaEditar(index) {
         return;
     }
 
-    // 1. Garantizamos que los catálogos estén listos en memoria ANTES de alterar la vista del formulario
-    if (!window._catRegs || !window._catRegs.length || !window._catCentros || !window._catCentros.length) {
-        await cargarCatalogosSheets();
-    }
-
-    // 2. Renderizamos el layout del formulario manteniendo el estado limpio de la lista
+    await cargarCatalogosSheets();
     cargarPersonalRh(false);
 
     const form = document.getElementById('form-nuevo-personal');
@@ -409,7 +404,6 @@ async function seleccionarEmpleadoParaEditar(index) {
         let rawSit = extraerClave(emp.claveSit || emp.textoSit);
         const sitVal = (!rawSit || rawSit === 0 || rawSit === '0' || String(rawSit).trim().toUpperCase() === 'N/A') ? 'N/A' : rawSit;
         
-        // 3. Poblamos los selectores ya teniendo los datos listos en caché (instantáneo)
         poblarSelectoresCascada(regVal, centroVal, sitVal);
 
         form.elements['numEmp'].value = limpiarValor(emp.numEmp);

@@ -20,7 +20,7 @@ function cargarPersonalRh(cargarLista = true) {
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
                     Nuevo Registro
                 </button>
-                <button onclick="cargarDatosGenerales(true)" class="px-4 py-2 bg-stone-200 text-stone-700 rounded-xl text-xs font-bold hover:bg-stone-300 transition flex items-center gap-2">
+                <button onclick="cargarDatosGenerales()" class="px-4 py-2 bg-stone-200 text-stone-700 rounded-xl text-xs font-bold hover:bg-stone-300 transition flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
                     Actualizar Datos
                 </button>
@@ -93,39 +93,23 @@ function cargarPersonalRh(cargarLista = true) {
     `;
 
     if (cargarLista) {
-        cargarDatosGenerales(false); // Carga rápida inicial con caché si existe
+        cargarDatosGenerales();
     }
 }
 
-// Variables globales de caché
-window._catRegsCache = window._catRegsCache || null;
-window._catCentrosCache = window._catCentrosCache || null;
-window._catSitiosCache = window._catSitiosCache || null;
-window._empleadosCache = window._empleadosCache || [];
-
-async function cargarDatosGenerales(forzarRecarga = false) {
-    // Si ya tenemos empleados en memoria y no se fuerza la recarga, los mostramos de inmediato
-    if (!forzarRecarga && window._empleadosCache.length > 0) {
-        renderizarTablaPersonal(window._empleadosCache);
-        // Cargamos catálogos en segundo plano de manera silenciosa
-        cargarCatalogosSheets();
-        return;
-    }
-
-    // Si es forzado o no hay caché, mostramos estado de carga rápido en la tabla si está vacía
-    if (window._empleadosCache.length === 0) {
-        const tbody = document.getElementById('tabla-personal-body');
-        if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-stone-400 italic">Sincronizando con Sheets...</td></tr>`;
-    }
-
-    await Promise.all([
-        cargarCatalogosSheets(forzarRecarga),
-        cargarDatosPersonalSheets(forzarRecarga)
-    ]);
+async function cargarDatosGenerales() {
+    await cargarCatalogosSheets();
+    await cargarDatosPersonalSheets();
 }
 
-async function cargarCatalogosSheets(forzar = false) {
-    if (!forzar && window._catRegsCache && window._catCentrosCache && window._catSitiosCache) {
+// Variables globales de caché de catálogos
+window._catRegsCache = null;
+window._catCentrosCache = null;
+window._catSitiosCache = null;
+
+async function cargarCatalogosSheets() {
+    // Si ya los tenemos en memoria, no volvemos a hacer peticiones a la red
+    if (window._catRegsCache && window._catCentrosCache && window._catSitiosCache) {
         window._catRegs = window._catRegsCache;
         window._catCentros = window._catCentrosCache;
         window._catSitios = window._catSitiosCache;
@@ -143,6 +127,7 @@ async function cargarCatalogosSheets(forzar = false) {
         window._catCentros = Array.isArray(centros) ? centros : (centros?.data || centros?.resultado || []);
         window._catSitios = Array.isArray(sitios) ? sitios : (sitios?.data || sitios?.resultado || []);
 
+        // Plan B: Rescatar catálogos completos del caché de empleados si vienen vacíos
         if (window._catRegs.length === 0 && window._empleadosCache.length > 0) {
             const regsMap = new Map();
             const centrosMap = new Map();
@@ -175,6 +160,7 @@ async function cargarCatalogosSheets(forzar = false) {
             window._catSitios = Array.from(sitiosMap.values());
         }
 
+        // Guardar en caché definitivo para futuras consultas en la misma sesión
         window._catRegsCache = window._catRegs;
         window._catCentrosCache = window._catCentros;
         window._catSitiosCache = window._catSitios;
@@ -192,6 +178,7 @@ function filtrarSitiosPorCentro(sitActual = '') {
     const centroSeleccionado = selCentro.value;
 
     selSit.innerHTML = `<option value="" disabled selected>Seleccione un sitio...</option>`;
+
     const sitiosArray = Array.isArray(window._catSitios) ? window._catSitios : [];
 
     if (centroSeleccionado) {
@@ -201,10 +188,13 @@ function filtrarSitiosPorCentro(sitActual = '') {
             return cAsociado === String(centroSeleccionado).trim() || esNA;
         });
 
+        // Evitamos duplicados y aseguramos que N/A se muestre limpio con una sola vez la etiqueta
         const unicosMap = new Map();
         sitiosFiltrados.forEach(s => {
             const claveStr = String(s.clave).trim();
-            if (!unicosMap.has(claveStr)) unicosMap.set(claveStr, s);
+            if (!unicosMap.has(claveStr)) {
+                unicosMap.set(claveStr, s);
+            }
         });
 
         selSit.innerHTML += Array.from(unicosMap.values()).map(s => {
@@ -215,6 +205,7 @@ function filtrarSitiosPorCentro(sitActual = '') {
     }
 
     const sitClean = (!sitActual || sitActual === '0' || sitActual === 'N/A' || sitActual === 0 || String(sitActual).trim() === '') ? 'N/A' : String(sitActual).trim();
+    
     let matchSit = "";
     if (sitClean !== "") {
         const encontrada = sitiosArray.find(s => String(s.clave).trim().toLowerCase() === sitClean.toLowerCase());
@@ -229,8 +220,15 @@ function poblarSelectoresCascada(regActual = '', centroActual = '', sitActual = 
     if (!selReg) return;
 
     const regsArray = Array.isArray(window._catRegs) ? window._catRegs : [];
+    
+    // Verificamos si hay datos en el catálogo
+    if (regsArray.length === 0) {
+        console.warn("⚠️ _catRegs está vacío al intentar poblar los selectores.");
+    }
+
     const regClean = (!regActual || regActual === '0' || regActual === 'N/A' || regActual === 0) ? '' : String(regActual).trim();
 
+    // Rellenamos de manera directa
     selReg.innerHTML = `<option value="" disabled selected>Seleccione una región...</option>` + 
         regsArray.map(r => `<option value="${r.clave}">${r.clave} - ${r.nombre}</option>`).join('');
 
@@ -241,6 +239,7 @@ function poblarSelectoresCascada(regActual = '', centroActual = '', sitActual = 
     }
 
     selReg.value = matchReg;
+
     filtrarCentrosPorRegion(centroActual, sitActual);
 }
 
@@ -273,6 +272,7 @@ function filtrarCentrosPorRegion(centroActual = '', sitActual = '') {
 
     selCentro.value = matchCentro;
 
+    // 3. Garantizamos la renderización antes de buscar el sitio
     requestAnimationFrame(() => {
         filtrarSitiosPorCentro(sitActual);
     });
@@ -312,15 +312,11 @@ function ocultarFormularioPersonal() {
     if (listadoContainer) listadoContainer.classList.remove('hidden');
 }
 
-async function cargarDatosPersonalSheets(forzar = false) {
+async function cargarDatosPersonalSheets() {
     const tbody = document.getElementById('tabla-personal-body');
     if (!tbody) return;
 
-    // Si ya tenemos caché y no se fuerza, renderizamos inmediatamente
-    if (!forzar && window._empleadosCache.length > 0) {
-        renderizarTablaPersonal(window._empleadosCache);
-        return;
-    }
+    tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-stone-400 italic">Sincronizando...</td></tr>`;
 
     try {
         const data = await FetchAPI('obtenerPersonal');
@@ -370,7 +366,10 @@ async function seleccionarEmpleadoParaEditar(index) {
         return;
     }
 
+    // 1. PRIMERO cargamos y esperamos obligatoriamente a que los catálogos tengan datos antes de hacer nada más
     await cargarCatalogosSheets();
+
+    // 2. Renderizamos la estructura base del formulario sin lista
     cargarPersonalRh(false);
 
     const form = document.getElementById('form-nuevo-personal');
@@ -386,15 +385,20 @@ async function seleccionarEmpleadoParaEditar(index) {
         const extraerClave = (val) => {
             if (!val) return '';
             const str = String(val).trim();
-            if (str.includes(' - ')) return str.split(' - ')[0].trim();
+            if (str.includes(' - ')) {
+                return str.split(' - ')[0].trim();
+            }
             return str;
         };
 
         const regVal = extraerClave(emp.claveReg || emp.textoReg);
         const centroVal = extraerClave(emp.claveCentro || emp.textoCentro);
+
+        // Regla solicitada: Si el sitio es 0, '0', vacío o N/A, lo convertimos a 'N/A'
         let rawSit = extraerClave(emp.claveSit || emp.textoSit);
         const sitVal = (!rawSit || rawSit === 0 || rawSit === '0' || String(rawSit).trim().toUpperCase() === 'N/A') ? 'N/A' : rawSit;
         
+        // 3. Poblamos los selectores ya con los datos seguros en memoria
         poblarSelectoresCascada(regVal, centroVal, sitVal);
 
         form.elements['numEmp'].value = limpiarValor(emp.numEmp);
@@ -419,7 +423,6 @@ async function seleccionarEmpleadoParaEditar(index) {
         if (listadoContainer) listadoContainer.classList.add('hidden');
     }
 }
-
 async function guardarOActualizarPersonal(event) {
     event.preventDefault();
     const datosEmpleado = Object.fromEntries(new FormData(event.target).entries());
@@ -429,8 +432,7 @@ async function guardarOActualizarPersonal(event) {
         const res = await FetchAPI(actionName, datosEmpleado);
         alert(res.message || "Guardado exitoso");
         ocultarFormularioPersonal();
-        // Forzamos actualización de caché tras guardar para reflejar cambios reales
-        cargarDatosGenerales(true);
+        cargarDatosPersonalSheets();
     } catch (e) {
         alert("Error al guardar");
     }

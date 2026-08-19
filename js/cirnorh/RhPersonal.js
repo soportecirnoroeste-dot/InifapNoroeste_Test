@@ -189,7 +189,6 @@ function filtrarSitiosPorCentro(sitActual = '') {
     const centroSeleccionado = selCentro.value;
 
     selSit.innerHTML = `<option value="" disabled selected>Seleccione un sitio...</option>`;
-
     const sitiosArray = Array.isArray(window._catSitios) ? window._catSitios : [];
 
     if (centroSeleccionado) {
@@ -199,13 +198,10 @@ function filtrarSitiosPorCentro(sitActual = '') {
             return cAsociado === String(centroSeleccionado).trim() || esNA;
         });
 
-        // Evitamos duplicados y aseguramos que N/A se muestre limpio con una sola vez la etiqueta
         const unicosMap = new Map();
         sitiosFiltrados.forEach(s => {
             const claveStr = String(s.clave).trim();
-            if (!unicosMap.has(claveStr)) {
-                unicosMap.set(claveStr, s);
-            }
+            if (!unicosMap.has(claveStr)) unicosMap.set(claveStr, s);
         });
 
         selSit.innerHTML += Array.from(unicosMap.values()).map(s => {
@@ -216,7 +212,6 @@ function filtrarSitiosPorCentro(sitActual = '') {
     }
 
     const sitClean = (!sitActual || sitActual === '0' || sitActual === 'N/A' || sitActual === 0 || String(sitActual).trim() === '') ? 'N/A' : String(sitActual).trim();
-    
     let matchSit = "";
     if (sitClean !== "") {
         const encontrada = sitiosArray.find(s => String(s.clave).trim().toLowerCase() === sitClean.toLowerCase());
@@ -231,15 +226,8 @@ function poblarSelectoresCascada(regActual = '', centroActual = '', sitActual = 
     if (!selReg) return;
 
     const regsArray = Array.isArray(window._catRegs) ? window._catRegs : [];
-    
-    // Verificamos si hay datos en el catálogo
-    if (regsArray.length === 0) {
-        console.warn("⚠️ _catRegs está vacío al intentar poblar los selectores.");
-    }
-
     const regClean = (!regActual || regActual === '0' || regActual === 'N/A' || regActual === 0) ? '' : String(regActual).trim();
 
-    // Rellenamos de manera directa
     selReg.innerHTML = `<option value="" disabled selected>Seleccione una región...</option>` + 
         regsArray.map(r => `<option value="${r.clave}">${r.clave} - ${r.nombre}</option>`).join('');
 
@@ -250,7 +238,6 @@ function poblarSelectoresCascada(regActual = '', centroActual = '', sitActual = 
     }
 
     selReg.value = matchReg;
-
     filtrarCentrosPorRegion(centroActual, sitActual);
 }
 
@@ -283,11 +270,11 @@ function filtrarCentrosPorRegion(centroActual = '', sitActual = '') {
 
     selCentro.value = matchCentro;
 
-    // 3. Garantizamos la renderización antes de buscar el sitio
     requestAnimationFrame(() => {
         filtrarSitiosPorCentro(sitActual);
     });
 }
+
 async function mostrarFormularioNuevoPersonal() {
     const formContainer = document.getElementById('contenedor-formulario-personal');
     const gestionContainer = document.getElementById('contenedor-gestion-personal');
@@ -379,10 +366,12 @@ async function seleccionarEmpleadoParaEditar(index) {
         return;
     }
 
-    // 1. Aseguramos que los catálogos estén listos antes de tocar el DOM
-    await cargarCatalogosSheets();
+    // 1. Garantizamos que los catálogos estén listos en memoria ANTES de alterar la vista del formulario
+    if (!window._catRegs || !window._catRegs.length || !window._catCentros || !window._catCentros.length) {
+        await cargarCatalogosSheets();
+    }
 
-    // 2. Renderizamos la estructura base del módulo (esto dibuja el HTML y los selectores vacíos)
+    // 2. Renderizamos el layout del formulario manteniendo el estado limpio de la lista
     cargarPersonalRh(false);
 
     const form = document.getElementById('form-nuevo-personal');
@@ -407,7 +396,7 @@ async function seleccionarEmpleadoParaEditar(index) {
         let rawSit = extraerClave(emp.claveSit || emp.textoSit);
         const sitVal = (!rawSit || rawSit === 0 || rawSit === '0' || String(rawSit).trim().toUpperCase() === 'N/A') ? 'N/A' : rawSit;
         
-        // 3. Poblamos los selectores YA QUE EL FORMULARIO EXISTE EN EL DOM
+        // 3. Poblamos los selectores ya teniendo los datos listos en caché (instantáneo)
         poblarSelectoresCascada(regVal, centroVal, sitVal);
 
         form.elements['numEmp'].value = limpiarValor(emp.numEmp);
@@ -432,6 +421,7 @@ async function seleccionarEmpleadoParaEditar(index) {
         if (listadoContainer) listadoContainer.classList.add('hidden');
     }
 }
+
 async function guardarOActualizarPersonal(event) {
     event.preventDefault();
     const datosEmpleado = Object.fromEntries(new FormData(event.target).entries());

@@ -103,6 +103,7 @@ function cargarPersonalRh(cargarLista = true) {
     }
 }
 
+
 async function cargarDatosGenerales(forzarRecarga = false) {
     if (forzarRecarga) {
         window._catRegsCache = null;
@@ -367,41 +368,59 @@ function poblarSelectoresCascada(regSeleccionada = '', centroSeleccionado = '', 
 
 // Función principal que hace todo el trabajo
 window.filtrarCentrosPorRegion = function(centroActual = '', sitActual = '') {
-    console.log("📍 [TESTIGO EXTREMO] ¡La función se disparó con éxito!");
-
     const selReg = document.getElementById('select-claveReg') || document.querySelector('select[name="claveReg"]');
     const selCentro = document.getElementById('select-claveCentro') || document.querySelector('select[name="claveCentro"]');
     const selSit = document.getElementById('select-claveSit') || document.querySelector('select[name="claveSit"]');
 
-    if (!selReg || !selCentro || !selSit) {
-        console.error("❌ Faltan elementos en el DOM:", { selReg, selCentro, selSit });
-        return;
-    }
+    if (!selReg || !selCentro || !selSit) return;
 
     const regionSeleccionada = selReg.value;
-    console.log("🔍 Región seleccionada:", regionSeleccionada);
-    console.log("📦 window._catCentros actual:", window._catCentros);
-
+    
+    // 1. Resetear Centros y Sitios
     selCentro.innerHTML = `<option value="" disabled selected>Seleccione un centro...</option>`;
-    selSit.innerHTML = `<option value="0">N/A</option>`;
+    selSit.innerHTML = `<option value="" disabled selected>Seleccione un sitio...</option>`;
 
+    // 2. Filtrar Centros por Región
     const centrosArray = Array.isArray(window._catCentros) ? window._catCentros : [];
+    const centrosFiltrados = regionSeleccionada ? centrosArray.filter(c => {
+        const regEnFila = String(c.ClaveReg || c.claveReg || c.CLAVEREG || '').trim();
+        return regEnFila === String(regionSeleccionada).trim();
+    }) : [];
 
-    if (regionSeleccionada) {
-        const centrosFiltrados = centrosArray.filter(c => {
-            const regEnFila = String(c.ClaveReg || c.claveReg || c.CLAVEREG || '').trim();
-            return regEnFila === String(regionSeleccionada).trim();
-        });
+    if (centrosFiltrados.length > 0) {
+        selCentro.innerHTML += centrosFiltrados.map(c => {
+            const claveC = c.ClaveCentro || c.claveCentro || c.CLAVECENTRO || c.clave || '';
+            const nombreC = c.Centro || c.centro || c.nombre || '';
+            const selected = (String(claveC) === String(centroActual)) ? 'selected' : '';
+            return `<option value="${claveC}" ${selected}>${claveC} - ${nombreC}</option>`;
+        }).join('');
+    }
 
-        console.log("✅ Centros filtrados:", centrosFiltrados);
+    // 3. Si hay un centro seleccionado (o pre-cargado), filtrar sitios automáticamente
+    if (centroActual || selCentro.value) {
+        filtrarSitiosPorCentro(centroActual || selCentro.value, sitActual);
+    }
+};
 
-        if (centrosFiltrados.length > 0) {
-            selCentro.innerHTML += centrosFiltrados.map(c => {
-                const claveC = c.ClaveCentro || c.claveCentro || c.CLAVECENTRO || c.clave || '';
-                const nombreC = c.Centro || c.centro || c.nombre || '';
-                return `<option value="${claveC}">${claveC} - ${nombreC}</option>`;
-            }).join('');
-        }
+window.filtrarSitiosPorCentro = function(claveCentro, sitActual = '') {
+    const selSit = document.getElementById('select-claveSit') || document.querySelector('select[name="claveSit"]');
+    if (!selSit) return;
+
+    selSit.innerHTML = `<option value="" disabled selected>Seleccione un sitio...</option>`;
+    
+    const sitiosArray = Array.isArray(window._catSitios) ? window._catSitios : [];
+    const sitiosFiltrados = sitiosArray.filter(s => {
+        const centroEnFila = String(s.ClaveCentro || s.claveCentro || s.CLAVECENTRO || '').trim();
+        return centroEnFila === String(claveCentro).trim();
+    });
+
+    if (sitiosFiltrados.length > 0) {
+        selSit.innerHTML += sitiosFiltrados.map(s => {
+            const claveS = s.ClaveSitio || s.claveSitio || s.CLAVESITIO || s.sitio || '';
+            const nombreS = s.Sitio || s.sitio || s.nombre || '';
+            const selected = (String(claveS) === String(sitActual)) ? 'selected' : '';
+            return `<option value="${claveS}" ${selected}>${claveS} - ${nombreS}</option>`;
+        }).join('');
     }
 };
 

@@ -337,10 +337,22 @@ async function seleccionarEmpleadoParaEditar(index) {
         return;
     }
 
-    // 1. Forzamos la espera absoluta de los catálogos antes de tocar la vista
+    // 1. Aseguramos los catálogos llamando a la función y validando que existan datos
     await cargarCatalogosSheets();
 
-    // 2. Renderizamos el layout limpio con la lista oculta
+    // 💡 RESPALDO DE SEGURIDAD: Si por alguna razón la caché global sigue vacía, 
+    // intentamos rescatarla directamente de las variables de respaldo si las hay.
+    if (!window._catRegs || window._catRegs.length === 0) {
+        window._catRegs = window._catRegsCache || [];
+    }
+    if (!window._catCentros || window._catCentros.length === 0) {
+        window._catCentros = window._catCentrosCache || [];
+    }
+    if (!window._catSitios || window._catSitios.length === 0) {
+        window._catSitios = window._catSitiosCache || [];
+    }
+
+    // 2. Renderizamos la estructura del módulo en el DOM
     cargarPersonalRh(false);
 
     const form = document.getElementById('form-nuevo-personal');
@@ -365,9 +377,10 @@ async function seleccionarEmpleadoParaEditar(index) {
         let rawSit = extraerClave(emp.claveSit || emp.textoSit);
         const sitVal = (!rawSit || rawSit === 0 || rawSit === '0' || String(rawSit).trim().toUpperCase() === 'N/A') ? 'N/A' : rawSit;
         
-        // 3. Poblamos los selectores ya con el DOM listo y la caché asegurada
+        // 3. Poblamos los selectores en cascada pasando las claves limpias del empleado
         poblarSelectoresCascada(regVal, centroVal, sitVal);
 
+        // Llenamos el resto de los campos de texto
         form.elements['numEmp'].value = limpiarValor(emp.numEmp);
         inputNumEmp.setAttribute('readonly', true);
 

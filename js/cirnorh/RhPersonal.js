@@ -342,6 +342,59 @@ function poblarSelectoresCascada(regSeleccionada = '', centroSeleccionado = '', 
     };
 }
 
+// Función principal que hace todo el trabajo
+window.filtrarCentrosPorRegion = function(centroActual = '', sitActual = '') {
+    console.log("📍 [TESTIGO EXTREMO] ¡La función se disparó con éxito!");
+
+    const selReg = document.getElementById('select-claveReg') || document.querySelector('select[name="claveReg"]');
+    const selCentro = document.getElementById('select-claveCentro') || document.querySelector('select[name="claveCentro"]');
+    const selSit = document.getElementById('select-claveSit') || document.querySelector('select[name="claveSit"]');
+
+    if (!selReg || !selCentro || !selSit) {
+        console.error("❌ Faltan elementos en el DOM:", { selReg, selCentro, selSit });
+        return;
+    }
+
+    const regionSeleccionada = selReg.value;
+    console.log("🔍 Región seleccionada:", regionSeleccionada);
+    console.log("📦 window._catCentros actual:", window._catCentros);
+
+    selCentro.innerHTML = `<option value="" disabled selected>Seleccione un centro...</option>`;
+    selSit.innerHTML = `<option value="0">N/A</option>`;
+
+    const centrosArray = Array.isArray(window._catCentros) ? window._catCentros : [];
+
+    if (regionSeleccionada) {
+        const centrosFiltrados = centrosArray.filter(c => {
+            const regEnFila = String(c.ClaveReg || c.claveReg || c.CLAVEREG || '').trim();
+            return regEnFila === String(regionSeleccionada).trim();
+        });
+
+        console.log("✅ Centros filtrados:", centrosFiltrados);
+
+        if (centrosFiltrados.length > 0) {
+            selCentro.innerHTML += centrosFiltrados.map(c => {
+                const claveC = c.ClaveCentro || c.claveCentro || c.CLAVECENTRO || c.clave || '';
+                const nombreC = c.Centro || c.centro || c.nombre || '';
+                return `<option value="${claveC}">${claveC} - ${nombreC}</option>`;
+            }).join('');
+        }
+    }
+};
+
+// Auto-conector universal para asegurar que funcione sin depender del HTML
+document.addEventListener("DOMContentLoaded", () => {
+    const selReg = document.getElementById('select-claveReg') || document.querySelector('select[name="claveReg"]');
+    if (selReg) {
+        console.log("🔗 [AUTO-CONECTOR] Select de región encontrado. Enlazando evento change...");
+        selReg.addEventListener('change', () => {
+            window.filtrarCentrosPorRegion();
+        });
+    } else {
+        console.warn("⚠️ [AUTO-CONECTOR] No se encontró el select de región en el DOM.");
+    }
+});
+
 function filtrarSitiosPorCentro(sitActual = '') {
     const selCentro = document.getElementById('select-claveCentro');
     const selSit = document.getElementById('select-claveSit');
@@ -380,73 +433,6 @@ function filtrarSitiosPorCentro(sitActual = '') {
     }
 
     selSit.value = matchSit;
-}
-
-function filtrarCentrosPorRegion(centroActual = '', sitActual = '') {
-    const selReg = document.getElementById('select-claveReg') || document.getElementById('input-claveReg') || document.querySelector('select[name="claveReg"]');
-    const selCentro = document.getElementById('select-claveCentro') || document.getElementById('input-claveCentro') || document.querySelector('select[name="claveCentro"]');
-    const selSit = document.getElementById('select-claveSit') || document.getElementById('input-claveSit') || document.querySelector('select[name="claveSit"]');
-
-    if (!selReg || !selCentro || !selSit) {
-        console.warn("⚠️ [TESTIGO] Faltan elementos en el DOM para los selects.");
-        return;
-    }
-
-    const regionSeleccionada = selReg.value;
-
-    // 🛑 TESTIGO 1: Clave de la región que se acaba de seleccionar
-    console.log("==================================================");
-    console.log("📍 [TESTIGO REGIÓN] Clave seleccionada en pantalla:", regionSeleccionada);
-
-    selCentro.innerHTML = `<option value="" disabled selected>Seleccione un centro...</option>`;
-    selSit.innerHTML = `<option value="0">N/A</option>`;
-
-    // 🛑 TESTIGO 2: Ver el contenido exacto del arreglo de centros en memoria
-    const centrosArray = Array.isArray(window._catCentros) ? window._catCentros : [];
-    console.log("📦 [TESTIGO CENTROS] Contenido completo actual de window._catCentros:", centrosArray);
-    console.log("🔢 [TESTIGO CENTROS] Total de elementos en el arreglo:", centrosArray.length);
-
-    if (regionSeleccionada) {
-        const centrosFiltrados = centrosArray.filter(c => {
-            const regEnFila = String(c.ClaveReg || c.claveReg || c.CLAVEREG || '').trim();
-            return regEnFila === String(regionSeleccionada).trim();
-        });
-
-        // 🛑 TESTIGO 3: Cuántos y cuáles centros pasaron el filtro para esta región
-        console.log("🎯 [TESTIGO FILTRO] Centros que coincidieron exactamente con la región", regionSeleccionada, ":", centrosFiltrados);
-
-        if (centrosFiltrados.length > 0) {
-            selCentro.innerHTML += centrosFiltrados.map(c => {
-                const claveC = c.ClaveCentro || c.claveCentro || c.CLAVECENTRO || c.clave || '';
-                const nombreC = c.Centro || c.centro || c.nombre || '';
-                return `<option value="${claveC}">${claveC} - ${nombreC}</option>`;
-            }).join('');
-        } else {
-            console.warn("⚠️ [TESTIGO ALERTA] Ningún centro hizo match con la región:", regionSeleccionada);
-        }
-    } else {
-        console.warn("⚠️ [TESTIGO ALERTA] No hay ninguna región seleccionada actualmente.");
-    }
-
-    // Condición de edición
-    if (centroActual && centroActual !== '0' && centroActual !== 'N/A') {
-        const centroClean = String(centroActual).trim();
-        const encontrada = centrosArray.find(c => {
-            const claveC = String(c.ClaveCentro || c.claveCentro || c.CLAVECENTRO || c.clave || '').trim();
-            return claveC.toLowerCase() === centroClean.toLowerCase();
-        });
-        if (encontrada) {
-            selCentro.value = encontrada.ClaveCentro || encontrada.claveCentro || encontrada.CLAVECENTRO || encontrada.clave;
-            console.log("✏️ [TESTIGO EDICIÓN] Centro auto-seleccionado:", selCentro.value);
-        }
-    }
-
-    requestAnimationFrame(() => {
-        if (typeof filtrarSitiosPorCentro === 'function') {
-            filtrarSitiosPorCentro(sitActual);
-        }
-    });
-    console.log("==================================================");
 }
 
 async function mostrarFormularioNuevoPersonal() {

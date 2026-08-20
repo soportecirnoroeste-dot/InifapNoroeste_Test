@@ -204,11 +204,10 @@ async function cargarCatalogosSheets(forzar = false) {
     const centrosMap = new Map();
     const sitiosMap = new Map();
 
-    // Si tenemos empleados en caché, extraemos los catálogos directamente de ahí
     if (window._empleadosCache && Array.isArray(window._empleadosCache)) {
         window._empleadosCache.forEach(e => {
-            // Región
-            const regTxt = e.textoReg || e.claveReg || e.region || '';
+            // 1. Extraer Región
+            const regTxt = e.textoReg || e.claveReg || '';
             if (regTxt) {
                 const str = String(regTxt).trim();
                 const clave = str.includes(' - ') ? str.split(' - ')[0].trim() : str;
@@ -216,46 +215,50 @@ async function cargarCatalogosSheets(forzar = false) {
                 if (clave) regsMap.set(clave, { clave, nombre });
             }
 
-            // Centro
-            const centTxt = e.textoCentro || e.claveCentro || e.centro || '';
+            // 2. Extraer Centro y asegurar su claveReg asociada
+            const centTxt = e.textoCentro || e.claveCentro || '';
             if (centTxt) {
                 const str = String(centTxt).trim();
-                const clave = str.includes(' - ') ? str.split(' - ')[0].trim() : str;
-                const nombre = str.includes(' - ') ? str.split(' - ')[1].trim() : str;
-                const regAsociada = e.claveReg ? String(e.claveReg).split(' - ')[0].trim() : '';
-                if (clave) centrosMap.set(clave, { clave, claveReg: regAsociada, nombre });
+                const claveC = str.includes(' - ') ? str.split(' - ')[0].trim() : str;
+                const nombreC = str.includes(' - ') ? str.split(' - ')[1].trim() : str;
+                
+                // Extraemos la región limpia desde el empleado
+                const regAsociadaTxt = e.textoReg || e.claveReg || '';
+                const claveR = regAsociadaTxt.includes(' - ') ? regAsociadaTxt.split(' - ')[0].trim() : String(regAsociadaTxt).trim();
+
+                if (claveC) {
+                    centrosMap.set(claveC, { 
+                        clave: claveC, 
+                        claveReg: claveR, 
+                        nombre: nombreC 
+                    });
+                }
             }
 
-            // Sitio
-            const sitTxt = e.textoSit || e.claveSit || e.sitio || 'N/A';
-            if (sitTxt) {
+            // 3. Extraer Sitio y asegurar su claveCentro asociada
+            const sitTxt = e.textoSit || e.claveSit || '';
+            if (sitTxt && sitTxt !== '0' && String(sitTxt).toUpperCase() !== 'N/A') {
                 const str = String(sitTxt).trim();
-                const clave = (str === '' || str === '0' || str.toUpperCase() === 'N/A') ? 'N/A' : (str.includes(' - ') ? str.split(' - ')[0].trim() : str);
-                const centroAsociado = e.claveCentro ? String(e.claveCentro).split(' - ')[0].trim() : '';
-                if (clave) sitiosMap.set(clave, { clave, claveCentro: centroAsociado, nombre: clave });
+                const claveS = str.includes(' - ') ? str.split(' - ')[0].trim() : str;
+                const nombreS = str.includes(' - ') ? str.split(' - ')[1].trim() : str;
+                
+                const centAsociadoTxt = e.textoCentro || e.claveCentro || '';
+                const claveC = centAsociadoTxt.includes(' - ') ? centAsociadoTxt.split(' - ')[0].trim() : String(centAsociadoTxt).trim();
+
+                if (claveS) {
+                    sitiosMap.set(claveS, { 
+                        clave: claveS, 
+                        claveCentro: claveC, 
+                        nombre: nombreS 
+                    });
+                }
             }
         });
     }
 
-    // Convertimos los mapas a arreglos globales
     window._catRegs = Array.from(regsMap.values());
     window._catCentros = Array.from(centrosMap.values());
     window._catSitios = Array.from(sitiosMap.values());
-
-    // Si por alguna razón el mapa quedó vacío, ponemos al menos la región y centro del empleado actual para que no falle
-    if (window._catRegs.length === 0) {
-        window._catRegs = [{ clave: '100', nombre: 'CIRNO' }];
-    }
-    if (window._catCentros.length === 0) {
-        window._catCentros = [{ clave: '102', claveReg: '100', nombre: 'CENEB' }];
-    }
-    if (window._catSitios.length === 0) {
-        window._catSitios = [{ clave: 'N/A', claveCentro: '102', nombre: 'N/A' }];
-    }
-
-    window._catRegsCache = window._catRegs;
-    window._catCentrosCache = window._catCentros;
-    window._catSitiosCache = window._catSitios;
 }
 
 function poblarSelectoresCascada(regSeleccionada = '', centroSeleccionado = '', sitioSeleccionado = '') {

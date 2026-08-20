@@ -337,13 +337,15 @@ async function seleccionarEmpleadoParaEditar(index) {
         return;
     }
 
-    // 1. PRIMERO dibujamos la estructura del formulario en el DOM para que los <select> existan físicamente
+    // 🔍 DEPURACIÓN: Esto nos dirá exactamente qué propiedades tiene el empleado seleccionado
+    console.log("Empleado seleccionado para editar:", emp);
+
+    // 1. Dibujamos la estructura del formulario en el DOM
     cargarPersonalRh(false);
 
-    // 2. SEGUNDO aseguramos que los catálogos estén cargados en memoria
+    // 2. Aseguramos los catálogos
     await cargarCatalogosSheets();
 
-    // Respaldo de seguridad por si la caché global está vacía
     window._catRegs = window._catRegs || window._catRegsCache || [];
     window._catCentros = window._catCentros || window._catCentrosCache || [];
     window._catSitios = window._catSitios || window._catSitiosCache || [];
@@ -365,15 +367,17 @@ async function seleccionarEmpleadoParaEditar(index) {
             return str;
         };
 
-        const regVal = extraerClave(emp.claveReg || emp.textoReg);
-        const centroVal = extraerClave(emp.claveCentro || emp.textoCentro);
-        let rawSit = extraerClave(emp.claveSit || emp.textoSit);
+        // Probamos todas las posibles variantes de nombres de propiedades que podría mandar Google Sheets
+        const regVal = extraerClave(emp.claveReg || emp.textoSส || emp.región || emp.region || emp.textoReg);
+        const centroVal = extraerClave(emp.claveCentro || emp.centro || emp.textoCentro);
+        let rawSit = extraerClave(emp.claveSit || emp.sitio || emp.textoSit);
         const sitVal = (!rawSit || rawSit === 0 || rawSit === '0' || String(rawSit).trim().toUpperCase() === 'N/A') ? 'N/A' : rawSit;
         
-        // 3. TERCERO poblamos los selectores en cascada sabiendo que el DOM ya existe
+        console.log("Claves extraídas -> Región:", regVal, "| Centro:", centroVal, "| Sitio:", sitVal);
+
+        // 3. Poblamos los selectores
         poblarSelectoresCascada(regVal, centroVal, sitVal);
 
-        // Llenamos los demás campos de texto
         form.elements['numEmp'].value = limpiarValor(emp.numEmp);
         inputNumEmp.setAttribute('readonly', true);
 
@@ -396,6 +400,7 @@ async function seleccionarEmpleadoParaEditar(index) {
         if (listadoContainer) listadoContainer.classList.add('hidden');
     }
 }
+
 async function guardarOActualizarPersonal(event) {
     event.preventDefault();
     const datosEmpleado = Object.fromEntries(new FormData(event.target).entries());

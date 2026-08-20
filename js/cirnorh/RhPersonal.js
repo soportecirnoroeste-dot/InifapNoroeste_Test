@@ -40,15 +40,16 @@ function cargarPersonalRh(cargarLista = true) {
             <form id="form-nuevo-personal" onsubmit="guardarOActualizarPersonal(event)" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
                 
                 <!-- Selectores dinámicos en cascada -->
-                <div>
+               <div>
                     <label class="block font-bold text-stone-700 mb-1">Clave Reg:</label>
-                    <select name="claveReg" id="select-claveReg" required class="w-full p-2.5 border border-stone-300 rounded-lg bg-white focus:outline-none focus:border-[#249444]">
+                    <!-- Agregamos el onchange aquí -->
+                    <select name="claveReg" id="select-claveReg" onchange="filtrarCentrosPorRegion()" required class="w-full p-2.5 border border-stone-300 rounded-lg bg-white focus:outline-none focus:border-[#249444]">
                         <option value="" disabled selected>Seleccione una región...</option>
                     </select>
                 </div>
                 <div>
                     <label class="block font-bold text-stone-700 mb-1">Clave Centro:</label>
-                    <select name="claveCentro" id="select-claveCentro" onchange="filtrarSitiosPorCentro()" required class="w-full p-2.5 border border-stone-300 rounded-lg bg-white focus:outline-none focus:border-[#249444]">
+                    <select name="claveCentro" id="select-claveCentro" onchange="filtrarSitiosPorCentro(this.value)" required class="w-full p-2.5 border border-stone-300 rounded-lg bg-white focus:outline-none focus:border-[#249444]">
                         <option value="" disabled selected>Seleccione un centro...</option>
                     </select>
                 </div>
@@ -137,7 +138,7 @@ function cancelarEdicionPersonal() {
 
     // 1. Ocultamos el formulario
     if (formContainer) formContainer.classList.add('hidden');
-    
+
     // 2. Mostramos el listado al instante
     if (gestionContainer) gestionContainer.classList.remove('hidden');
     if (listadoContainer) listadoContainer.classList.remove('hidden');
@@ -149,7 +150,7 @@ function cancelarEdicionPersonal() {
             renderizarTablaPersonal(window._empleadosCache);
             return;
         }
-        
+
         // Si no, buscamos el tbody común y lo llenamos a mano
         const tbody = document.getElementById('tabla-personal-body') || document.querySelector('#tabla-personal tbody');
         if (tbody) {
@@ -222,16 +223,16 @@ async function cargarCatalogosSheets(forzar = false) {
                 const str = String(centTxt).trim();
                 const claveC = str.includes(' - ') ? str.split(' - ')[0].trim() : str;
                 const nombreC = str.includes(' - ') ? str.split(' - ')[1].trim() : str;
-                
+
                 // Extraemos la región limpia desde el empleado
                 const regAsociadaTxt = e.textoReg || e.claveReg || '';
                 const claveR = regAsociadaTxt.includes(' - ') ? regAsociadaTxt.split(' - ')[0].trim() : String(regAsociadaTxt).trim();
 
                 if (claveC) {
-                    centrosMap.set(claveC, { 
-                        clave: claveC, 
-                        claveReg: claveR, 
-                        nombre: nombreC 
+                    centrosMap.set(claveC, {
+                        clave: claveC,
+                        claveReg: claveR,
+                        nombre: nombreC
                     });
                 }
             }
@@ -242,15 +243,15 @@ async function cargarCatalogosSheets(forzar = false) {
                 const str = String(sitTxt).trim();
                 const claveS = str.includes(' - ') ? str.split(' - ')[0].trim() : str;
                 const nombreS = str.includes(' - ') ? str.split(' - ')[1].trim() : str;
-                
+
                 const centAsociadoTxt = e.textoCentro || e.claveCentro || '';
                 const claveC = centAsociadoTxt.includes(' - ') ? centAsociadoTxt.split(' - ')[0].trim() : String(centAsociadoTxt).trim();
 
                 if (claveS) {
-                    sitiosMap.set(claveS, { 
-                        clave: claveS, 
-                        claveCentro: claveC, 
-                        nombre: nombreS 
+                    sitiosMap.set(claveS, {
+                        clave: claveS,
+                        claveCentro: claveC,
+                        nombre: nombreS
                     });
                 }
             }
@@ -272,7 +273,7 @@ async function mostrarFormularioNuevoPersonal() {
 
     if (formContainer && form) {
         form.reset();
-        
+
         // Nos aseguramos de tener los catálogos listos antes de poblar
         if (!window._catRegs || window._catRegs.length === 0) {
             await cargarCatalogosSheets(true);
@@ -297,7 +298,7 @@ function poblarSelectoresCascada(regSeleccionada = '', centroSeleccionado = '', 
 
     // 1. Cargar Regiones
     if (window._catRegs && window._catRegs.length > 0) {
-        selectReg.innerHTML = '<option value="" disabled selected>Seleccione una región...</option>' + 
+        selectReg.innerHTML = '<option value="" disabled selected>Seleccione una región...</option>' +
             window._catRegs.map(r => `<option value="${r.clave}">${r.clave} - ${r.nombre}</option>`).join('');
     }
     if (regSeleccionada) selectReg.value = String(regSeleccionada).trim();
@@ -306,19 +307,19 @@ function poblarSelectoresCascada(regSeleccionada = '', centroSeleccionado = '', 
     const actualizarCentros = (regClave) => {
         const regLimpia = String(regClave || '').trim();
         const centrosArray = Array.isArray(window._catCentros) ? window._catCentros : [];
-        
+
         const centrosFiltrados = centrosArray.filter(c => {
             const cReg = String(c.claveReg || c.ClaveReg || '').trim();
             return !regLimpia || cReg === regLimpia;
         });
 
-        selectCentro.innerHTML = '<option value="" disabled selected>Seleccione un centro...</option>' + 
+        selectCentro.innerHTML = '<option value="" disabled selected>Seleccione un centro...</option>' +
             centrosFiltrados.map(c => {
                 const claveC = c.clave || c.ClaveCentro || c.claveCentro || '';
                 const nombreC = c.nombre || c.Centro || '';
                 return `<option value="${claveC}">${claveC} - ${nombreC}</option>`;
             }).join('');
-        
+
         selectSitio.innerHTML = '<option value="0">N/A</option>';
     };
 
@@ -326,7 +327,7 @@ function poblarSelectoresCascada(regSeleccionada = '', centroSeleccionado = '', 
     const actualizarSitios = (centroClave) => {
         let htmlSitios = '<option value="0">N/A</option>';
         const centLimpio = String(centroClave || '').trim();
-        
+
         const sitiosArray = Array.isArray(window._catSitios) ? window._catSitios : [];
         const sitiosFiltrados = sitiosArray.filter(s => {
             const sCent = String(s.claveCentro || s.ClaveCentro || '').trim();
@@ -339,7 +340,7 @@ function poblarSelectoresCascada(regSeleccionada = '', centroSeleccionado = '', 
                 return `<option value="${val}">${s.nombre || s.clave}</option>`;
             }).join('');
         }
-        
+
         selectSitio.innerHTML = htmlSitios;
     };
 
@@ -367,7 +368,7 @@ function poblarSelectoresCascada(regSeleccionada = '', centroSeleccionado = '', 
 }
 
 // Función principal que hace todo el trabajo
-window.filtrarCentrosPorRegion = function(centroActual = '', sitActual = '') {
+window.filtrarCentrosPorRegion = function (centroActual = '', sitActual = '') {
     const selReg = document.getElementById('select-claveReg') || document.querySelector('select[name="claveReg"]');
     const selCentro = document.getElementById('select-claveCentro') || document.querySelector('select[name="claveCentro"]');
     const selSit = document.getElementById('select-claveSit') || document.querySelector('select[name="claveSit"]');
@@ -375,7 +376,7 @@ window.filtrarCentrosPorRegion = function(centroActual = '', sitActual = '') {
     if (!selReg || !selCentro || !selSit) return;
 
     const regionSeleccionada = selReg.value;
-    
+
     // 1. Resetear Centros y Sitios
     selCentro.innerHTML = `<option value="" disabled selected>Seleccione un centro...</option>`;
     selSit.innerHTML = `<option value="" disabled selected>Seleccione un sitio...</option>`;
@@ -402,12 +403,12 @@ window.filtrarCentrosPorRegion = function(centroActual = '', sitActual = '') {
     }
 };
 
-window.filtrarSitiosPorCentro = function(claveCentro, sitActual = '') {
+window.filtrarSitiosPorCentro = function (claveCentro, sitActual = '') {
     const selSit = document.getElementById('select-claveSit') || document.querySelector('select[name="claveSit"]');
     if (!selSit) return;
 
     selSit.innerHTML = `<option value="" disabled selected>Seleccione un sitio...</option>`;
-    
+
     const sitiosArray = Array.isArray(window._catSitios) ? window._catSitios : [];
     const sitiosFiltrados = sitiosArray.filter(s => {
         const centroEnFila = String(s.ClaveCentro || s.claveCentro || s.CLAVECENTRO || '').trim();

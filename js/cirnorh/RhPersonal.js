@@ -382,57 +382,71 @@ function filtrarSitiosPorCentro(sitActual = '') {
     selSit.value = matchSit;
 }
 
-async function cargarCentrosPorRegionDesdeSheets() {
-    const selReg = document.getElementById('input-claveReg') || document.querySelector('select[name="claveReg"]') || document.getElementById('select-claveReg');
-    const selCentro = document.getElementById('input-claveCentro') || document.querySelector('select[name="claveCentro"]') || document.getElementById('select-claveCentro');
-    
-    console.log("Region: ",selReg," centro: ", selCentro);
-    if (!selReg || !selCentro) return;
-    
-    const regionSeleccionada = selReg.value;
-    console.log("🌐 [SHEETS] Región seleccionada para consultar en Google Sheets:", regionSeleccionada);
+function filtrarCentrosPorRegion(centroActual = '', sitActual = '') {
+    const selReg = document.getElementById('select-claveReg') || document.getElementById('input-claveReg') || document.querySelector('select[name="claveReg"]');
+    const selCentro = document.getElementById('select-claveCentro') || document.getElementById('input-claveCentro') || document.querySelector('select[name="claveCentro"]');
+    const selSit = document.getElementById('select-claveSit') || document.getElementById('input-claveSit') || document.querySelector('select[name="claveSit"]');
 
-    if (!regionSeleccionada) {
-        selCentro.innerHTML = `<option value="">Seleccione un centro...</option>`;
+    if (!selReg || !selCentro || !selSit) {
+        console.warn("⚠️ [TESTIGO] Faltan elementos en el DOM para los selects.");
         return;
     }
 
-    // Indicamos visualmente que está consultando
-    selCentro.innerHTML = `<option value="" disabled selected>Consultando centros en Google Sheets...</option>`;
+    const regionSeleccionada = selReg.value;
 
-    try {
-        // AQUÍ ES DONDE LLAMAS A TU CONEXIÓN REAL CON GOOGLE SHEETS
-        // Reemplaza esta línea con la función exacta o el fetch que utilizas para traer los centros de esa región
-        // Ejemplo: const respuesta = await fetch(`/api/centros?region=${regionSeleccionada}`);
-        // O si tienes una función global de Google Apps Script / API:
-        const centrosDesdeSheets = await obtenerCentrosDeLaHoja(regionSeleccionada); 
+    // 🛑 TESTIGO 1: Clave de la región que se acaba de seleccionar
+    console.log("==================================================");
+    console.log("📍 [TESTIGO REGIÓN] Clave seleccionada en pantalla:", regionSeleccionada);
 
-        console.log("📥 [SHEETS] Datos devueltos por la conexión de Google Sheets:", centrosDesdeSheets);
+    selCentro.innerHTML = `<option value="" disabled selected>Seleccione un centro...</option>`;
+    selSit.innerHTML = `<option value="0">N/A</option>`;
 
-        if (Array.isArray(centrosDesdeSheets) && centrosDesdeSheets.length > 0) {
-            selCentro.innerHTML = `<option value="" disabled selected>Seleccione un centro...</option>` + 
-                centrosDesdeSheets.map(c => {
-                    const clave = c.clave || c.ClaveCentro || c.claveCentro || '';
-                    const nombre = c.nombre || c.Centro || '';
-                    return `<option value="${clave}">${clave} - ${nombre}</option>`;
-                }).join('');
+    // 🛑 TESTIGO 2: Ver el contenido exacto del arreglo de centros en memoria
+    const centrosArray = Array.isArray(window._catCentros) ? window._catCentros : [];
+    console.log("📦 [TESTIGO CENTROS] Contenido completo actual de window._catCentros:", centrosArray);
+    console.log("🔢 [TESTIGO CENTROS] Total de elementos en el arreglo:", centrosArray.length);
+
+    if (regionSeleccionada) {
+        const centrosFiltrados = centrosArray.filter(c => {
+            const regEnFila = String(c.ClaveReg || c.claveReg || c.CLAVEREG || '').trim();
+            return regEnFila === String(regionSeleccionada).trim();
+        });
+
+        // 🛑 TESTIGO 3: Cuántos y cuáles centros pasaron el filtro para esta región
+        console.log("🎯 [TESTIGO FILTRO] Centros que coincidieron exactamente con la región", regionSeleccionada, ":", centrosFiltrados);
+
+        if (centrosFiltrados.length > 0) {
+            selCentro.innerHTML += centrosFiltrados.map(c => {
+                const claveC = c.ClaveCentro || c.claveCentro || c.CLAVECENTRO || c.clave || '';
+                const nombreC = c.Centro || c.centro || c.nombre || '';
+                return `<option value="${claveC}">${claveC} - ${nombreC}</option>`;
+            }).join('');
         } else {
-            console.warn("⚠️ [SHEETS] La consulta no devolvió centros para esta región.");
-            selCentro.innerHTML = `<option value="" disabled selected>No hay centros para esta región</option>`;
+            console.warn("⚠️ [TESTIGO ALERTA] Ningún centro hizo match con la región:", regionSeleccionada);
         }
-
-    } catch (error) {
-        console.error("🔥 [SHEETS] Error al conectar o descargar los centros:", error);
-        selCentro.innerHTML = `<option value="" disabled selected>Error al cargar desde Sheets</option>`;
+    } else {
+        console.warn("⚠️ [TESTIGO ALERTA] No hay ninguna región seleccionada actualmente.");
     }
-}
 
-// Aseguramos que se dispare al cambiar la región
-const selRegElement = document.getElementById('input-claveReg') || document.querySelector('select[name="claveReg"]');
-if (selRegElement) {
-    selRegElement.addEventListener('change', () => {
-        cargarCentrosPorRegionDesdeSheets();
+    // Condición de edición
+    if (centroActual && centroActual !== '0' && centroActual !== 'N/A') {
+        const centroClean = String(centroActual).trim();
+        const encontrada = centrosArray.find(c => {
+            const claveC = String(c.ClaveCentro || c.claveCentro || c.CLAVECENTRO || c.clave || '').trim();
+            return claveC.toLowerCase() === centroClean.toLowerCase();
+        });
+        if (encontrada) {
+            selCentro.value = encontrada.ClaveCentro || encontrada.claveCentro || encontrada.CLAVECENTRO || encontrada.clave;
+            console.log("✏️ [TESTIGO EDICIÓN] Centro auto-seleccionado:", selCentro.value);
+        }
+    }
+
+    requestAnimationFrame(() => {
+        if (typeof filtrarSitiosPorCentro === 'function') {
+            filtrarSitiosPorCentro(sitActual);
+        }
     });
+    console.log("==================================================");
 }
 
 async function mostrarFormularioNuevoPersonal() {

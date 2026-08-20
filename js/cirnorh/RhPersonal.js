@@ -261,25 +261,49 @@ async function cargarCatalogosSheets(forzar = false) {
     window._catSitios = Array.from(sitiosMap.values());
 }
 
+async function mostrarFormularioNuevoPersonal() {
+    const formContainer = document.getElementById('contenedor-formulario-personal');
+    const gestionContainer = document.getElementById('contenedor-gestion-personal');
+    const listadoContainer = document.getElementById('contenedor-listado-personal');
+    const form = document.getElementById('form-nuevo-personal');
+    const titulo = document.getElementById('titulo-formulario');
+    const inputNumEmp = document.getElementById('input-numEmp');
+
+    if (formContainer && form) {
+        form.reset();
+        
+        // Nos aseguramos de tener los catálogos listos antes de poblar
+        if (!window._catRegs || window._catRegs.length === 0) {
+            await cargarCatalogosSheets(true);
+        }
+
+        poblarSelectoresCascada('', '', '');
+        inputNumEmp.removeAttribute('readonly');
+        titulo.innerHTML = `Capturar Nuevo Empleado`;
+        formContainer.classList.remove('hidden');
+        if (gestionContainer) gestionContainer.classList.add('hidden');
+        if (listadoContainer) listadoContainer.classList.add('hidden');
+        formContainer.scrollIntoView({ behavior: 'smooth' });
+    }
+}
+
 function poblarSelectoresCascada(regSeleccionada = '', centroSeleccionado = '', sitioSeleccionado = '') {
-    const selectReg = document.getElementById('input-claveReg') || document.querySelector('select[name="claveReg"]');
-    const selectCentro = document.getElementById('input-claveCentro') || document.querySelector('select[name="claveCentro"]');
-    const selectSitio = document.getElementById('input-claveSit') || document.querySelector('select[name="claveSit"]');
+    const selectReg = document.getElementById('select-claveReg') || document.getElementById('input-claveReg') || document.querySelector('select[name="claveReg"]');
+    const selectCentro = document.getElementById('select-claveCentro') || document.getElementById('input-claveCentro') || document.querySelector('select[name="claveCentro"]');
+    const selectSitio = document.getElementById('select-claveSit') || document.getElementById('input-claveSit') || document.querySelector('select[name="claveSit"]');
 
     if (!selectReg || !selectCentro || !selectSitio) return;
 
-    // 1. Cargar Regiones (Asegurando que existan en el catálogo global)
-    if (selectReg.options.length <= 1 && window._catRegs) {
-        selectReg.innerHTML = '<option value="">Seleccione una región...</option>' + 
+    // 1. Cargar Regiones
+    if (window._catRegs && window._catRegs.length > 0) {
+        selectReg.innerHTML = '<option value="" disabled selected>Seleccione una región...</option>' + 
             window._catRegs.map(r => `<option value="${r.clave}">${r.clave} - ${r.nombre}</option>`).join('');
     }
     if (regSeleccionada) selectReg.value = String(regSeleccionada).trim();
 
-    // 2. Función estricta para actualizar Centros usando SOLO el catálogo maestro
+    // 2. Función interna para actualizar Centros
     const actualizarCentros = (regClave) => {
         const regLimpia = String(regClave || '').trim();
-        
-        // Filtramos estrictamente del catálogo global de centros
         const centrosArray = Array.isArray(window._catCentros) ? window._catCentros : [];
         
         const centrosFiltrados = centrosArray.filter(c => {
@@ -287,8 +311,7 @@ function poblarSelectoresCascada(regSeleccionada = '', centroSeleccionado = '', 
             return !regLimpia || cReg === regLimpia;
         });
 
-        // Pintamos única y exclusivamente los centros que pertenecen a esa región
-        selectCentro.innerHTML = '<option value="">Seleccione un centro...</option>' + 
+        selectCentro.innerHTML = '<option value="" disabled selected>Seleccione un centro...</option>' + 
             centrosFiltrados.map(c => {
                 const claveC = c.clave || c.ClaveCentro || c.claveCentro || '';
                 const nombreC = c.nombre || c.Centro || '';
@@ -298,7 +321,7 @@ function poblarSelectoresCascada(regSeleccionada = '', centroSeleccionado = '', 
         selectSitio.innerHTML = '<option value="0">N/A</option>';
     };
 
-    // 3. Función para actualizar Sitios
+    // 3. Función interna para actualizar Sitios
     const actualizarSitios = (centroClave) => {
         let htmlSitios = '<option value="0">N/A</option>';
         const centLimpio = String(centroClave || '').trim();
@@ -319,7 +342,7 @@ function poblarSelectoresCascada(regSeleccionada = '', centroSeleccionado = '', 
         selectSitio.innerHTML = htmlSitios;
     };
 
-    // Aplicar valores iniciales si estamos editando un empleado existente
+    // Aplicar valores iniciales si estamos editando
     const regActual = regSeleccionada || selectReg.value;
     if (regActual) {
         actualizarCentros(regActual);
@@ -332,7 +355,7 @@ function poblarSelectoresCascada(regSeleccionada = '', centroSeleccionado = '', 
         }
     }
 
-    // Eventos interactivos en tiempo real
+    // Eventos interactivos en tiempo real limpios
     selectReg.onchange = (e) => {
         actualizarCentros(e.target.value);
     };

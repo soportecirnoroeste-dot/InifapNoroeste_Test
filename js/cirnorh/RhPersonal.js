@@ -140,9 +140,9 @@ async function cargarCatalogosSheets(forzar = false) {
     try {
         console.log("🔄 Consultando catálogos a Google Sheets...");
         const [regs, centros, sitios] = await Promise.all([
-            FetchAPI('obtenerRegiones').catch(() => null),
-            FetchAPI('obtenerCentros').catch(() => null),
-            FetchAPI('obtenerSitios').catch(() => null)
+            FetchAPI('NOMBRE_REAL_DE_REGIONES_EN_GS').catch(() => null),
+            FetchAPI('NOMBRE_REAL_DE_CENTROS_EN_GS').catch(() => null),
+            FetchAPI('NOMBRE_REAL_DE_SITIOS_EN_GS').catch(() => null)
         ]);
 
         console.log("📥 Respuesta cruda de Regiones:", regs);

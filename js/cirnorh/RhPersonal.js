@@ -133,22 +133,27 @@ async function cargarCatalogosSheets(forzar = false) {
         window._catRegs = window._catRegsCache;
         window._catCentros = window._catCentrosCache;
         window._catSitios = window._catSitiosCache;
+        console.log("📦 Catálogos cargados desde caché local.");
         return;
     }
 
     try {
+        console.log("🔄 Consultando catálogos a Google Sheets...");
         const [regs, centros, sitios] = await Promise.all([
             FetchAPI('obtenerRegiones').catch(() => null),
             FetchAPI('obtenerCentros').catch(() => null),
             FetchAPI('obtenerSitios').catch(() => null)
         ]);
 
-        // Aseguramos la extracción limpia sin importar cómo venga envuelta la respuesta de la API
+        console.log("📥 Respuesta cruda de Regiones:", regs);
+        console.log("📥 Respuesta cruda de Centros:", centros);
+
+        // Si la API devuelve los datos dentro de un objeto, los extraemos
         const parseData = (res) => {
             if (Array.isArray(res)) return res;
             if (res && Array.isArray(res.data)) return res.data;
             if (res && Array.isArray(res.resultado)) return res.resultado;
-            if (res && Array.isArray(res.values)) return res.values;
+            if (res && Array.isArray(res.items)) return res.items;
             return [];
         };
 
@@ -159,9 +164,11 @@ async function cargarCatalogosSheets(forzar = false) {
         window._catRegsCache = window._catRegs;
         window._catCentrosCache = window._catCentros;
         window._catSitiosCache = window._catSitios;
+
+        console.log("✅ Catálogos procesados -> Regiones:", window._catRegs.length, "| Centros:", window._catCentros.length);
         
     } catch (error) {
-        console.error("Error al cargar catálogos:", error);
+        console.error("❌ Error al cargar catálogos:", error);
     }
 }
 

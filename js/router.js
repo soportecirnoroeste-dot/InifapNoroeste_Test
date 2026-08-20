@@ -1,7 +1,5 @@
 // js/router.js
 (function () {
-    console.log("Router iniciado correctamente.");
-
     const params = new URLSearchParams(window.location.search);
     let nombreCortoUrl = (params.get('depto') || '').toLowerCase().trim();
 

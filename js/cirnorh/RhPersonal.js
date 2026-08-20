@@ -403,55 +403,91 @@ function filtrarSitiosPorCentro(sitActual = '') {
 }
 
 async function filtrarCentrosPorRegion(centroActual = '', sitActual = '') {
+    console.log("--------------------------------------------------");
+    console.log("🚦 [TESTIGO 1] Entró a filtrarCentrosPorRegion");
+    console.log("📥 Parámetros recibidos -> centroActual:", centroActual, "| sitActual:", sitActual);
+
     const selReg = document.getElementById('select-claveReg') || document.getElementById('input-claveReg');
     const selCentro = document.getElementById('select-claveCentro') || document.getElementById('input-claveCentro');
     const selSit = document.getElementById('select-claveSit') || document.getElementById('input-claveSit');
 
-    if (!selReg || !selCentro || !selSit) return;
+    console.log("🔍 [TESTIGO 2] Elementos DOM encontrados -> selReg:", !!selReg, "| selCentro:", !!selCentro, "| selSit:", !!selSit);
+
+    if (!selReg || !selCentro || !selSit) {
+        console.error("❌ [ERROR] Faltan elementos en el DOM para los selects.");
+        return;
+    }
+
     const regionSeleccionada = selReg.value;
+    console.log("📍 [TESTIGO 3] Region seleccionada en el select:", regionSeleccionada);
 
     selCentro.innerHTML = `<option value="" disabled selected>Cargando centros...</option>`;
     selSit.innerHTML = `<option value="0">N/A</option>`;
 
     try {
-        // Consultamos directamente el catálogo maestro de centros (ajusta la URL o función según tu API/endpoint de Sheets)
-        // Si ya tienes una función global o endpoint que trae la hoja de centros, la usamos aquí:
-        const centrosArray = window._catCentros && window._catCentros.length > 0 
-            ? window._catCentros 
-            : await obtenerCatalogoCentrosDesdeSheets(); // O tu función existente para descargar esa hoja
+        console.log("📦 [TESTIGO 4] Verificando window._catCentros global...");
+        console.log("Contenido actual de window._catCentros:", window._catCentros);
 
-        window._catCentros = centrosArray; // Aseguramos caché en memoria
+        let centrosArray = [];
+        if (window._catCentros && Array.isArray(window._catCentros) && window._catCentros.length > 0) {
+            centrosArray = window._catCentros;
+            console.log("✅ [TESTIGO 5] Usando centros desde memoria global. Total:", centrosArray.length);
+        } else if (typeof obtenerCatalogoCentrosDesdeSheets === 'function') {
+            console.log("⚠️ [TESTIGO 5b] window._catCentros está vacío. Intentando descargar de Sheets...");
+            centrosArray = await obtenerCatalogoCentrosDesdeSheets();
+            window._catCentros = centrosArray;
+            console.log("📥 [TESTIGO 5c] Centros descargados de Sheets. Total:", centrosArray ? centrosArray.length : 0);
+        } else {
+            console.warn("⚠️ [TESTIGO 5d] No hay catálogos globales ni función para descargar de Sheets.");
+        }
 
         selCentro.innerHTML = `<option value="" disabled selected>Seleccione un centro...</option>`;
 
         if (regionSeleccionada) {
-            // Filtramos estrictamente por la ClaveReg de la hoja maestra
-            const centrosFiltrados = centrosArray.filter(c => String(c.claveReg).trim() === String(regionSeleccionada).trim());
+            console.log("🔎 [TESTIGO 6] Filtrando centros para ClaveReg exacta:", regionSeleccionada);
             
-            console.log(`Centros cargados para la región ${regionSeleccionada}:`, centrosFiltrados);
+            const centrosFiltrados = centrosArray.filter(c => {
+                const match = String(c.claveReg || '').trim() === String(regionSeleccionada).trim();
+                return match;
+            });
 
-            selCentro.innerHTML += centrosFiltrados.map(c =>
-                `<option value="${c.clave}">${c.clave} - ${c.nombre}</option>`
-            ).join('');
+            console.log("🎯 [TESTIGO 7] Centros filtrados exitosamente:", centrosFiltrados);
+
+            if (centrosFiltrados.length > 0) {
+                selCentro.innerHTML += centrosFiltrados.map(c =>
+                    `<option value="${c.clave}">${c.clave} - ${c.nombre}</option>`
+                ).join('');
+            } else {
+                console.warn("⚠️ [ADVERTENCIA] El filtro no encontró ningún centro para la región:", regionSeleccionada);
+            }
+        } else {
+            console.warn("⚠️ [ADVERTENCIA] No hay región seleccionada, el select de centros se queda vacío.");
         }
 
         // Manejo de condición al EDITAR un empleado
         if (centroActual && centroActual !== '0' && centroActual !== 'N/A') {
+            console.log("✏️ [TESTIGO 8] Buscando centro para auto-seleccionar por edición:", centroActual);
             const centroClean = String(centroActual).trim();
-            const encontrada = centrosArray.find(c => String(c.clave).trim().toLowerCase() === centroClean.toLowerCase());
+            const encontrada = centrosArray.find(c => String(c.clave || '').trim().toLowerCase() === centroClean.toLowerCase());
             if (encontrada) {
                 selCentro.value = encontrada.clave;
+                console.log("🎯 [TESTIGO 9] Centro seleccionado correctamente:", encontrada.clave);
+            } else {
+                console.warn("⚠️ [ADVERTENCIA] No se encontró el centro en el arreglo para autoselección:", centroClean);
             }
         }
 
         requestAnimationFrame(() => {
+            console.log("🔄 [TESTIGO 10] Pasando la estafeta a filtrarSitiosPorCentro...");
             if (typeof filtrarSitiosPorCentro === 'function') {
                 filtrarSitiosPorCentro(sitActual);
+            } else {
+                console.warn("⚠️ [ADVERTENCIA] La función filtrarSitiosPorCentro no está definida.");
             }
         });
 
     } catch (error) {
-        console.error("Error al cargar los centros desde el catálogo:", error);
+        console.error("🔥 [ERROR CRÍTICO] Ocurrió una excepción en filtrarCentrosPorRegion:", error);
         selCentro.innerHTML = `<option value="" disabled selected>Error al cargar centros</option>`;
     }
 }

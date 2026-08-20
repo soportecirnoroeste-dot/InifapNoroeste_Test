@@ -129,47 +129,49 @@ async function cargarDatosGenerales(forzarRecarga = false) {
 }
 
 async function cargarCatalogosSheets(forzar = false) {
+    // Si ya existen catálogos cargados, los reutilizamos por velocidad
     if (!forzar && window._catRegsCache && window._catCentrosCache && window._catSitiosCache) {
         window._catRegs = window._catRegsCache;
         window._catCentros = window._catCentrosCache;
         window._catSitios = window._catSitiosCache;
-        console.log("📦 Catálogos cargados desde caché local.");
         return;
     }
 
-    try {
-        console.log("🔄 Consultando catálogos a Google Sheets...");
-        const [regs, centros, sitios] = await Promise.all([
-            FetchAPI('NOMBRE_REAL_DE_REGIONES_EN_GS').catch(() => null),
-            FetchAPI('NOMBRE_REAL_DE_CENTROS_EN_GS').catch(() => null),
-            FetchAPI('NOMBRE_REAL_DE_SITIOS_EN_GS').catch(() => null)
-        ]);
+    // Extraemos los catálogos únicos directamente de los empleados ya cargados
+    const regsMap = new Map();
+    const centrosMap = new Map();
+    const sitiosMap = new Map();
 
-        console.log("📥 Respuesta cruda de Regiones:", regs);
-        console.log("📥 Respuesta cruda de Centros:", centros);
-
-        // Si la API devuelve los datos dentro de un objeto, los extraemos
-        const parseData = (res) => {
-            if (Array.isArray(res)) return res;
-            if (res && Array.isArray(res.data)) return res.data;
-            if (res && Array.isArray(res.resultado)) return res.resultado;
-            if (res && Array.isArray(res.items)) return res.items;
-            return [];
-        };
-
-        window._catRegs = parseData(regs);
-        window._catCentros = parseData(centros);
-        window._catSitios = parseData(sitios);
-
-        window._catRegsCache = window._catRegs;
-        window._catCentrosCache = window._catCentros;
-        window._catSitiosCache = window._catSitios;
-
-        console.log("✅ Catálogos procesados -> Regiones:", window._catRegs.length, "| Centros:", window._catCentros.length);
-        
-    } catch (error) {
-        console.error("❌ Error al cargar catálogos:", error);
+    if (window._empleadosCache && window._empleadosCache.length > 0) {
+        window._empleadosCache.forEach(e => {
+            if (e.claveReg || e.textoReg) {
+                let claveR = String(e.claveReg || e.textoReg).trim();
+                if (claveR.includes(' - ')) claveR = claveR.split(' - ')[0].trim();
+                const nombreR = e.textoReg ? String(e.textoReg).replace(new RegExp(`^${claveR}\\s*-\\s*`), '').trim() : claveR;
+                regsMap.set(claveR, { clave: claveR, nombre: nombreR });
+            }
+            if (e.claveCentro || e.textoCentro) {
+                let claveC = String(e.claveCentro || e.textoCentro).trim();
+                if (claveC.includes(' - ')) claveC = claveC.split(' - ')[0].trim();
+                const nombreC = e.textoCentro ? String(e.textoCentro).replace(new RegExp(`^${claveC}\\s*-\\s*`), '').trim() : claveC;
+                const regAsociada = e.claveReg ? String(e.claveReg).split(' - ')[0].trim() : '';
+                centrosMap.set(claveC, { clave: claveC, claveReg: regAsociada, nombre: nombreC });
+            }
+            let rawSit = e.claveSit || e.textoSit;
+            let claveS = (!rawSit || rawSit === 0 || rawSit === '0' || String(rawSit).trim().toUpperCase() === 'N/A') ? 'N/A' : String(rawSit).trim();
+            if (claveS.includes(' - ')) claveS = claveS.split(' - ')[0].trim();
+            const centroAsociado = e.claveCentro ? String(e.claveCentro).split(' - ')[0].trim() : '';
+            sitiosMap.set(claveS, { clave: claveS, claveCentro: centroAsociado, nombre: claveS === 'N/A' ? 'N/A' : (e.textoSit || claveS) });
+        });
     }
+
+    window._catRegs = Array.from(regsMap.values());
+    window._catCentros = Array.from(centrosMap.values());
+    window._catSitios = Array.from(sitiosMap.values());
+
+    window._catRegsCache = window._catRegs;
+    window._catCentrosCache = window._catCentros;
+    window._catSitiosCache = window._catSitios;
 }
 
 function poblarSelectoresCascada(regActual = '', centroActual = '', sitActual = '') {

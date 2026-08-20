@@ -413,40 +413,43 @@ function filtrarCentrosPorRegion(centroActual = '', sitActual = '') {
     selCentro.innerHTML = `<option value="" disabled selected>Seleccione un centro...</option>`;
     selSit.innerHTML = `<option value="0">N/A</option>`;
 
-    // Catálogo maestro con respaldo estricto de los centros de la región 100
-    let centrosArray = Array.isArray(window._catCentros) && window._catCentros.length > 1 ? window._catCentros : [
-        { claveReg: "100", clave: "102", nombre: "C.E. NORMAN E. BORLAUG" },
-        { claveReg: "100", clave: "103", nombre: "C.E. COSTA DE HERMOSILLO" },
-        { claveReg: "100", clave: "104", nombre: "C.E. VALLE DE CULIACAN" },
-        { claveReg: "100", clave: "105", nombre: "C.E. VALLE DEL FUERTE" },
-        { claveReg: "100", clave: "106", nombre: "C.E. MEXICALI" },
-        { claveReg: "100", clave: "107", nombre: "C.E. TODOS SANTOS" },
-        { claveReg: "100", clave: "108", nombre: "DIRECCIÓN CIR-NOROESTE" }
-    ];
+    // Tomamos la conexión real de Sheets desde window._catCentros
+    const centrosArray = Array.isArray(window._catCentros) ? window._catCentros : [];
 
-    // CONSOLA: Muestra de dónde se obtienen los datos internamente
-    console.log("🔍 [DATOS INTERNOS] Total de centros disponibles en el arreglo:", centrosArray.length);
-    console.log("📍 [DATOS INTERNOS] Región seleccionada en pantalla:", regionSeleccionada);
+    // IMPRESIÓN CLAVE EN CONSOLA: Vamos a ver qué trae exactamente un elemento de Sheets para revisar sus nombres de propiedades (keys)
+    if (centrosArray.length > 0) {
+        console.log("🔍 [SHEETS DATA] Estructura del primer centro recibido:", centrosArray[0]);
+    } else {
+        console.warn("⚠️ [SHEETS DATA] window._catCentros está completamente vacío o no es un arreglo.");
+    }
 
     if (regionSeleccionada) {
-        const centrosFiltrados = centrosArray.filter(c => String(c.claveReg || '').trim() === String(regionSeleccionada).trim());
-        
-        // CONSOLA: Muestra los centros específicos que coinciden con la región
-        console.log("✅ [DATOS INTERNOS] Centros filtrados para esta región:", centrosFiltrados);
+        // Buscamos haciendo match flexible tanto en minúsculas como en mayúsculas (ClaveReg vs claveReg)
+        const centrosFiltrados = centrosArray.filter(c => {
+            const regEnFila = String(c.ClaveReg || c.claveReg || c.CLAVEREG || '').trim();
+            return regEnFila === String(regionSeleccionada).trim();
+        });
+
+        console.log("✅ [SHEETS DATA] Centros que hicieron match con la región", regionSeleccionada, ":", centrosFiltrados);
 
         if (centrosFiltrados.length > 0) {
-            selCentro.innerHTML += centrosFiltrados.map(c =>
-                `<option value="${c.clave}">${c.clave} - ${c.nombre}</option>`
-            ).join('');
+            selCentro.innerHTML += centrosFiltrados.map(c => {
+                const claveC = c.ClaveCentro || c.claveCentro || c.CLAVECENTRO || c.clave || '';
+                const nombreC = c.Centro || c.centro || c.nombre || '';
+                return `<option value="${claveC}">${claveC} - ${nombreC}</option>`;
+            }).join('');
         }
     }
 
+    // Condición de edición
     if (centroActual && centroActual !== '0' && centroActual !== 'N/A') {
         const centroClean = String(centroActual).trim();
-        const encontrada = centrosArray.find(c => String(c.clave || '').trim().toLowerCase() === centroClean.toLowerCase());
+        const encontrada = centrosArray.find(c => {
+            const claveC = String(c.ClaveCentro || c.claveCentro || c.CLAVECENTRO || c.clave || '').trim();
+            return claveC.toLowerCase() === centroClean.toLowerCase();
+        });
         if (encontrada) {
-            selCentro.value = encontrada.clave;
-            console.log("✏️ [EDICIÓN] Centro auto-seleccionado:", encontrada.clave);
+            selCentro.value = encontrada.ClaveCentro || encontrada.claveCentro || encontrada.CLAVECENTRO || encontrada.clave;
         }
     }
 

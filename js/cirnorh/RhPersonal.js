@@ -268,64 +268,28 @@ function poblarSelectoresCascada(regSeleccionada = '', centroSeleccionado = '', 
 
     if (!selectReg || !selectCentro || !selectSitio) return;
 
-    // 0. RESPALDO DE EMERGENCIA: Si no hay catálogos globales, los sacamos directo de window._empleadosCache
-    if ((!window._catRegs || window._catRegs.length === 0 || !window._catCentros || window._catCentros.length === 0) && window._empleadosCache) {
-        const regsMap = new Map();
-        const centrosMap = new Map();
-        
-        window._empleadosCache.forEach(e => {
-            const rTxt = String(e.textoReg || e.claveReg || '').trim();
-            const cTxt = String(e.textoCentro || e.claveCentro || '').trim();
-            
-            if (rTxt) {
-                const cReg = rTxt.includes(' - ') ? rTxt.split(' - ')[0].trim() : rTxt;
-                const nReg = rTxt.includes(' - ') ? rTxt.split(' - ')[1].trim() : cReg;
-                regsMap.set(cReg, { clave: cReg, nombre: nReg });
-            }
-            if (cTxt) {
-                const cCent = cTxt.includes(' - ') ? cTxt.split(' - ')[0].trim() : cTxt;
-                const nCent = cTxt.includes(' - ') ? cTxt.split(' - ')[1].trim() : cCent;
-                const cRegAssoc = rTxt.includes(' - ') ? rTxt.split(' - ')[0].trim() : rTxt;
-                centrosMap.set(cCent, { clave: cCent, claveReg: cRegAssoc, nombre: nCent });
-            }
-        });
-        window._catRegs = Array.from(regsMap.values());
-        window._catCentros = Array.from(centrosMap.values());
+    // 1. Establecer valor de Región si viene especificado
+    if (regSeleccionada) {
+        selectReg.value = String(regSeleccionada).trim();
     }
 
-    // 1. Cargar Regiones
-    if (selectReg.options.length <= 1 && window._catRegs) {
-        selectReg.innerHTML = '<option value="">Seleccione una región...</option>' + 
-            window._catRegs.map(r => `<option value="${r.clave}">${r.clave} - ${r.nombre}</option>`).join('');
-    }
-    if (regSeleccionada) selectReg.value = String(regSeleccionada).trim();
-
-    // 2. Función para actualizar Centros
+    // 2. Función para pintar los Centros de esa Región usando el catálogo maestro
     const actualizarCentros = (regClave) => {
         const regLimia = String(regClave || '').trim();
         
-        // Si no hay región seleccionada, mostramos todos o vaciamos
+        // Filtramos del catálogo global todos los centros que pertenecen a la región
         const centrosFiltrados = window._catCentros ? window._catCentros.filter(c => {
-            const cReg = String(c.claveReg || '').trim();
-            // Si la claveReg coincide o si la clave del centro empieza con la región (ej: 100 y 102)
-            return !regLimia || cReg === regLimia || cCentrosPertenecen(c.clave, regLimia);
+            return !regLimia || c.claveReg === regLimia;
         }) : [];
 
-        // Fallback por si el filtro estricto devuelve 0 pero existen centros en caché general
-        const listaFinal = centrosFiltrados.length > 0 ? centrosFiltrados : (window._catCentros || []);
-
         selectCentro.innerHTML = '<option value="">Seleccione un centro...</option>' + 
-            listaFinal.map(c => `<option value="${c.clave}">${c.clave} - ${c.nombre}</option>`).join('');
+            centrosFiltrados.map(c => `<option value="${c.clave}">${c.clave} - ${c.nombre}</option>`).join('');
         
+        // Reseteamos el sitio por defecto
         selectSitio.innerHTML = '<option value="0">N/A</option>';
     };
 
-    // Función auxiliar flexible para asociar por prefijo si la claveReg viniera vacía en alguna fila
-    function cCentrosPertenecen(claveCentro, claveReg) {
-        return String(claveCentro).startsWith(String(claveReg).substring(0, 1));
-    }
-
-    // 3. Función para actualizar Sitios
+    // 3. Función para actualizar Sitios (si aplica)
     const actualizarSitios = (centroClave) => {
         let htmlSitios = '<option value="0">N/A</option>';
         const centLimpio = String(centroClave || '').trim();
@@ -345,9 +309,10 @@ function poblarSelectoresCascada(regSeleccionada = '', centroSeleccionado = '', 
         selectSitio.innerHTML = htmlSitios;
     };
 
-    // Aplicar valores iniciales si estamos editando
-    if (regSeleccionada) {
-        actualizarCentros(regSeleccionada);
+    // Ejecutar carga inicial según los valores que tenga el empleado al abrir el formulario
+    const regActual = regSeleccionada || selectReg.value;
+    if (regActual) {
+        actualizarCentros(regActual);
         if (centroSeleccionado) {
             selectCentro.value = String(centroSeleccionado).trim();
             actualizarSitios(centroSeleccionado);
@@ -357,9 +322,14 @@ function poblarSelectoresCascada(regSeleccionada = '', centroSeleccionado = '', 
         }
     }
 
-    // Eventos al cambiar interactivamente
-    selectReg.onchange = (e) => actualizarCentros(e.target.value);
-    selectCentro.onchange = (e) => actualizarSitios(e.target.value);
+    // Eventos interactivos cuando el usuario cambia las opciones en pantalla
+    selectReg.onchange = (e) => {
+        actualizarCentros(e.target.value);
+    };
+
+    selectCentro.onchange = (e) => {
+        actualizarSitios(e.target.value);
+    };
 }
 
 function filtrarSitiosPorCentro(sitActual = '') {

@@ -402,38 +402,58 @@ function filtrarSitiosPorCentro(sitActual = '') {
     selSit.value = matchSit;
 }
 
-function filtrarCentrosPorRegion(centroActual = '', sitActual = '') {
-    const selReg = document.getElementById('select-claveReg');
-    const selCentro = document.getElementById('select-claveCentro');
-    const selSit = document.getElementById('select-claveSit');
+async function filtrarCentrosPorRegion(centroActual = '', sitActual = '') {
+    const selReg = document.getElementById('select-claveReg') || document.getElementById('input-claveReg');
+    const selCentro = document.getElementById('select-claveCentro') || document.getElementById('input-claveCentro');
+    const selSit = document.getElementById('select-claveSit') || document.getElementById('input-claveSit');
 
     if (!selReg || !selCentro || !selSit) return;
     const regionSeleccionada = selReg.value;
 
-    selCentro.innerHTML = `<option value="" disabled selected>Seleccione un centro...</option>`;
-    selSit.innerHTML = `<option value="" disabled selected>Seleccione un sitio...</option>`;
+    selCentro.innerHTML = `<option value="" disabled selected>Cargando centros...</option>`;
+    selSit.innerHTML = `<option value="0">N/A</option>`;
 
-    const centrosArray = Array.isArray(window._catCentros) ? window._catCentros : [];
+    try {
+        // Consultamos directamente el catálogo maestro de centros (ajusta la URL o función según tu API/endpoint de Sheets)
+        // Si ya tienes una función global o endpoint que trae la hoja de centros, la usamos aquí:
+        const centrosArray = window._catCentros && window._catCentros.length > 0 
+            ? window._catCentros 
+            : await obtenerCatalogoCentrosDesdeSheets(); // O tu función existente para descargar esa hoja
 
-    if (regionSeleccionada) {
-        const centrosFiltrados = centrosArray.filter(c => String(c.claveReg).trim() === String(regionSeleccionada).trim());
-        selCentro.innerHTML += centrosFiltrados.map(c =>
-            `<option value="${c.clave}">${c.clave} - ${c.nombre}</option>`
-        ).join('');
+        window._catCentros = centrosArray; // Aseguramos caché en memoria
+
+        selCentro.innerHTML = `<option value="" disabled selected>Seleccione un centro...</option>`;
+
+        if (regionSeleccionada) {
+            // Filtramos estrictamente por la ClaveReg de la hoja maestra
+            const centrosFiltrados = centrosArray.filter(c => String(c.claveReg).trim() === String(regionSeleccionada).trim());
+            
+            console.log(`Centros cargados para la región ${regionSeleccionada}:`, centrosFiltrados);
+
+            selCentro.innerHTML += centrosFiltrados.map(c =>
+                `<option value="${c.clave}">${c.clave} - ${c.nombre}</option>`
+            ).join('');
+        }
+
+        // Manejo de condición al EDITAR un empleado
+        if (centroActual && centroActual !== '0' && centroActual !== 'N/A') {
+            const centroClean = String(centroActual).trim();
+            const encontrada = centrosArray.find(c => String(c.clave).trim().toLowerCase() === centroClean.toLowerCase());
+            if (encontrada) {
+                selCentro.value = encontrada.clave;
+            }
+        }
+
+        requestAnimationFrame(() => {
+            if (typeof filtrarSitiosPorCentro === 'function') {
+                filtrarSitiosPorCentro(sitActual);
+            }
+        });
+
+    } catch (error) {
+        console.error("Error al cargar los centros desde el catálogo:", error);
+        selCentro.innerHTML = `<option value="" disabled selected>Error al cargar centros</option>`;
     }
-
-    const centroClean = (!centroActual || centroActual === '0' || centroActual === 'N/A' || centroActual === 0) ? '' : String(centroActual).trim();
-    let matchCentro = "";
-    if (centroClean !== "") {
-        const encontrada = centrosArray.find(c => String(c.clave).trim().toLowerCase() === centroClean.toLowerCase());
-        if (encontrada) matchCentro = encontrada.clave;
-    }
-
-    selCentro.value = matchCentro;
-
-    requestAnimationFrame(() => {
-        filtrarSitiosPorCentro(sitActual);
-    });
 }
 
 async function mostrarFormularioNuevoPersonal() {

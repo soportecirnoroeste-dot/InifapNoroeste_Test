@@ -141,25 +141,12 @@ function cancelarEdicionPersonal() {
     if (gestionContainer) gestionContainer.classList.remove('hidden');
     if (listadoContainer) listadoContainer.classList.remove('hidden');
 
-    // 3. Si ya tenemos la función original que pinta los datos en la tabla, la llamamos pasándole la caché global
-    // (Buscamos el cuerpo de la tabla por su ID común, ej: 'tabla-personal' o 'cuerpo-tabla-personal')
-    const tbody = document.getElementById('cuerpo-tabla-personal') || document.querySelector('#tabla-personal tbody');
-    
-    if (window._empleadosCache && window._empleadosCache.length > 0 && tbody) {
-        // Renderizamos las filas de inmediato con los datos que ya están en memoria
-        tbody.innerHTML = window._empleadosCache.map((emp, index) => `
-            <tr onclick="seleccionarEmpleadoParaEditar(${index})" class="cursor-pointer hover:bg-gray-50 border-b">
-                <td class="py-3 px-4">${emp.claveReg || emp.textoReg || ''}</td>
-                <td class="py-3 px-4">${emp.claveCentro || emp.textoCentro || ''}</td>
-                <td class="py-3 px-4">${emp.numEmp || ''}</td>
-                <td class="py-3 px-4 font-medium text-gray-900">${emp.nombre || ''}</td>
-                <td class="py-3 px-4">${emp.puesto || ''}</td>
-                <td class="py-3 px-4">${emp.departamento || ''}</td>
-            </tr>
-        `).join('');
-    } else if (typeof cargarPersonalRh === 'function') {
-        // Si prefieres usar tu función existente pero sin que alente, asegúrate de que use la caché
-        cargarPersonalRh(true); // O puedes invocar tu función habitual de carga
+    // 3. LLAMADA DIRECTA A TU FUNCIÓN ORIGINAL DE CARGA
+    // Reemplaza 'cargarPersonalRh' por el nombre exacto de la función con la que cargas la tabla en tu archivo RhPersonal.js
+    if (typeof cargarPersonalRh === 'function') {
+        // Si tu función acepta un parámetro para no mostrar pantalla de carga, pásaselo (ej: false), 
+        // o simplemente invócala para que repinte la tabla con los datos que ya están guardados:
+        cargarPersonalRh(false); 
     }
 }
 

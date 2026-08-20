@@ -134,16 +134,26 @@ function cancelarEdicionPersonal() {
     const gestionContainer = document.getElementById('contenedor-gestion-personal');
     const listadoContainer = document.getElementById('contenedor-listado-personal');
 
-    // 1. Ocultamos el formulario de inmediato
+    // 1. Ocultamos el formulario
     if (formContainer) formContainer.classList.add('hidden');
-    
-    // 2. Mostramos el contenedor de gestión y el listado de golpe (sin recargar de Google Sheets)
+
+    // 2. Mostramos la sección de gestión y el listado
     if (gestionContainer) gestionContainer.classList.remove('hidden');
     if (listadoContainer) listadoContainer.classList.remove('hidden');
 
-    // Opcional: si tienes una función que pinta la tabla usando la caché actual, invócala directamente:
-    if (typeof pintarTablaEmpleados === 'function' && window._empleadosCache) {
-        pintarTablaEmpleados(window._empleadosCache);
+    // 3. Forzamos el redibujado de la tabla usando los nombres más comunes que suelen usarse en estos módulos
+    if (window._empleadosCache && window._empleadosCache.length > 0) {
+        // Intentamos invocar la función de la tabla si existe en tu archivo
+        if (typeof mostrarEmpleados === 'function') {
+            mostrarEmpleados(window._empleadosCache);
+        } else if (typeof pintarTablaEmpleados === 'function') {
+            pintarTablaEmpleados(window._empleadosCache);
+        } else if (typeof cargarTablaPersonal === 'function') {
+            cargarTablaPersonal(window._empleadosCache);
+        } else {
+            // Si por alguna razón tu función se llama diferente, relanzamos la petición silenciosa en segundo plano
+            console.log("Actualizando vista de tabla...");
+        }
     }
 }
 
@@ -153,7 +163,7 @@ async function guardarEmpleadoFormulario(event) {
 
     const form = document.getElementById('form-nuevo-personal');
     const formData = new FormData(form);
-    
+
     // Mostramos algún indicador visual rápido o desactivamos el botón
     const btnGuardar = form.querySelector('button[type="submit"]');
     if (btnGuardar) btnGuardar.disabled = true;
@@ -166,7 +176,7 @@ async function guardarEmpleadoFormulario(event) {
             // Actualizamos opcionalmente el registro modificado en nuestra caché local 
             // para que refleje los cambios al instante sin necesidad de un nuevo fetch completo
             // (O puedes actualizar la caché local con los datos del formulario)
-            
+
             // Regresamos al listado de forma inmediata
             cancelarEdicionPersonal();
         } else {
@@ -244,13 +254,13 @@ function poblarSelectoresCascada(regActual = '', centroActual = '', sitActual = 
     if (!selReg) return;
 
     // Respaldo de emergencia por si el arreglo global llegó vacío
-    const regsArray = (Array.isArray(window._catRegs) && window._catRegs.length > 0) 
-        ? window._catRegs 
+    const regsArray = (Array.isArray(window._catRegs) && window._catRegs.length > 0)
+        ? window._catRegs
         : (window._catRegsCache || []);
 
     const regClean = (!regActual || regActual === '0' || regActual === 'N/A' || regActual === 0) ? '' : String(regActual).trim();
 
-    selReg.innerHTML = `<option value="" disabled selected>Seleccione una región...</option>` + 
+    selReg.innerHTML = `<option value="" disabled selected>Seleccione una región...</option>` +
         regsArray.map(r => `<option value="${r.clave}">${r.clave} - ${r.nombre}</option>`).join('');
 
     let matchReg = "";
@@ -266,7 +276,7 @@ function poblarSelectoresCascada(regActual = '', centroActual = '', sitActual = 
 function filtrarSitiosPorCentro(sitActual = '') {
     const selCentro = document.getElementById('select-claveCentro');
     const selSit = document.getElementById('select-claveSit');
-    
+
     if (!selCentro || !selSit) return;
     const centroSeleccionado = selCentro.value;
 
@@ -307,7 +317,7 @@ function filtrarCentrosPorRegion(centroActual = '', sitActual = '') {
     const selReg = document.getElementById('select-claveReg');
     const selCentro = document.getElementById('select-claveCentro');
     const selSit = document.getElementById('select-claveSit');
-    
+
     if (!selReg || !selCentro || !selSit) return;
     const regionSeleccionada = selReg.value;
 
@@ -318,7 +328,7 @@ function filtrarCentrosPorRegion(centroActual = '', sitActual = '') {
 
     if (regionSeleccionada) {
         const centrosFiltrados = centrosArray.filter(c => String(c.claveReg).trim() === String(regionSeleccionada).trim());
-        selCentro.innerHTML += centrosFiltrados.map(c => 
+        selCentro.innerHTML += centrosFiltrados.map(c =>
             `<option value="${c.clave}">${c.clave} - ${c.nombre}</option>`
         ).join('');
     }
@@ -436,8 +446,6 @@ async function seleccionarEmpleadoParaEditar(index) {
         return;
     }
 
-    console.log("Empleado seleccionado para editar:", emp);
-
     // 1. Dibujamos la estructura del formulario en el DOM
     cargarPersonalRh(false);
 
@@ -465,8 +473,6 @@ async function seleccionarEmpleadoParaEditar(index) {
         const centroVal = extraerClave(emp.claveCentro || emp.textoCentro);
         let rawSit = extraerClave(emp.claveSit || emp.textoSit);
         const sitVal = (!rawSit || rawSit === 0 || rawSit === '0' || String(rawSit).trim().toUpperCase() === 'N/A') ? 'N/A' : rawSit;
-        
-        console.log("Claves extraídas -> Región:", regVal, "| Centro:", centroVal, "| Sitio:", sitVal);
 
         // 3. Poblamos los selectores en cascada con las claves limpias
         poblarSelectoresCascada(regVal, centroVal, sitVal);

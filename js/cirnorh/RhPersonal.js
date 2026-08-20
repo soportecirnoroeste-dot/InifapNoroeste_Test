@@ -143,9 +143,18 @@ async function cargarCatalogosSheets(forzar = false) {
             FetchAPI('obtenerSitios').catch(() => null)
         ]);
 
-        window._catRegs = Array.isArray(regs) ? regs : (regs?.data || regs?.resultado || []);
-        window._catCentros = Array.isArray(centros) ? centros : (centros?.data || centros?.resultado || []);
-        window._catSitios = Array.isArray(sitios) ? sitios : (sitios?.data || sitios?.resultado || []);
+        // Aseguramos la extracción limpia sin importar cómo venga envuelta la respuesta de la API
+        const parseData = (res) => {
+            if (Array.isArray(res)) return res;
+            if (res && Array.isArray(res.data)) return res.data;
+            if (res && Array.isArray(res.resultado)) return res.resultado;
+            if (res && Array.isArray(res.values)) return res.values;
+            return [];
+        };
+
+        window._catRegs = parseData(regs);
+        window._catCentros = parseData(centros);
+        window._catSitios = parseData(sitios);
 
         window._catRegsCache = window._catRegs;
         window._catCentrosCache = window._catCentros;
@@ -154,6 +163,30 @@ async function cargarCatalogosSheets(forzar = false) {
     } catch (error) {
         console.error("Error al cargar catálogos:", error);
     }
+}
+
+function poblarSelectoresCascada(regActual = '', centroActual = '', sitActual = '') {
+    const selReg = document.getElementById('select-claveReg');
+    if (!selReg) return;
+
+    // Respaldo de emergencia por si el arreglo global llegó vacío
+    const regsArray = (Array.isArray(window._catRegs) && window._catRegs.length > 0) 
+        ? window._catRegs 
+        : (window._catRegsCache || []);
+
+    const regClean = (!regActual || regActual === '0' || regActual === 'N/A' || regActual === 0) ? '' : String(regActual).trim();
+
+    selReg.innerHTML = `<option value="" disabled selected>Seleccione una región...</option>` + 
+        regsArray.map(r => `<option value="${r.clave}">${r.clave} - ${r.nombre}</option>`).join('');
+
+    let matchReg = "";
+    if (regClean !== "") {
+        const encontrada = regsArray.find(r => String(r.clave).trim().toLowerCase() === regClean.toLowerCase());
+        if (encontrada) matchReg = encontrada.clave;
+    }
+
+    selReg.value = matchReg;
+    filtrarCentrosPorRegion(centroActual, sitActual);
 }
 
 function filtrarSitiosPorCentro(sitActual = '') {
@@ -194,26 +227,6 @@ function filtrarSitiosPorCentro(sitActual = '') {
     }
 
     selSit.value = matchSit;
-}
-
-function poblarSelectoresCascada(regActual = '', centroActual = '', sitActual = '') {
-    const selReg = document.getElementById('select-claveReg');
-    if (!selReg) return;
-
-    const regsArray = Array.isArray(window._catRegs) ? window._catRegs : [];
-    const regClean = (!regActual || regActual === '0' || regActual === 'N/A' || regActual === 0) ? '' : String(regActual).trim();
-
-    selReg.innerHTML = `<option value="" disabled selected>Seleccione una región...</option>` + 
-        regsArray.map(r => `<option value="${r.clave}">${r.clave} - ${r.nombre}</option>`).join('');
-
-    let matchReg = "";
-    if (regClean !== "") {
-        const encontrada = regsArray.find(r => String(r.clave).trim().toLowerCase() === regClean.toLowerCase());
-        if (encontrada) matchReg = encontrada.clave;
-    }
-
-    selReg.value = matchReg;
-    filtrarCentrosPorRegion(centroActual, sitActual);
 }
 
 function filtrarCentrosPorRegion(centroActual = '', sitActual = '') {

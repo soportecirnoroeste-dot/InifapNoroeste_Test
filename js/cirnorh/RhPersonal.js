@@ -607,3 +607,27 @@ async function guardarOActualizarPersonal(event) {
         alert("Error al guardar");
     }
 }
+
+// Disparador de emergencia por si la función no se está llamando al abrir el formulario
+document.addEventListener("DOMContentLoaded", () => {
+    console.log("🚀 [DIAGNÓSTICO] La página cargó. Buscando selects de cascada...");
+    
+    const selectReg = document.getElementById('input-claveReg') || document.querySelector('select[name="claveReg"]');
+    
+    if (selectReg) {
+        console.log("✅ [DIAGNÓSTICO] ¡Select de región encontrado en el DOM!", selectReg);
+        
+        // Si ya hay una región seleccionada al abrir, forzamos la carga
+        if (selectReg.value) {
+            poblarSelectoresCascada(selectReg.value);
+        }
+
+        // Escuchamos cualquier cambio manual
+        selectReg.addEventListener('change', (e) => {
+            console.log("⚡ [DIAGNÓSTICO] El usuario cambió la región a:", e.target.value);
+            poblarSelectoresCascada(e.target.value);
+        });
+    } else {
+        console.warn("⚠️ [DIAGNÓSTICO] No se encontró el select de región en el DOM al iniciar.");
+    }
+});

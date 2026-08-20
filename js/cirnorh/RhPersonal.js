@@ -386,6 +386,7 @@ async function cargarCentrosPorRegionDesdeSheets() {
     const selReg = document.getElementById('input-claveReg') || document.querySelector('select[name="claveReg"]') || document.getElementById('select-claveReg');
     const selCentro = document.getElementById('input-claveCentro') || document.querySelector('select[name="claveCentro"]') || document.getElementById('select-claveCentro');
     
+    console.log("Region: ",selReg," centro: ", selCentro);
     if (!selReg || !selCentro) return;
     
     const regionSeleccionada = selReg.value;

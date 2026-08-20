@@ -129,10 +129,21 @@ async function cargarDatosGenerales(forzarRecarga = false) {
 }
 
 // Al hacer clic en Cancelar o volver al listado
-function cancelarEdicionPersonal() {
- 
-        cargarPersonalRh(false); 
+async function cancelarEdicionPersonal() {
+    const formContainer = document.getElementById('contenedor-formulario-personal');
+    const gestionContainer = document.getElementById('contenedor-gestion-personal');
+    const listadoContainer = document.getElementById('contenedor-listado-personal');
 
+    // 1. Ocultamos el formulario de edición
+    if (formContainer) formContainer.classList.add('hidden');
+    
+    // 2. Mostramos los contenedores del listado de inmediato
+    if (gestionContainer) gestionContainer.classList.remove('hidden');
+    if (listadoContainer) listadoContainer.classList.remove('hidden');
+
+    // 3. Llamamos a tu función de carga sin forzar (forzarRecarga = false por defecto)
+    // Esto hará que, si ya hay datos, se renderice la tabla en milisegundos.
+    await cargarDatosGenerales(false);
 }
 
 // Al hacer clic en Guardar en Sheets

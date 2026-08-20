@@ -268,30 +268,44 @@ function poblarSelectoresCascada(regSeleccionada = '', centroSeleccionado = '', 
 
     if (!selectReg || !selectCentro || !selectSitio) return;
 
-    // 1. Poblar Regiones (si están vacías)
+    // 1. Cargar todas las regiones únicas si está vacío
     if (selectReg.options.length <= 1 && window._catRegs) {
         selectReg.innerHTML = '<option value="">Seleccione una región...</option>' + 
             window._catRegs.map(r => `<option value="${r.clave}">${r.clave} - ${r.nombre}</option>`).join('');
     }
-    if (regSeleccionada) selectReg.value = regSeleccionada;
+    if (regSeleccionada) selectReg.value = String(regSeleccionada).trim();
 
-    // 2. Función para actualizar Centros basado en la Región elegida
+    // 2. Función para actualizar Centros según la Región elegida
     const actualizarCentros = (regClave) => {
-        const centrosFiltrados = window._catCentros ? window._catCentros.filter(c => !regClave || String(c.claveReg).trim() === String(regClave).trim()) : [];
+        const regLimia = String(regClave || '').trim();
         
+        // Filtramos los centros que coincidan con la región
+        const centrosFiltrados = window._catCentros ? window._catCentros.filter(c => {
+            const cReg = String(c.claveReg || '').trim();
+            return !regLimia || cReg === regLimia;
+        }) : [];
+
         selectCentro.innerHTML = '<option value="">Seleccione un centro...</option>' + 
             centrosFiltrados.map(c => `<option value="${c.clave}">${c.clave} - ${c.nombre}</option>`).join('');
+        
+        // Limpiamos sitios al cambiar centro
+        selectSitio.innerHTML = '<option value="0">N/A</option>';
     };
 
-    // 3. Función para actualizar Sitios basado en el Centro elegido
+    // 3. Función para actualizar Sitios según el Centro elegido
     const actualizarSitios = (centroClave) => {
-        const sitiosFiltrados = window._catSitios ? window._catSitios.filter(s => !centroClave || String(s.claveCentro).trim() === String(centroClave).trim()) : [];
+        const centLimpio = String(centroClave || '').trim();
         
-        let htmlSitios = '<option value="0">N/A</option>'; // Por defecto aseguramos la opción N/A (= 0)
+        const sitiosFiltrados = window._catSitios ? window._catSitios.filter(s => {
+            const sCent = String(s.claveCentro || '').trim();
+            return centLimpio && sCent === centLimpio;
+        }) : [];
+
+        let htmlSitios = '<option value="0">N/A</option>'; // Por defecto N/A = 0
         
         if (sitiosFiltrados.length > 0) {
             htmlSitios += sitiosFiltrados.map(s => {
-                const val = (s.clave === 'N/A' || !s.clave) ? '0' : s.clave;
+                const val = (!s.clave || s.clave === 'N/A' || s.clave === '0') ? '0' : s.clave;
                 const txt = s.nombre || s.clave;
                 return `<option value="${val}">${txt}</option>`;
             }).join('');
@@ -300,22 +314,21 @@ function poblarSelectoresCascada(regSeleccionada = '', centroSeleccionado = '', 
         selectSitio.innerHTML = htmlSitios;
     };
 
-    // Aplicar valores iniciales y filtros en cascada
+    // Si ya vienen valores precargados (al editar)
     if (regSeleccionada) {
         actualizarCentros(regSeleccionada);
         if (centroSeleccionado) {
-            selectCentro.value = centroSeleccionado;
+            selectCentro.value = String(centroSeleccionado).trim();
             actualizarSitios(centroSeleccionado);
             if (sitioSeleccionado) {
-                selectSitio.value = (sitioSeleccionado === 'N/A' || sitioSeleccionado === '') ? '0' : sitioSeleccionado;
+                selectSitio.value = (sitioSeleccionado === 'N/A' || !sitioSeleccionado) ? '0' : String(sitioSeleccionado).trim();
             }
         }
     }
 
-    // Eventos dinámicos al cambiar de selección por parte del usuario
+    // Eventos dinámicos en pantalla cuando el usuario interactúa
     selectReg.onchange = (e) => {
         actualizarCentros(e.target.value);
-        selectSitio.innerHTML = '<option value="0">N/A</option>'; // Resetea sitios
     };
 
     selectCentro.onchange = (e) => {

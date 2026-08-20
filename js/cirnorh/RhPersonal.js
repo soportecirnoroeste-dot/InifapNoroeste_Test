@@ -130,24 +130,9 @@ async function cargarDatosGenerales(forzarRecarga = false) {
 
 // Al hacer clic en Cancelar o volver al listado
 function cancelarEdicionPersonal() {
-    const formContainer = document.getElementById('contenedor-formulario-personal');
-    const gestionContainer = document.getElementById('contenedor-gestion-personal');
-    const listadoContainer = document.getElementById('contenedor-listado-personal');
-
-    // 1. Ocultamos el formulario
-    if (formContainer) formContainer.classList.add('hidden');
-    
-    // 2. Mostramos la gestión y el listado
-    if (gestionContainer) gestionContainer.classList.remove('hidden');
-    if (listadoContainer) listadoContainer.classList.remove('hidden');
-
-    // 3. LLAMADA DIRECTA A TU FUNCIÓN ORIGINAL DE CARGA
-    // Reemplaza 'cargarPersonalRh' por el nombre exacto de la función con la que cargas la tabla en tu archivo RhPersonal.js
-    if (typeof cargarPersonalRh === 'function') {
-        // Si tu función acepta un parámetro para no mostrar pantalla de carga, pásaselo (ej: false), 
-        // o simplemente invócala para que repinte la tabla con los datos que ya están guardados:
+ 
         cargarPersonalRh(false); 
-    }
+
 }
 
 // Al hacer clic en Guardar en Sheets

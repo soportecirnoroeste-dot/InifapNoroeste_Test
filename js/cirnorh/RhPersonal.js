@@ -134,31 +134,35 @@ function cancelarEdicionPersonal() {
     const gestionContainer = document.getElementById('contenedor-gestion-personal');
     const listadoContainer = document.getElementById('contenedor-listado-personal');
 
-    // 1. Ocultamos el formulario de inmediato
+    // 1. Ocultamos el formulario
     if (formContainer) formContainer.classList.add('hidden');
     
-    // 2. Mostramos el listado y la gestión al instante
+    // 2. Mostramos el listado al instante
     if (gestionContainer) gestionContainer.classList.remove('hidden');
     if (listadoContainer) listadoContainer.classList.remove('hidden');
 
-    // 3. Pintamos los datos en la tabla de forma local y ultrarrápida
-    // Asegúrate de cambiar 'tabla-personal-body' por el ID real de tu tbody si es diferente
-    const tbody = document.getElementById('tabla-personal-body'); 
-    
-    if (tbody && window._empleadosCache && window._empleadosCache.length > 0) {
-        tbody.innerHTML = window._empleadosCache.map((emp, index) => `
-            <tr onclick="seleccionarEmpleadoParaEditar(${index})" class="cursor-pointer hover:bg-gray-50 border-b">
-                <td class="py-3 px-4">${emp.claveReg || emp.textoReg || ''}</td>
-                <td class="py-3 px-4">${emp.claveCentro || emp.textoCentro || ''}</td>
-                <td class="py-3 px-4">${emp.numEmp || ''}</td>
-                <td class="py-3 px-4 font-medium text-gray-900">${emp.nombre || ''}</td>
-                <td class="py-3 px-4">${emp.puesto || ''}</td>
-                <td class="py-3 px-4">${emp.departamento || ''}</td>
-            </tr>
-        `).join('');
-    } else {
-        // Si por algo la caché estuviera vacía, llamamos a la carga normal
-        cargarDatosGenerales(true);
+    // 3. Pintamos directamente con la caché global para evitar demoras
+    if (window._empleadosCache && window._empleadosCache.length > 0) {
+        // Intentamos usar la función oficial de renderizado si existe
+        if (typeof renderizarTablaPersonal === 'function') {
+            renderizarTablaPersonal(window._empleadosCache);
+            return;
+        }
+        
+        // Si no, buscamos el tbody común y lo llenamos a mano
+        const tbody = document.getElementById('tabla-personal-body') || document.querySelector('#tabla-personal tbody');
+        if (tbody) {
+            tbody.innerHTML = window._empleadosCache.map((emp, index) => `
+                <tr onclick="seleccionarEmpleadoParaEditar(${index})" class="cursor-pointer hover:bg-gray-50 border-b">
+                    <td class="py-3 px-4">${emp.claveReg || emp.textoReg || ''}</td>
+                    <td class="py-3 px-4">${emp.claveCentro || emp.textoCentro || ''}</td>
+                    <td class="py-3 px-4">${emp.numEmp || ''}</td>
+                    <td class="py-3 px-4 font-medium text-gray-900">${emp.nombre || ''}</td>
+                    <td class="py-3 px-4">${emp.puesto || ''}</td>
+                    <td class="py-3 px-4">${emp.departamento || ''}</td>
+                </tr>
+            `).join('');
+        }
     }
 }
 

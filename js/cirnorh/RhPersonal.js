@@ -1,5 +1,11 @@
 // js/cirnorh/RhPersonal.js
 
+// Variables globales de caché (protegidas para no perder velocidad)
+window._catRegsCache = window._catRegsCache || null;
+window._catCentrosCache = window._catCentrosCache || null;
+window._catSitiosCache = window._catSitiosCache || null;
+window._empleadosCache = window._empleadosCache || [];
+
 function cargarPersonalRh(cargarLista = true) {
     renderizarVistaModulo('personal', "Directorio de empleados, altas, bajas y estructura organizacional.");
 
@@ -97,22 +103,23 @@ function cargarPersonalRh(cargarLista = true) {
     }
 }
 
-// Variables globales de caché
-window._catRegsCache = window._catRegsCache || null;
-window._catCentrosCache = window._catCentrosCache || null;
-window._catSitiosCache = window._catSitiosCache || null;
-window._empleadosCache = window._empleadosCache || [];
-
 async function cargarDatosGenerales(forzarRecarga = false) {
+    if (forzarRecarga) {
+        window._catRegsCache = null;
+        window._catCentrosCache = null;
+        window._catSitiosCache = null;
+        window._empleadosCache = [];
+    }
+
     if (!forzarRecarga && window._empleadosCache.length > 0) {
         renderizarTablaPersonal(window._empleadosCache);
         cargarCatalogosSheets();
         return;
     }
 
-    if (window._empleadosCache.length === 0) {
-        const tbody = document.getElementById('tabla-personal-body');
-        if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-stone-400 italic">Sincronizando con Sheets...</td></tr>`;
+    const tbody = document.getElementById('tabla-personal-body');
+    if (tbody && window._empleadosCache.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-stone-400 italic">Sincronizando con Sheets...</td></tr>`;
     }
 
     await Promise.all([
@@ -121,14 +128,8 @@ async function cargarDatosGenerales(forzarRecarga = false) {
     ]);
 }
 
-// Variables globales de caché de catálogos
-//window._catRegsCache = null;
-//window._catCentrosCache = null;
-//window._catSitiosCache = null;
-
-async function cargarCatalogosSheets() {
-    // Si ya los tenemos en memoria, no volvemos a hacer peticiones a la red
-    if (window._catRegsCache && window._catCentrosCache && window._catSitiosCache) {
+async function cargarCatalogosSheets(forzar = false) {
+    if (!forzar && window._catRegsCache && window._catCentrosCache && window._catSitiosCache) {
         window._catRegs = window._catRegsCache;
         window._catCentros = window._catCentrosCache;
         window._catSitios = window._catSitiosCache;
@@ -146,40 +147,6 @@ async function cargarCatalogosSheets() {
         window._catCentros = Array.isArray(centros) ? centros : (centros?.data || centros?.resultado || []);
         window._catSitios = Array.isArray(sitios) ? sitios : (sitios?.data || sitios?.resultado || []);
 
-        // Plan B: Rescatar catálogos completos del caché de empleados si vienen vacíos
-        if (window._catRegs.length === 0 && window._empleadosCache.length > 0) {
-            const regsMap = new Map();
-            const centrosMap = new Map();
-            const sitiosMap = new Map();
-
-            window._empleadosCache.forEach(e => {
-                if (e.claveReg) {
-                    let claveR = String(e.claveReg).trim();
-                    if (claveR.includes(' - ')) claveR = claveR.split(' - ')[0].trim();
-                    const nombreR = e.textoReg ? String(e.textoReg).replace(new RegExp(`^${claveR}\\s*-\\s*`), '').trim() : claveR;
-                    regsMap.set(claveR, { clave: claveR, nombre: nombreR });
-                }
-                if (e.claveCentro) {
-                    let claveC = String(e.claveCentro).trim();
-                    if (claveC.includes(' - ')) claveC = claveC.split(' - ')[0].trim();
-                    const nombreC = e.textoCentro ? String(e.textoCentro).replace(new RegExp(`^${claveC}\\s*-\\s*`), '').trim() : claveC;
-                    const regAsociada = e.claveReg ? String(e.claveReg).split(' - ')[0].trim() : '';
-                    centrosMap.set(claveC, { clave: claveC, claveReg: regAsociada, nombre: nombreC });
-                }
-                let rawSit = e.claveSit || e.textoSit;
-                let claveS = (!rawSit || rawSit === 0 || rawSit === '0' || String(rawSit).trim().toUpperCase() === 'N/A') ? 'N/A' : String(rawSit).trim();
-                if (claveS.includes(' - ')) claveS = claveS.split(' - ')[0].trim();
-                
-                const centroAsociado = e.claveCentro ? String(e.claveCentro).split(' - ')[0].trim() : '';
-                sitiosMap.set(claveS, { clave: claveS, claveCentro: centroAsociado, nombre: claveS === 'N/A' ? 'N/A' : (e.textoSit || claveS) });
-            });
-
-            window._catRegs = Array.from(regsMap.values());
-            window._catCentros = Array.from(centrosMap.values());
-            window._catSitios = Array.from(sitiosMap.values());
-        }
-
-        // Guardar en caché definitivo para futuras consultas en la misma sesión
         window._catRegsCache = window._catRegs;
         window._catCentrosCache = window._catCentros;
         window._catSitiosCache = window._catSitios;
@@ -197,7 +164,6 @@ function filtrarSitiosPorCentro(sitActual = '') {
     const centroSeleccionado = selCentro.value;
 
     selSit.innerHTML = `<option value="" disabled selected>Seleccione un sitio...</option>`;
-
     const sitiosArray = Array.isArray(window._catSitios) ? window._catSitios : [];
 
     if (centroSeleccionado) {
@@ -207,13 +173,10 @@ function filtrarSitiosPorCentro(sitActual = '') {
             return cAsociado === String(centroSeleccionado).trim() || esNA;
         });
 
-        // Evitamos duplicados y aseguramos que N/A se muestre limpio con una sola vez la etiqueta
         const unicosMap = new Map();
         sitiosFiltrados.forEach(s => {
             const claveStr = String(s.clave).trim();
-            if (!unicosMap.has(claveStr)) {
-                unicosMap.set(claveStr, s);
-            }
+            if (!unicosMap.has(claveStr)) unicosMap.set(claveStr, s);
         });
 
         selSit.innerHTML += Array.from(unicosMap.values()).map(s => {
@@ -224,7 +187,6 @@ function filtrarSitiosPorCentro(sitActual = '') {
     }
 
     const sitClean = (!sitActual || sitActual === '0' || sitActual === 'N/A' || sitActual === 0 || String(sitActual).trim() === '') ? 'N/A' : String(sitActual).trim();
-    
     let matchSit = "";
     if (sitClean !== "") {
         const encontrada = sitiosArray.find(s => String(s.clave).trim().toLowerCase() === sitClean.toLowerCase());
@@ -239,15 +201,8 @@ function poblarSelectoresCascada(regActual = '', centroActual = '', sitActual = 
     if (!selReg) return;
 
     const regsArray = Array.isArray(window._catRegs) ? window._catRegs : [];
-    
-    // Verificamos si hay datos en el catálogo
-    if (regsArray.length === 0) {
-        console.warn("⚠️ _catRegs está vacío al intentar poblar los selectores.");
-    }
-
     const regClean = (!regActual || regActual === '0' || regActual === 'N/A' || regActual === 0) ? '' : String(regActual).trim();
 
-    // Rellenamos de manera directa
     selReg.innerHTML = `<option value="" disabled selected>Seleccione una región...</option>` + 
         regsArray.map(r => `<option value="${r.clave}">${r.clave} - ${r.nombre}</option>`).join('');
 
@@ -258,7 +213,6 @@ function poblarSelectoresCascada(regActual = '', centroActual = '', sitActual = 
     }
 
     selReg.value = matchReg;
-
     filtrarCentrosPorRegion(centroActual, sitActual);
 }
 
@@ -291,7 +245,6 @@ function filtrarCentrosPorRegion(centroActual = '', sitActual = '') {
 
     selCentro.value = matchCentro;
 
-    // 3. Garantizamos la renderización antes de buscar el sitio
     requestAnimationFrame(() => {
         filtrarSitiosPorCentro(sitActual);
     });
@@ -307,11 +260,7 @@ async function mostrarFormularioNuevoPersonal() {
 
     if (formContainer && form) {
         form.reset();
-
-        if (!window._catRegs || !window._catRegs.length) {
-            await cargarCatalogosSheets();
-        }
-
+        await cargarCatalogosSheets();
         poblarSelectoresCascada('', '', '');
         inputNumEmp.removeAttribute('readonly');
         titulo.innerHTML = `Capturar Nuevo Empleado`;
@@ -388,10 +337,10 @@ async function seleccionarEmpleadoParaEditar(index) {
         return;
     }
 
-    // 1. Aseguramos que los catálogos estén listos antes de tocar el DOM
+    // 1. Forzamos la espera absoluta de los catálogos antes de tocar la vista
     await cargarCatalogosSheets();
 
-    // 2. Renderizamos la estructura base del módulo (esto dibuja el HTML y los selectores vacíos)
+    // 2. Renderizamos el layout limpio con la lista oculta
     cargarPersonalRh(false);
 
     const form = document.getElementById('form-nuevo-personal');
@@ -416,7 +365,7 @@ async function seleccionarEmpleadoParaEditar(index) {
         let rawSit = extraerClave(emp.claveSit || emp.textoSit);
         const sitVal = (!rawSit || rawSit === 0 || rawSit === '0' || String(rawSit).trim().toUpperCase() === 'N/A') ? 'N/A' : rawSit;
         
-        // 3. Poblamos los selectores YA QUE EL FORMULARIO EXISTE EN EL DOM
+        // 3. Poblamos los selectores ya con el DOM listo y la caché asegurada
         poblarSelectoresCascada(regVal, centroVal, sitVal);
 
         form.elements['numEmp'].value = limpiarValor(emp.numEmp);
@@ -441,6 +390,7 @@ async function seleccionarEmpleadoParaEditar(index) {
         if (listadoContainer) listadoContainer.classList.add('hidden');
     }
 }
+
 async function guardarOActualizarPersonal(event) {
     event.preventDefault();
     const datosEmpleado = Object.fromEntries(new FormData(event.target).entries());

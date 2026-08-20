@@ -304,19 +304,26 @@ function filtrarCentrosPorRegion(centroActual = '', sitActual = '') {
     if (!selReg || !selCentro || !selSit) return;
     const regionSeleccionada = selReg.value;
 
-    // Reseteamos selects dependientes
+    console.log("==========================================");
+    console.log("🔍 [DEPURACIÓN] Región seleccionada:", regionSeleccionada);
+    console.log("📦 [DEPURACIÓN] Catálogo global de centros (window._catCentros):", window._catCentros);
+
     selCentro.innerHTML = `<option value="" disabled selected>Seleccione un centro...</option>`;
     selSit.innerHTML = `<option value="0">N/A</option>`;
 
     const centrosArray = Array.isArray(window._catCentros) ? window._catCentros : [];
 
     if (regionSeleccionada) {
-        // Filtramos TODOS los centros que pertenecen a la claveReg exacta (ej: 100 trae del 102 al 108)
+        // Filtramos TODOS los centros que pertenecen a la claveReg exacta
         const centrosFiltrados = centrosArray.filter(c => String(c.claveReg).trim() === String(regionSeleccionada).trim());
         
+        console.log("✅ [DEPURACIÓN] Centros filtrados para esta región:", centrosFiltrados);
+
         selCentro.innerHTML += centrosFiltrados.map(c =>
             `<option value="${c.clave}">${c.clave} - ${c.nombre}</option>`
         ).join('');
+    } else {
+        console.warn("⚠️ [DEPURACIÓN] No hay región seleccionada actualmente.");
     }
 
     // Manejo de condición al EDITAR un empleado: Seleccionar el centro guardado previamente
@@ -325,6 +332,9 @@ function filtrarCentrosPorRegion(centroActual = '', sitActual = '') {
         const encontrada = centrosArray.find(c => String(c.clave).trim().toLowerCase() === centroClean.toLowerCase());
         if (encontrada) {
             selCentro.value = encontrada.clave;
+            console.log("🎯 [DEPURACIÓN] Centro auto-seleccionado por edición:", encontrada.clave);
+        } else {
+            console.warn("⚠️ [DEPURACIÓN] No se encontró coincidencia para el centro en edición:", centroClean);
         }
     }
 

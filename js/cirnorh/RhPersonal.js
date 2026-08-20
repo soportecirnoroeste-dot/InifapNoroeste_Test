@@ -362,6 +362,46 @@ function poblarSelectoresCascada(regSeleccionada = '', centroSeleccionado = '', 
     selectCentro.onchange = (e) => actualizarSitios(e.target.value);
 }
 
+function filtrarSitiosPorCentro(sitActual = '') {
+    const selCentro = document.getElementById('select-claveCentro');
+    const selSit = document.getElementById('select-claveSit');
+
+    if (!selCentro || !selSit) return;
+    const centroSeleccionado = selCentro.value;
+
+    selSit.innerHTML = `<option value="" disabled selected>Seleccione un sitio...</option>`;
+    const sitiosArray = Array.isArray(window._catSitios) ? window._catSitios : [];
+
+    if (centroSeleccionado) {
+        const sitiosFiltrados = sitiosArray.filter(s => {
+            const cAsociado = String(s.claveCentro || '').trim();
+            const esNA = String(s.clave).trim().toUpperCase() === 'N/A';
+            return cAsociado === String(centroSeleccionado).trim() || esNA;
+        });
+
+        const unicosMap = new Map();
+        sitiosFiltrados.forEach(s => {
+            const claveStr = String(s.clave).trim();
+            if (!unicosMap.has(claveStr)) unicosMap.set(claveStr, s);
+        });
+
+        selSit.innerHTML += Array.from(unicosMap.values()).map(s => {
+            const claveStr = String(s.clave).trim();
+            const textoDisplay = (claveStr.toUpperCase() === 'N/A') ? 'N/A' : `${s.clave} - ${s.nombre}`;
+            return `<option value="${s.clave}">${textoDisplay}</option>`;
+        }).join('');
+    }
+
+    const sitClean = (!sitActual || sitActual === '0' || sitActual === 'N/A' || sitActual === 0 || String(sitActual).trim() === '') ? 'N/A' : String(sitActual).trim();
+    let matchSit = "";
+    if (sitClean !== "") {
+        const encontrada = sitiosArray.find(s => String(s.clave).trim().toLowerCase() === sitClean.toLowerCase());
+        if (encontrada) matchSit = encontrada.clave;
+    }
+
+    selSit.value = matchSit;
+}
+
 function filtrarCentrosPorRegion(centroActual = '', sitActual = '') {
     const selReg = document.getElementById('select-claveReg');
     const selCentro = document.getElementById('select-claveCentro');
@@ -395,7 +435,6 @@ function filtrarCentrosPorRegion(centroActual = '', sitActual = '') {
         filtrarSitiosPorCentro(sitActual);
     });
 }
-
 
 async function mostrarFormularioNuevoPersonal() {
     const formContainer = document.getElementById('contenedor-formulario-personal');

@@ -19,60 +19,14 @@ var AuthModule = {
             if (eyeOpen) eyeOpen.style.display = 'block';
             if (eyeClosed) eyeClosed.style.display = 'none';
         }
-    },
-
-    // Reemplaza la función ejecutarLogin en tu login.js por esta:
-    ejecutarLogin: async function () {
-        if (window._loginEnProceso) return;
-        window._loginEnProceso = true;
-
-        var usuarioInput = document.getElementById('login-user').value.trim();
-        var passwordInput = document.getElementById('login-pass').value.trim();
-
-        if (!usuarioInput || !passwordInput) {
-            alert("Por favor llena todos los campos.");
-            window._loginEnProceso = false;
-            return;
-        }
-
-        const overlay = document.getElementById('loading-overlay');
-        if (overlay) {
-            overlay.style.display = 'flex';
-            overlay.style.opacity = '1';
-        }
-
-        try {
-            // Petición al backend que ya tienes configurado
-            var res = await FetchAPI("login", { user: usuarioInput, pass: passwordInput });
-
-            if (res && res.success) {
-                // AQUÍ ESTÁ LA CLAVE: Guardamos exactamente los campos que devuelve tu Apps Script
-                localStorage.setItem('usuario_sesion', res.usuario || usuarioInput);
-                localStorage.setItem('session_userName', res.userName || "Usuario");
-                localStorage.setItem('session_area', res.area || "CIRNODIR"); // <-- Guardamos el área/departamento recibido
-                localStorage.setItem('isLoggedIn', 'true');
-                localStorage.setItem('ultima_seccion', 'home');
-
-                setTimeout(() => {
-                    window.location.href = "./index.html";
-                }, 400);
-            } else {
-                if (overlay) overlay.style.display = 'none';
-                var msg = res && res.message ? res.message : "Número de empleado o contraseña incorrectos.";
-                alert(msg);
-                window._loginEnProceso = false;
-            }
-        } catch (err) {
-            if (overlay) overlay.style.display = 'none';
-            console.error("Error atrapado en el login:", err);
-            alert("Error al conectar con el servidor.");
-            window._loginEnProceso = false;
-        }
     }
 };
 
 window.AuthModule = AuthModule;
 
+// ========================================================
+// EVENTOS Y FUNCIONES GLOBALES DE LOGIN
+// ========================================================
 document.addEventListener("DOMContentLoaded", () => {
     const overlay = document.getElementById('loading-overlay');
     if (overlay) {
@@ -86,7 +40,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-// Dentro de tu función de login exitoso
 function manejarLoginExitoso(datosUsuario) {
     console.warn('Entra');
     localStorage.setItem('usuario_sesion', 'Activo');
@@ -98,6 +51,7 @@ function logout() {
     window.location.href = 'login.html';
 }
 
+// Función principal de acceso con spinner y llamadas unificadas
 async function ejecutarLogin(event) {
     if (event) event.preventDefault();
 
@@ -106,10 +60,18 @@ async function ejecutarLogin(event) {
     
     if (!btnIngresar) return;
 
+    var usuarioInput = document.getElementById('login-user').value.trim();
+    var passwordInput = document.getElementById('login-pass').value.trim();
+
+    if (!usuarioInput || !passwordInput) {
+        alert("Por favor llena todos los campos.");
+        return;
+    }
+
     const textoOriginal = btnIngresar.innerHTML;
 
     try {
-        // Deshabilitar el botón y aplicar el spinner estilo control financiero
+        // Deshabilitar botón y activar spinner de carga
         btnIngresar.disabled = true;
         btnIngresar.style.opacity = "0.8";
         btnIngresar.style.cursor = "not-allowed";
@@ -129,22 +91,30 @@ async function ejecutarLogin(event) {
             </span>
         `;
 
-        const formData = new FormData(form);
-        const datos = Object.fromEntries(formData.entries());
-
-        const respuesta = await FetchAPI('login', datos);
+        // Petición al backend unificada (usando user y pass como espera tu Apps Script)
+        var respuesta = await FetchAPI("login", { user: usuarioInput, pass: passwordInput });
 
         if (respuesta && respuesta.success) {
+            // Guardamos las variables de sesión del sistema
+            localStorage.setItem('usuario_sesion', respuesta.usuario || usuarioInput);
+            localStorage.setItem('session_userName', respuesta.userName || "Usuario");
+            localStorage.setItem('session_area', respuesta.area || "CIRNODIR");
+            localStorage.setItem('isLoggedIn', 'true');
             localStorage.setItem('usuarioActivo', JSON.stringify(respuesta));
-            window.location.href = "dashboard.html"; 
+            localStorage.setItem('ultima_seccion', 'home');
+
+            setTimeout(() => {
+                window.location.href = "./index.html";
+            }, 400);
         } else {
-            alert(respuesta.message || "Credenciales incorrectas.");
+            var msg = respuesta && respuesta.message ? respuesta.message : "Número de empleado o contraseña incorrectos.";
+            alert(msg);
             restaurarBoton(btnIngresar, textoOriginal);
         }
 
     } catch (error) {
-        console.error("Error en el login:", error);
-        alert("Ocurrió un error al conectar con el servidor.");
+        console.error("Error atrapado en el login:", error);
+        alert("Error al conectar con el servidor.");
         restaurarBoton(btnIngresar, textoOriginal);
     }
 }
@@ -155,5 +125,3 @@ function restaurarBoton(boton, textoOriginal) {
     boton.style.cursor = "pointer";
     boton.innerHTML = textoOriginal;
 }
-
-

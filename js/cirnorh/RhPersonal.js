@@ -268,28 +268,32 @@ function poblarSelectoresCascada(regSeleccionada = '', centroSeleccionado = '', 
 
     if (!selectReg || !selectCentro || !selectSitio) return;
 
-    // 1. Establecer valor de Región si viene especificado
+    // 1. CARGAR REGIONES: Si el select está vacío, lo llenamos con window._catRegs
+    if (selectReg.options.length <= 1 && window._catRegs && window._catRegs.length > 0) {
+        selectReg.innerHTML = '<option value="">Seleccione una región...</option>' + 
+            window._catRegs.map(r => `<option value="${r.clave}">${r.clave} - ${r.nombre}</option>`).join('');
+    }
+
+    // Si viene una región seleccionada (al editar), la establecemos
     if (regSeleccionada) {
         selectReg.value = String(regSeleccionada).trim();
     }
 
-    // 2. Función para pintar los Centros de esa Región usando el catálogo maestro
+    // 2. Función para pintar los Centros de esa Región
     const actualizarCentros = (regClave) => {
         const regLimia = String(regClave || '').trim();
         
-        // Filtramos del catálogo global todos los centros que pertenecen a la región
         const centrosFiltrados = window._catCentros ? window._catCentros.filter(c => {
-            return !regLimia || c.claveReg === regLimia;
+            return !regLimia || String(c.claveReg).trim() === regLimia;
         }) : [];
 
         selectCentro.innerHTML = '<option value="">Seleccione un centro...</option>' + 
             centrosFiltrados.map(c => `<option value="${c.clave}">${c.clave} - ${c.nombre}</option>`).join('');
         
-        // Reseteamos el sitio por defecto
         selectSitio.innerHTML = '<option value="0">N/A</option>';
     };
 
-    // 3. Función para actualizar Sitios (si aplica)
+    // 3. Función para actualizar Sitios
     const actualizarSitios = (centroClave) => {
         let htmlSitios = '<option value="0">N/A</option>';
         const centLimpio = String(centroClave || '').trim();
@@ -309,7 +313,7 @@ function poblarSelectoresCascada(regSeleccionada = '', centroSeleccionado = '', 
         selectSitio.innerHTML = htmlSitios;
     };
 
-    // Ejecutar carga inicial según los valores que tenga el empleado al abrir el formulario
+    // Si hay una región activa (por edición o selección previa), actualizamos sus centros
     const regActual = regSeleccionada || selectReg.value;
     if (regActual) {
         actualizarCentros(regActual);
@@ -322,7 +326,7 @@ function poblarSelectoresCascada(regSeleccionada = '', centroSeleccionado = '', 
         }
     }
 
-    // Eventos interactivos cuando el usuario cambia las opciones en pantalla
+    // Eventos interactivos cuando el usuario cambia las opciones
     selectReg.onchange = (e) => {
         actualizarCentros(e.target.value);
     };

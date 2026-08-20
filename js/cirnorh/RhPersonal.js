@@ -76,7 +76,7 @@ function cargarPersonalRh(cargarLista = true) {
                 
                 <div class="sm:col-span-2 md:col-span-3 flex items-end gap-2 pt-2">
                     <button type="submit" class="py-2.5 px-6 bg-[#059669] text-white font-bold rounded-lg hover:bg-[#047857] transition flex items-center justify-center gap-1.5">
-                        Guardar en Sheets
+                        Guardar
                     </button>
                     <button type="button" onclick="ocultarFormularioPersonal()" class="px-4 py-2.5 bg-stone-100 text-stone-600 font-bold rounded-lg hover:bg-stone-200 transition">Cancelar</button>
                 </div>

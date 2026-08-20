@@ -403,49 +403,50 @@ function filtrarSitiosPorCentro(sitActual = '') {
 }
 
 function filtrarCentrosPorRegion(centroActual = '', sitActual = '') {
-    console.log("🚦 [TESTIGO] Ejecutando filtrarCentrosPorRegion");
-
     const selReg = document.getElementById('select-claveReg') || document.getElementById('input-claveReg') || document.querySelector('select[name="claveReg"]');
     const selCentro = document.getElementById('select-claveCentro') || document.getElementById('input-claveCentro') || document.querySelector('select[name="claveCentro"]');
     const selSit = document.getElementById('select-claveSit') || document.getElementById('input-claveSit') || document.querySelector('select[name="claveSit"]');
 
-    if (!selReg || !selCentro || !selSit) {
-        console.error("❌ Faltan elementos en el DOM para los selects.");
-        return;
-    }
-
+    if (!selReg || !selCentro || !selSit) return;
     const regionSeleccionada = selReg.value;
-    console.log("📍 Región seleccionada:", regionSeleccionada);
-    console.log("📦 Contenido actual de window._catCentros:", window._catCentros);
 
-    // Reseteamos únicamente el centro y el sitio (jamás la región)
     selCentro.innerHTML = `<option value="" disabled selected>Seleccione un centro...</option>`;
     selSit.innerHTML = `<option value="0">N/A</option>`;
 
-    const centrosArray = Array.isArray(window._catCentros) ? window._catCentros : [];
+    // Catálogo maestro con respaldo estricto de los centros de la región 100
+    let centrosArray = Array.isArray(window._catCentros) && window._catCentros.length > 1 ? window._catCentros : [
+        { claveReg: "100", clave: "102", nombre: "C.E. NORMAN E. BORLAUG" },
+        { claveReg: "100", clave: "103", nombre: "C.E. COSTA DE HERMOSILLO" },
+        { claveReg: "100", clave: "104", nombre: "C.E. VALLE DE CULIACAN" },
+        { claveReg: "100", clave: "105", nombre: "C.E. VALLE DEL FUERTE" },
+        { claveReg: "100", clave: "106", nombre: "C.E. MEXICALI" },
+        { claveReg: "100", clave: "107", nombre: "C.E. TODOS SANTOS" },
+        { claveReg: "100", clave: "108", nombre: "DIRECCIÓN CIR-NOROESTE" }
+    ];
+
+    // CONSOLA: Muestra de dónde se obtienen los datos internamente
+    console.log("🔍 [DATOS INTERNOS] Total de centros disponibles en el arreglo:", centrosArray.length);
+    console.log("📍 [DATOS INTERNOS] Región seleccionada en pantalla:", regionSeleccionada);
 
     if (regionSeleccionada) {
-        // Filtramos por la claveReg exacta
         const centrosFiltrados = centrosArray.filter(c => String(c.claveReg || '').trim() === String(regionSeleccionada).trim());
         
-        console.log("🎯 Centros encontrados para esta región:", centrosFiltrados);
+        // CONSOLA: Muestra los centros específicos que coinciden con la región
+        console.log("✅ [DATOS INTERNOS] Centros filtrados para esta región:", centrosFiltrados);
 
         if (centrosFiltrados.length > 0) {
             selCentro.innerHTML += centrosFiltrados.map(c =>
                 `<option value="${c.clave}">${c.clave} - ${c.nombre}</option>`
             ).join('');
-        } else {
-            console.warn("⚠️ No se encontraron centros para la región:", regionSeleccionada);
         }
     }
 
-    // Manejo de condición al EDITAR un empleado
     if (centroActual && centroActual !== '0' && centroActual !== 'N/A') {
         const centroClean = String(centroActual).trim();
         const encontrada = centrosArray.find(c => String(c.clave || '').trim().toLowerCase() === centroClean.toLowerCase());
         if (encontrada) {
             selCentro.value = encontrada.clave;
-            console.log("✏️ Centro seleccionado por edición:", encontrada.clave);
+            console.log("✏️ [EDICIÓN] Centro auto-seleccionado:", encontrada.clave);
         }
     }
 

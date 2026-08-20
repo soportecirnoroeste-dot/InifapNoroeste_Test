@@ -42,7 +42,7 @@ function cargarPersonalRh(cargarLista = true) {
                 <!-- Selectores dinámicos en cascada -->
                 <div>
                     <label class="block font-bold text-stone-700 mb-1">Clave Reg:</label>
-                    <select name="claveReg" id="select-claveReg" onchange="filtrarCentrosPorRegion()" required class="w-full p-2.5 border border-stone-300 rounded-lg bg-white focus:outline-none focus:border-[#249444]">
+                    <select name="claveReg" id="select-claveReg" required class="w-full p-2.5 border border-stone-300 rounded-lg bg-white focus:outline-none focus:border-[#249444]">
                         <option value="" disabled selected>Seleccione una región...</option>
                     </select>
                 </div>

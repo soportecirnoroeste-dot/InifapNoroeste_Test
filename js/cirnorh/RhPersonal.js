@@ -136,24 +136,30 @@ function cancelarEdicionPersonal() {
 
     // 1. Ocultamos el formulario
     if (formContainer) formContainer.classList.add('hidden');
-
-    // 2. Mostramos la sección de gestión y el listado
+    
+    // 2. Mostramos la gestión y el listado
     if (gestionContainer) gestionContainer.classList.remove('hidden');
     if (listadoContainer) listadoContainer.classList.remove('hidden');
 
-    // 3. Forzamos el redibujado de la tabla usando los nombres más comunes que suelen usarse en estos módulos
-    if (window._empleadosCache && window._empleadosCache.length > 0) {
-        // Intentamos invocar la función de la tabla si existe en tu archivo
-        if (typeof mostrarEmpleados === 'function') {
-            mostrarEmpleados(window._empleadosCache);
-        } else if (typeof pintarTablaEmpleados === 'function') {
-            pintarTablaEmpleados(window._empleadosCache);
-        } else if (typeof cargarTablaPersonal === 'function') {
-            cargarTablaPersonal(window._empleadosCache);
-        } else {
-            // Si por alguna razón tu función se llama diferente, relanzamos la petición silenciosa en segundo plano
-            console.log("Actualizando vista de tabla...");
-        }
+    // 3. Si ya tenemos la función original que pinta los datos en la tabla, la llamamos pasándole la caché global
+    // (Buscamos el cuerpo de la tabla por su ID común, ej: 'tabla-personal' o 'cuerpo-tabla-personal')
+    const tbody = document.getElementById('cuerpo-tabla-personal') || document.querySelector('#tabla-personal tbody');
+    
+    if (window._empleadosCache && window._empleadosCache.length > 0 && tbody) {
+        // Renderizamos las filas de inmediato con los datos que ya están en memoria
+        tbody.innerHTML = window._empleadosCache.map((emp, index) => `
+            <tr onclick="seleccionarEmpleadoParaEditar(${index})" class="cursor-pointer hover:bg-gray-50 border-b">
+                <td class="py-3 px-4">${emp.claveReg || emp.textoReg || ''}</td>
+                <td class="py-3 px-4">${emp.claveCentro || emp.textoCentro || ''}</td>
+                <td class="py-3 px-4">${emp.numEmp || ''}</td>
+                <td class="py-3 px-4 font-medium text-gray-900">${emp.nombre || ''}</td>
+                <td class="py-3 px-4">${emp.puesto || ''}</td>
+                <td class="py-3 px-4">${emp.departamento || ''}</td>
+            </tr>
+        `).join('');
+    } else if (typeof cargarPersonalRh === 'function') {
+        // Si prefieres usar tu función existente pero sin que alente, asegúrate de que use la caché
+        cargarPersonalRh(true); // O puedes invocar tu función habitual de carga
     }
 }
 

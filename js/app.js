@@ -25,14 +25,12 @@ const AuthGuard = {
             if (!paginaActual.includes('login.html')) {
                 // Guardamos la ruta actual antes de hacer nada
                 sessionStorage.setItem('ultima_ruta_completa', rutaCompletaActual);
-                console.log("Guardando en sessionStorage:", rutaCompletaActual);
 
                 if (paginaActual.includes('index.html') || paginaActual.endsWith('/')) {
                     SistemaGlobal.init();
                 } else {
                     // Verificamos si al recargar perdimos los parámetros o el estado
                     const rutaGuardada = sessionStorage.getItem('ultima_ruta_completa');
-                    console.log("Ruta consolidada lista para operar:", rutaGuardada);
                 }
             }
         }

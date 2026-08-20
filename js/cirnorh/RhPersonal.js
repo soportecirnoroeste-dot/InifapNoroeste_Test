@@ -287,7 +287,7 @@ function poblarSelectoresCascada(regSeleccionada = '', centroSeleccionado = '', 
             return !regLimia || String(c.claveReg).trim() === regLimia;
         }) : [];
 
-        console.log("Centros filtrados resultantes:", centrosFiltrados);
+        console.log("Centros filtrados resultantes:", centrosFiltrados," ", regLimia);
 
         selectCentro.innerHTML = '<option value="">Seleccione un centro...</option>' +
             centrosFiltrados.map(c => `<option value="${c.clave}">${c.clave} - ${c.nombre}</option>`).join('');

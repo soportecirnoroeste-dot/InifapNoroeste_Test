@@ -8,11 +8,6 @@ const AuthGuard = {
         const queryActual = window.location.search;
         const rutaCompletaActual = paginaActual + queryActual;
 
-        console.log("--- [AuthGuard Debug] ---");
-        console.log("Página actual (pathname):", paginaActual);
-        console.log("Query actual (search):", queryActual);
-        console.log("Última ruta guardada previa:", sessionStorage.getItem('ultima_ruta_completa'));
-
         if (!usuarioSesion && !paginaActual.includes('login.html')) {
             console.warn("Redirigiendo a login: No hay sesión activa.");
             window.location.href = 'login.html';

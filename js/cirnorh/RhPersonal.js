@@ -136,7 +136,7 @@ function cancelarEdicionPersonal() {
 
     // 1. Ocultamos el formulario
     if (formContainer) formContainer.classList.add('hidden');
-    
+
     // 2. Mostramos el listado al instante
     if (gestionContainer) gestionContainer.classList.remove('hidden');
     if (listadoContainer) listadoContainer.classList.remove('hidden');
@@ -148,7 +148,7 @@ function cancelarEdicionPersonal() {
             renderizarTablaPersonal(window._empleadosCache);
             return;
         }
-        
+
         // Si no, buscamos el tbody común y lo llenamos a mano
         const tbody = document.getElementById('tabla-personal-body') || document.querySelector('#tabla-personal tbody');
         if (tbody) {
@@ -221,16 +221,16 @@ async function cargarCatalogosSheets(forzar = false) {
                 const str = String(centTxt).trim();
                 const claveC = str.includes(' - ') ? str.split(' - ')[0].trim() : str;
                 const nombreC = str.includes(' - ') ? str.split(' - ')[1].trim() : str;
-                
+
                 // Extraemos la región limpia desde el empleado
                 const regAsociadaTxt = e.textoReg || e.claveReg || '';
                 const claveR = regAsociadaTxt.includes(' - ') ? regAsociadaTxt.split(' - ')[0].trim() : String(regAsociadaTxt).trim();
 
                 if (claveC) {
-                    centrosMap.set(claveC, { 
-                        clave: claveC, 
-                        claveReg: claveR, 
-                        nombre: nombreC 
+                    centrosMap.set(claveC, {
+                        clave: claveC,
+                        claveReg: claveR,
+                        nombre: nombreC
                     });
                 }
             }
@@ -241,15 +241,15 @@ async function cargarCatalogosSheets(forzar = false) {
                 const str = String(sitTxt).trim();
                 const claveS = str.includes(' - ') ? str.split(' - ')[0].trim() : str;
                 const nombreS = str.includes(' - ') ? str.split(' - ')[1].trim() : str;
-                
+
                 const centAsociadoTxt = e.textoCentro || e.claveCentro || '';
                 const claveC = centAsociadoTxt.includes(' - ') ? centAsociadoTxt.split(' - ')[0].trim() : String(centAsociadoTxt).trim();
 
                 if (claveS) {
-                    sitiosMap.set(claveS, { 
-                        clave: claveS, 
-                        claveCentro: claveC, 
-                        nombre: nombreS 
+                    sitiosMap.set(claveS, {
+                        clave: claveS,
+                        claveCentro: claveC,
+                        nombre: nombreS
                     });
                 }
             }
@@ -270,7 +270,7 @@ function poblarSelectoresCascada(regSeleccionada = '', centroSeleccionado = '', 
 
     // 1. CARGAR REGIONES: Si el select está vacío, lo llenamos con window._catRegs
     if (selectReg.options.length <= 1 && window._catRegs && window._catRegs.length > 0) {
-        selectReg.innerHTML = '<option value="">Seleccione una región...</option>' + 
+        selectReg.innerHTML = '<option value="">Seleccione una región...</option>' +
             window._catRegs.map(r => `<option value="${r.clave}">${r.clave} - ${r.nombre}</option>`).join('');
     }
 
@@ -282,14 +282,16 @@ function poblarSelectoresCascada(regSeleccionada = '', centroSeleccionado = '', 
     // 2. Función para pintar los Centros de esa Región
     const actualizarCentros = (regClave) => {
         const regLimia = String(regClave || '').trim();
-        
+
         const centrosFiltrados = window._catCentros ? window._catCentros.filter(c => {
             return !regLimia || String(c.claveReg).trim() === regLimia;
         }) : [];
 
-        selectCentro.innerHTML = '<option value="">Seleccione un centro...</option>' + 
+        console.log("Centros filtrados resultantes:", centrosFiltrados);
+
+        selectCentro.innerHTML = '<option value="">Seleccione un centro...</option>' +
             centrosFiltrados.map(c => `<option value="${c.clave}">${c.clave} - ${c.nombre}</option>`).join('');
-        
+
         selectSitio.innerHTML = '<option value="0">N/A</option>';
     };
 
@@ -297,7 +299,7 @@ function poblarSelectoresCascada(regSeleccionada = '', centroSeleccionado = '', 
     const actualizarSitios = (centroClave) => {
         let htmlSitios = '<option value="0">N/A</option>';
         const centLimpio = String(centroClave || '').trim();
-        
+
         const sitiosFiltrados = window._catSitios ? window._catSitios.filter(s => {
             const sCent = String(s.claveCentro || '').trim();
             return centLimpio && sCent === centLimpio;
@@ -309,7 +311,7 @@ function poblarSelectoresCascada(regSeleccionada = '', centroSeleccionado = '', 
                 return `<option value="${val}">${s.nombre || s.clave}</option>`;
             }).join('');
         }
-        
+
         selectSitio.innerHTML = htmlSitios;
     };
 

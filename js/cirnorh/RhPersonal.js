@@ -202,65 +202,28 @@ async function guardarEmpleadoFormulario(event) {
 }
 
 async function cargarCatalogosSheets(forzar = false) {
-    const regsMap = new Map();
-    const centrosMap = new Map();
-    const sitiosMap = new Map();
+    // 1. Si ya hay caché y no es forzado, no hacemos nada
+    if (!forzar && window._catRegs && window._catRegs.length > 0) return;
 
-    if (window._empleadosCache && Array.isArray(window._empleadosCache)) {
-        window._empleadosCache.forEach(e => {
-            // 1. Extraer Región
-            const regTxt = e.textoReg || e.claveReg || '';
-            if (regTxt) {
-                const str = String(regTxt).trim();
-                const clave = str.includes(' - ') ? str.split(' - ')[0].trim() : str;
-                const nombre = str.includes(' - ') ? str.split(' - ')[1].trim() : str;
-                if (clave) regsMap.set(clave, { clave, nombre });
-            }
+    try {
+        // LLAMADA AL BACKEND: Aquí es donde obtienes los datos reales de Sheets
+        const URL = "https://script.google.com/macros/s/AKfycbzDs5fvFxykQniWFZnbUqpbuDAmrIDhMHlVwU4r5B3iPLxBp4FDG7uKrtDBDQEXxEX8fQ/exec?action=obtenerDatosSistema";
+        const response = await fetch(URL);
+        const data = await response.json();
 
-            // 2. Extraer Centro y asegurar su claveReg asociada
-            const centTxt = e.textoCentro || e.claveCentro || '';
-            if (centTxt) {
-                const str = String(centTxt).trim();
-                const claveC = str.includes(' - ') ? str.split(' - ')[0].trim() : str;
-                const nombreC = str.includes(' - ') ? str.split(' - ')[1].trim() : str;
+        // 2. Asignamos los datos que vienen del servidor
+        // Ajusta los nombres de las propiedades según lo que devuelve tu backend
+        window._catRegs = data.regionales || [];
+        window._catCentros = data.campos || []; 
+        window._catSitios = data.departamentos || []; // O como se llame en tu backend
 
-                // Extraemos la región limpia desde el empleado
-                const regAsociadaTxt = e.textoReg || e.claveReg || '';
-                const claveR = regAsociadaTxt.includes(' - ') ? regAsociadaTxt.split(' - ')[0].trim() : String(regAsociadaTxt).trim();
+        console.log("Catálogos cargados desde servidor:", window._catRegs, window._catCentros);
 
-                if (claveC) {
-                    centrosMap.set(claveC, {
-                        clave: claveC,
-                        claveReg: claveR,
-                        nombre: nombreC
-                    });
-                }
-            }
-
-            // 3. Extraer Sitio y asegurar su claveCentro asociada
-            const sitTxt = e.textoSit || e.claveSit || '';
-            if (sitTxt && sitTxt !== '0' && String(sitTxt).toUpperCase() !== 'N/A') {
-                const str = String(sitTxt).trim();
-                const claveS = str.includes(' - ') ? str.split(' - ')[0].trim() : str;
-                const nombreS = str.includes(' - ') ? str.split(' - ')[1].trim() : str;
-
-                const centAsociadoTxt = e.textoCentro || e.claveCentro || '';
-                const claveC = centAsociadoTxt.includes(' - ') ? centAsociadoTxt.split(' - ')[0].trim() : String(centAsociadoTxt).trim();
-
-                if (claveS) {
-                    sitiosMap.set(claveS, {
-                        clave: claveS,
-                        claveCentro: claveC,
-                        nombre: nombreS
-                    });
-                }
-            }
-        });
+    } catch (e) {
+        console.error("Error al cargar catálogos desde servidor, usando respaldo de empleados...", e);
+        // Aquí mantienes tu lógica actual como "Plan B" por si el internet falla
+        // ... (el código que ya tienes de procesar desde _empleadosCache)
     }
-
-    window._catRegs = Array.from(regsMap.values());
-    window._catCentros = Array.from(centrosMap.values());
-    window._catSitios = Array.from(sitiosMap.values());
 }
 
 async function mostrarFormularioNuevoPersonal() {

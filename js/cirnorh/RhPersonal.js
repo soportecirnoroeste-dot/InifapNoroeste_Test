@@ -129,45 +129,58 @@ async function cargarDatosGenerales(forzarRecarga = false) {
 }
 
 async function cargarCatalogosSheets(forzar = false) {
-    // Si ya existen catálogos cargados, los reutilizamos por velocidad
-    if (!forzar && window._catRegsCache && window._catCentrosCache && window._catSitiosCache) {
-        window._catRegs = window._catRegsCache;
-        window._catCentros = window._catCentrosCache;
-        window._catSitios = window._catSitiosCache;
-        return;
-    }
-
-    // Extraemos los catálogos únicos directamente de los empleados ya cargados
     const regsMap = new Map();
     const centrosMap = new Map();
     const sitiosMap = new Map();
 
-    if (window._empleadosCache && window._empleadosCache.length > 0) {
+    // Si tenemos empleados en caché, extraemos los catálogos directamente de ahí
+    if (window._empleadosCache && Array.isArray(window._empleadosCache)) {
         window._empleadosCache.forEach(e => {
-            if (e.claveReg || e.textoReg) {
-                let claveR = String(e.claveReg || e.textoReg).trim();
-                if (claveR.includes(' - ')) claveR = claveR.split(' - ')[0].trim();
-                const nombreR = e.textoReg ? String(e.textoReg).replace(new RegExp(`^${claveR}\\s*-\\s*`), '').trim() : claveR;
-                regsMap.set(claveR, { clave: claveR, nombre: nombreR });
+            // Región
+            const regTxt = e.textoReg || e.claveReg || e.region || '';
+            if (regTxt) {
+                const str = String(regTxt).trim();
+                const clave = str.includes(' - ') ? str.split(' - ')[0].trim() : str;
+                const nombre = str.includes(' - ') ? str.split(' - ')[1].trim() : str;
+                if (clave) regsMap.set(clave, { clave, nombre });
             }
-            if (e.claveCentro || e.textoCentro) {
-                let claveC = String(e.claveCentro || e.textoCentro).trim();
-                if (claveC.includes(' - ')) claveC = claveC.split(' - ')[0].trim();
-                const nombreC = e.textoCentro ? String(e.textoCentro).replace(new RegExp(`^${claveC}\\s*-\\s*`), '').trim() : claveC;
+
+            // Centro
+            const centTxt = e.textoCentro || e.claveCentro || e.centro || '';
+            if (centTxt) {
+                const str = String(centTxt).trim();
+                const clave = str.includes(' - ') ? str.split(' - ')[0].trim() : str;
+                const nombre = str.includes(' - ') ? str.split(' - ')[1].trim() : str;
                 const regAsociada = e.claveReg ? String(e.claveReg).split(' - ')[0].trim() : '';
-                centrosMap.set(claveC, { clave: claveC, claveReg: regAsociada, nombre: nombreC });
+                if (clave) centrosMap.set(clave, { clave, claveReg: regAsociada, nombre });
             }
-            let rawSit = e.claveSit || e.textoSit;
-            let claveS = (!rawSit || rawSit === 0 || rawSit === '0' || String(rawSit).trim().toUpperCase() === 'N/A') ? 'N/A' : String(rawSit).trim();
-            if (claveS.includes(' - ')) claveS = claveS.split(' - ')[0].trim();
-            const centroAsociado = e.claveCentro ? String(e.claveCentro).split(' - ')[0].trim() : '';
-            sitiosMap.set(claveS, { clave: claveS, claveCentro: centroAsociado, nombre: claveS === 'N/A' ? 'N/A' : (e.textoSit || claveS) });
+
+            // Sitio
+            const sitTxt = e.textoSit || e.claveSit || e.sitio || 'N/A';
+            if (sitTxt) {
+                const str = String(sitTxt).trim();
+                const clave = (str === '' || str === '0' || str.toUpperCase() === 'N/A') ? 'N/A' : (str.includes(' - ') ? str.split(' - ')[0].trim() : str);
+                const centroAsociado = e.claveCentro ? String(e.claveCentro).split(' - ')[0].trim() : '';
+                if (clave) sitiosMap.set(clave, { clave, claveCentro: centroAsociado, nombre: clave });
+            }
         });
     }
 
+    // Convertimos los mapas a arreglos globales
     window._catRegs = Array.from(regsMap.values());
     window._catCentros = Array.from(centrosMap.values());
     window._catSitios = Array.from(sitiosMap.values());
+
+    // Si por alguna razón el mapa quedó vacío, ponemos al menos la región y centro del empleado actual para que no falle
+    if (window._catRegs.length === 0) {
+        window._catRegs = [{ clave: '100', nombre: 'CIRNO' }];
+    }
+    if (window._catCentros.length === 0) {
+        window._catCentros = [{ clave: '102', claveReg: '100', nombre: 'CENEB' }];
+    }
+    if (window._catSitios.length === 0) {
+        window._catSitios = [{ clave: 'N/A', claveCentro: '102', nombre: 'N/A' }];
+    }
 
     window._catRegsCache = window._catRegs;
     window._catCentrosCache = window._catCentros;

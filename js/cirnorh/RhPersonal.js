@@ -128,6 +128,58 @@ async function cargarDatosGenerales(forzarRecarga = false) {
     ]);
 }
 
+// Al hacer clic en Cancelar o volver al listado
+function cancelarEdicionPersonal() {
+    const formContainer = document.getElementById('contenedor-formulario-personal');
+    const gestionContainer = document.getElementById('contenedor-gestion-personal');
+    const listadoContainer = document.getElementById('contenedor-listado-personal');
+
+    // 1. Ocultamos el formulario de inmediato
+    if (formContainer) formContainer.classList.add('hidden');
+    
+    // 2. Mostramos el contenedor de gestión y el listado de golpe (sin recargar de Google Sheets)
+    if (gestionContainer) gestionContainer.classList.remove('hidden');
+    if (listadoContainer) listadoContainer.classList.remove('hidden');
+
+    // Opcional: si tienes una función que pinta la tabla usando la caché actual, invócala directamente:
+    if (typeof pintarTablaEmpleados === 'function' && window._empleadosCache) {
+        pintarTablaEmpleados(window._empleadosCache);
+    }
+}
+
+// Al hacer clic en Guardar en Sheets
+async function guardarEmpleadoFormulario(event) {
+    if (event) event.preventDefault();
+
+    const form = document.getElementById('form-nuevo-personal');
+    const formData = new FormData(form);
+    
+    // Mostramos algún indicador visual rápido o desactivamos el botón
+    const btnGuardar = form.querySelector('button[type="submit"]');
+    if (btnGuardar) btnGuardar.disabled = true;
+
+    try {
+        // Enviamos los datos a Google Sheets
+        const respuesta = await FetchAPI('guardarPersonal', formData); // Ajusta la acción según tu backend
+
+        if (respuesta && respuesta.success !== false) {
+            // Actualizamos opcionalmente el registro modificado en nuestra caché local 
+            // para que refleje los cambios al instante sin necesidad de un nuevo fetch completo
+            // (O puedes actualizar la caché local con los datos del formulario)
+            
+            // Regresamos al listado de forma inmediata
+            cancelarEdicionPersonal();
+        } else {
+            alert("Hubo un error al guardar los datos.");
+        }
+    } catch (error) {
+        console.error("Error al guardar:", error);
+        alert("Error de conexión al guardar.");
+    } finally {
+        if (btnGuardar) btnGuardar.disabled = false;
+    }
+}
+
 async function cargarCatalogosSheets(forzar = false) {
     const regsMap = new Map();
     const centrosMap = new Map();

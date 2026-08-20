@@ -258,28 +258,66 @@ async function cargarCatalogosSheets(forzar = false) {
     window._catSitiosCache = window._catSitios;
 }
 
-function poblarSelectoresCascada(regActual = '', centroActual = '', sitActual = '') {
-    const selReg = document.getElementById('select-claveReg');
-    if (!selReg) return;
+function poblarSelectoresCascada(regSeleccionada = '', centroSeleccionado = '', sitioSeleccionado = '') {
+    const selectReg = document.getElementById('input-claveReg') || document.querySelector('select[name="claveReg"]');
+    const selectCentro = document.getElementById('input-claveCentro') || document.querySelector('select[name="claveCentro"]');
+    const selectSitio = document.getElementById('input-claveSit') || document.querySelector('select[name="claveSit"]');
 
-    // Respaldo de emergencia por si el arreglo global llegó vacío
-    const regsArray = (Array.isArray(window._catRegs) && window._catRegs.length > 0)
-        ? window._catRegs
-        : (window._catRegsCache || []);
+    if (!selectReg || !selectCentro || !selectSitio) return;
 
-    const regClean = (!regActual || regActual === '0' || regActual === 'N/A' || regActual === 0) ? '' : String(regActual).trim();
+    // 1. Poblar Regiones (si están vacías)
+    if (selectReg.options.length <= 1 && window._catRegs) {
+        selectReg.innerHTML = '<option value="">Seleccione una región...</option>' + 
+            window._catRegs.map(r => `<option value="${r.clave}">${r.clave} - ${r.nombre}</option>`).join('');
+    }
+    if (regSeleccionada) selectReg.value = regSeleccionada;
 
-    selReg.innerHTML = `<option value="" disabled selected>Seleccione una región...</option>` +
-        regsArray.map(r => `<option value="${r.clave}">${r.clave} - ${r.nombre}</option>`).join('');
+    // 2. Función para actualizar Centros basado en la Región elegida
+    const actualizarCentros = (regClave) => {
+        const centrosFiltrados = window._catCentros ? window._catCentros.filter(c => !regClave || String(c.claveReg).trim() === String(regClave).trim()) : [];
+        
+        selectCentro.innerHTML = '<option value="">Seleccione un centro...</option>' + 
+            centrosFiltrados.map(c => `<option value="${c.clave}">${c.clave} - ${c.nombre}</option>`).join('');
+    };
 
-    let matchReg = "";
-    if (regClean !== "") {
-        const encontrada = regsArray.find(r => String(r.clave).trim().toLowerCase() === regClean.toLowerCase());
-        if (encontrada) matchReg = encontrada.clave;
+    // 3. Función para actualizar Sitios basado en el Centro elegido
+    const actualizarSitios = (centroClave) => {
+        const sitiosFiltrados = window._catSitios ? window._catSitios.filter(s => !centroClave || String(s.claveCentro).trim() === String(centroClave).trim()) : [];
+        
+        let htmlSitios = '<option value="0">N/A</option>'; // Por defecto aseguramos la opción N/A (= 0)
+        
+        if (sitiosFiltrados.length > 0) {
+            htmlSitios += sitiosFiltrados.map(s => {
+                const val = (s.clave === 'N/A' || !s.clave) ? '0' : s.clave;
+                const txt = s.nombre || s.clave;
+                return `<option value="${val}">${txt}</option>`;
+            }).join('');
+        }
+        
+        selectSitio.innerHTML = htmlSitios;
+    };
+
+    // Aplicar valores iniciales y filtros en cascada
+    if (regSeleccionada) {
+        actualizarCentros(regSeleccionada);
+        if (centroSeleccionado) {
+            selectCentro.value = centroSeleccionado;
+            actualizarSitios(centroSeleccionado);
+            if (sitioSeleccionado) {
+                selectSitio.value = (sitioSeleccionado === 'N/A' || sitioSeleccionado === '') ? '0' : sitioSeleccionado;
+            }
+        }
     }
 
-    selReg.value = matchReg;
-    filtrarCentrosPorRegion(centroActual, sitActual);
+    // Eventos dinámicos al cambiar de selección por parte del usuario
+    selectReg.onchange = (e) => {
+        actualizarCentros(e.target.value);
+        selectSitio.innerHTML = '<option value="0">N/A</option>'; // Resetea sitios
+    };
+
+    selectCentro.onchange = (e) => {
+        actualizarSitios(e.target.value);
+    };
 }
 
 function filtrarSitiosPorCentro(sitActual = '') {

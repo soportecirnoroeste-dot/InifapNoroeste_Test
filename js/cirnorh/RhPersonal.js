@@ -353,24 +353,31 @@ function renderizarTablaPersonal(registros) {
 }
 
 async function seleccionarEmpleadoParaEditar(index) {
+    // Si la caché está vacía (por ejemplo, si se recargó la página directamente aquí), 
+    // primero consultamos los datos a Google Sheets para recuperar el padrón.
+    if (!window._empleadosCache || window._empleadosCache.length === 0) {
+        try {
+            const data = await FetchAPI('obtenerPersonal');
+            window._empleadosCache = data || [];
+        } catch (error) {
+            console.error("❌ Error al recuperar empleados:", error);
+        }
+    }
+
     const emp = window._empleadosCache[index];
     if (!emp) {
-        console.error("❌ No se encontró el empleado en _empleadosCache");
+        console.error("❌ No se encontró el empleado en _empleadosCache en el índice:", index);
+        alert("No se pudieron cargar los datos del empleado. Intenta actualizar el listado.");
         return;
     }
 
-    // 🔍 DEPURACIÓN: Esto nos dirá exactamente qué propiedades tiene el empleado seleccionado
     console.log("Empleado seleccionado para editar:", emp);
 
     // 1. Dibujamos la estructura del formulario en el DOM
     cargarPersonalRh(false);
 
-    // 2. Aseguramos los catálogos
+    // 2. Cargamos/generamos los catálogos ahora que tenemos la caché de empleados segura
     await cargarCatalogosSheets();
-
-    window._catRegs = window._catRegs || window._catRegsCache || [];
-    window._catCentros = window._catCentros || window._catCentrosCache || [];
-    window._catSitios = window._catSitios || window._catSitiosCache || [];
 
     const form = document.getElementById('form-nuevo-personal');
     const formContainer = document.getElementById('contenedor-formulario-personal');
@@ -389,15 +396,14 @@ async function seleccionarEmpleadoParaEditar(index) {
             return str;
         };
 
-        // Probamos todas las posibles variantes de nombres de propiedades que podría mandar Google Sheets
-        const regVal = extraerClave(emp.claveReg || emp.textoSส || emp.región || emp.region || emp.textoReg);
-        const centroVal = extraerClave(emp.claveCentro || emp.centro || emp.textoCentro);
-        let rawSit = extraerClave(emp.claveSit || emp.sitio || emp.textoSit);
+        const regVal = extraerClave(emp.claveReg || emp.textoReg);
+        const centroVal = extraerClave(emp.claveCentro || emp.textoCentro);
+        let rawSit = extraerClave(emp.claveSit || emp.textoSit);
         const sitVal = (!rawSit || rawSit === 0 || rawSit === '0' || String(rawSit).trim().toUpperCase() === 'N/A') ? 'N/A' : rawSit;
         
         console.log("Claves extraídas -> Región:", regVal, "| Centro:", centroVal, "| Sitio:", sitVal);
 
-        // 3. Poblamos los selectores
+        // 3. Poblamos los selectores en cascada con las claves limpias
         poblarSelectoresCascada(regVal, centroVal, sitVal);
 
         form.elements['numEmp'].value = limpiarValor(emp.numEmp);

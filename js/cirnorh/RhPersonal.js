@@ -129,21 +129,37 @@ async function cargarDatosGenerales(forzarRecarga = false) {
 }
 
 // Al hacer clic en Cancelar o volver al listado
-async function cancelarEdicionPersonal() {
+function cancelarEdicionPersonal() {
     const formContainer = document.getElementById('contenedor-formulario-personal');
     const gestionContainer = document.getElementById('contenedor-gestion-personal');
     const listadoContainer = document.getElementById('contenedor-listado-personal');
 
-    // 1. Ocultamos el formulario de edición
+    // 1. Ocultamos el formulario de inmediato
     if (formContainer) formContainer.classList.add('hidden');
     
-    // 2. Mostramos los contenedores del listado de inmediato
+    // 2. Mostramos el listado y la gestión al instante
     if (gestionContainer) gestionContainer.classList.remove('hidden');
     if (listadoContainer) listadoContainer.classList.remove('hidden');
 
-    // 3. Llamamos a tu función de carga sin forzar (forzarRecarga = false por defecto)
-    // Esto hará que, si ya hay datos, se renderice la tabla en milisegundos.
-    await cargarDatosGenerales(false);
+    // 3. Pintamos los datos en la tabla de forma local y ultrarrápida
+    // Asegúrate de cambiar 'tabla-personal-body' por el ID real de tu tbody si es diferente
+    const tbody = document.getElementById('tabla-personal-body'); 
+    
+    if (tbody && window._empleadosCache && window._empleadosCache.length > 0) {
+        tbody.innerHTML = window._empleadosCache.map((emp, index) => `
+            <tr onclick="seleccionarEmpleadoParaEditar(${index})" class="cursor-pointer hover:bg-gray-50 border-b">
+                <td class="py-3 px-4">${emp.claveReg || emp.textoReg || ''}</td>
+                <td class="py-3 px-4">${emp.claveCentro || emp.textoCentro || ''}</td>
+                <td class="py-3 px-4">${emp.numEmp || ''}</td>
+                <td class="py-3 px-4 font-medium text-gray-900">${emp.nombre || ''}</td>
+                <td class="py-3 px-4">${emp.puesto || ''}</td>
+                <td class="py-3 px-4">${emp.departamento || ''}</td>
+            </tr>
+        `).join('');
+    } else {
+        // Si por algo la caché estuviera vacía, llamamos a la carga normal
+        cargarDatosGenerales(true);
+    }
 }
 
 // Al hacer clic en Guardar en Sheets

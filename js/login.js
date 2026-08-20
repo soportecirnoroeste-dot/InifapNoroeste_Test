@@ -98,4 +98,51 @@ function logout() {
     window.location.href = 'login.html';
 }
 
+async function ejecutarLogin(event) {
+    if (event) event.preventDefault();
+
+    const form = event.target;
+    const btnIngresar = form.querySelector('button[type="submit"]');
+    
+    // Guardamos el texto original del botón para poder restaurarlo si hay error
+    const textoOriginal = btnIngresar.innerHTML;
+
+    try {
+        // 1. Desactivar el botón y mostrar el Spinner + Texto de carga
+        btnIngresar.disabled = true;
+        btnIngresar.innerHTML = `
+            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Verificando credenciales...
+        `;
+
+        // Extraemos los datos del formulario
+        const formData = new FormData(form);
+        const datos = Object.fromEntries(formData.entries());
+
+        // 2. Llamada a FetchAPI
+        const respuesta = await FetchAPI('login', datos);
+
+        if (respuesta && respuesta.success) {
+            // Guardamos sesión y redirigimos
+            localStorage.setItem('usuarioActivo', JSON.stringify(respuesta));
+            window.location.href = "dashboard.html"; // O tu vista principal
+        } else {
+            alert(respuesta.message || "Credenciales incorrectas.");
+            // Restauramos el botón si el login falla
+            btnIngresar.disabled = false;
+            btnIngresar.innerHTML = textoOriginal;
+        }
+
+    } catch (error) {
+        console.error("Error en el login:", error);
+        alert("Ocurrió un error al conectar con el servidor.");
+        // Restauramos el botón en caso de error de red/CORS
+        btnIngresar.disabled = false;
+        btnIngresar.innerHTML = textoOriginal;
+    }
+}
+
 

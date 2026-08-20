@@ -261,130 +261,141 @@ async function cargarCatalogosSheets(forzar = false) {
     window._catSitios = Array.from(sitiosMap.values());
 }
 
-// 1. Función unificada y maestra para manejar la cascada completa en creación o edición
 function poblarSelectoresCascada(regSeleccionada = '', centroSeleccionado = '', sitioSeleccionado = '') {
-    const selectReg = document.getElementById('select-claveReg') || document.getElementById('input-claveReg') || document.querySelector('select[name="claveReg"]');
-    const selectCentro = document.getElementById('select-claveCentro') || document.getElementById('input-claveCentro') || document.querySelector('select[name="claveCentro"]');
-    const selectSitio = document.getElementById('select-claveSit') || document.getElementById('input-claveSit') || document.querySelector('select[name="claveSit"]');
+    const selectReg = document.getElementById('input-claveReg') || document.querySelector('select[name="claveReg"]');
+    const selectCentro = document.getElementById('input-claveCentro') || document.querySelector('select[name="claveCentro"]');
+    const selectSitio = document.getElementById('input-claveSit') || document.querySelector('select[name="claveSit"]');
 
     if (!selectReg || !selectCentro || !selectSitio) return;
 
-    // A. Poblar el catálogo completo de Regiones si está vació
-    if (selectReg.options.length <= 1 && window._catRegs && window._catRegs.length > 0) {
-        selectReg.innerHTML = '<option value="" disabled selected>Seleccione una región...</option>' + 
+    // 0. RESPALDO DE EMERGENCIA: Si no hay catálogos globales, los sacamos directo de window._empleadosCache
+    if ((!window._catRegs || window._catRegs.length === 0 || !window._catCentros || window._catCentros.length === 0) && window._empleadosCache) {
+        const regsMap = new Map();
+        const centrosMap = new Map();
+        
+        window._empleadosCache.forEach(e => {
+            const rTxt = String(e.textoReg || e.claveReg || '').trim();
+            const cTxt = String(e.textoCentro || e.claveCentro || '').trim();
+            
+            if (rTxt) {
+                const cReg = rTxt.includes(' - ') ? rTxt.split(' - ')[0].trim() : rTxt;
+                const nReg = rTxt.includes(' - ') ? rTxt.split(' - ')[1].trim() : cReg;
+                regsMap.set(cReg, { clave: cReg, nombre: nReg });
+            }
+            if (cTxt) {
+                const cCent = cTxt.includes(' - ') ? cTxt.split(' - ')[0].trim() : cTxt;
+                const nCent = cTxt.includes(' - ') ? cTxt.split(' - ')[1].trim() : cCent;
+                const cRegAssoc = rTxt.includes(' - ') ? rTxt.split(' - ')[0].trim() : rTxt;
+                centrosMap.set(cCent, { clave: cCent, claveReg: cRegAssoc, nombre: nCent });
+            }
+        });
+        window._catRegs = Array.from(regsMap.values());
+        window._catCentros = Array.from(centrosMap.values());
+    }
+
+    // 1. Cargar Regiones
+    if (selectReg.options.length <= 1 && window._catRegs) {
+        selectReg.innerHTML = '<option value="">Seleccione una región...</option>' + 
             window._catRegs.map(r => `<option value="${r.clave}">${r.clave} - ${r.nombre}</option>`).join('');
     }
+    if (regSeleccionada) selectReg.value = String(regSeleccionada).trim();
 
-    // B. Establecer la Región (si se pasa por parámetro o se queda la del DOM)
-    if (regSeleccionada) {
-        selectReg.value = String(regSeleccionada).trim();
+    // 2. Función para actualizar Centros
+    const actualizarCentros = (regClave) => {
+        const regLimia = String(regClave || '').trim();
+        
+        // Si no hay región seleccionada, mostramos todos o vaciamos
+        const centrosFiltrados = window._catCentros ? window._catCentros.filter(c => {
+            const cReg = String(c.claveReg || '').trim();
+            // Si la claveReg coincide o si la clave del centro empieza con la región (ej: 100 y 102)
+            return !regLimia || cReg === regLimia || cCentrosPertenecen(c.clave, regLimia);
+        }) : [];
+
+        // Fallback por si el filtro estricto devuelve 0 pero existen centros en caché general
+        const listaFinal = centrosFiltrados.length > 0 ? centrosFiltrados : (window._catCentros || []);
+
+        selectCentro.innerHTML = '<option value="">Seleccione un centro...</option>' + 
+            listaFinal.map(c => `<option value="${c.clave}">${c.clave} - ${c.nombre}</option>`).join('');
+        
+        selectSitio.innerHTML = '<option value="0">N/A</option>';
+    };
+
+    // Función auxiliar flexible para asociar por prefijo si la claveReg viniera vacía en alguna fila
+    function cCentrosPertenecen(claveCentro, claveReg) {
+        return String(claveCentro).startsWith(String(claveReg).substring(0, 1));
     }
 
-    // C. Ejecutar el filtro de centros basado estrictamente en la región elegida
-    filtrarCentrosPorRegion(centroSeleccionado, sitioSeleccionado);
+    // 3. Función para actualizar Sitios
+    const actualizarSitios = (centroClave) => {
+        let htmlSitios = '<option value="0">N/A</option>';
+        const centLimpio = String(centroClave || '').trim();
+        
+        const sitiosFiltrados = window._catSitios ? window._catSitios.filter(s => {
+            const sCent = String(s.claveCentro || '').trim();
+            return centLimpio && sCent === centLimpio;
+        }) : [];
 
-    // D. Asignar eventos interactivos para cuando el usuario cambie de opción manualmente
-    selectReg.onchange = () => {
-        filtrarCentrosPorRegion('', ''); // Al cambiar región manualmente, limpiamos centro y sitio
-    };
-    
-    selectCentro.onchange = () => {
-        if (typeof filtrarSitiosPorCentro === 'function') {
-            filtrarSitiosPorCentro('');
+        if (sitiosFiltrados.length > 0) {
+            htmlSitios += sitiosFiltrados.map(s => {
+                const val = (!s.clave || s.clave === 'N/A' || s.clave === '0') ? '0' : s.clave;
+                return `<option value="${val}">${s.nombre || s.clave}</option>`;
+            }).join('');
         }
+        
+        selectSitio.innerHTML = htmlSitios;
     };
+
+    // Aplicar valores iniciales si estamos editando
+    if (regSeleccionada) {
+        actualizarCentros(regSeleccionada);
+        if (centroSeleccionado) {
+            selectCentro.value = String(centroSeleccionado).trim();
+            actualizarSitios(centroSeleccionado);
+            if (sitioSeleccionado) {
+                selectSitio.value = (sitioSeleccionado === 'N/A' || !sitioSeleccionado) ? '0' : String(sitioSeleccionado).trim();
+            }
+        }
+    }
+
+    // Eventos al cambiar interactivamente
+    selectReg.onchange = (e) => actualizarCentros(e.target.value);
+    selectCentro.onchange = (e) => actualizarSitios(e.target.value);
 }
 
-// 2. Función optimizada para filtrar centros (Respetando el catálogo maestro y la edición)
 function filtrarCentrosPorRegion(centroActual = '', sitActual = '') {
-    const selReg = document.getElementById('select-claveReg') || document.getElementById('input-claveReg');
-    const selCentro = document.getElementById('select-claveCentro') || document.getElementById('input-claveCentro');
-    const selSit = document.getElementById('select-claveSit') || document.getElementById('input-claveSit');
+    const selReg = document.getElementById('select-claveReg');
+    const selCentro = document.getElementById('select-claveCentro');
+    const selSit = document.getElementById('select-claveSit');
 
     if (!selReg || !selCentro || !selSit) return;
     const regionSeleccionada = selReg.value;
 
-    console.log("==========================================");
-    console.log("🔍 [DEPURACIÓN] Región seleccionada:", regionSeleccionada);
-    console.log("📦 [DEPURACIÓN] Catálogo global de centros (window._catCentros):", window._catCentros);
-
     selCentro.innerHTML = `<option value="" disabled selected>Seleccione un centro...</option>`;
-    selSit.innerHTML = `<option value="0">N/A</option>`;
+    selSit.innerHTML = `<option value="" disabled selected>Seleccione un sitio...</option>`;
 
     const centrosArray = Array.isArray(window._catCentros) ? window._catCentros : [];
 
     if (regionSeleccionada) {
-        // Filtramos TODOS los centros que pertenecen a la claveReg exacta
         const centrosFiltrados = centrosArray.filter(c => String(c.claveReg).trim() === String(regionSeleccionada).trim());
-        
-        console.log("✅ [DEPURACIÓN] Centros filtrados para esta región:", centrosFiltrados);
-
         selCentro.innerHTML += centrosFiltrados.map(c =>
             `<option value="${c.clave}">${c.clave} - ${c.nombre}</option>`
         ).join('');
-    } else {
-        console.warn("⚠️ [DEPURACIÓN] No hay región seleccionada actualmente.");
     }
 
-    // Manejo de condición al EDITAR un empleado: Seleccionar el centro guardado previamente
-    if (centroActual && centroActual !== '0' && centroActual !== 'N/A') {
-        const centroClean = String(centroActual).trim();
+    const centroClean = (!centroActual || centroActual === '0' || centroActual === 'N/A' || centroActual === 0) ? '' : String(centroActual).trim();
+    let matchCentro = "";
+    if (centroClean !== "") {
         const encontrada = centrosArray.find(c => String(c.clave).trim().toLowerCase() === centroClean.toLowerCase());
-        if (encontrada) {
-            selCentro.value = encontrada.clave;
-            console.log("🎯 [DEPURACIÓN] Centro auto-seleccionado por edición:", encontrada.clave);
-        } else {
-            console.warn("⚠️ [DEPURACIÓN] No se encontró coincidencia para el centro en edición:", centroClean);
-        }
+        if (encontrada) matchCentro = encontrada.clave;
     }
 
-    // Continuamos la cadena de cascada hacia los sitios
+    selCentro.value = matchCentro;
+
     requestAnimationFrame(() => {
-        if (typeof filtrarSitiosPorCentro === 'function') {
-            filtrarSitiosPorCentro(sitActual);
-        }
+        filtrarSitiosPorCentro(sitActual);
     });
 }
 
-function filtrarSitiosPorCentro(sitActual = '') {
-    const selCentro = document.getElementById('select-claveCentro');
-    const selSit = document.getElementById('select-claveSit');
-
-    if (!selCentro || !selSit) return;
-    const centroSeleccionado = selCentro.value;
-
-    selSit.innerHTML = `<option value="" disabled selected>Seleccione un sitio...</option>`;
-    const sitiosArray = Array.isArray(window._catSitios) ? window._catSitios : [];
-
-    if (centroSeleccionado) {
-        const sitiosFiltrados = sitiosArray.filter(s => {
-            const cAsociado = String(s.claveCentro || '').trim();
-            const esNA = String(s.clave).trim().toUpperCase() === 'N/A';
-            return cAsociado === String(centroSeleccionado).trim() || esNA;
-        });
-
-        const unicosMap = new Map();
-        sitiosFiltrados.forEach(s => {
-            const claveStr = String(s.clave).trim();
-            if (!unicosMap.has(claveStr)) unicosMap.set(claveStr, s);
-        });
-
-        selSit.innerHTML += Array.from(unicosMap.values()).map(s => {
-            const claveStr = String(s.clave).trim();
-            const textoDisplay = (claveStr.toUpperCase() === 'N/A') ? 'N/A' : `${s.clave} - ${s.nombre}`;
-            return `<option value="${s.clave}">${textoDisplay}</option>`;
-        }).join('');
-    }
-
-    const sitClean = (!sitActual || sitActual === '0' || sitActual === 'N/A' || sitActual === 0 || String(sitActual).trim() === '') ? 'N/A' : String(sitActual).trim();
-    let matchSit = "";
-    if (sitClean !== "") {
-        const encontrada = sitiosArray.find(s => String(s.clave).trim().toLowerCase() === sitClean.toLowerCase());
-        if (encontrada) matchSit = encontrada.clave;
-    }
-
-    selSit.value = matchSit;
-}
 
 async function mostrarFormularioNuevoPersonal() {
     const formContainer = document.getElementById('contenedor-formulario-personal');

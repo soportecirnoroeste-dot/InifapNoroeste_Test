@@ -330,6 +330,30 @@ function poblarSelectoresCascada(regSeleccionada = '', centroSeleccionado = '', 
     };
 }
 
+function poblarSelectRegion() {
+    const select = document.getElementById('id_de_tu_select_en_html'); // <--- ID EXACTO DEL HTML
+    
+    if (!select) {
+        console.error("No se encontró el select en el DOM");
+        return;
+    }
+
+    // Limpiamos el select por si acaso
+    select.innerHTML = '<option value="">Seleccione una región...</option>';
+
+    // Recorremos los datos que ya cargaste
+    window._catRegs.forEach(item => {
+        const option = document.createElement("option");
+        
+        // AQUÍ ES DONDE SUELE ESTAR EL ERROR:
+        // Asegúrate de que item.clave e item.nombre existan en tu objeto
+        option.value = item.clave; 
+        option.text = item.clave + " - " + item.nombre; 
+        
+        select.appendChild(option);
+    });
+}
+
 // Función principal que hace todo el trabajo
 window.filtrarCentrosPorRegion = function (centroActual = '', sitActual = '') {
     const selReg = document.getElementById('select-claveReg') || document.querySelector('select[name="claveReg"]');

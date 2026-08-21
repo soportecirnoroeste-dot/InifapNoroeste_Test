@@ -310,39 +310,33 @@ window.filtrarSitiosPorCentro = function (claveCentro = '', sitActual = '') {
     const selSit = document.getElementById('select-claveSit');
     if (!selSit) return;
 
-    selSit.innerHTML = `<option value="" disabled selected>Seleccione un sitio...</option>`;
+    // 1. Obtenemos el valor del centro si no nos lo pasaron
+    const centroId = claveCentro || document.getElementById('select-claveCentro').value;
 
-    const selectCentroElem = document.getElementById('select-claveCentro');
-    const centroId = claveCentro || (selectCentroElem ? selectCentroElem.value : '');
-    
+    // 2. Filtramos sitios basados en el centro
     const sitiosArray = Array.isArray(window._catSitios) ? window._catSitios : [];
-
     const sitiosFiltrados = sitiosArray.filter(s => {
-        const cAsociado = String(s.claveCentro || '').trim();
+        const cAsociado = String(s.claveCentro || s.ClaveCentro || '').trim();
         return cAsociado === String(centroId).trim();
     });
 
+    // 3. Construimos las opciones (Siempre incluimos N/A como primera opción o predeterminada)
+    let opcionesHTML = `<option value="N/A" ${(!sitActual || sitActual === '0' || sitActual === 0) ? 'selected' : ''}>N/A - No aplica</option>`;
+
     if (sitiosFiltrados.length > 0) {
-        sitiosFiltrados.forEach(s => {
-            const claveS = String(s.claveSit || '').trim();
-            const nombreS = s.sitio || s.nomCorto || '';
-            
-            // Si hay un nombre de sitio, lo mostramos aunque la clave esté vacía
-            if (nombreS) {
-                const valorOption = claveS !== '' ? claveS : nombreS;
-                selSit.innerHTML += `<option value="${valorOption}">${claveS ? claveS + ' - ' : ''}${nombreS}</option>`;
-            }
-        });
+        opcionesHTML += sitiosFiltrados.map(s => {
+            // Corregido para leer las propiedades reales que envía Apps Script: claveSit y sitio
+            const claveS = s.claveSit || s.ClaveSitio || s.clave || '';
+            const nombreS = s.sitio || s.Sitio || s.nombre || '';
+            return `<option value="${claveS}">${claveS} - ${nombreS}</option>`;
+        }).join('');
     }
 
-    // Si no hay opciones, ponemos N/A dinámicamente
-    if (selSit.options.length <= 1) {
-        selSit.innerHTML += `<option value="N/A" selected>N/A - No aplica</option>`;
-    } else {
-        selSit.innerHTML += `<option value="N/A">N/A - No aplica</option>`;
-    }
+    // Insertamos el HTML generado en el select
+    selSit.innerHTML = opcionesHTML;
 
-    if (sitActual && sitActual !== '0' && sitActual !== '') {
+    // 4. Si estamos editando y hay un sitio válido (distinto de 0 o vacío), lo seleccionamos
+    if (sitActual && sitActual !== '0' && sitActual !== 0 && sitActual !== 'N/A') {
         selSit.value = sitActual;
     }
 };

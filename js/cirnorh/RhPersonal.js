@@ -310,37 +310,41 @@ window.filtrarSitiosPorCentro = function (claveCentro = '', sitActual = '') {
     const selSit = document.getElementById('select-claveSit');
     if (!selSit) return;
 
-    // 1. Limpiamos y ponemos la opción por defecto
+    // Limpiamos el select de sitios
     selSit.innerHTML = `<option value="" disabled selected>Seleccione un sitio...</option>`;
 
-    // 2. Obtenemos el valor del centro actual
+    // Obtenemos el centro seleccionado actualmente en la pantalla
     const selectCentroElem = document.getElementById('select-claveCentro');
     const centroId = claveCentro || (selectCentroElem ? selectCentroElem.value : '');
-
+    
     const sitiosArray = Array.isArray(window._catSitios) ? window._catSitios : [];
 
-    // 3. Filtramos los sitios que corresponden a este centro
+    // Filtramos los sitios que corresponden estrictamente al centro seleccionado
     const sitiosFiltrados = sitiosArray.filter(s => {
-        const cAsociado = String(s.claveCentro || s.ClaveCentro || '').trim();
+        const cAsociado = String(s.claveCentro || '').trim();
         return cAsociado === String(centroId).trim();
     });
 
-    // 4. Si hay sitios para este centro, los agregamos dinámicamente
+    // Si encontramos sitios para este centro, los pintamos
     if (sitiosFiltrados.length > 0) {
         sitiosFiltrados.forEach(s => {
-            const claveS = String(s.claveSit || s.ClaveSit || '').trim();
-            const nombreS = s.Sitio || s.NomCorto || '';
-
+            const claveS = String(s.claveSit || '').trim();
+            const nombreS = s.sitio || s.nomCorto || '';
+            
             if (claveS) {
                 selSit.innerHTML += `<option value="${claveS}">${claveS} - ${nombreS}</option>`;
             }
         });
-    } else {
-        // 5. Si NO hay sitios registrados para este centro, ponemos N/A automáticamente
-        selSit.innerHTML += `<option value="N/A" selected>N/A - No aplica</option>`;
     }
 
-    // 6. Si estamos editando y hay un sitio guardado, lo seleccionamos
+    // Si después del filtro no hay sitios, asignamos dinámicamente "N/A"
+    if (selSit.options.length <= 1) {
+        selSit.innerHTML += `<option value="N/A" selected>N/A - No aplica</option>`;
+    } else {
+        selSit.innerHTML += `<option value="N/A">N/A - No aplica</option>`;
+    }
+
+    // Si estamos editando y el empleado tiene un sitio asignado, lo seleccionamos
     if (sitActual && sitActual !== '0' && sitActual !== '') {
         selSit.value = sitActual;
     }

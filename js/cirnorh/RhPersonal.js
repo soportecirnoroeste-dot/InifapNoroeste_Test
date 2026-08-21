@@ -217,6 +217,12 @@ async function cargarCatalogosSheets(forzar = false) {
 
         console.log("Catálogos cargados desde servidor:", window._catRegs, window._catCentros, window._catSitios);
 
+        // 👉 DISPARAMOS EL FILTRO AQUÍ:
+        const centroActual = document.getElementById('select-claveCentro') ? document.getElementById('select-claveCentro').value : '';
+        if (typeof window.filtrarSitiosPorCentro === 'function') {
+            window.filtrarSitiosPorCentro(centroActual);
+        }
+
     } catch (e) {
         console.error("Error al cargar catálogos desde servidor...", e);
     }
@@ -347,6 +353,7 @@ window.filtrarSitiosPorCentro = function (claveCentro = '', sitActual = '') {
 
 // Auto-conector universal para asegurar que funcione sin depender del HTML
 document.addEventListener("DOMContentLoaded", () => {
+    // 1. Configurar región (como ya lo tenías)
     const selReg = document.getElementById('select-claveReg') || document.querySelector('select[name="claveReg"]');
     if (selReg) {
         console.log("🔗 [AUTO-CONECTOR] Select de región encontrado. Enlazando evento change...");
@@ -355,6 +362,15 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     } else {
         console.warn("⚠️ [AUTO-CONECTOR] No se encontró el select de región en el DOM.");
+    }
+
+    // 2. 👉 AGREGAR AQUÍ LA CONFIGURACIÓN DEL CENTRO Y SITIOS:
+    const selCentro = document.getElementById('select-claveCentro');
+    if (selCentro) {
+        console.log("🔗 [AUTO-CONECTOR] Select de centro encontrado. Enlazando evento change para sitios...");
+        selCentro.addEventListener('change', function(e) {
+            window.filtrarSitiosPorCentro(e.target.value);
+        });
     }
 });
 

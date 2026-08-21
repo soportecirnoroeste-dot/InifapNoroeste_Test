@@ -319,34 +319,28 @@ window.filtrarSitiosPorCentro = function (claveCentro = '', sitActual = '') {
     
     const sitiosArray = Array.isArray(window._catSitios) ? window._catSitios : [];
 
-    // 3. Filtramos los sitios que corresponden a este centro (usando claveCentro)
+    // 3. Filtramos los sitios que corresponden a este centro
     const sitiosFiltrados = sitiosArray.filter(s => {
         const cAsociado = String(s.claveCentro || s.ClaveCentro || '').trim();
         return cAsociado === String(centroId).trim();
     });
 
-    // 4. Si hay sitios, los pintamos usando ClaveSit y Sitio (o NomCorto)
+    // 4. Si hay sitios para este centro, los agregamos dinámicamente
     if (sitiosFiltrados.length > 0) {
         sitiosFiltrados.forEach(s => {
             const claveS = String(s.claveSit || s.ClaveSit || '').trim();
             const nombreS = s.Sitio || s.NomCorto || '';
             
-            // Evitamos agregar opciones vacías o duplicadas
-            if (claveS && claveS !== '') {
+            if (claveS) {
                 selSit.innerHTML += `<option value="${claveS}">${claveS} - ${nombreS}</option>`;
             }
         });
-    }
-
-    // 5. Si después de filtrar el select sigue vacío (o no hay sitios), agregamos la opción N/A obligatoria
-    if (selSit.options.length <= 1) {
-        selSit.innerHTML += `<option value="N/A" selected>N/A - No aplica</option>`;
     } else {
-        // Si hay opciones, agregamos N/A al final por si acaso
-        selSit.innerHTML += `<option value="N/A">N/A - No aplica</option>`;
+        // 5. Si NO hay sitios registrados para este centro, ponemos N/A automáticamente
+        selSit.innerHTML += `<option value="N/A" selected>N/A - No aplica</option>`;
     }
 
-    // 6. Si estamos editando y tenemos un sitio seleccionado, lo aplicamos
+    // 6. Si estamos editando y hay un sitio guardado, lo seleccionamos
     if (sitActual && sitActual !== '0' && sitActual !== '') {
         selSit.value = sitActual;
     }

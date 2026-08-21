@@ -259,20 +259,13 @@ function poblarSelectoresCascada(regSeleccionada = '', centroSeleccionado = '', 
 
     if (!selectReg || !selectCentro || !selectSitio) return;
 
-    // 1. Llenar Regiones
+    // Llenar Regiones
     selectReg.innerHTML = '<option value="" disabled selected>Seleccione una región...</option>' +
         window._catRegs.map(r => `<option value="${r.clave}">${r.clave} - ${r.nombre}</option>`).join('');
-    
-    // ... (el resto de tu lógica para centros y sitios)
 
-    // 2. EVENTOS: Aquí es donde conectas los combos
-    selectReg.onchange = () => {
-        filtrarCentrosPorRegion(); // Esta función ya la tienes definida abajo
-    };
-
-    selectCentro.onchange = () => {
-        filtrarSitiosPorCentro(); // Esta función ya la tienes definida abajo
-    };
+    // Vinculación de eventos (aquí es donde vive la magia)
+    selectReg.onchange = () => filtrarCentrosPorRegion();
+    selectCentro.onchange = () => filtrarSitiosPorCentro();
 }
 
 // Función principal que hace todo el trabajo

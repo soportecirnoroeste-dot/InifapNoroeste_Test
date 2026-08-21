@@ -259,11 +259,17 @@ function poblarSelectoresCascada(regSeleccionada = '', centroSeleccionado = '', 
 
     if (!selectReg || !selectCentro || !selectSitio) return;
 
-    // Llenar Regiones
+    // 1. Llenar Regiones usando las propiedades correctas de tu JSON (claveReg y regional)
     selectReg.innerHTML = '<option value="" disabled selected>Seleccione una región...</option>' +
-        window._catRegs.map(r => `<option value="${r.clave}">${r.clave} - ${r.nombre}</option>`).join('');
+        window._catRegs.map(r => `<option value="${r.claveReg}">${r.claveReg} - ${r.regional}</option>`).join('');
 
-    // Vinculación de eventos (aquí es donde vive la magia)
+    // 2. Si nos pasan una región (al editar), la seleccionamos y filtramos centros
+    if (regSeleccionada) {
+        selectReg.value = regSeleccionada;
+        filtrarCentrosPorRegion(centroSeleccionado, sitioSeleccionado);
+    }
+
+    // 3. Conectar eventos de cambio
     selectReg.onchange = () => filtrarCentrosPorRegion();
     selectCentro.onchange = () => filtrarSitiosPorCentro();
 }

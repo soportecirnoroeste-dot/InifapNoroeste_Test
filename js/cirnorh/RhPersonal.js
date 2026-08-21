@@ -310,41 +310,38 @@ window.filtrarSitiosPorCentro = function (claveCentro = '', sitActual = '') {
     const selSit = document.getElementById('select-claveSit');
     if (!selSit) return;
 
-    // Limpiamos el select de sitios
     selSit.innerHTML = `<option value="" disabled selected>Seleccione un sitio...</option>`;
 
-    // Obtenemos el centro seleccionado actualmente en la pantalla
     const selectCentroElem = document.getElementById('select-claveCentro');
     const centroId = claveCentro || (selectCentroElem ? selectCentroElem.value : '');
     
     const sitiosArray = Array.isArray(window._catSitios) ? window._catSitios : [];
 
-    // Filtramos los sitios que corresponden estrictamente al centro seleccionado
     const sitiosFiltrados = sitiosArray.filter(s => {
         const cAsociado = String(s.claveCentro || '').trim();
         return cAsociado === String(centroId).trim();
     });
 
-    // Si encontramos sitios para este centro, los pintamos
     if (sitiosFiltrados.length > 0) {
         sitiosFiltrados.forEach(s => {
             const claveS = String(s.claveSit || '').trim();
             const nombreS = s.sitio || s.nomCorto || '';
             
-            if (claveS) {
-                selSit.innerHTML += `<option value="${claveS}">${claveS} - ${nombreS}</option>`;
+            // Si hay un nombre de sitio, lo mostramos aunque la clave esté vacía
+            if (nombreS) {
+                const valorOption = claveS !== '' ? claveS : nombreS;
+                selSit.innerHTML += `<option value="${valorOption}">${claveS ? claveS + ' - ' : ''}${nombreS}</option>`;
             }
         });
     }
 
-    // Si después del filtro no hay sitios, asignamos dinámicamente "N/A"
+    // Si no hay opciones, ponemos N/A dinámicamente
     if (selSit.options.length <= 1) {
         selSit.innerHTML += `<option value="N/A" selected>N/A - No aplica</option>`;
     } else {
         selSit.innerHTML += `<option value="N/A">N/A - No aplica</option>`;
     }
 
-    // Si estamos editando y el empleado tiene un sitio asignado, lo seleccionamos
     if (sitActual && sitActual !== '0' && sitActual !== '') {
         selSit.value = sitActual;
     }

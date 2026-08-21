@@ -345,45 +345,41 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-function filtrarSitiosPorCentro(sitActual = '') {
-    const selCentro = document.getElementById('select-claveCentro');
+window.filtrarSitiosPorCentro = function (claveCentro = '', sitActual = '') {
     const selSit = document.getElementById('select-claveSit');
+    if (!selSit) return;
 
-    if (!selCentro || !selSit) return;
-    const centroSeleccionado = selCentro.value;
-
+    // 1. Limpiamos y ponemos la opción por defecto
     selSit.innerHTML = `<option value="" disabled selected>Seleccione un sitio...</option>`;
+
+    // 2. Obtenemos el valor si no nos lo pasaron
+    const centroId = claveCentro || document.getElementById('select-claveCentro').value;
+    
+    // 3. Filtramos sitios basados en el centro
     const sitiosArray = Array.isArray(window._catSitios) ? window._catSitios : [];
+    const sitiosFiltrados = sitiosArray.filter(s => {
+        // Aseguramos que comparamos los mismos tipos de datos (strings)
+        const cAsociado = String(s.claveCentro || s.ClaveCentro || '').trim();
+        return cAsociado === String(centroId).trim();
+    });
 
-    if (centroSeleccionado) {
-        const sitiosFiltrados = sitiosArray.filter(s => {
-            const cAsociado = String(s.claveCentro || '').trim();
-            const esNA = String(s.clave).trim().toUpperCase() === 'N/A';
-            return cAsociado === String(centroSeleccionado).trim() || esNA;
-        });
-
-        const unicosMap = new Map();
-        sitiosFiltrados.forEach(s => {
-            const claveStr = String(s.clave).trim();
-            if (!unicosMap.has(claveStr)) unicosMap.set(claveStr, s);
-        });
-
-        selSit.innerHTML += Array.from(unicosMap.values()).map(s => {
-            const claveStr = String(s.clave).trim();
-            const textoDisplay = (claveStr.toUpperCase() === 'N/A') ? 'N/A' : `${s.clave} - ${s.nombre}`;
-            return `<option value="${s.clave}">${textoDisplay}</option>`;
+    // 4. Lógica: Si hay sitios, los agregamos. Si NO hay, agregamos solo "N/A"
+    if (sitiosFiltrados.length > 0) {
+        selSit.innerHTML += sitiosFiltrados.map(s => {
+            const claveS = s.clave || s.ClaveSitio || '';
+            const nombreS = s.nombre || s.Sitio || '';
+            return `<option value="${claveS}">${claveS} - ${nombreS}</option>`;
         }).join('');
+    } else {
+        // No hay resultados, agregamos N/A
+        selSit.innerHTML += `<option value="N/A" selected>N/A - No aplica</option>`;
     }
 
-    const sitClean = (!sitActual || sitActual === '0' || sitActual === 'N/A' || sitActual === 0 || String(sitActual).trim() === '') ? 'N/A' : String(sitActual).trim();
-    let matchSit = "";
-    if (sitClean !== "") {
-        const encontrada = sitiosArray.find(s => String(s.clave).trim().toLowerCase() === sitClean.toLowerCase());
-        if (encontrada) matchSit = encontrada.clave;
+    // 5. Si estamos editando, seleccionamos el valor que traía el empleado
+    if (sitActual) {
+        selSit.value = sitActual;
     }
-
-    selSit.value = matchSit;
-}
+};
 
 async function mostrarFormularioNuevoPersonal() {
     const formContainer = document.getElementById('contenedor-formulario-personal');

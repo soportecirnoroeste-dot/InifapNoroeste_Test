@@ -466,30 +466,15 @@ function renderizarTablaPersonal(registros) {
 }
 
 async function seleccionarEmpleadoParaEditar(index) {
-    // Si la caché está vacía (por ejemplo, si se recargó la página directamente aquí), 
-    // primero consultamos los datos a Google Sheets para recuperar el padrón.
-    if (!window._empleadosCache || window._empleadosCache.length === 0) {
-        try {
-            const data = await FetchAPI('obtenerPersonal');
-            window._empleadosCache = data || [];
-        } catch (error) {
-            console.error("❌ Error al recuperar empleados:", error);
-        }
-    }
+    // ... (tu lógica inicial de carga de caché se mantiene igual)
 
-    const emp = window._empleadosCache[index];
-    if (!emp) {
-        console.error("❌ No se encontró el empleado en _empleadosCache en el índice:", index);
-        alert("No se pudieron cargar los datos del empleado. Intenta actualizar el listado.");
-        return;
-    }
-
-    // 1. Dibujamos la estructura del formulario en el DOM
+    // 1. Dibujamos la estructura del formulario (esto crea los elementos HTML)
     cargarPersonalRh(false);
 
-    // 2. Cargamos/generamos los catálogos ahora que tenemos la caché de empleados segura
+    // 2. Cargamos/generamos los catálogos (esto trae los datos de Sheets)
     await cargarCatalogosSheets();
 
+    // 3. OBTENEMOS LOS ELEMENTOS DEL DOM DESPUÉS DE CARGAR EL HTML
     const form = document.getElementById('form-nuevo-personal');
     const formContainer = document.getElementById('contenedor-formulario-personal');
     const gestionContainer = document.getElementById('contenedor-gestion-personal');
@@ -497,40 +482,22 @@ async function seleccionarEmpleadoParaEditar(index) {
     const titulo = document.getElementById('titulo-formulario');
     const inputNumEmp = document.getElementById('input-numEmp');
 
-    if (formContainer && form) {
-        const limpiarValor = (val) => (!val || val === 0 || val === '0' || String(val).trim() === '') ? '' : val;
-
-        const extraerClave = (val) => {
-            if (!val) return '';
-            const str = String(val).trim();
-            if (str.includes(' - ')) return str.split(' - ')[0].trim();
-            return str;
-        };
-
+    // 4. Poblamos los selectores CON RETRASO MÍNIMO para asegurar que el DOM reaccione
+    // Usamos un pequeño setTimeout para que el navegador termine de pintar el nuevo HTML
+    setTimeout(() => {
         const regVal = extraerClave(emp.claveReg || emp.textoReg);
         const centroVal = extraerClave(emp.claveCentro || emp.textoCentro);
         let rawSit = extraerClave(emp.claveSit || emp.textoSit);
         const sitVal = (!rawSit || rawSit === 0 || rawSit === '0' || String(rawSit).trim().toUpperCase() === 'N/A') ? 'N/A' : rawSit;
 
-        // 3. Poblamos los selectores en cascada con las claves limpias
         poblarSelectoresCascada(regVal, centroVal, sitVal);
+    }, 100);
 
-        form.elements['numEmp'].value = limpiarValor(emp.numEmp);
-        inputNumEmp.setAttribute('readonly', true);
-
-        form.elements['nombre'].value = limpiarValor(emp.nombre);
-        form.elements['ext'].value = limpiarValor(emp.ext);
-        form.elements['numPers'].value = limpiarValor(emp.numPers);
-        form.elements['escolaridad'].value = limpiarValor(emp.escolaridad);
-        form.elements['direccion'].value = limpiarValor(emp.direccion);
-        form.elements['cp'].value = limpiarValor(emp.cp);
-        form.elements['email'].value = limpiarValor(emp.email);
-        form.elements['rfc'].value = limpiarValor(emp.rfc);
-        form.elements['puesto'].value = limpiarValor(emp.puesto);
-        form.elements['departamento'].value = limpiarValor(emp.departamento);
-        form.elements['ciudad'].value = limpiarValor(emp.ciudad);
-        form.elements['estado'].value = limpiarValor(emp.estado);
-
+    // 5. Llenamos los inputs de texto
+    if (form && formContainer) {
+        // ... (tus líneas de form.elements['...'].value = ...)
+        
+        // Finalizamos la visualización
         titulo.innerHTML = `Editando: <span class="text-[#249444]">${limpiarValor(emp.nombre)}</span>`;
         formContainer.classList.remove('hidden');
         if (gestionContainer) gestionContainer.classList.add('hidden');

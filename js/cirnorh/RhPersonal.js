@@ -466,15 +466,24 @@ function renderizarTablaPersonal(registros) {
 }
 
 async function seleccionarEmpleadoParaEditar(index) {
-    // ... (tu lógica inicial de carga de caché se mantiene igual)
+    if (!window._empleadosCache || window._empleadosCache.length === 0) {
+        try {
+            const data = await FetchAPI('obtenerPersonal');
+            window._empleadosCache = data || [];
+        } catch (error) {
+            console.error("❌ Error al recuperar empleados:", error);
+        }
+    }
 
-    // 1. Dibujamos la estructura del formulario (esto crea los elementos HTML)
+    const emp = window._empleadosCache[index];
+    if (!emp) {
+        alert("No se pudieron cargar los datos del empleado.");
+        return;
+    }
+
     cargarPersonalRh(false);
-
-    // 2. Cargamos/generamos los catálogos (esto trae los datos de Sheets)
     await cargarCatalogosSheets();
 
-    // 3. OBTENEMOS LOS ELEMENTOS DEL DOM DESPUÉS DE CARGAR EL HTML
     const form = document.getElementById('form-nuevo-personal');
     const formContainer = document.getElementById('contenedor-formulario-personal');
     const gestionContainer = document.getElementById('contenedor-gestion-personal');
@@ -482,27 +491,48 @@ async function seleccionarEmpleadoParaEditar(index) {
     const titulo = document.getElementById('titulo-formulario');
     const inputNumEmp = document.getElementById('input-numEmp');
 
-    // 4. Poblamos los selectores CON RETRASO MÍNIMO para asegurar que el DOM reaccione
-    // Usamos un pequeño setTimeout para que el navegador termine de pintar el nuevo HTML
-    setTimeout(() => {
+    if (formContainer && form) {
         const regVal = extraerClave(emp.claveReg || emp.textoReg);
         const centroVal = extraerClave(emp.claveCentro || emp.textoCentro);
         let rawSit = extraerClave(emp.claveSit || emp.textoSit);
         const sitVal = (!rawSit || rawSit === 0 || rawSit === '0' || String(rawSit).trim().toUpperCase() === 'N/A') ? 'N/A' : rawSit;
 
+        // Poblamos selectores
         poblarSelectoresCascada(regVal, centroVal, sitVal);
-    }, 100);
 
-    // 5. Llenamos los inputs de texto
-    if (form && formContainer) {
-        // ... (tus líneas de form.elements['...'].value = ...)
-        
-        // Finalizamos la visualización
+        // Llenamos inputs
+        form.elements['numEmp'].value = limpiarValor(emp.numEmp);
+        inputNumEmp.setAttribute('readonly', true);
+        form.elements['nombre'].value = limpiarValor(emp.nombre);
+        form.elements['ext'].value = limpiarValor(emp.ext);
+        form.elements['numPers'].value = limpiarValor(emp.numPers);
+        form.elements['escolaridad'].value = limpiarValor(emp.escolaridad);
+        form.elements['direccion'].value = limpiarValor(emp.direccion);
+        form.elements['cp'].value = limpiarValor(emp.cp);
+        form.elements['email'].value = limpiarValor(emp.email);
+        form.elements['rfc'].value = limpiarValor(emp.rfc);
+        form.elements['puesto'].value = limpiarValor(emp.puesto);
+        form.elements['departamento'].value = limpiarValor(emp.departamento);
+        form.elements['ciudad'].value = limpiarValor(emp.ciudad);
+        form.elements['estado'].value = limpiarValor(emp.estado);
+
         titulo.innerHTML = `Editando: <span class="text-[#249444]">${limpiarValor(emp.nombre)}</span>`;
+        
         formContainer.classList.remove('hidden');
         if (gestionContainer) gestionContainer.classList.add('hidden');
         if (listadoContainer) listadoContainer.classList.add('hidden');
     }
+}
+
+function limpiarValor(val) {
+    return (!val || val === 0 || val === '0' || String(val).trim() === '') ? '' : val;
+}
+
+function extraerClave(val) {
+    if (!val) return '';
+    const str = String(val).trim();
+    if (str.includes(' - ')) return str.split(' - ')[0].trim();
+    return str;
 }
 
 async function guardarOActualizarPersonal(event) {

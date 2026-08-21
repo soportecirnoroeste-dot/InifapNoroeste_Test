@@ -263,17 +263,17 @@ function poblarSelectoresCascada(regSeleccionada = '', centroSeleccionado = '', 
     selectReg.innerHTML = '<option value="" disabled selected>Seleccione una región...</option>' +
         window._catRegs.map(r => `<option value="${r.claveReg}">${r.claveReg} - ${r.regional}</option>`).join('');
 
-    // 2. Si nos pasan una región (al editar), la seleccionamos y filtramos centros
+    // 2. Si nos pasan una región (al editar), la seleccionamos y filtramos centros pasándole los valores que le corresponden
     if (regSeleccionada) {
         selectReg.value = regSeleccionada;
+        // Llamamos a la función de filtrado pasándole el centro y el sitio que trae el empleado a editar
         filtrarCentrosPorRegion(centroSeleccionado, sitioSeleccionado);
     }
 
-    // 3. Conectar eventos de cambio
+    // 3. Conectar eventos de cambio para cuando el usuario interactúe manualmente
     selectReg.onchange = () => filtrarCentrosPorRegion();
     selectCentro.onchange = () => filtrarSitiosPorCentro();
 }
-
 // Función principal que hace todo el trabajo
 window.filtrarCentrosPorRegion = function (centroActual = '', sitActual = '') {
     const selReg = document.getElementById('select-claveReg') || document.querySelector('select[name="claveReg"]');

@@ -206,23 +206,19 @@ async function cargarCatalogosSheets(forzar = false) {
     if (!forzar && window._catRegs && window._catRegs.length > 0) return;
 
     try {
-        // LLAMADA AL BACKEND: Aquí es donde obtienes los datos reales de Sheets
         const URL = "https://script.google.com/macros/s/AKfycbzDs5fvFxykQniWFZnbUqpbuDAmrIDhMHlVwU4r5B3iPLxBp4FDG7uKrtDBDQEXxEX8fQ/exec?action=obtenerDatosSistema";
         const response = await fetch(URL);
         const data = await response.json();
 
-        // 2. Asignamos los datos que vienen del servidor
-        // Ajusta los nombres de las propiedades según lo que devuelve tu backend
+        // 2. Asignamos los datos usando la propiedad correcta para sitios
         window._catRegs = data.regionales || [];
         window._catCentros = data.campos || []; 
-        window._catSitios = data.departamentos || []; // O como se llame en tu backend
+        window._catSitios = data.sitios || data.catSitios || []; // <--- Cámbialo aquí según lo que devuelva tu backend
 
-        console.log("Catálogos cargados desde servidor:", window._catRegs, window._catCentros);
+        console.log("Catálogos cargados desde servidor:", window._catRegs, window._catCentros, window._catSitios);
 
     } catch (e) {
-        console.error("Error al cargar catálogos desde servidor, usando respaldo de empleados...", e);
-        // Aquí mantienes tu lógica actual como "Plan B" por si el internet falla
-        // ... (el código que ya tienes de procesar desde _empleadosCache)
+        console.error("Error al cargar catálogos desde servidor...", e);
     }
 }
 

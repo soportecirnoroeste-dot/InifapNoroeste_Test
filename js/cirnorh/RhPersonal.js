@@ -253,105 +253,26 @@ async function mostrarFormularioNuevoPersonal() {
 }
 
 function poblarSelectoresCascada(regSeleccionada = '', centroSeleccionado = '', sitioSeleccionado = '') {
-    const selectReg = document.getElementById('select-claveReg') || document.getElementById('input-claveReg') || document.querySelector('select[name="claveReg"]');
-    const selectCentro = document.getElementById('select-claveCentro') || document.getElementById('input-claveCentro') || document.querySelector('select[name="claveCentro"]');
-    const selectSitio = document.getElementById('select-claveSit') || document.getElementById('input-claveSit') || document.querySelector('select[name="claveSit"]');
+    const selectReg = document.getElementById('select-claveReg');
+    const selectCentro = document.getElementById('select-claveCentro');
+    const selectSitio = document.getElementById('select-claveSit');
 
     if (!selectReg || !selectCentro || !selectSitio) return;
 
-    // 1. Cargar Regiones
-    if (window._catRegs && window._catRegs.length > 0) {
-        selectReg.innerHTML = '<option value="" disabled selected>Seleccione una región...</option>' +
-            window._catRegs.map(r => `<option value="${r.clave}">${r.clave} - ${r.nombre}</option>`).join('');
-    }
-    if (regSeleccionada) selectReg.value = String(regSeleccionada).trim();
-
-    // 2. Función interna para actualizar Centros
-    const actualizarCentros = (regClave) => {
-        const regLimpia = String(regClave || '').trim();
-        const centrosArray = Array.isArray(window._catCentros) ? window._catCentros : [];
-
-        const centrosFiltrados = centrosArray.filter(c => {
-            const cReg = String(c.claveReg || c.ClaveReg || '').trim();
-            return !regLimpia || cReg === regLimpia;
-        });
-
-        selectCentro.innerHTML = '<option value="" disabled selected>Seleccione un centro...</option>' +
-            centrosFiltrados.map(c => {
-                const claveC = c.clave || c.ClaveCentro || c.claveCentro || '';
-                const nombreC = c.nombre || c.Centro || '';
-                return `<option value="${claveC}">${claveC} - ${nombreC}</option>`;
-            }).join('');
-
-        selectSitio.innerHTML = '<option value="0">N/A</option>';
-    };
-
-    // 3. Función interna para actualizar Sitios
-    const actualizarSitios = (centroClave) => {
-        let htmlSitios = '<option value="0">N/A</option>';
-        const centLimpio = String(centroClave || '').trim();
-
-        const sitiosArray = Array.isArray(window._catSitios) ? window._catSitios : [];
-        const sitiosFiltrados = sitiosArray.filter(s => {
-            const sCent = String(s.claveCentro || s.ClaveCentro || '').trim();
-            return centLimpio && sCent === centLimpio;
-        });
-
-        if (sitiosFiltrados.length > 0) {
-            htmlSitios += sitiosFiltrados.map(s => {
-                const val = (!s.clave || s.clave === 'N/A' || s.clave === '0') ? '0' : s.clave;
-                return `<option value="${val}">${s.nombre || s.clave}</option>`;
-            }).join('');
-        }
-
-        selectSitio.innerHTML = htmlSitios;
-    };
-
-    // Aplicar valores iniciales si estamos editando
-    const regActual = regSeleccionada || selectReg.value;
-    if (regActual) {
-        actualizarCentros(regActual);
-        if (centroSeleccionado) {
-            selectCentro.value = String(centroSeleccionado).trim();
-            actualizarSitios(centroSeleccionado);
-            if (sitioSeleccionado) {
-                selectSitio.value = (sitioSeleccionado === 'N/A' || !sitioSeleccionado) ? '0' : String(sitioSeleccionado).trim();
-            }
-        }
-    }
-
-    // Eventos interactivos en tiempo real limpios
-    selectReg.onchange = (e) => {
-        actualizarCentros(e.target.value);
-    };
-
-    selectCentro.onchange = (e) => {
-        actualizarSitios(e.target.value);
-    };
-}
-
-function poblarSelectRegion() {
-    const select = document.getElementById('id_de_tu_select_en_html'); // <--- ID EXACTO DEL HTML
+    // 1. Llenar Regiones
+    selectReg.innerHTML = '<option value="" disabled selected>Seleccione una región...</option>' +
+        window._catRegs.map(r => `<option value="${r.clave}">${r.clave} - ${r.nombre}</option>`).join('');
     
-    if (!select) {
-        console.error("No se encontró el select en el DOM");
-        return;
-    }
+    // ... (el resto de tu lógica para centros y sitios)
 
-    // Limpiamos el select por si acaso
-    select.innerHTML = '<option value="">Seleccione una región...</option>';
+    // 2. EVENTOS: Aquí es donde conectas los combos
+    selectReg.onchange = () => {
+        filtrarCentrosPorRegion(); // Esta función ya la tienes definida abajo
+    };
 
-    // Recorremos los datos que ya cargaste
-    window._catRegs.forEach(item => {
-        const option = document.createElement("option");
-        
-        // AQUÍ ES DONDE SUELE ESTAR EL ERROR:
-        // Asegúrate de que item.clave e item.nombre existan en tu objeto
-        option.value = item.clave; 
-        option.text = item.clave + " - " + item.nombre; 
-        
-        select.appendChild(option);
-    });
+    selectCentro.onchange = () => {
+        filtrarSitiosPorCentro(); // Esta función ya la tienes definida abajo
+    };
 }
 
 // Función principal que hace todo el trabajo

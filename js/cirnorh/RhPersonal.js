@@ -310,7 +310,7 @@ window.filtrarSitiosPorCentro = function (claveCentro = '', sitActual = '') {
     const selSit = document.getElementById('select-claveSit');
     if (!selSit) return;
 
-    // 1. Obtenemos el valor del centro si no nos lo pasaron
+    // 1. Obtenemos el valor del centro
     const centroId = claveCentro || document.getElementById('select-claveCentro').value;
 
     // 2. Filtramos sitios basados en el centro
@@ -320,22 +320,21 @@ window.filtrarSitiosPorCentro = function (claveCentro = '', sitActual = '') {
         return cAsociado === String(centroId).trim();
     });
 
-    // 3. Construimos las opciones (Siempre incluimos N/A como primera opción o predeterminada)
+    // 3. Construimos las opciones (N/A por defecto si no hay sitio o es 0)
     let opcionesHTML = `<option value="N/A" ${(!sitActual || sitActual === '0' || sitActual === 0) ? 'selected' : ''}>N/A - No aplica</option>`;
 
     if (sitiosFiltrados.length > 0) {
         opcionesHTML += sitiosFiltrados.map(s => {
-            // Corregido para leer las propiedades reales que envía Apps Script: claveSit y sitio
-            const claveS = s.claveSit || s.ClaveSitio || s.clave || '';
+            // Ajustado a las propiedades reales que muestra la consola: claveS y sitio
+            const claveS = s.claveS || s.claveSit || s.ClaveSitio || '';
             const nombreS = s.sitio || s.Sitio || s.nombre || '';
             return `<option value="${claveS}">${claveS} - ${nombreS}</option>`;
         }).join('');
     }
 
-    // Insertamos el HTML generado en el select
     selSit.innerHTML = opcionesHTML;
 
-    // 4. Si estamos editando y hay un sitio válido (distinto de 0 o vacío), lo seleccionamos
+    // 4. Si estamos editando y hay un sitio válido, lo seleccionamos
     if (sitActual && sitActual !== '0' && sitActual !== 0 && sitActual !== 'N/A') {
         selSit.value = sitActual;
     }

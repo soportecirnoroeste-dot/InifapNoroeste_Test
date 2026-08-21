@@ -212,8 +212,8 @@ async function cargarCatalogosSheets(forzar = false) {
 
         // 2. Asignamos los datos usando la propiedad correcta para sitios
         window._catRegs = data.regionales || [];
-        window._catCentros = data.campos || []; 
-        window._catSitios = data.sitios || data.catSitios || []; // <--- Cámbialo aquí según lo que devuelva tu backend
+        window._catCentros = data.campos || [];
+        window._catSitios = data.sitios || []; // <--- Leemos la nueva propiedad limpia
 
         console.log("Catálogos cargados desde servidor:", window._catRegs, window._catCentros, window._catSitios);
 
@@ -316,7 +316,7 @@ window.filtrarSitiosPorCentro = function (claveCentro = '', sitActual = '') {
     // 2. Obtenemos el valor del centro actual
     const selectCentroElem = document.getElementById('select-claveCentro');
     const centroId = claveCentro || (selectCentroElem ? selectCentroElem.value : '');
-    
+
     const sitiosArray = Array.isArray(window._catSitios) ? window._catSitios : [];
 
     // 3. Filtramos los sitios que corresponden a este centro
@@ -330,7 +330,7 @@ window.filtrarSitiosPorCentro = function (claveCentro = '', sitActual = '') {
         sitiosFiltrados.forEach(s => {
             const claveS = String(s.claveSit || s.ClaveSit || '').trim();
             const nombreS = s.Sitio || s.NomCorto || '';
-            
+
             if (claveS) {
                 selSit.innerHTML += `<option value="${claveS}">${claveS} - ${nombreS}</option>`;
             }
@@ -368,7 +368,7 @@ window.filtrarSitiosPorCentro = function (claveCentro = '', sitActual = '') {
 
     // 2. Obtenemos el valor si no nos lo pasaron
     const centroId = claveCentro || document.getElementById('select-claveCentro').value;
-    
+
     // 3. Filtramos sitios basados en el centro
     const sitiosArray = Array.isArray(window._catSitios) ? window._catSitios : [];
     const sitiosFiltrados = sitiosArray.filter(s => {
@@ -527,7 +527,7 @@ async function seleccionarEmpleadoParaEditar(index) {
         form.elements['estado'].value = limpiarValor(emp.estado);
 
         titulo.innerHTML = `Editando: <span class="text-[#249444]">${limpiarValor(emp.nombre)}</span>`;
-        
+
         formContainer.classList.remove('hidden');
         if (gestionContainer) gestionContainer.classList.add('hidden');
         if (listadoContainer) listadoContainer.classList.add('hidden');

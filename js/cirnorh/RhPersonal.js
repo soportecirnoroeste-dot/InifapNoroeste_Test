@@ -310,34 +310,39 @@ window.filtrarSitiosPorCentro = function (claveCentro = '', sitActual = '') {
     const selSit = document.getElementById('select-claveSit');
     if (!selSit) return;
 
-    // 1. Obtenemos el valor del centro
-    const centroId = claveCentro || document.getElementById('select-claveCentro').value;
+    // 1. Obtener centro: usa el parámetro o el valor actual del select en pantalla
+    const centroId = (claveCentro || document.getElementById('select-claveCentro').value || '').trim();
 
-    // 2. Filtramos sitios basados en el centro
+    // 2. Filtrar sitios
     const sitiosArray = Array.isArray(window._catSitios) ? window._catSitios : [];
     const sitiosFiltrados = sitiosArray.filter(s => {
         const cAsociado = String(s.claveCentro || s.ClaveCentro || '').trim();
-        return cAsociado === String(centroId).trim();
+        return cAsociado === centroId;
     });
 
-    // 3. Construimos las opciones (N/A por defecto si no hay sitio o es 0)
-    let opcionesHTML = `<option value="N/A" ${(!sitActual || sitActual === '0' || sitActual === 0) ? 'selected' : ''}>N/A - No aplica</option>`;
+    // 3. Construir opciones HTML
+    // Creamos la opción N/A
+    let esNulo = (!sitActual || sitActual === '0' || sitActual === 0 || sitActual === 'N/A');
+    let opcionesHTML = `<option value="N/A" ${esNulo ? 'selected' : ''}>N/A - No aplica</option>`;
 
+    // Agregamos los sitios encontrados
     if (sitiosFiltrados.length > 0) {
         opcionesHTML += sitiosFiltrados.map(s => {
-            // Ajustado a las propiedades reales que muestra la consola: claveS y sitio
-            const claveS = s.claveS || s.claveSit || s.ClaveSitio || '';
+            const claveS = String(s.claveS || s.claveSit || s.ClaveSitio || '').trim();
             const nombreS = s.sitio || s.Sitio || s.nombre || '';
             return `<option value="${claveS}">${claveS} - ${nombreS}</option>`;
         }).join('');
     }
 
+    // Insertar en el DOM
     selSit.innerHTML = opcionesHTML;
 
-    // 4. Si estamos editando y hay un sitio válido, lo seleccionamos
-    if (sitActual && sitActual !== '0' && sitActual !== 0 && sitActual !== 'N/A') {
+    // 4. Seleccionar el valor si estamos editando
+    if (!esNulo) {
         selSit.value = sitActual;
     }
+    
+    console.log(`Filtro aplicado para Centro: ${centroId}. Sitios encontrados: ${sitiosFiltrados.length}`);
 };
 
 // Auto-conector universal para asegurar que funcione sin depender del HTML

@@ -316,24 +316,24 @@ window.filtrarSitiosPorCentro = function (claveCentro = '', sitActual = '') {
     const selSit = document.getElementById('select-claveSit');
     if (!selSit) return;
 
-    // 1. Obtenemos el valor del centro actual en pantalla
+    // 1. Obtenemos el centro a evaluar (del parámetro o directo del select en pantalla)
     const centroId = (claveCentro || document.getElementById('select-claveCentro').value || '').trim();
 
-    // 🛑 REGLA CLAVE: Si no hay un centro seleccionado (está vacío o dice por defecto), 
-    // limpiamos el select de sitios y no mostramos nada hasta que elijan uno.
-    if (!centroId || centroId === "" || centroId.includes("Seleccione")) {
+    // 2. Si el centro está vacío o tiene la opción por defecto ("Seleccione un centro..."), 
+    // limpiamos el select y dejamos solo la opción predeterminada, sin inventar nada.
+    if (!centroId || centroId === "" || centroId.toLowerCase().includes("seleccione")) {
         selSit.innerHTML = `<option value="" disabled selected>Seleccione un sitio...</option>`;
         return;
     }
 
-    // 2. Filtramos sitios basados en el centro seleccionado
+    // 3. Ya que hay un centro válido, filtramos los sitios correspondientes
     const sitiosArray = Array.isArray(window._catSitios) ? window._catSitios : [];
     const sitiosFiltrados = sitiosArray.filter(s => {
         const cAsociado = String(s.claveCentro || s.ClaveCentro || '').trim();
         return cAsociado === centroId;
     });
 
-    // 3. Construimos las opciones (N/A por defecto si no hay sitio o es 0)
+    // 4. Construimos las opciones (N/A por defecto si no hay sitio o es 0)
     let esNulo = (!sitActual || sitActual === '0' || sitActual === 0 || sitActual === 'N/A');
     let opcionesHTML = `<option value="N/A" ${esNulo ? 'selected' : ''}>N/A - No aplica</option>`;
 
@@ -345,10 +345,10 @@ window.filtrarSitiosPorCentro = function (claveCentro = '', sitActual = '') {
         }).join('');
     }
 
-    // Insertamos el HTML en el select
+    // 5. Pintamos el resultado en pantalla
     selSit.innerHTML = opcionesHTML;
 
-    // 4. Si estamos editando y hay un sitio válido, lo seleccionamos
+    // 6. Si estamos editando y hay un sitio válido, lo seleccionamos
     if (!esNulo) {
         selSit.value = sitActual;
     }

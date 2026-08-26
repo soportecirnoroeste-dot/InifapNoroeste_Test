@@ -151,9 +151,9 @@ function renderizarTablaPersonal(registros) {
     }
 
     tbody.innerHTML = registros.map((row, index) => {
-        // Mantenemos solo el nombre/clave corta original
-        const reg = row.textoReg || row.claveReg || '';
-        const centro = row.textoCentro || row.claveCentro || '';
+        // Tomamos directamente el NomCorto (o respaldo con la clave/texto si no existiera)
+        const reg = row.NomCorto || row.nomCorto || row.textoReg || row.claveReg || '';
+        const centro = row.NomCortoCentro || row.nomCortoCentro || row.textoCentro || row.claveCentro || '';
         
         const noEmp = row.numEmp;
         const nombre = row.nombre;

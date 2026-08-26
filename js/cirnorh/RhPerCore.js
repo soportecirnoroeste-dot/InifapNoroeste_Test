@@ -151,44 +151,10 @@ function renderizarTablaPersonal(registros) {
     }
 
     tbody.innerHTML = registros.map((row, index) => {
-        const cReg = String(row.claveReg || row.reg || '').trim();
-        const cCentro = String(row.claveCentro || row.centro || '').trim();
-
-        // 1. Buscamos en el catálogo de regiones (soporta texto plano o propiedades de objeto)
-        const matchReg = (window._catRegs || []).find(r => {
-            if (!r) return false;
-            if (typeof r === 'string') return r.trim().startsWith(cReg);
-            const val = String(r.clave || r.id || r.value || r.codigo || r[0] || '').trim();
-            return val === cReg;
-        });
-
-        // 2. Buscamos en el catálogo de centros (soporta texto plano o propiedades de objeto)
-        const matchCentro = (window._catCentros || []).find(c => {
-            if (!c) return false;
-            if (typeof c === 'string') return c.trim().startsWith(cCentro);
-            const val = String(c.clave || c.id || c.value || c.codigo || c[0] || '').trim();
-            return val === cCentro;
-        });
-
-        // Resolvemos el texto final a mostrar
-        let regDisplay = row.textoReg;
-        if (!regDisplay || regDisplay === cReg) {
-            if (matchReg) {
-                regDisplay = (typeof matchReg === 'string') ? matchReg : (matchReg.texto || matchReg.nombre || matchReg.descripcion || `${cReg} - ${matchReg.nombre || ''}`);
-            } else {
-                regDisplay = cReg;
-            }
-        }
-
-        let centroDisplay = row.textoCentro;
-        if (!centroDisplay || centroDisplay === cCentro) {
-            if (matchCentro) {
-                centroDisplay = (typeof matchCentro === 'string') ? matchCentro : (matchCentro.texto || matchCentro.nombre || matchCentro.descripcion || `${cCentro} - ${matchCentro.nombre || ''}`);
-            } else {
-                centroDisplay = cCentro;
-            }
-        }
-
+        // Usamos la propiedad de texto completo si existe, o respaldamos con la clave
+        const reg = row.textoReg || row.claveReg || '';
+        const centro = row.textoCentro || row.claveCentro || '';
+        
         const noEmp = row.numEmp;
         const nombre = row.nombre;
         const puesto = row.puesto;
@@ -198,8 +164,8 @@ function renderizarTablaPersonal(registros) {
 
         return `
             <tr class="border-b border-stone-100 hover:bg-stone-50 transition">
-                <td class="p-3 font-mono text-stone-600">${valNa(regDisplay)}</td>
-                <td class="p-3 font-mono text-stone-600">${valNa(centroDisplay)}</td>
+                <td class="p-3 font-mono text-stone-600">${valNa(reg)}</td>
+                <td class="p-3 font-mono text-stone-600">${valNa(centro)}</td>
                 <td class="p-3 font-mono text-stone-600">${valNa(noEmp)}</td>
                 <td class="p-3"><button onclick="seleccionarEmpleadoParaEditar(${index})" class="font-semibold text-[#249444] hover:underline">${valNa(nombre)}</button></td>
                 <td class="p-3 text-stone-600">${valNa(puesto)}</td>

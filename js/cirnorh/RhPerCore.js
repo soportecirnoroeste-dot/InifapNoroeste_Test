@@ -116,21 +116,16 @@ async function cargarDatosGenerales(forzarRecarga = false) {
         window._empleadosCache = [];
     }
 
-    if (!forzarRecarga && window._empleadosCache.length > 0) {
-        renderizarTablaPersonal(window._empleadosCache);
-        if (typeof cargarCatalogosSheets === 'function') cargarCatalogosSheets();
-        return;
-    }
-
     const tbody = document.getElementById('tabla-personal-body');
     if (tbody && window._empleadosCache.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-stone-400 italic">Sincronizando con Sheets...</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-stone-400 italic">Sincronizando catálogos y registros...</td></tr>`;
     }
 
-    await Promise.all([
-        cargarCatalogosSheets(forzarRecarga),
-        cargarDatosPersonalSheets(forzarRecarga)
-    ]);
+    // 1. CARGAMOS PRIMERO LOS CATÁLOGOS Y ASEGURAMOS QUE ESTÉN LISTOS
+    await cargarCatalogosSheets(forzarRecarga);
+
+    // 2. DESPUÉS CARGAMOS Y PINTAMOS LOS EMPLEADOS HACIENDO EL CRUCE
+    await cargarDatosPersonalSheets(forzarRecarga);
 }
 
 async function cargarDatosPersonalSheets(forzar = false) {
@@ -156,22 +151,14 @@ function renderizarTablaPersonal(registros) {
     }
 
     tbody.innerHTML = registros.map((row, index) => {
-        const cReg = String(row.claveReg || '').trim();
-        const cCentro = String(row.claveCentro || '').trim();
+        const cReg = String(row.claveReg || row.reg || '').trim();
+        const cCentro = String(row.claveCentro || row.centro || '').trim();
 
-        // Buscamos la región en el catálogo global (window._catRegs)
-        const matchReg = (window._catRegs || []).find(r => {
-            const valReg = String(r.clave || r.id || r.value || r[0] || '').trim();
-            return valReg === cReg;
-        });
+        // Buscamos en los catálogos globales ya cargados
+        const matchReg = (window._catRegs || []).find(r => String(r.clave || r.id || r.value || r[0] || '').trim() === cReg);
+        const matchCentro = (window._catCentros || []).find(c => String(c.clave || c.id || c.value || c[0] || '').trim() === cCentro);
 
-        // Buscamos el centro en el catálogo global (window._catCentros)
-        const matchCentro = (window._catCentros || []).find(c => {
-            const valCentro = String(c.clave || c.id || c.value || c[0] || '').trim();
-            return valCentro === cCentro;
-        });
-
-        // Si encontramos coincidencia en el catálogo, armamos el texto completo (ej. "100 - CIRNO"), si no, usamos la clave o texto de respaldo
+        // Si el catálogo tiene la propiedad de texto completo o descripción, la usamos
         const regDisplay = matchReg ? (matchReg.texto || `${cReg} - ${matchReg.nombre || matchReg.descripcion || ''}`) : (row.textoReg || cReg);
         const centroDisplay = matchCentro ? (matchCentro.texto || `${cCentro} - ${matchCentro.nombre || matchCentro.descripcion || ''}`) : (row.textoCentro || cCentro);
 

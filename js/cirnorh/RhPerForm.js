@@ -128,17 +128,29 @@ async function guardarOActualizarPersonal(event) {
     const formData = new FormData(form);
     let datosEmpleado = Object.fromEntries(formData.entries());
 
-    // 2. RECUPERAR LOS TEXTOS COMPLETOS DE LOS SELECTS (REGIONAL Y CENTRO)
-    const selectReg = form.querySelector('#select-claveReg');
-    if (selectReg && selectReg.selectedIndex >= 0) {
-        const optionText = selectReg.options[selectReg.selectedIndex].text;
-        datosEmpleado.textoReg = optionText !== 'Seleccione una región...' ? optionText : datosEmpleado.claveReg;
-    }
+// 2. Llenar Departamentos y probar en consola al instante
+    if (selectDepto) {
+        const deptosArray = Array.isArray(window._catDepartamentos) ? window._catDepartamentos : [];
+        
+        selectDepto.innerHTML = '<option value="" disabled selected>Seleccione un departamento...</option>' +
+            deptosArray.map(d => {
+                const valorGuardar = d.Dep || ''; // Nombre corto (ej. '6')
+                const nombreMostrar = d.nomDep || ''; // Texto visual (ej. 'Recursos Materiales')
 
-    const selectCentro = form.querySelector('#select-claveCentro');
-    if (selectCentro && selectCentro.selectedIndex >= 0) {
-        const optionText = selectCentro.options[selectCentro.selectedIndex].text;
-        datosEmpleado.textoCentro = optionText !== 'Seleccione un centro...' ? optionText : datosEmpleado.claveCentro;
+                return `<option value="${valorGuardar}">${nombreMostrar}</option>`;
+            }).join('');
+
+        if (deptoSeleccionado) {
+            selectDepto.value = deptoSeleccionado;
+        }
+
+        // 🔍 IMPRESIÓN DIRECTA: Verificamos qué valor tiene asignado el select en este momento
+        console.log("-> Select depto renderizado con valor actual:", selectDepto.value);
+
+        // Agregamos el evento de cambio asegurado aquí mismo
+        selectDepto.onchange = function() {
+            console.log("🎯 ¡DEPARTAMENTO SELECCIONADO! -> Nombre corto (value):", this.value, "| Texto:", this.options[this.selectedIndex].text);
+        };
     }
 
     // 3. ASEGURAR EL CAMPO DE DEPARTAMENTO DIRECTAMENTE DEL SELECT

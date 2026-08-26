@@ -13,7 +13,7 @@ async function mostrarFormularioNuevoPersonal() {
         if (!window._catRegs || window._catRegs.length === 0) {
             await cargarCatalogosSheets(true);
         }
-        
+
         if (typeof poblarSelectoresCascada === 'function') {
             poblarSelectoresCascada('', '', '');
         }
@@ -31,7 +31,7 @@ function ocultarFormularioPersonal() {
     const formContainer = document.getElementById('contenedor-formulario-personal');
     const gestionContainer = document.getElementById('contenedor-gestion-personal');
     const listadoContainer = document.getElementById('contenedor-listado-personal');
-    
+
     if (formContainer) formContainer.classList.add('hidden');
     if (gestionContainer) gestionContainer.classList.remove('hidden');
     if (listadoContainer) listadoContainer.classList.remove('hidden');
@@ -121,7 +121,7 @@ async function seleccionarEmpleadoParaEditar(index) {
 async function guardarOActualizarPersonal(event) {
     event.preventDefault();
     const form = event.target;
-    
+
     // 1. Activamos el spinner de carga inmediatamente
     if (typeof mostrarCarga === 'function') mostrarCarga();
 
@@ -142,9 +142,17 @@ async function guardarOActualizarPersonal(event) {
     }
 
     // 3. ASEGURAR EL CAMPO DE DEPARTAMENTO DIRECTAMENTE DEL SELECT
-    const selectDepto = form.querySelector('#select-departamento');
-    if (selectDepto) {
-        datosEmpleado.departamento = selectDepto.value || '';
+    // Agrega este bloque para monitorear el cambio de departamento en la consola
+    const selectDeptoMonitoreo = document.querySelector('#select-departamento');
+    if (selectDeptoMonitoreo) {
+        selectDeptoMonitoreo.addEventListener('change', function (e) {
+            const indiceSeleccionado = this.selectedIndex;
+            const opcionElegida = this.options[indiceSeleccionado];
+
+            console.log("--- SELECCIÓN DE DEPARTAMENTO ---");
+            console.log("Nombre visible (Texto):", opcionElegida.text);
+            console.log("Nombre corto (Valor que se guarda):", this.value);
+        });
     }
 
     // 4. Aseguramos el campo de sitio

@@ -344,9 +344,19 @@ function renderizarTablaPersonal(registros) {
         });
     }
 
+    // 🎯 NUEVO: Mapa de respaldo para departamentos (relaciona nomCorDep con nomDep)
+    if (!window._mapDeptosCache && window._catDepartamentos) {
+        window._mapDeptosCache = {};
+        window._catDepartamentos.forEach(d => {
+            const k = String(d.nomCorDep || d.claveDep || '').trim();
+            if (k) window._mapDeptosCache[k] = d.nomDep || d.nombre || '';
+        });
+    }
+
     tbody.innerHTML = registros.map((row, index) => {
         const cReg = String(row.claveReg || '').trim();
         const cCentro = String(row.claveCentro || '').trim();
+        const cDepto = String(row.departamento || '').trim(); // Este es el nombre corto guardado (ej. CIRNORM)
 
         const nomCortoReg = (window._mapRegsCache && window._mapRegsCache[cReg]) || '';
         const reg = nomCortoReg ? `${cReg} - ${nomCortoReg}` : (row.textoReg || cReg);
@@ -354,10 +364,13 @@ function renderizarTablaPersonal(registros) {
         const nomCortoCentro = (window._mapCentrosCache && window._mapCentrosCache[cCentro]) || '';
         const centro = nomCortoCentro ? `${cCentro} - ${nomCortoCentro}` : (row.textoCentro || cCentro);
 
+        // 🎯 Mapeamos el departamento corto a su nombre largo descriptivo para la pantalla
+        const nombreLargoDepto = (window._mapDeptosCache && window._mapDeptosCache[cDepto]) || '';
+        const deptoVisual = nombreLargoDepto ? nombreLargoDepto : cDepto;
+
         const noEmp = row.numEmp;
         const nombre = row.nombre;
         const puesto = row.puesto;
-        const departamento = row.departamento;
 
         const valNa = (v) => (!v || v === 0 || v === '0' || String(v).trim() === '') ? 'N/A' : v;
 
@@ -368,7 +381,7 @@ function renderizarTablaPersonal(registros) {
                 <td class="p-3 font-mono text-stone-600">${valNa(noEmp)}</td>
                 <td class="p-3"><button onclick="seleccionarEmpleadoParaEditar(${index})" class="font-semibold text-[#249444] hover:underline">${valNa(nombre)}</button></td>
                 <td class="p-3 text-stone-600">${valNa(puesto)}</td>
-                <td class="p-3 text-stone-600">${valNa(departamento)}</td>
+                <td class="p-3 text-stone-600">${valNa(deptoVisual)}</td>
             </tr>
         `;
     }).join('');

@@ -154,13 +154,40 @@ function renderizarTablaPersonal(registros) {
         const cReg = String(row.claveReg || row.reg || '').trim();
         const cCentro = String(row.claveCentro || row.centro || '').trim();
 
-        // Buscamos en los catálogos globales ya cargados
-        const matchReg = (window._catRegs || []).find(r => String(r.clave || r.id || r.value || r[0] || '').trim() === cReg);
-        const matchCentro = (window._catCentros || []).find(c => String(c.clave || c.id || c.value || c[0] || '').trim() === cCentro);
+        // 1. Buscamos en el catálogo de regiones (soporta texto plano o propiedades de objeto)
+        const matchReg = (window._catRegs || []).find(r => {
+            if (!r) return false;
+            if (typeof r === 'string') return r.trim().startsWith(cReg);
+            const val = String(r.clave || r.id || r.value || r.codigo || r[0] || '').trim();
+            return val === cReg;
+        });
 
-        // Si el catálogo tiene la propiedad de texto completo o descripción, la usamos
-        const regDisplay = matchReg ? (matchReg.texto || `${cReg} - ${matchReg.nombre || matchReg.descripcion || ''}`) : (row.textoReg || cReg);
-        const centroDisplay = matchCentro ? (matchCentro.texto || `${cCentro} - ${matchCentro.nombre || matchCentro.descripcion || ''}`) : (row.textoCentro || cCentro);
+        // 2. Buscamos en el catálogo de centros (soporta texto plano o propiedades de objeto)
+        const matchCentro = (window._catCentros || []).find(c => {
+            if (!c) return false;
+            if (typeof c === 'string') return c.trim().startsWith(cCentro);
+            const val = String(c.clave || c.id || c.value || c.codigo || c[0] || '').trim();
+            return val === cCentro;
+        });
+
+        // Resolvemos el texto final a mostrar
+        let regDisplay = row.textoReg;
+        if (!regDisplay || regDisplay === cReg) {
+            if (matchReg) {
+                regDisplay = (typeof matchReg === 'string') ? matchReg : (matchReg.texto || matchReg.nombre || matchReg.descripcion || `${cReg} - ${matchReg.nombre || ''}`);
+            } else {
+                regDisplay = cReg;
+            }
+        }
+
+        let centroDisplay = row.textoCentro;
+        if (!centroDisplay || centroDisplay === cCentro) {
+            if (matchCentro) {
+                centroDisplay = (typeof matchCentro === 'string') ? matchCentro : (matchCentro.texto || matchCentro.nombre || matchCentro.descripcion || `${cCentro} - ${matchCentro.nombre || ''}`);
+            } else {
+                centroDisplay = cCentro;
+            }
+        }
 
         const noEmp = row.numEmp;
         const nombre = row.nombre;
@@ -195,7 +222,7 @@ async function cargarCatalogosSheets(forzar = false) {
         // Opcional: si también guardas departamentos en el futuro
         // window._catDepartamentos = data.departamentos || [];
 
-        console.log("Catálogos cargados desde servidor:", window._catRegs, window._catCentros, window._catSitios);
+        //console.log("Catálogos cargados desde servidor:", window._catRegs, window._catCentros, window._catSitios);
 
         // Si ya hay un centro seleccionado, refrescamos sitios
         const selCentro = document.getElementById('select-claveCentro');

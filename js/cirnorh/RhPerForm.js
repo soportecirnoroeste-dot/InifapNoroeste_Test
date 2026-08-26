@@ -141,17 +141,23 @@ async function guardarOActualizarPersonal(event) {
         datosEmpleado.textoCentro = optionText !== 'Seleccione un centro...' ? optionText : datosEmpleado.claveCentro;
     }
 
-    // 3. Aseguramos el campo de sitio
+    // 3. ASEGURAR EL CAMPO DE DEPARTAMENTO DIRECTAMENTE DEL SELECT
+    const selectDepto = form.querySelector('#select-departamento');
+    if (selectDepto) {
+        datosEmpleado.departamento = selectDepto.value || '';
+    }
+
+    // 4. Aseguramos el campo de sitio
     if (!datosEmpleado.claveSit || String(datosEmpleado.claveSit).trim() === '') {
         datosEmpleado.claveSit = 'N/A';
     }
 
-    // 4. Convertimos todos los textos a mayúsculas usando tu función global
+    // 5. Convertimos todos los textos a mayúsculas usando tu función global
     if (typeof convertirObjetoAMayusculas === 'function') {
         datosEmpleado = convertirObjetoAMayusculas(datosEmpleado);
     }
 
-    // 5. Armamos el FormData final con todas las propiedades necesarias para la tabla
+    // 6. Armamos el FormData final con todas las propiedades necesarias para la tabla
     const formDataFinal = new FormData();
     for (const key in datosEmpleado) {
         formDataFinal.append(key, datosEmpleado[key]);
@@ -172,11 +178,10 @@ async function guardarOActualizarPersonal(event) {
         alert("Error de conexión al guardar.");
     } finally {
         if (btnSubmit) btnSubmit.disabled = false;
-        // 6. Ocultamos el spinner pase lo que pase
+        // 7. Ocultamos el spinner pase lo que pase
         if (typeof ocultarCarga === 'function') ocultarCarga();
     }
 }
-
 function limpiarValor(val) {
     return (!val || val === 0 || val === '0' || String(val).trim() === '') ? '' : val;
 }

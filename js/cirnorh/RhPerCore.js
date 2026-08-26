@@ -327,7 +327,7 @@ function renderizarTablaPersonal(registros) {
         return;
     }
 
-    // Aseguramos mapas de respaldo si recargaron con F5
+    // Aseguramos mapas de respaldo para regiones y centros
     if (!window._mapRegsCache && window._catRegs) {
         window._mapRegsCache = {};
         window._catRegs.forEach(r => {
@@ -344,17 +344,31 @@ function renderizarTablaPersonal(registros) {
         });
     }
 
-    // Mapa de departamentos dinámico
-    if (window._catDepartamentos && Array.isArray(window._catDepartamentos)) {
+    // Validación inteligente del catálogo de departamentos
+    let catDeptosDisponible = false;
+    if (window._catDepartamentos && Array.isArray(window._catDepartamentos) && window._catDepartamentos.length > 0) {
+        catDeptosDisponible = true;
         window._mapDeptosCache = {};
         window._catDepartamentos.forEach(d => {
-            const k1 = String(d.nomCorDep || '').trim();
-            const k2 = String(d.claveDep || '').trim();
-            const valNombre = d.nomDep || d.nombre || '';
-            
-            if (k1) window._mapDeptosCache[k1] = valNombre;
-            if (k2) window._mapDeptosCache[k2] = valNombre;
+            const nomCor = String(d.nomCorDep || '').trim();
+            const cDep = String(d.claveDep || '').trim();
+            const nomLargo = d.nomDep || d.nombre || '';
+
+            if (nomCor) window._mapDeptosCache[nomCor] = nomLargo;
+            if (cDep) window._mapDeptosCache[cDep] = nomLargo;
         });
+    } else {
+        // 🎯 Si el catálogo aún no llega, disparamos un ganchito para re-renderizar en cuanto llegue
+        if (!window._esperandoCatDepartamentos) {
+            window._esperandoCatDepartamentos = true;
+            const intervaloCheck = setInterval(() => {
+                if (window._catDepartamentos && Array.isArray(window._catDepartamentos) && window._catDepartamentos.length > 0) {
+                    clearInterval(intervaloCheck);
+                    window._esperandoCatDepartamentos = false;
+                    renderizarTablaPersonal(registros); // Se redibuja solito y perfecto en cuanto el catálogo responde
+                }
+            }, 150); // Revisa cada 150ms si ya llegó el catálogo
+        }
     }
 
     tbody.innerHTML = registros.map((row, index) => {
@@ -370,14 +384,18 @@ function renderizarTablaPersonal(registros) {
 
         // Resolución visual del departamento
         let deptoVisual = cDepto;
-        if (window._mapDeptosCache && window._mapDeptosCache[cDepto]) {
-            deptoVisual = window._mapDeptosCache[cDepto];
-        } else if (Array.isArray(window._catDepartamentos)) {
-            const encontrado = window._catDepartamentos.find(d => 
-                String(d.nomCorDep || '').trim() === cDepto || String(d.claveDep || '').trim() === cDepto
-            );
-            if (encontrado) {
-                deptoVisual = encontrado.nomDep || encontrado.nombre || cDepto;
+        if (cDepto) {
+            if (window._mapDeptosCache && window._mapDeptosCache[cDepto]) {
+                deptoVisual = window._mapDeptosCache[cDepto];
+            } else if (Array.isArray(window._catDepartamentos)) {
+                const encontrado = window._catDepartamentos.find(d => 
+                    String(d.nomCorDep || '').trim().toUpperCase() === cDepto.toUpperCase() ||
+                    String(d.claveDep || '').trim() === cDepto ||
+                    String(d.nomDep || '').trim().toUpperCase() === cDepto.toUpperCase()
+                );
+                if (encontrado) {
+                    deptoVisual = encontrado.nomDep || encontrado.nombre || cDepto;
+                }
             }
         }
 

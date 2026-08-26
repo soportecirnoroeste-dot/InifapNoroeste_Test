@@ -8,15 +8,29 @@ window.APPS_SCRIPT_URL = APPS_SCRIPT_URL;
 
 async function FetchAPI(action, payload = {}) {
     try {
-        payload.action = action;
-        
+        let bodyData;
+
+        // Si el payload es un FormData (viene de un <form>), lo convertimos a un objeto plano
+        if (payload instanceof FormData) {
+            let plainObject = {};
+            payload.forEach((value, key) => {
+                plainObject[key] = value;
+            });
+            plainObject.action = action;
+            bodyData = JSON.stringify(plainObject);
+        } else {
+            // Si es un objeto normal de JavaScript
+            payload.action = action;
+            bodyData = JSON.stringify(payload);
+        }
+
         let response = await fetch(APPS_SCRIPT_URL, {
             method: "POST",
             mode: "cors", // Permite la comunicación cruzada con Google Apps Script
             headers: {
                 "Content-Type": "text/plain;charset=utf-8", // Evita bloqueos de preflight OPTIONS en los despliegues de Google
             },
-            body: JSON.stringify(payload)
+            body: bodyData
         });
 
         let data = await response.json();

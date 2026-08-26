@@ -13,16 +13,17 @@ function poblarSelectoresCascada(regSeleccionada = '', centroSeleccionado = '', 
     selectReg.innerHTML = '<option value="" disabled selected>Seleccione una región...</option>' +
         regsArray.map(r => `<option value="${r.claveReg}">${r.claveReg} - ${r.regional}</option>`).join('');
 
-    // 2. Llenar Departamentos mostrando solo el nombre y guardando el nombre corto
+    // 2. Llenar Departamentos usando exactamente las propiedades de tu consola (Dep y nomDep)
     if (selectDepto) {
         const deptosArray = Array.isArray(window._catDepartamentos) ? window._catDepartamentos : [];
 
         selectDepto.innerHTML = '<option value="" disabled selected>Seleccione un departamento...</option>' +
             deptosArray.map(d => {
-                // El valor que se guardará en Sheets (nombre corto o clave)
-                const valorGuardar = d.NomCorto || d.nomCorto || d.claveDepto || d.clave || '';
-                // Lo que verá el usuario en el texto del combo (solo el nombre del departamento)
-                const nombreMostrar = d.nombreDepto || d.nombre || d.NomCorto || d.DESCRIPCION || '';
+                // Guardamos el nombre corto/clave (ej: '1', '2', etc. o lo que contenga 'Dep')
+                const valorGuardar = d.Dep || d.claveDepto || d.NomCorto || '';
+
+                // Mostramos el nombre descriptivo (ej: 'Dirección Regional', 'Recursos Humanos')
+                const nombreMostrar = d.nomDep || d.nombreDepto || d.nombre || '';
 
                 return `<option value="${valorGuardar}">${nombreMostrar}</option>`;
             }).join('');

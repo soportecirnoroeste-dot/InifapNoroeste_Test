@@ -19,9 +19,8 @@ function poblarSelectoresCascada(regSeleccionada = '', centroSeleccionado = '', 
 
         selectDepto.innerHTML = '<option value="" disabled selected>Seleccione un departamento...</option>' +
             deptosArray.map(d => {
-                // Forzamos a que busque 'Dep' o 'dep' o la clave que tenga el nombre corto
-                const claveCorta = d.Dep || d.dep || d.clave || '';
-                const nombreLargo = d.nomDep || d.nombre || '';
+                const claveCorta = d.claveDep || ''; // 👈 Aquí está el nombre corto real ('1', '2', etc.)
+                const nombreLargo = d.nomDep || '';   // 👈 Aquí está el nombre descriptivo
 
                 return `<option value="${claveCorta}">${nombreLargo}</option>`;
             }).join('');

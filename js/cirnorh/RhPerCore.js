@@ -322,7 +322,7 @@ function renderizarTablaPersonal(registros) {
     const tbody = document.getElementById('tabla-personal-body');
     if (!tbody) return;
 
-    if (!registros.length) {
+    if (!registros || !registros.length) {
         tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-stone-400 italic">No hay registros.</td></tr>`;
         return;
     }
@@ -344,7 +344,7 @@ function renderizarTablaPersonal(registros) {
         });
     }
 
-    // 🎯 Construimos o actualizamos el mapa de departamentos siempre de forma dinámica
+    // Mapa de departamentos dinámico
     if (window._catDepartamentos && Array.isArray(window._catDepartamentos)) {
         window._mapDeptosCache = {};
         window._catDepartamentos.forEach(d => {
@@ -360,7 +360,7 @@ function renderizarTablaPersonal(registros) {
     tbody.innerHTML = registros.map((row, index) => {
         const cReg = String(row.claveReg || '').trim();
         const cCentro = String(row.claveCentro || '').trim();
-        const cDepto = String(row.departamento || '').trim(); // El nombre corto guardado en Sheets
+        const cDepto = String(row.departamento || '').trim();
 
         const nomCortoReg = (window._mapRegsCache && window._mapRegsCache[cReg]) || '';
         const reg = nomCortoReg ? `${cReg} - ${nomCortoReg}` : (row.textoReg || cReg);
@@ -368,7 +368,7 @@ function renderizarTablaPersonal(registros) {
         const nomCortoCentro = (window._mapCentrosCache && window._mapCentrosCache[cCentro]) || '';
         const centro = nomCortoCentro ? `${cCentro} - ${nomCortoCentro}` : (row.textoCentro || cCentro);
 
-        // 🎯 Resolución visual del departamento: Busca en el mapa caché o directo en el array del catálogo
+        // Resolución visual del departamento
         let deptoVisual = cDepto;
         if (window._mapDeptosCache && window._mapDeptosCache[cDepto]) {
             deptoVisual = window._mapDeptosCache[cDepto];

@@ -1,4 +1,17 @@
 // ==========================================
+// CONTROL DE SPINNER / OVERLAY DE CARGA
+// ==========================================
+function mostrarCarga() {
+    const overlay = document.getElementById('loading-overlay');
+    if (overlay) overlay.style.display = 'flex';
+}
+
+function ocultarCarga() {
+    const overlay = document.getElementById('loading-overlay');
+    if (overlay) overlay.style.display = 'none';
+}
+
+// ==========================================
 // 0. FUNCIÓN AUXILIAR DE MAYÚSCULAS
 // ==========================================
 function convertirObjetoAMayusculas(datos) {
@@ -60,6 +73,8 @@ const SistemaGlobal = {
     datos: null,
 
     init() {
+        mostrarCarga(); // Activamos el spinner al iniciar la carga
+
         const datosEnCache = localStorage.getItem('sistema_cache_datos');
         const tiempoCache = localStorage.getItem('sistema_cache_tiempo');
         const ahora = new Date().getTime();
@@ -68,6 +83,7 @@ const SistemaGlobal = {
             try {
                 const datosProcesados = JSON.parse(datosEnCache);
                 this.procesarRespuestaServidor(datosProcesados);
+                ocultarCarga(); // Ocultamos si se cargó exitosamente desde caché
                 return;
             } catch (e) {
                 console.error("Error al leer la caché, procediendo a red...", e);
@@ -76,16 +92,28 @@ const SistemaGlobal = {
 
         if (typeof google !== 'undefined' && google.script && google.script.run) {
             google.script.run
-                .withSuccessHandler(respuesta => this.guardarYCargar(respuesta))
-                .withFailureHandler(err => console.error("Error al obtener datos de Sheets:", err))
+                .withSuccessHandler(respuesta => {
+                    this.guardarYCargar(respuesta);
+                    ocultarCarga(); // Ocultamos al terminar desde Google Sheets
+                })
+                .withFailureHandler(err => {
+                    console.error("Error al obtener datos de Sheets:", err);
+                    ocultarCarga(); // Ocultamos incluso si ocurre un fallo
+                })
                 .obtenerDatosSistema();
         } else {
             const URL_DIRECTA = "https://script.google.com/macros/s/AKfycbzDs5fvFxykQniWFZnbUqpbuDAmrIDhMHlVwU4r5B3iPLxBp4FDG7uKrtDBDQEXxEX8fQ/exec?action=obtenerDatosSistema";
 
             fetch(URL_DIRECTA)
                 .then(res => res.json())
-                .then(data => this.guardarYCargar(data))
-                .catch(err => console.error("Error de conexión Fetch:", err));
+                .then(data => {
+                    this.guardarYCargar(data);
+                    ocultarCarga(); // Ocultamos al terminar el fetch con éxito
+                })
+                .catch(err => {
+                    console.error("Error de conexión Fetch:", err);
+                    ocultarCarga(); // Ocultamos si falla la conexión de red
+                });
         }
     },
 

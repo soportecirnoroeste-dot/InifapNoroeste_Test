@@ -344,19 +344,23 @@ function renderizarTablaPersonal(registros) {
         });
     }
 
-    // 🎯 NUEVO: Mapa de respaldo para departamentos (relaciona nomCorDep con nomDep)
-    if (!window._mapDeptosCache && window._catDepartamentos) {
+    // 🎯 Construimos o actualizamos el mapa de departamentos siempre de forma dinámica
+    if (window._catDepartamentos && Array.isArray(window._catDepartamentos)) {
         window._mapDeptosCache = {};
         window._catDepartamentos.forEach(d => {
-            const k = String(d.nomCorDep || d.claveDep || '').trim();
-            if (k) window._mapDeptosCache[k] = d.nomDep || d.nombre || '';
+            const k1 = String(d.nomCorDep || '').trim();
+            const k2 = String(d.claveDep || '').trim();
+            const valNombre = d.nomDep || d.nombre || '';
+            
+            if (k1) window._mapDeptosCache[k1] = valNombre;
+            if (k2) window._mapDeptosCache[k2] = valNombre;
         });
     }
 
     tbody.innerHTML = registros.map((row, index) => {
         const cReg = String(row.claveReg || '').trim();
         const cCentro = String(row.claveCentro || '').trim();
-        const cDepto = String(row.departamento || '').trim(); // Este es el nombre corto guardado (ej. CIRNORM)
+        const cDepto = String(row.departamento || '').trim(); // El nombre corto guardado en Sheets
 
         const nomCortoReg = (window._mapRegsCache && window._mapRegsCache[cReg]) || '';
         const reg = nomCortoReg ? `${cReg} - ${nomCortoReg}` : (row.textoReg || cReg);
@@ -364,9 +368,18 @@ function renderizarTablaPersonal(registros) {
         const nomCortoCentro = (window._mapCentrosCache && window._mapCentrosCache[cCentro]) || '';
         const centro = nomCortoCentro ? `${cCentro} - ${nomCortoCentro}` : (row.textoCentro || cCentro);
 
-        // 🎯 Mapeamos el departamento corto a su nombre largo descriptivo para la pantalla
-        const nombreLargoDepto = (window._mapDeptosCache && window._mapDeptosCache[cDepto]) || '';
-        const deptoVisual = nombreLargoDepto ? nombreLargoDepto : cDepto;
+        // 🎯 Resolución visual del departamento: Busca en el mapa caché o directo en el array del catálogo
+        let deptoVisual = cDepto;
+        if (window._mapDeptosCache && window._mapDeptosCache[cDepto]) {
+            deptoVisual = window._mapDeptosCache[cDepto];
+        } else if (Array.isArray(window._catDepartamentos)) {
+            const encontrado = window._catDepartamentos.find(d => 
+                String(d.nomCorDep || '').trim() === cDepto || String(d.claveDep || '').trim() === cDepto
+            );
+            if (encontrado) {
+                deptoVisual = encontrado.nomDep || encontrado.nombre || cDepto;
+            }
+        }
 
         const noEmp = row.numEmp;
         const nombre = row.nombre;

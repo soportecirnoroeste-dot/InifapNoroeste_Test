@@ -70,7 +70,12 @@ function cargarPersonalRh(cargarLista = true) {
                 <div><label class="block font-bold text-stone-700 mb-1">Email:</label><input type="email" name="email" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
                 <div><label class="block font-bold text-stone-700 mb-1">RFC:</label><input type="text" name="rfc" required class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
                 <div><label class="block font-bold text-stone-700 mb-1">Puesto:</label><input type="text" name="puesto" required class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
-                <div><label class="block font-bold text-stone-700 mb-1">Departamento:</label><input type="text" name="departamento" required class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
+                <div>
+                    <label class="block font-bold text-stone-700 mb-1">Departamento:</label>
+                    <select name="departamento" id="select-departamento" required class="w-full p-2.5 border border-stone-300 rounded-lg bg-white focus:outline-none focus:border-[#249444]">
+                        <option value="" disabled selected>Seleccione un departamento...</option>
+                    </select>
+                </div> 
                 <div><label class="block font-bold text-stone-700 mb-1">Ciudad:</label><input type="text" name="ciudad" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
                 <div><label class="block font-bold text-stone-700 mb-1">Estado:</label><input type="text" name="estado" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
                 
@@ -155,34 +160,21 @@ async function cargarCatalogosSheets(forzar = false) {
     if (!forzar && window._catRegs && window._catRegs.length > 0) return;
 
     try {
-        const URL = "https://script.google.com/macros/s/AKfycbzDs5fvFxykQniWFZnbUqpbuDAmrIDhMHlVwU4r5B3iPLxBp4FDG7uKrtDBDQEXxEX8fQ/exec?action=obtenerDatosSistema";
-        const response = await fetch(URL);
-        const data = await response.json();
+        const data = await FetchAPI('obtenerDatosSistema', {});
 
         window._catRegs = data.regionales || [];
         window._catCentros = data.campos || [];
         window._catSitios = data.sitios || [];
+        // 📌 Agregamos el catálogo de departamentos que viene de Sheets
+        window._catDepartamentos = data.departamentos || data.deptos || []; 
 
-        // Generamos los mapas rápidos de caché para el formato "clave - NomCorto"
-        window._mapRegsCache = {};
-        window._catRegs.forEach(r => {
-            const k = String(r.claveReg || r.clave || '').trim();
-            if (k) window._mapRegsCache[k] = r.NomCorto || r.nomCorto || r.regional || r.nombre || '';
-        });
-
-        window._mapCentrosCache = {};
-        window._catCentros.forEach(c => {
-            const k = String(c.ClaveCentro || c.claveCentro || c.clave || '').trim();
-            if (k) window._mapCentrosCache[k] = c.NomCorto || c.nomCorto || c.Centro || c.centro || '';
-        });
-
-        const centroActual = document.getElementById('select-claveCentro') ? document.getElementById('select-claveCentro').value : '';
-        if (typeof window.filtrarSitiosPorCentro === 'function') {
-            window.filtrarSitiosPorCentro(centroActual);
+        // Si ya hay un centro seleccionado, refrescamos sitios
+        const selCentro = document.getElementById('select-claveCentro');
+        if (selCentro && selCentro.value && typeof filtrarSitiosPorCentro === 'function') {
+            filtrarSitiosPorCentro(selCentro.value);
         }
-
     } catch (e) {
-        console.error("Error al cargar catálogos desde servidor...", e);
+        console.error("Error al catálogos desde servidor...", e);
     }
 }
 

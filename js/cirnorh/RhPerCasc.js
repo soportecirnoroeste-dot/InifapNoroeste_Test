@@ -1,18 +1,34 @@
 // js/cirnorh/personal_cascada.js
 
-function poblarSelectoresCascada(regSeleccionada = '', centroSeleccionado = '', sitioSeleccionado = '') {
+function poblarSelectoresCascada(regSeleccionada = '', centroSeleccionado = '', sitioSeleccionado = '', deptoSeleccionado = '') {
     const selectReg = document.getElementById('select-claveReg');
     const selectCentro = document.getElementById('select-claveCentro');
     const selectSitio = document.getElementById('select-claveSit');
+    const selectDepto = document.getElementById('select-departamento');
 
     if (!selectReg || !selectCentro || !selectSitio) return;
 
-    // 1. Llenar Regiones
+    // 1. Llenar Regiones (Original)
     const regsArray = Array.isArray(window._catRegs) ? window._catRegs : [];
     selectReg.innerHTML = '<option value="" disabled selected>Seleccione una región...</option>' +
         regsArray.map(r => `<option value="${r.claveReg}">${r.claveReg} - ${r.regional}</option>`).join('');
 
-    // 2. Si hay región seleccionada (al editar)
+    // 2. Llenar Departamentos de forma independiente (No afecta centros ni sitios)
+    if (selectDepto) {
+        const deptosArray = Array.isArray(window._catDepartamentos) ? window._catDepartamentos : [];
+        selectDepto.innerHTML = '<option value="" disabled selected>Seleccione un departamento...</option>' +
+            deptosArray.map(d => {
+                const claveD = d.claveDepto || d.NomCorto || d.nomCorto || d.clave || '';
+                const nombreD = d.nombreDepto || d.nombre || d.NomCorto || '';
+                return `<option value="${claveD}">${claveD} - ${nombreD}</option>`;
+            }).join('');
+
+        if (deptoSeleccionado) {
+            selectDepto.value = deptoSeleccionado;
+        }
+    }
+
+    // 3. Si hay región seleccionada (al editar), disparamos tu cascada original intacta
     if (regSeleccionada) {
         selectReg.value = regSeleccionada;
         filtrarCentrosPorRegion(centroSeleccionado, sitioSeleccionado);
@@ -31,11 +47,11 @@ function filtrarCentrosPorRegion(centroActual = '', sitActual = '') {
 
     const regionSeleccionada = selReg.value;
 
-    // Resetear Centros y Sitios
+    // Resetear Centros y Sitios (Exactamente como lo tenías)
     selCentro.innerHTML = `<option value="" disabled selected>Seleccione un centro...</option>`;
     selSit.innerHTML = `<option value="" disabled selected>Seleccione un sitio...</option>`;
 
-    // Filtrar Centros por Región
+    // Filtrar Centros por Región (Exactamente como lo tenías)
     const centrosArray = Array.isArray(window._catCentros) ? window._catCentros : [];
     const centrosFiltrados = regionSeleccionada ? centrosArray.filter(c => {
         const regEnFila = String(c.ClaveReg || c.claveReg || c.CLAVEREG || '').trim();
@@ -51,7 +67,7 @@ function filtrarCentrosPorRegion(centroActual = '', sitActual = '') {
         }).join('');
     }
 
-    // Si hay un centro a evaluar, filtramos los sitios
+    // Si hay un centro a evaluar, filtramos los sitios (Exactamente como lo tenías)
     const centroIdAUsar = centroActual || selCentro.value;
     if (centroIdAUsar) {
         filtrarSitiosPorCentro(centroIdAUsar, sitActual);
@@ -90,7 +106,7 @@ function filtrarSitiosPorCentro(claveCentro = '', sitActual = '') {
 
     selSit.innerHTML = `<option value="N/A">N/A - No aplica</option>` + opcionesHTML;
 
-    // Seleccionar el sitio actual si se provee
+    // Seleccionar el sitio actual si se provee (Exactamente como lo tenías)
     if (sitActual) {
         selSit.value = sitActual;
     } else if (sitiosFiltrados.length === 0) {

@@ -156,18 +156,17 @@ function renderizarTablaPersonal(registros) {
     }
 
     tbody.innerHTML = registros.map((row, index) => {
-        // 1. Si el registro trae texto lo usamos, si no, buscamos la descripción en los catálogos globales usando la clave
-        let regText = row.textoReg;
-        if (!regText || regText === row.claveReg) {
-            const matchReg = (window._catRegs || []).find(r => String(r.id || r.clave) === String(row.claveReg));
-            regText = matchReg ? (matchReg.texto || matchReg.nombre || `${row.claveReg} - ${matchReg.descripcion || ''}`) : row.claveReg;
-        }
+        // Obtenemos las claves puras que vienen del servidor
+        const cReg = row.claveReg || row.reg || '';
+        const cCentro = row.claveCentro || row.centro || '';
 
-        let centroText = row.textoCentro;
-        if (!centroText || centroText === row.claveCentro) {
-            const matchCentro = (window._catCentros || []).find(c => String(c.id || c.clave) === String(row.claveCentro));
-            centroText = matchCentro ? (matchCentro.texto || matchCentro.nombre || `${row.claveCentro} - ${matchCentro.descripcion || ''}`) : row.claveCentro;
-        }
+        // Buscamos la descripción en los catálogos globales cargados en memoria
+        const matchReg = (window._catRegs || []).find(r => String(r.id || r.clave || r.value) === String(cReg));
+        const matchCentro = (window._catCentros || []).find(c => String(c.id || c.clave || c.value) === String(cCentro));
+
+        // Armamos el texto completo formateado (Ej. "100 - CIRNO")
+        const regDisplay = matchReg ? (matchReg.texto || `${cReg} - ${matchReg.nombre || matchReg.descripcion || ''}`) : (row.textoReg || cReg);
+        const centroDisplay = matchCentro ? (matchCentro.texto || `${cCentro} - ${matchCentro.nombre || matchCentro.descripcion || ''}`) : (row.textoCentro || cCentro);
 
         const noEmp = row.numEmp;
         const nombre = row.nombre;
@@ -178,8 +177,8 @@ function renderizarTablaPersonal(registros) {
 
         return `
             <tr class="border-b border-stone-100 hover:bg-stone-50 transition">
-                <td class="p-3 font-mono text-stone-600">${valNa(regText)}</td>
-                <td class="p-3 font-mono text-stone-600">${valNa(centroText)}</td>
+                <td class="p-3 font-mono text-stone-600">${valNa(regDisplay)}</td>
+                <td class="p-3 font-mono text-stone-600">${valNa(centroDisplay)}</td>
                 <td class="p-3 font-mono text-stone-600">${valNa(noEmp)}</td>
                 <td class="p-3"><button onclick="seleccionarEmpleadoParaEditar(${index})" class="font-semibold text-[#249444] hover:underline">${valNa(nombre)}</button></td>
                 <td class="p-3 text-stone-600">${valNa(puesto)}</td>

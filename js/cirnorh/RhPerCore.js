@@ -156,8 +156,19 @@ function renderizarTablaPersonal(registros) {
     }
 
     tbody.innerHTML = registros.map((row, index) => {
-        const reg = row.textoReg || row.claveReg;
-        const centro = row.textoCentro || row.claveCentro;
+        // 1. Si el registro trae texto lo usamos, si no, buscamos la descripción en los catálogos globales usando la clave
+        let regText = row.textoReg;
+        if (!regText || regText === row.claveReg) {
+            const matchReg = (window._catRegs || []).find(r => String(r.id || r.clave) === String(row.claveReg));
+            regText = matchReg ? (matchReg.texto || matchReg.nombre || `${row.claveReg} - ${matchReg.descripcion || ''}`) : row.claveReg;
+        }
+
+        let centroText = row.textoCentro;
+        if (!centroText || centroText === row.claveCentro) {
+            const matchCentro = (window._catCentros || []).find(c => String(c.id || c.clave) === String(row.claveCentro));
+            centroText = matchCentro ? (matchCentro.texto || matchCentro.nombre || `${row.claveCentro} - ${matchCentro.descripcion || ''}`) : row.claveCentro;
+        }
+
         const noEmp = row.numEmp;
         const nombre = row.nombre;
         const puesto = row.puesto;
@@ -167,8 +178,8 @@ function renderizarTablaPersonal(registros) {
 
         return `
             <tr class="border-b border-stone-100 hover:bg-stone-50 transition">
-                <td class="p-3 font-mono text-stone-600">${valNa(reg)}</td>
-                <td class="p-3 font-mono text-stone-600">${valNa(centro)}</td>
+                <td class="p-3 font-mono text-stone-600">${valNa(regText)}</td>
+                <td class="p-3 font-mono text-stone-600">${valNa(centroText)}</td>
                 <td class="p-3 font-mono text-stone-600">${valNa(noEmp)}</td>
                 <td class="p-3"><button onclick="seleccionarEmpleadoParaEditar(${index})" class="font-semibold text-[#249444] hover:underline">${valNa(nombre)}</button></td>
                 <td class="p-3 text-stone-600">${valNa(puesto)}</td>

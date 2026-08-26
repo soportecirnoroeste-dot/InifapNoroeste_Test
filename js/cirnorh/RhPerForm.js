@@ -101,17 +101,33 @@ async function seleccionarEmpleadoParaEditar(index) {
 async function guardarOActualizarPersonal(event) {
     event.preventDefault();
     const form = event.target;
+    
+    // 1. Activamos el spinner de carga inmediatamente
+    if (typeof mostrarCarga === 'function') mostrarCarga();
+
     const formData = new FormData(form);
     
-    // Convertimos a objeto plano para evaluar si existe el empleado por su número
-    const datosEmpleado = Object.fromEntries(formData.entries());
+    // Convertimos a objeto plano para validar y aplicar mayúsculas
+    let datosEmpleado = Object.fromEntries(formData.entries());
+
+    // 2. ¡AQUÍ ESTÁ LA CLAVE! Convertimos todo el contenido del formulario a mayúsculas
+    if (typeof convertirObjetoAMayusculas === 'function') {
+        datosEmpleado = convertirObjetoAMayusculas(datosEmpleado);
+    }
+
+    // Volvemos a empaquetar los datos ya limpios en el FormData (o mandamos el objeto según maneje tu FetchAPI)
+    const formDataLimpio = new FormData();
+    for (const key in datosEmpleado) {
+        formDataLimpio.append(key, datosEmpleado[key]);
+    }
+
     const actionName = window._empleadosCache.some(e => String(e.numEmp).trim() === String(datosEmpleado.numEmp).trim()) ? 'actualizarPersonal' : 'guardarPersonal';
 
     const btnSubmit = form.querySelector('button[type="submit"]');
     if (btnSubmit) btnSubmit.disabled = true;
 
     try {
-        const res = await FetchAPI(actionName, formData);
+        const res = await FetchAPI(actionName, formDataLimpio);
         alert(res.message || "Guardado exitoso");
         ocultarFormularioPersonal();
         cargarDatosGenerales(true);
@@ -120,6 +136,8 @@ async function guardarOActualizarPersonal(event) {
         alert("Error de conexión al guardar.");
     } finally {
         if (btnSubmit) btnSubmit.disabled = false;
+        // 3. Ocultamos el spinner pase lo que pase (éxito o error)
+        if (typeof ocultarCarga === 'function') ocultarCarga();
     }
 }
 

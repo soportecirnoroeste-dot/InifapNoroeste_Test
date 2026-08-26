@@ -16,20 +16,20 @@ function poblarSelectoresCascada(regSeleccionada = '', centroSeleccionado = '', 
     // 2. Llenar Departamentos
     if (selectDepto) {
         const deptosArray = Array.isArray(window._catDepartamentos) ? window._catDepartamentos : [];
-        
+
         selectDepto.innerHTML = '<option value="" disabled selected>Seleccione un departamento...</option>' +
             deptosArray.map(d => {
-                const valorGuardar = d.Dep || ''; // Esto es lo que se guardará en Sheets
-                const nombreMostrar = d.nomDep || ''; // Esto es lo que verá el usuario
+                const valorCorto = d.Dep || ''; // Asegúrate de que esta sea la clave de tu objeto (ej. '3', '6', etc.)
+                const nombreLargo = d.nomDep || '';
 
-                return `<option value="${valorGuardar}">${nombreMostrar}</option>`;
+                return `<option value="${valorCorto}">${nombreLargo}</option>`;
             }).join('');
 
         if (deptoSeleccionado) {
             selectDepto.value = deptoSeleccionado;
         }
     }
-    
+
     // 3. Si hay región seleccionada (al editar), disparamos tu cascada original intacta
     if (regSeleccionada) {
         selectReg.value = regSeleccionada;

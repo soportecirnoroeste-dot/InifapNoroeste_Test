@@ -13,14 +13,20 @@ function poblarSelectoresCascada(regSeleccionada = '', centroSeleccionado = '', 
     selectReg.innerHTML = '<option value="" disabled selected>Seleccione una región...</option>' +
         regsArray.map(r => `<option value="${r.claveReg}">${r.claveReg} - ${r.regional}</option>`).join('');
 
-    // 2. Llenar Departamentos de forma independiente (No afecta centros ni sitios)
+    // 2. Llenar Departamentos de forma flexible
     if (selectDepto) {
         const deptosArray = Array.isArray(window._catDepartamentos) ? window._catDepartamentos : [];
+
         selectDepto.innerHTML = '<option value="" disabled selected>Seleccione un departamento...</option>' +
             deptosArray.map(d => {
-                const claveD = d.claveDepto || d.NomCorto || d.nomCorto || d.clave || '';
-                const nombreD = d.nombreDepto || d.nombre || d.NomCorto || '';
-                return `<option value="${claveD}">${claveD} - ${nombreD}</option>`;
+                // Buscamos dinámicamente cualquier propiedad que parezca clave o nombre corto
+                const claveD = d.claveDepto || d.NomCorto || d.nomCorto || d.clave || d.Clave || d.DEPARTAMENTO || d.Depto || '';
+                const nombreD = d.nombreDepto || d.nombre || d.NomCorto || d.nombreCorto || d.Nombre || d.DESCRIPCION || '';
+
+                // Si por alguna razón el objeto viniera plano o con otra estructura, evitamos que salga en blanco
+                const textoMostrar = (claveD && nombreD && claveD !== nombreD) ? `${claveD} - ${nombreD}` : (nombreD || claveD || JSON.stringify(d));
+
+                return `<option value="${claveD || nombreD}">${textoMostrar}</option>`;
             }).join('');
 
         if (deptoSeleccionado) {

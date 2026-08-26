@@ -35,6 +35,26 @@ function ocultarFormularioPersonal() {
     if (formContainer) formContainer.classList.add('hidden');
     if (gestionContainer) gestionContainer.classList.remove('hidden');
     if (listadoContainer) listadoContainer.classList.remove('hidden');
+
+    // 👉 ¡AQUÍ ESTABA EL DETALLE! Forzamos a que pinte la tabla al regresar
+    if (window._empleadosCache && window._empleadosCache.length > 0) {
+        renderizarTablaPersonal(window._empleadosCache);
+    }
+}
+
+function cancelarEdicionPersonal() {
+    const formContainer = document.getElementById('contenedor-formulario-personal');
+    const gestionContainer = document.getElementById('contenedor-gestion-personal');
+    const listadoContainer = document.getElementById('contenedor-listado-personal');
+
+    if (formContainer) formContainer.classList.add('hidden');
+    if (gestionContainer) gestionContainer.classList.remove('hidden');
+    if (listadoContainer) listadoContainer.classList.remove('hidden');
+
+    // 👉 Y aseguramos lo mismo para la cancelación de edición
+    if (window._empleadosCache && window._empleadosCache.length > 0) {
+        renderizarTablaPersonal(window._empleadosCache);
+    }
 }
 
 async function seleccionarEmpleadoParaEditar(index) {

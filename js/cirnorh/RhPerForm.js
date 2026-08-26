@@ -108,31 +108,30 @@ async function guardarOActualizarPersonal(event) {
     const formData = new FormData(form);
     let datosEmpleado = Object.fromEntries(formData.entries());
 
-    // 2. RECUPERAR TEXTOS COMPLETOS DE SELECTS EN CASCADA (REGIONAL Y CENTRO)
-    // Esto asegura que se mande la clave y el texto completo (ej. "100 - CIRNO")
-    const selectReg = form.querySelector('[name="claveReg"], [name="reg"]');
+    // 2. RECUPERAR LOS TEXTOS COMPLETOS DE LOS SELECTS (REGIONAL Y CENTRO)
+    const selectReg = form.querySelector('#select-claveReg');
     if (selectReg && selectReg.selectedIndex >= 0) {
         const optionText = selectReg.options[selectReg.selectedIndex].text;
-        datosEmpleado.textoReg = optionText !== 'Seleccionar' ? optionText : datosEmpleado.claveReg;
+        datosEmpleado.textoReg = optionText !== 'Seleccione una región...' ? optionText : datosEmpleado.claveReg;
     }
 
-    const selectCentro = form.querySelector('[name="claveCentro"], [name="centro"]');
+    const selectCentro = form.querySelector('#select-claveCentro');
     if (selectCentro && selectCentro.selectedIndex >= 0) {
         const optionText = selectCentro.options[selectCentro.selectedIndex].text;
-        datosEmpleado.textoCentro = optionText !== 'Seleccionar' ? optionText : datosEmpleado.claveCentro;
+        datosEmpleado.textoCentro = optionText !== 'Seleccione un centro...' ? optionText : datosEmpleado.claveCentro;
     }
 
     // 3. Aseguramos el campo de sitio
-    if (!datosEmpleado.sitio || String(datosEmpleado.sitio).trim() === '') {
-        datosEmpleado.sitio = 'N/A';
+    if (!datosEmpleado.claveSit || String(datosEmpleado.claveSit).trim() === '') {
+        datosEmpleado.claveSit = 'N/A';
     }
 
-    // 4. Convertimos todos los textos a mayúsculas usando tu función
+    // 4. Convertimos todos los textos a mayúsculas usando tu función global
     if (typeof convertirObjetoAMayusculas === 'function') {
         datosEmpleado = convertirObjetoAMayusculas(datosEmpleado);
     }
 
-    // 5. Armamos el FormData final con todos los campos limpios y enriquecidos
+    // 5. Armamos el FormData final con todas las propiedades necesarias para la tabla
     const formDataFinal = new FormData();
     for (const key in datosEmpleado) {
         formDataFinal.append(key, datosEmpleado[key]);

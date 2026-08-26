@@ -154,13 +154,15 @@ function renderizarTablaPersonal(registros) {
         const cReg = String(row.claveReg || '').trim();
         const cCentro = String(row.claveCentro || '').trim();
 
-        // 1. Buscamos en el catálogo de regiones y extraemos su NomCorto si existe, o usamos la propiedad directa
+        // 1. Buscamos en el catálogo de regiones y armamos el formato: clave - NomCorto
         const matchReg = (window._catRegs || []).find(r => String(r.claveReg || r.clave || '').trim() === cReg);
-        const regTexto = matchReg ? (matchReg.NomCorto || matchReg.nomCorto || matchReg.regional || matchReg.nombre || cReg) : (row.NomCorto || row.nomCorto || row.textoReg || cReg);
+        const nomCortoReg = matchReg ? (matchReg.NomCorto || matchReg.nomCorto || matchReg.regional || matchReg.nombre || '') : '';
+        const regTexto = nomCortoReg ? `${cReg} - ${nomCortoReg}` : (row.textoReg || cReg);
 
-        // 2. Buscamos en el catálogo de centros y extraemos su NomCorto si existe, o usamos la propiedad directa
+        // 2. Buscamos en el catálogo de centros y armamos el formato: clave - NomCorto
         const matchCentro = (window._catCentros || []).find(c => String(c.ClaveCentro || c.claveCentro || c.clave || '').trim() === cCentro);
-        const centroTexto = matchCentro ? (matchCentro.NomCorto || matchCentro.nomCorto || matchCentro.Centro || matchCentro.centro || cCentro) : (row.NomCortoCentro || row.nomCortoCentro || row.textoCentro || cCentro);
+        const nomCortoCentro = matchCentro ? (matchCentro.NomCorto || matchCentro.nomCorto || matchCentro.Centro || matchCentro.centro || '') : '';
+        const centroTexto = nomCortoCentro ? `${cCentro} - ${nomCortoCentro}` : (row.textoCentro || cCentro);
 
         const noEmp = row.numEmp;
         const nombre = row.nombre;

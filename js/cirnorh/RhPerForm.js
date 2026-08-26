@@ -107,18 +107,24 @@ async function guardarOActualizarPersonal(event) {
 
     const formData = new FormData(form);
     
-    // Convertimos a objeto plano para validar y aplicar mayúsculas
+    // Convertimos a objeto plano
     let datosEmpleado = Object.fromEntries(formData.entries());
 
-    // 2. ¡AQUÍ ESTÁ LA CLAVE! Convertimos todo el contenido del formulario a mayúsculas
+    // 2. Aseguramos el campo de sitio (si no viene o está vacío, lo mandamos como 'N/A' o vacío según tu lógica)
+    if (!datosEmpleado.sitio || String(datosEmpleado.sitio).trim() === '') {
+        datosEmpleado.sitio = 'N/A';
+    }
+
+    // 3. Convertimos todos los textos a mayúsculas usando tu función
     if (typeof convertirObjetoAMayusculas === 'function') {
         datosEmpleado = convertirObjetoAMayusculas(datosEmpleado);
     }
 
-    // Volvemos a empaquetar los datos ya limpios en el FormData (o mandamos el objeto según maneje tu FetchAPI)
-    const formDataLimpio = new FormData();
+    // 4. Volvemos a armar un NUEVO FormData que conserve textualmente TODO 
+    // (incluyendo claves de registro, centro, sitio y cualquier select/input oculto)
+    const formDataFinal = new FormData();
     for (const key in datosEmpleado) {
-        formDataLimpio.append(key, datosEmpleado[key]);
+        formDataFinal.append(key, datosEmpleado[key]);
     }
 
     const actionName = window._empleadosCache.some(e => String(e.numEmp).trim() === String(datosEmpleado.numEmp).trim()) ? 'actualizarPersonal' : 'guardarPersonal';
@@ -127,7 +133,8 @@ async function guardarOActualizarPersonal(event) {
     if (btnSubmit) btnSubmit.disabled = true;
 
     try {
-        const res = await FetchAPI(actionName, formDataLimpio);
+        // Enviamos el FormData completo y limpio
+        const res = await FetchAPI(actionName, formDataFinal);
         alert(res.message || "Guardado exitoso");
         ocultarFormularioPersonal();
         cargarDatosGenerales(true);
@@ -136,7 +143,7 @@ async function guardarOActualizarPersonal(event) {
         alert("Error de conexión al guardar.");
     } finally {
         if (btnSubmit) btnSubmit.disabled = false;
-        // 3. Ocultamos el spinner pase lo que pase (éxito o error)
+        // 5. Ocultamos el spinner pase lo que pase
         if (typeof ocultarCarga === 'function') ocultarCarga();
     }
 }

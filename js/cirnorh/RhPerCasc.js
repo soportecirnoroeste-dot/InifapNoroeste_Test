@@ -13,20 +13,18 @@ function poblarSelectoresCascada(regSeleccionada = '', centroSeleccionado = '', 
     selectReg.innerHTML = '<option value="" disabled selected>Seleccione una región...</option>' +
         regsArray.map(r => `<option value="${r.claveReg}">${r.claveReg} - ${r.regional}</option>`).join('');
 
-    // 2. Llenar Departamentos de forma flexible
+    // 2. Llenar Departamentos mostrando solo el nombre y guardando el nombre corto
     if (selectDepto) {
         const deptosArray = Array.isArray(window._catDepartamentos) ? window._catDepartamentos : [];
 
         selectDepto.innerHTML = '<option value="" disabled selected>Seleccione un departamento...</option>' +
             deptosArray.map(d => {
-                // Buscamos dinámicamente cualquier propiedad que parezca clave o nombre corto
-                const claveD = d.claveDepto || d.NomCorto || d.nomCorto || d.clave || d.Clave || d.DEPARTAMENTO || d.Depto || '';
-                const nombreD = d.nombreDepto || d.nombre || d.NomCorto || d.nombreCorto || d.Nombre || d.DESCRIPCION || '';
+                // El valor que se guardará en Sheets (nombre corto o clave)
+                const valorGuardar = d.NomCorto || d.nomCorto || d.claveDepto || d.clave || '';
+                // Lo que verá el usuario en el texto del combo (solo el nombre del departamento)
+                const nombreMostrar = d.nombreDepto || d.nombre || d.NomCorto || d.DESCRIPCION || '';
 
-                // Si por alguna razón el objeto viniera plano o con otra estructura, evitamos que salga en blanco
-                const textoMostrar = (claveD && nombreD && claveD !== nombreD) ? `${claveD} - ${nombreD}` : (nombreD || claveD || JSON.stringify(d));
-
-                return `<option value="${claveD || nombreD}">${textoMostrar}</option>`;
+                return `<option value="${valorGuardar}">${nombreMostrar}</option>`;
             }).join('');
 
         if (deptoSeleccionado) {

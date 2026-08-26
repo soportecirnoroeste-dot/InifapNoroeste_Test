@@ -162,4 +162,9 @@ input, select, textarea {
     text-transform: uppercase;
 }
 
+/* Forzar todas las tablas y textos de listados en mayúsculas */
+table, td, th, .listado-empleados {
+    text-transform: uppercase;
+}
+
 

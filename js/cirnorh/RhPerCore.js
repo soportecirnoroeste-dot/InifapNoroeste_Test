@@ -182,13 +182,14 @@ async function cargarCatalogosSheets(forzar = false) {
     if (!forzar && window._catRegs && window._catRegs.length > 0) return;
 
     try {
-        const URL = `${window.APPS_SCRIPT_URL}?action=obtenerDatosSistema`;
-        const response = await fetch(URL);
-        const data = await response.json();
+        // Usamos tu FetchAPI global en lugar de hacer un fetch manual
+        const data = await FetchAPI('obtenerDatosSistema', {});
 
         window._catRegs = data.regionales || [];
         window._catCentros = data.campos || [];
         window._catSitios = data.sitios || [];
+        // Opcional: si también guardas departamentos en el futuro
+        // window._catDepartamentos = data.departamentos || [];
 
         console.log("Catálogos cargados desde servidor:", window._catRegs, window._catCentros, window._catSitios);
 

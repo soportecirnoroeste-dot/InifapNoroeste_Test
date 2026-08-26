@@ -151,10 +151,17 @@ function renderizarTablaPersonal(registros) {
     }
 
     tbody.innerHTML = registros.map((row, index) => {
-        // Usamos la propiedad de texto completo si existe, o respaldamos con la clave
-        const reg = row.textoReg || row.claveReg || '';
-        const centro = row.textoCentro || row.claveCentro || '';
-        
+        const cReg = String(row.claveReg || '').trim();
+        const cCentro = String(row.claveCentro || '').trim();
+
+        // 1. Buscamos el nombre de la región en el catálogo global _catRegs
+        const matchReg = (window._catRegs || []).find(r => String(r.claveReg || r.clave || '').trim() === cReg);
+        const regTexto = matchReg ? `${cReg} - ${matchReg.regional || matchReg.nombre || matchReg.descripcion || ''}` : (row.textoReg || cReg);
+
+        // 2. Buscamos el nombre del centro en el catálogo global _catCentros
+        const matchCentro = (window._catCentros || []).find(c => String(c.ClaveCentro || c.claveCentro || c.clave || '').trim() === cCentro);
+        const centroTexto = matchCentro ? `${cCentro} - ${matchCentro.Centro || matchCentro.centro || matchCentro.nombre || ''}` : (row.textoCentro || cCentro);
+
         const noEmp = row.numEmp;
         const nombre = row.nombre;
         const puesto = row.puesto;
@@ -164,8 +171,8 @@ function renderizarTablaPersonal(registros) {
 
         return `
             <tr class="border-b border-stone-100 hover:bg-stone-50 transition">
-                <td class="p-3 font-mono text-stone-600">${valNa(reg)}</td>
-                <td class="p-3 font-mono text-stone-600">${valNa(centro)}</td>
+                <td class="p-3 font-mono text-stone-600">${valNa(regTexto)}</td>
+                <td class="p-3 font-mono text-stone-600">${valNa(centroTexto)}</td>
                 <td class="p-3 font-mono text-stone-600">${valNa(noEmp)}</td>
                 <td class="p-3"><button onclick="seleccionarEmpleadoParaEditar(${index})" class="font-semibold text-[#249444] hover:underline">${valNa(nombre)}</button></td>
                 <td class="p-3 text-stone-600">${valNa(puesto)}</td>

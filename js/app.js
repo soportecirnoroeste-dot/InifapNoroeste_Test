@@ -1,4 +1,20 @@
 // ==========================================
+// 0. FUNCIÓN AUXILIAR DE MAYÚSCULAS
+// ==========================================
+function convertirObjetoAMayusculas(datos) {
+    let datosMayus = {};
+    for (let key in datos) {
+        if (typeof datos[key] === 'string' && key !== 'pass' && key !== 'email') { 
+            // Excluimos la contraseña (pass) y el correo (email) para conservar su formato original
+            datosMayus[key] = datos[key].toUpperCase();
+        } else {
+            datosMayus[key] = datos[key];
+        }
+    }
+    return datosMayus;
+}
+
+// ==========================================
 // 1. CONTROLADOR CON DEPURACIÓN EN CONSOLA
 // ==========================================
 const AuthGuard = {

@@ -145,13 +145,31 @@ function renderizarTablaPersonal(registros) {
     const tbody = document.getElementById('tabla-personal-body');
     if (!tbody) return;
 
-    if (!registros.length) {
+    if (!registros || !registros.length) {
         tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-stone-400 italic">No hay registros.</td></tr>`;
         return;
     }
 
-    // Creamos mapas ligeros en memoria si no existen para hacer la búsqueda instantánea
-    if (!window._mapRegsCache && window._catRegs) {
+    // Verificamos si los catálogos globales ya están disponibles en memoria
+    const catRegsDisponibles = window._catRegs && Array.isArray(window._catRegs) && window._catRegs.length > 0;
+    const catCentrosDisponibles = window._catCentros && Array.isArray(window._catCentros) && window._catCentros.length > 0;
+
+    // Si recargaste con F5 y los catálogos globales todavía no llegan, 
+    // podemos forzar una recarga de los mismos si tienes una función para ello (ej. cargarCatalogos())
+    if ((!catRegsDisponibles || !catCentrosDisponibles) && typeof cargarCatalogos === 'function' && !window._intentandoCargarCat) {
+        window._intentandoCargarCat = true;
+        console.log("Catálogos no listos tras F5, recargándolos...");
+        cargarCatalogos().then(() => {
+            window._intentandoCargarCat = false;
+            renderizarTablaPersonal(registros); // Reintentamos pintar una vez listos
+        }).catch(err => {
+            window._intentandoCargarCat = false;
+            console.error("Error al reintentar catálogos:", err);
+        });
+    }
+
+    // Construcción segura del caché de Regiones
+    if (!window._mapRegsCache && catRegsDisponibles) {
         window._mapRegsCache = {};
         window._catRegs.forEach(r => {
             const k = String(r.claveReg || r.clave || '').trim();
@@ -159,7 +177,8 @@ function renderizarTablaPersonal(registros) {
         });
     }
 
-    if (!window._mapCentrosCache && window._catCentros) {
+    // Construcción segura del caché de Centros
+    if (!window._mapCentrosCache && catCentrosDisponibles) {
         window._mapCentrosCache = {};
         window._catCentros.forEach(c => {
             const k = String(c.ClaveCentro || c.claveCentro || c.clave || '').trim();
@@ -171,11 +190,10 @@ function renderizarTablaPersonal(registros) {
         const cReg = String(row.claveReg || '').trim();
         const cCentro = String(row.claveCentro || '').trim();
 
-        // 1. Región: formato clave - NomCorto (buscando en caché o usando el texto de respaldo)
+        // Buscamos en caché o usamos el texto de respaldo por si el catálogo tardó
         const nomCortoReg = (window._mapRegsCache && window._mapRegsCache[cReg]) || '';
         const reg = nomCortoReg ? `${cReg} - ${nomCortoReg}` : (row.textoReg || cReg);
 
-        // 2. Centro: formato clave - NomCorto (buscando en caché o usando el texto de respaldo)
         const nomCortoCentro = (window._mapCentrosCache && window._mapCentrosCache[cCentro]) || '';
         const centro = nomCortoCentro ? `${cCentro} - ${nomCortoCentro}` : (row.textoCentro || cCentro);
 

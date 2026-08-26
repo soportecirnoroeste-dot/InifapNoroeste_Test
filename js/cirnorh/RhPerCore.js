@@ -155,20 +155,25 @@ function renderizarTablaPersonal(registros) {
         return;
     }
 
-    // ¡Aquí los ponemos para que corran dentro de la función con seguridad!
-    console.log("🔍 Primer empleado recibido:", registros[0]);
-    console.log("📁 Catálogo Regiones global (_catRegs):", window._catRegs);
-    console.log("📁 Catálogo Centros global (_catCentros):", window._catCentros);
-
     tbody.innerHTML = registros.map((row, index) => {
-        const cReg = row.claveReg || row.reg || '';
-        const cCentro = row.claveCentro || row.centro || '';
+        const cReg = String(row.claveReg || '').trim();
+        const cCentro = String(row.claveCentro || '').trim();
 
-        const matchReg = (window._catRegs || []).find(r => String(r.id || r.clave || r.value || r[0]) === String(cReg));
-        const matchCentro = (window._catCentros || []).find(c => String(c.id || c.clave || c.value || c[0]) === String(cCentro));
+        // Buscamos la región en el catálogo global (window._catRegs)
+        const matchReg = (window._catRegs || []).find(r => {
+            const valReg = String(r.clave || r.id || r.value || r[0] || '').trim();
+            return valReg === cReg;
+        });
 
-        const regDisplay = matchReg ? (matchReg.texto || matchReg.nombre || `${cReg} - ${matchReg.descripcion || ''}`) : (row.textoReg || cReg);
-        const centroDisplay = matchCentro ? (matchCentro.texto || matchCentro.nombre || `${cCentro} - ${matchCentro.descripcion || ''}`) : (row.textoCentro || cCentro);
+        // Buscamos el centro en el catálogo global (window._catCentros)
+        const matchCentro = (window._catCentros || []).find(c => {
+            const valCentro = String(c.clave || c.id || c.value || c[0] || '').trim();
+            return valCentro === cCentro;
+        });
+
+        // Si encontramos coincidencia en el catálogo, armamos el texto completo (ej. "100 - CIRNO"), si no, usamos la clave o texto de respaldo
+        const regDisplay = matchReg ? (matchReg.texto || `${cReg} - ${matchReg.nombre || matchReg.descripcion || ''}`) : (row.textoReg || cReg);
+        const centroDisplay = matchCentro ? (matchCentro.texto || `${cCentro} - ${matchCentro.nombre || matchCentro.descripcion || ''}`) : (row.textoCentro || cCentro);
 
         const noEmp = row.numEmp;
         const nombre = row.nombre;

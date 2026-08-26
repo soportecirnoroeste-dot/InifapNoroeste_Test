@@ -13,17 +13,14 @@ function poblarSelectoresCascada(regSeleccionada = '', centroSeleccionado = '', 
     selectReg.innerHTML = '<option value="" disabled selected>Seleccione una región...</option>' +
         regsArray.map(r => `<option value="${r.claveReg}">${r.claveReg} - ${r.regional}</option>`).join('');
 
-    // 2. Llenar Departamentos usando exactamente las propiedades de tu consola (Dep y nomDep)
+    // 2. Llenar Departamentos
     if (selectDepto) {
         const deptosArray = Array.isArray(window._catDepartamentos) ? window._catDepartamentos : [];
-
+        
         selectDepto.innerHTML = '<option value="" disabled selected>Seleccione un departamento...</option>' +
             deptosArray.map(d => {
-                // Guardamos el nombre corto/clave (ej: '1', '2', etc. o lo que contenga 'Dep')
-                const valorGuardar = d.Dep || d.claveDepto || d.NomCorto || '';
-
-                // Mostramos el nombre descriptivo (ej: 'Dirección Regional', 'Recursos Humanos')
-                const nombreMostrar = d.nomDep || d.nombreDepto || d.nombre || '';
+                const valorGuardar = d.Dep || ''; // Esto es lo que se guardará en Sheets
+                const nombreMostrar = d.nomDep || ''; // Esto es lo que verá el usuario
 
                 return `<option value="${valorGuardar}">${nombreMostrar}</option>`;
             }).join('');
@@ -32,7 +29,7 @@ function poblarSelectoresCascada(regSeleccionada = '', centroSeleccionado = '', 
             selectDepto.value = deptoSeleccionado;
         }
     }
-
+    
     // 3. Si hay región seleccionada (al editar), disparamos tu cascada original intacta
     if (regSeleccionada) {
         selectReg.value = regSeleccionada;

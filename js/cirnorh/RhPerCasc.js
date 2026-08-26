@@ -16,13 +16,13 @@ function poblarSelectoresCascada(regSeleccionada = '', centroSeleccionado = '', 
     // 2. Llenar Departamentos
     if (selectDepto) {
         const deptosArray = Array.isArray(window._catDepartamentos) ? window._catDepartamentos : [];
-
+        
         selectDepto.innerHTML = '<option value="" disabled selected>Seleccione un departamento...</option>' +
             deptosArray.map(d => {
-                const claveCorta = d.claveDep || ''; // 👈 Aquí está el nombre corto real ('1', '2', etc.)
-                const nombreLargo = d.nomDep || '';   // 👈 Aquí está el nombre descriptivo
+                const nombreCortoValor = d.nomCorDep || ''; // 👈 AQUÍ ESTÁ EL TRUCO: Usamos nomCorDep para que sea el value
+                const nombreLargoTexto = d.nomDep || '';     // 👈 Este es el texto descriptivo que ve el usuario
 
-                return `<option value="${claveCorta}">${nombreLargo}</option>`;
+                return `<option value="${nombreCortoValor}">${nombreLargoTexto}</option>`;
             }).join('');
 
         if (deptoSeleccionado) {

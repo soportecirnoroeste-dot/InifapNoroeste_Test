@@ -106,22 +106,33 @@ async function guardarOActualizarPersonal(event) {
     if (typeof mostrarCarga === 'function') mostrarCarga();
 
     const formData = new FormData(form);
-    
-    // Convertimos a objeto plano
     let datosEmpleado = Object.fromEntries(formData.entries());
 
-    // 2. Aseguramos el campo de sitio (si no viene o está vacío, lo mandamos como 'N/A' o vacío según tu lógica)
+    // 2. RECUPERAR TEXTOS COMPLETOS DE SELECTS EN CASCADA (REGIONAL Y CENTRO)
+    // Esto asegura que se mande la clave y el texto completo (ej. "100 - CIRNO")
+    const selectReg = form.querySelector('[name="claveReg"], [name="reg"]');
+    if (selectReg && selectReg.selectedIndex >= 0) {
+        const optionText = selectReg.options[selectReg.selectedIndex].text;
+        datosEmpleado.textoReg = optionText !== 'Seleccionar' ? optionText : datosEmpleado.claveReg;
+    }
+
+    const selectCentro = form.querySelector('[name="claveCentro"], [name="centro"]');
+    if (selectCentro && selectCentro.selectedIndex >= 0) {
+        const optionText = selectCentro.options[selectCentro.selectedIndex].text;
+        datosEmpleado.textoCentro = optionText !== 'Seleccionar' ? optionText : datosEmpleado.claveCentro;
+    }
+
+    // 3. Aseguramos el campo de sitio
     if (!datosEmpleado.sitio || String(datosEmpleado.sitio).trim() === '') {
         datosEmpleado.sitio = 'N/A';
     }
 
-    // 3. Convertimos todos los textos a mayúsculas usando tu función
+    // 4. Convertimos todos los textos a mayúsculas usando tu función
     if (typeof convertirObjetoAMayusculas === 'function') {
         datosEmpleado = convertirObjetoAMayusculas(datosEmpleado);
     }
 
-    // 4. Volvemos a armar un NUEVO FormData que conserve textualmente TODO 
-    // (incluyendo claves de registro, centro, sitio y cualquier select/input oculto)
+    // 5. Armamos el FormData final con todos los campos limpios y enriquecidos
     const formDataFinal = new FormData();
     for (const key in datosEmpleado) {
         formDataFinal.append(key, datosEmpleado[key]);
@@ -133,7 +144,6 @@ async function guardarOActualizarPersonal(event) {
     if (btnSubmit) btnSubmit.disabled = true;
 
     try {
-        // Enviamos el FormData completo y limpio
         const res = await FetchAPI(actionName, formDataFinal);
         alert(res.message || "Guardado exitoso");
         ocultarFormularioPersonal();
@@ -143,7 +153,7 @@ async function guardarOActualizarPersonal(event) {
         alert("Error de conexión al guardar.");
     } finally {
         if (btnSubmit) btnSubmit.disabled = false;
-        // 5. Ocultamos el spinner pase lo que pase
+        // 6. Ocultamos el spinner pase lo que pase
         if (typeof ocultarCarga === 'function') ocultarCarga();
     }
 }

@@ -157,3 +157,9 @@ body:not(.auth-checked) {
     width: 100%;
 }
 
+/* Forzar visualmente todo el texto de los inputs y selects en mayúsculas */
+input, select, textarea {
+    text-transform: uppercase;
+}
+
+

@@ -151,10 +151,17 @@ function renderizarTablaPersonal(registros) {
     }
 
     tbody.innerHTML = registros.map((row, index) => {
-        // Tomamos directamente el NomCorto (o respaldo con la clave/texto si no existiera)
-        const reg = row.NomCorto || row.nomCorto || row.textoReg || row.claveReg || '';
-        const centro = row.NomCortoCentro || row.nomCortoCentro || row.textoCentro || row.claveCentro || '';
-        
+        const cReg = String(row.claveReg || '').trim();
+        const cCentro = String(row.claveCentro || '').trim();
+
+        // 1. Buscamos en el catálogo de regiones y extraemos su NomCorto si existe, o usamos la propiedad directa
+        const matchReg = (window._catRegs || []).find(r => String(r.claveReg || r.clave || '').trim() === cReg);
+        const regTexto = matchReg ? (matchReg.NomCorto || matchReg.nomCorto || matchReg.regional || matchReg.nombre || cReg) : (row.NomCorto || row.nomCorto || row.textoReg || cReg);
+
+        // 2. Buscamos en el catálogo de centros y extraemos su NomCorto si existe, o usamos la propiedad directa
+        const matchCentro = (window._catCentros || []).find(c => String(c.ClaveCentro || c.claveCentro || c.clave || '').trim() === cCentro);
+        const centroTexto = matchCentro ? (matchCentro.NomCorto || matchCentro.nomCorto || matchCentro.Centro || matchCentro.centro || cCentro) : (row.NomCortoCentro || row.nomCortoCentro || row.textoCentro || cCentro);
+
         const noEmp = row.numEmp;
         const nombre = row.nombre;
         const puesto = row.puesto;
@@ -164,8 +171,8 @@ function renderizarTablaPersonal(registros) {
 
         return `
             <tr class="border-b border-stone-100 hover:bg-stone-50 transition">
-                <td class="p-3 font-mono text-stone-600">${valNa(reg)}</td>
-                <td class="p-3 font-mono text-stone-600">${valNa(centro)}</td>
+                <td class="p-3 font-mono text-stone-600">${valNa(regTexto)}</td>
+                <td class="p-3 font-mono text-stone-600">${valNa(centroTexto)}</td>
                 <td class="p-3 font-mono text-stone-600">${valNa(noEmp)}</td>
                 <td class="p-3"><button onclick="seleccionarEmpleadoParaEditar(${index})" class="font-semibold text-[#249444] hover:underline">${valNa(nombre)}</button></td>
                 <td class="p-3 text-stone-600">${valNa(puesto)}</td>

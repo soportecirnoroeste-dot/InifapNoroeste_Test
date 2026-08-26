@@ -17,12 +17,13 @@ function poblarSelectoresCascada(regSeleccionada = '', centroSeleccionado = '', 
     if (selectDepto) {
         const deptosArray = Array.isArray(window._catDepartamentos) ? window._catDepartamentos : [];
 
+        // Asegúrate de que d.Dep tenga el nombre corto (clave) y d.nomDep el texto descriptivo
         selectDepto.innerHTML = '<option value="" disabled selected>Seleccione un departamento...</option>' +
             deptosArray.map(d => {
-                const valorCorto = d.Dep || ''; // Asegúrate de que esta sea la clave de tu objeto (ej. '3', '6', etc.)
-                const nombreLargo = d.nomDep || '';
+                const claveCorta = d.Dep || ''; // Aquí está el nombre corto (ej. '3', 'RM', etc.)
+                const nombreLargo = d.nomDep || ''; // Aquí está 'RECURSOS MATERIALES'
 
-                return `<option value="${valorCorto}">${nombreLargo}</option>`;
+                return `<option value="${claveCorta}">${nombreLargo}</option>`;
             }).join('');
 
         if (deptoSeleccionado) {

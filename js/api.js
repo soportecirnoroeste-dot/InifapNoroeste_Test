@@ -3,14 +3,13 @@
 // ========================================================
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDs5fvFxykQniWFZnbUqpbuDAmrIDhMHlVwU4r5B3iPLxBp4FDG7uKrtDBDQEXxEX8fQ/exec";
 
-// Hacemos la URL global para que cualquier submódulo pueda usarla
 window.APPS_SCRIPT_URL = APPS_SCRIPT_URL;
 
 async function FetchAPI(action, payload = {}) {
     try {
         let bodyData;
 
-        // Si el payload es un FormData (viene de un <form>), lo convertimos a un objeto plano
+        // Creamos una copia limpia para no mutar el objeto original del usuario
         if (payload instanceof FormData) {
             let plainObject = {};
             payload.forEach((value, key) => {
@@ -19,22 +18,31 @@ async function FetchAPI(action, payload = {}) {
             plainObject.action = action;
             bodyData = JSON.stringify(plainObject);
         } else {
-            // Si es un objeto normal de JavaScript
-            payload.action = action;
-            bodyData = JSON.stringify(payload);
+            let clonedPayload = Object.assign({}, payload);
+            clonedPayload.action = action;
+            bodyData = JSON.stringify(clonedPayload);
         }
 
         let response = await fetch(APPS_SCRIPT_URL, {
             method: "POST",
-            mode: "cors", // Permite la comunicación cruzada con Google Apps Script
+            mode: "cors",
             headers: {
-                "Content-Type": "text/plain;charset=utf-8", // Evita bloqueos de preflight OPTIONS en los despliegues de Google
+                "Content-Type": "text/plain;charset=utf-8",
             },
             body: bodyData
         });
 
-        let data = await response.json();
-        return data;
+        // Capturamos el texto primero para evitar que truene silenciosamente si Google devuelve HTML/Texto plano
+        let rawText = await response.text();
+        
+        try {
+            let data = JSON.parse(rawText);
+            return data;
+        } catch (parseError) {
+            console.error("El servidor no devolvió un JSON válido. Respuesta cruda:", rawText);
+            throw new Error("Respuesta inválida del servidor (posible error de despliegue o permisos en Apps Script).");
+        }
+
     } catch (error) {
         console.error("Error en FetchAPI:", error);
         throw error;

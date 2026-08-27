@@ -2,7 +2,13 @@
 
 window.RhAsisCasc = {
     mostrarVistaBiometrico: function() {
-        const contenedor = document.getElementById('contenido-submodulo-dinamico') || obtenerContenedor();
+        // Buscamos de manera segura el contenedor principal de la interfaz
+        const contenedor = document.getElementById('app-container') || document.querySelector('main') || document.body;
+        
+        if (!contenedor) {
+            console.error("No se encontró el contenedor principal para pintar el biométrico.");
+            return;
+        }
         
         contenedor.innerHTML = `
             <div class="space-y-6 animate-fade-in">
@@ -13,7 +19,7 @@ window.RhAsisCasc = {
                         <p class="text-xs text-stone-500">Cargue el reporte oficial RH_CONTROL_ASISTENCIA_V2 para gestionar incidencias.</p>
                     </div>
                     <div class="flex items-center gap-2">
-                        <button onclick="cargarAsistenciaRh()" class="px-4 py-2 text-xs font-semibold text-stone-600 bg-stone-100 hover:bg-stone-200 rounded-xl transition-all cursor-pointer">
+                        <button onclick="if(window.RhAsisCore) window.RhAsisCore.init();" class="px-4 py-2 text-xs font-semibold text-stone-600 bg-stone-100 hover:bg-stone-200 rounded-xl transition-all cursor-pointer">
                             ← Volver
                         </button>
                     </div>
@@ -70,7 +76,7 @@ window.RhAsisCasc = {
         const toolbar = document.getElementById('toolbarBiometrico');
         const exportBtn = document.getElementById('exportBtn');
 
-        if (!tabContainer) return;
+        if (!tabContainer || !window.RhAsisFBio || !window.RhAsisFBio.groupedData) return;
 
         emptyState.classList.add('hidden');
         appContainer.classList.remove('hidden');
@@ -80,7 +86,6 @@ window.RhAsisCasc = {
         exportBtn.className = "bg-[#249444] hover:bg-[#1b7033] text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-2 cursor-pointer";
 
         tabContainer.innerHTML = "";
-        // Apuntando correctamente a RhAsisFBio.groupedData
         const ids = Object.keys(RhAsisFBio.groupedData).filter(id =>
             RhAsisFBio.groupedData[id].nombre.toLowerCase().includes(filter.toLowerCase()) || id.includes(filter)
         );
@@ -103,9 +108,10 @@ window.RhAsisCasc = {
         element.classList.remove('border-transparent', 'text-stone-500');
         element.classList.add('border-[#249444]', 'text-[#249444]', 'bg-white');
 
-        // Apuntando correctamente a RhAsisFBio.groupedData y rawHeader
         const emp = RhAsisFBio.groupedData[id];
         const contentDiv = document.getElementById('tabContentBio');
+
+        if (!emp) return;
 
         contentDiv.innerHTML = `
             <h3 class="text-base font-black mb-4 uppercase tracking-tight text-[#249444]">${emp.nombre}</h3>

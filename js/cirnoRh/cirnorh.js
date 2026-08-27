@@ -91,9 +91,12 @@ function limpiarSeccionUrl() {
 
 // Funciones de índice para las demás secciones
 function cargarAsistenciaRh() {
-    if (window.RhAsisCore && typeof window.RhAsisCore.init === 'function') {
-        window.RhAsisCore.init(); // Esto disparará las tarjetas con sus acciones correctas hacia RhAsisCasc
-    }
+    renderizarVistaModulo('asistencia', "Registro de retardos, faltas, permisos y justificantes.", [
+        { titulo: "Carga de Datos Biométrico", desc: "Importación masiva de checadas (TXT/CSV/Excel) del dispositivo físico.", accion: "cargarVistaBiometrico()" },
+        { titulo: "Control de Retardos", desc: "Monitoreo y acumulación quincenal de entradas tarde." },
+        { titulo: "Justificantes Médicos", desc: "Carga y validación de incapacidades o permisos oficiales." },
+        { titulo: "Reporte de Asistencia", desc: "Generación de listas de asistencia globales por centro." }
+    ]);
 }
 
 function cargarVacacionesRh() {
@@ -139,7 +142,7 @@ function renderizarVistaModulo(idOpt, descripcion, itemsIndice = []) {
         let htmlTarjetasIndice = '';
         if (itemsIndice && itemsIndice.length > 0) {
             htmlTarjetasIndice = itemsIndice.map(item => `
-                <div onclick="${item.action || ''}" class="p-4 rounded-xl border border-stone-200 bg-stone-50/50 hover:border-[#249444] hover:bg-emerald-50/30 transition-all cursor-pointer group shadow-xs">
+                <div class="p-4 rounded-xl border border-stone-200 bg-stone-50/50 hover:border-[#249444] hover:bg-emerald-50/30 transition-all cursor-pointer group shadow-xs">
                     <h4 class="font-bold text-xs text-stone-800 uppercase group-hover:text-[#249444] mb-1">${item.titulo}</h4>
                     <p class="text-[11px] text-stone-500 leading-relaxed">${item.desc}</p>
                 </div>

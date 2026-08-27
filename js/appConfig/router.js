@@ -76,8 +76,8 @@
     };
 
     script.onerror = () => {
-        console.error("No se pudo cargar el archivo de script: js/" + nombreCortoUrl + ".js");
-        mostrarErrorConfig(nombreCortoUrl, "Archivo js/" + nombreCortoUrl + ".js no encontrado");
+        console.error("No se pudo cargar el archivo de script: js/" + nombreCortoUrl+"/" + nombreCortoUrl + ".js");
+        mostrarErrorConfig(nombreCortoUrl, "Archivo js/" + nombreCortoUrl+"/" + nombreCortoUrl + ".js no encontrado");
     };
 
     document.head.appendChild(script);

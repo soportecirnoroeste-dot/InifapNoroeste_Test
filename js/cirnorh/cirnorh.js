@@ -168,6 +168,7 @@ function renderizarVistaModulo(idOpt, descripcion, itemsIndice = []) {
         `;
     }
 }
+
 // Interceptor global de clics para detectar cualquier retorno al menú principal
 document.addEventListener('click', (event) => {
     const target = event.target.closest('button, a');

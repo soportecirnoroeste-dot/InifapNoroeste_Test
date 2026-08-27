@@ -13,20 +13,20 @@ window.RhAsisCasc = {
                         <p class="text-xs text-stone-500">Cargue el reporte oficial RH_CONTROL_ASISTENCIA_V2 para gestionar incidencias.</p>
                     </div>
                     <div class="flex items-center gap-2">
-                        <button onclick="cargarAsistenciaRh()" class="px-4 py-2 text-xs font-semibold text-stone-600 bg-stone-100 hover:bg-stone-200 rounded-xl transition-all">
+                        <button onclick="cargarAsistenciaRh()" class="px-4 py-2 text-xs font-semibold text-stone-600 bg-stone-100 hover:bg-stone-200 rounded-xl transition-all cursor-pointer">
                             ← Volver
                         </button>
                     </div>
                 </div>
 
-                <!-- Barra de Acciones y Carga de Archivo -->
+                <!-- Barra de Acciones y Carga de Archivo (Conectado a RhAsisFBio) -->
                 <div class="flex flex-wrap items-center justify-between gap-4 bg-stone-50 p-4 rounded-2xl border border-stone-200">
                     <div class="flex items-center gap-3">
-                        <input type="file" id="uploadBiometrico" class="hidden" accept=".xlsx, .xlsm, .csv" onchange="RhAsisForm.manejarCargaArchivo(this)">
+                        <input type="file" id="uploadBiometrico" class="hidden" accept=".xlsx, .xlsm, .csv" onchange="RhAsisFBio.manejarCargaArchivo(this)">
                         <label for="uploadBiometrico" class="px-4 py-2.5 bg-[#249444] hover:bg-[#1b7033] text-white text-xs font-bold rounded-xl cursor-pointer shadow-sm transition-all flex items-center gap-2">
                             <span>📂</span> Cargar Reporte Biométrico
                         </label>
-                        <button id="exportBtn" disabled onclick="RhAsisForm.exportarExcel()" class="bg-stone-300 opacity-50 cursor-not-allowed text-stone-700 px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
+                        <button id="exportBtn" disabled onclick="RhAsisFBio.exportarExcel()" class="bg-stone-300 opacity-50 cursor-not-allowed text-stone-700 px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
                             <span>📥</span> Exportar Todo
                         </button>
                     </div>
@@ -40,7 +40,7 @@ window.RhAsisCasc = {
                         <input type="text" id="searchInputBio" placeholder="Buscar empleado por nombre o ID..." oninput="RhAsisCasc.filtrarPestañas(this.value)"
                             class="w-full pl-10 pr-4 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-[#249444] transition-all">
                     </div>
-                    <button onclick="RhAsisForm.guardarDatosProcesados()" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl transition-all shadow-sm flex items-center gap-1.5">
+                    <button onclick="RhAsisFBio.guardarDatosProcesados()" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl transition-all shadow-sm flex items-center gap-1.5 cursor-pointer">
                         💾 Guardar Datos en Sistema
                     </button>
                 </div>
@@ -80,13 +80,14 @@ window.RhAsisCasc = {
         exportBtn.className = "bg-[#249444] hover:bg-[#1b7033] text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-2 cursor-pointer";
 
         tabContainer.innerHTML = "";
-        const ids = Object.keys(window.RhAsisForm.groupedData).filter(id =>
-            window.RhAsisForm.groupedData[id].nombre.toLowerCase().includes(filter.toLowerCase()) || id.includes(filter)
+        // Apuntando correctamente a RhAsisFBio.groupedData
+        const ids = Object.keys(RhAsisFBio.groupedData).filter(id =>
+            RhAsisFBio.groupedData[id].nombre.toLowerCase().includes(filter.toLowerCase()) || id.includes(filter)
         );
 
         ids.forEach((id, index) => {
             const tabBtn = document.createElement('button');
-            tabBtn.className = `px-4 py-3 text-[11px] font-bold uppercase whitespace-nowrap border-b-2 transition-all ${index === 0 ? 'border-[#249444] text-[#249444] bg-white' : 'border-transparent text-stone-500 hover:bg-stone-200/50'}`;
+            tabBtn.className = `px-4 py-3 text-[11px] font-bold uppercase whitespace-nowrap border-b-2 transition-all cursor-pointer ${index === 0 ? 'border-[#249444] text-[#249444] bg-white' : 'border-transparent text-stone-500 hover:bg-stone-200/50'}`;
             tabBtn.innerHTML = id;
             tabBtn.onclick = () => RhAsisCasc.switchTab(id, tabBtn);
             tabContainer.appendChild(tabBtn);
@@ -102,7 +103,8 @@ window.RhAsisCasc = {
         element.classList.remove('border-transparent', 'text-stone-500');
         element.classList.add('border-[#249444]', 'text-[#249444]', 'bg-white');
 
-        const emp = window.RhAsisForm.groupedData[id];
+        // Apuntando correctamente a RhAsisFBio.groupedData y rawHeader
+        const emp = RhAsisFBio.groupedData[id];
         const contentDiv = document.getElementById('tabContentBio');
 
         contentDiv.innerHTML = `
@@ -110,7 +112,7 @@ window.RhAsisCasc = {
             <div class="overflow-x-auto rounded-xl border border-stone-200">
                 <table class="w-full text-[10px]">
                     <thead class="bg-stone-100 font-bold text-stone-700">
-                        <tr>${window.RhAsisForm.rawHeader.map(h => `<th class="p-2 border border-stone-200 text-center">${h}</th>`).join('')}</tr>
+                        <tr>${RhAsisFBio.rawHeader.map(h => `<th class="p-2 border border-stone-200 text-center">${h}</th>`).join('')}</tr>
                     </thead>
                     <tbody>
                         ${emp.rows.map(r => `

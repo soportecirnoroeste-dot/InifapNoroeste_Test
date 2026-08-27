@@ -6,48 +6,141 @@ window.RhAsisCasc = {
         
         contenedor.innerHTML = `
             <div class="space-y-6 animate-fade-in">
+                <!-- Cabecera de la sección -->
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-stone-200">
                     <div>
-                        <h4 class="font-bold text-stone-800 text-sm uppercase">Importación de Checadas - Reloj Biométrico</h4>
-                        <p class="text-xs text-stone-500">Sube el archivo de registros para procesar asistencias y retardos automáticamente.</p>
+                        <h4 class="font-bold text-stone-800 text-sm uppercase">Módulo Biométrico - INIFAP</h4>
+                        <p class="text-xs text-stone-500">Cargue el reporte oficial RH_CONTROL_ASISTENCIA_V2 para gestionar incidencias.</p>
                     </div>
-                    <button onclick="cargarAsistenciaRh()" class="px-4 py-2 text-xs font-semibold text-stone-600 bg-stone-100 hover:bg-stone-200 rounded-xl transition-all self-start">
-                        ← Volver a Asistencia
+                    <div class="flex items-center gap-2">
+                        <button onclick="cargarAsistenciaRh()" class="px-4 py-2 text-xs font-semibold text-stone-600 bg-stone-100 hover:bg-stone-200 rounded-xl transition-all">
+                            ← Volver
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Barra de Acciones y Carga de Archivo -->
+                <div class="flex flex-wrap items-center justify-between gap-4 bg-stone-50 p-4 rounded-2xl border border-stone-200">
+                    <div class="flex items-center gap-3">
+                        <input type="file" id="uploadBiometrico" class="hidden" accept=".xlsx, .xlsm, .csv" onchange="RhAsisForm.manejarCargaArchivo(this)">
+                        <label for="uploadBiometrico" class="px-4 py-2.5 bg-[#249444] hover:bg-[#1b7033] text-white text-xs font-bold rounded-xl cursor-pointer shadow-sm transition-all flex items-center gap-2">
+                            <span>📂</span> Cargar Reporte Biométrico
+                        </label>
+                        <button id="exportBtn" disabled onclick="RhAsisForm.exportarExcel()" class="bg-stone-300 opacity-50 cursor-not-allowed text-stone-700 px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
+                            <span>📥</span> Exportar Todo
+                        </button>
+                    </div>
+                    <div id="statsCounter" class="text-xs text-stone-600 font-medium"></div>
+                </div>
+
+                <!-- Buscador y Toolbar -->
+                <div id="toolbarBiometrico" class="hidden flex items-center justify-between bg-white p-4 rounded-xl border border-stone-200 shadow-xs">
+                    <div class="relative w-full max-w-md">
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 opacity-50">🔍</span>
+                        <input type="text" id="searchInputBio" placeholder="Buscar empleado por nombre o ID..." oninput="RhAsisCasc.filtrarPestañas(this.value)"
+                            class="w-full pl-10 pr-4 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-[#249444] transition-all">
+                    </div>
+                    <button onclick="RhAsisForm.guardarDatosProcesados()" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl transition-all shadow-sm flex items-center gap-1.5">
+                        💾 Guardar Datos en Sistema
                     </button>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="md:col-span-1 p-6 rounded-2xl border-2 border-dashed border-stone-300 bg-stone-50 flex flex-col items-center justify-center text-center hover:border-[#249444] transition-all cursor-pointer" onclick="document.getElementById('input-file-bio').click()">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-stone-400 mb-2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
-                        <span class="text-xs font-bold text-stone-700 mb-1">Selecciona o arrastra el archivo</span>
-                        <span class="text-[10px] text-stone-400">Formatos compatibles: .dat, .txt, .csv</span>
-                        <input type="file" id="input-file-bio" class="hidden" onchange="RhAsisForm.procesarArchivo(this)">
-                    </div>
-
-                    <div class="md:col-span-2 p-6 rounded-2xl border border-stone-200 bg-white shadow-xs flex flex-col justify-between">
-                        <div>
-                            <h5 class="text-xs font-bold text-stone-800 uppercase mb-2">Instrucciones de Importación</h5>
-                            <ul class="text-xs text-stone-500 space-y-1.5 list-disc list-inside">
-                               <li>Verifica que el reloj biométrico esté sincronizado antes de exportar.</li>
-                               <li>El archivo debe contener checadas de entrada y salida válidas.</li>
-                            </ul>
-                        </div>
-                        <div id="estado-carga-bio" class="mt-4 pt-3 border-t border-stone-100 text-xs text-stone-400">
-                            Esperando archivo del dispositivo...
-                        </div>
-                    </div>
+                <!-- Contenedor Principal de Pestañas y Datos -->
+                <div id="appContainerBio" class="hidden bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden flex flex-col min-h-[450px]">
+                    <div class="flex border-b border-stone-200 bg-stone-100 overflow-x-auto custom-scrollbar" id="tabContainerBio"></div>
+                    <div id="tabContentBio" class="p-6"></div>
                 </div>
 
-                <div id="tabla-previsualizacion-bio" class="hidden"></div>
+                <!-- Estado Vacío Inicial -->
+                <div id="emptyStateBio" class="py-16 text-center">
+                    <div class="max-w-md mx-auto bg-stone-50 p-8 rounded-2xl border border-dashed border-stone-300">
+                        <div class="text-4xl mb-3">📊</div>
+                        <h5 class="text-sm font-bold text-stone-700">Sin datos cargados</h5>
+                        <p class="text-xs text-stone-400 mt-1">Seleccione un archivo de asistencia para comenzar la revisión.</p>
+                    </div>
+                </div>
             </div>
         `;
     },
 
+    renderTabs: function(filter = "") {
+        const tabContainer = document.getElementById('tabContainerBio');
+        const emptyState = document.getElementById('emptyStateBio');
+        const appContainer = document.getElementById('appContainerBio');
+        const toolbar = document.getElementById('toolbarBiometrico');
+        const exportBtn = document.getElementById('exportBtn');
+
+        if (!tabContainer) return;
+
+        emptyState.classList.add('hidden');
+        appContainer.classList.remove('hidden');
+        toolbar.classList.remove('hidden');
+
+        exportBtn.disabled = false;
+        exportBtn.className = "bg-[#249444] hover:bg-[#1b7033] text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-2 cursor-pointer";
+
+        tabContainer.innerHTML = "";
+        const ids = Object.keys(window.RhAsisForm.groupedData).filter(id =>
+            window.RhAsisForm.groupedData[id].nombre.toLowerCase().includes(filter.toLowerCase()) || id.includes(filter)
+        );
+
+        ids.forEach((id, index) => {
+            const tabBtn = document.createElement('button');
+            tabBtn.className = `px-4 py-3 text-[11px] font-bold uppercase whitespace-nowrap border-b-2 transition-all ${index === 0 ? 'border-[#249444] text-[#249444] bg-white' : 'border-transparent text-stone-500 hover:bg-stone-200/50'}`;
+            tabBtn.innerHTML = id;
+            tabBtn.onclick = () => RhAsisCasc.switchTab(id, tabBtn);
+            tabContainer.appendChild(tabBtn);
+            if (index === 0) RhAsisCasc.switchTab(id, tabBtn);
+        });
+    },
+
+    switchTab: function(id, element) {
+        document.querySelectorAll('#tabContainerBio button').forEach(b => {
+            b.classList.remove('border-[#249444]', 'text-[#249444]', 'bg-white');
+            b.classList.add('border-transparent', 'text-stone-500');
+        });
+        element.classList.remove('border-transparent', 'text-stone-500');
+        element.classList.add('border-[#249444]', 'text-[#249444]', 'bg-white');
+
+        const emp = window.RhAsisForm.groupedData[id];
+        const contentDiv = document.getElementById('tabContentBio');
+
+        contentDiv.innerHTML = `
+            <h3 class="text-base font-black mb-4 uppercase tracking-tight text-[#249444]">${emp.nombre}</h3>
+            <div class="overflow-x-auto rounded-xl border border-stone-200">
+                <table class="w-full text-[10px]">
+                    <thead class="bg-stone-100 font-bold text-stone-700">
+                        <tr>${window.RhAsisForm.rawHeader.map(h => `<th class="p-2 border border-stone-200 text-center">${h}</th>`).join('')}</tr>
+                    </thead>
+                    <tbody>
+                        ${emp.rows.map(r => `
+                            <tr class="${RhAsisCasc.getRowVisualClass(r)}">
+                                ${r.map(c => `<td class="p-2 border border-stone-200/50 text-center">${c instanceof Date ? c.toLocaleDateString() : c}</td>`).join('')}
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    },
+
+    getRowVisualClass: function(row) {
+        if (row[13] && row[13] !== "") return "bg-red-500 text-white font-bold";
+        if (row[12] && row[12] !== "") return "bg-orange-600 text-white";
+        if (row[11] && row[11] !== "") return "bg-orange-400 text-black";
+        if (row[10] && row[10] !== "") return "bg-yellow-400 text-black";
+        return "bg-emerald-50/40 text-stone-700";
+    },
+
+    filtrarPestañas: function(texto) {
+        RhAsisCasc.renderTabs(texto);
+    },
+
     mostrarControlRetardos: function() {
-        alert("Módulo de Control de Retardos en desarrollo con estructura RhAsisCasc.");
+        alert("Control de Retardos cargado desde la estructura modular.");
     },
 
     mostrarReporteGlobal: function() {
-        alert("Módulo de Reporte de Asistencia en desarrollo.");
+        alert("Reporte de Asistencia global.");
     }
 };

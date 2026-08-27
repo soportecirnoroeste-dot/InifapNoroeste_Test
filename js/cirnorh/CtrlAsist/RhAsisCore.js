@@ -3,8 +3,8 @@
 function cargarAsistenciaRh() {
     renderizarVistaModulo('asistencia', "Registro de retardos, faltas, permisos y carga biométrica.", [
         { 
-            titulo: "Carga de Reloj Biométrico", 
-            desc: "Importación de checadas (TXT/CSV/DAT) del dispositivo físico.", 
+            titulo: "Carga de Datos Biométrico", 
+            desc: "Importación y procesamiento de checadas (.xlsx, .csv) con estilos INIFAP.", 
             action: "RhAsisCasc.mostrarVistaBiometrico()" 
         },
         { 
@@ -25,7 +25,6 @@ function cargarAsistenciaRh() {
     ]);
 }
 
-// Objeto global para mantener el patrón modular estructurado
 window.RhAsisCore = {
     init: function() {
         cargarAsistenciaRh();

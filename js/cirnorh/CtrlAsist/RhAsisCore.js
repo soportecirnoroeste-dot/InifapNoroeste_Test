@@ -7,7 +7,7 @@ function cargarAsistenciaRh() {
         {
             titulo: "CARGA DE DATOS BIOMÉTRICO",
             desc: "Importación masiva de checadas (TXT/CSV/Excel) del dispositivo físico.",
-            action: "RhAsisCasc.mostrarVistaBiometrico()"
+            action: "RhAsisFBio"
         },
         {
             titulo: "CONTROL DE RETARDOS",

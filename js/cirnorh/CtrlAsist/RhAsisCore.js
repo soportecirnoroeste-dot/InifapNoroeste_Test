@@ -1,13 +1,11 @@
 // js/cirnorh/asistencia/RhAsisCore.js
 
-// js/cirnorh/asistencia/RhAsisCore.js
-
 function cargarAsistenciaRh() {
     renderizarVistaModulo('asistencia', "Registro de retardos, faltas, permisos y justificantes.", [
         {
             titulo: "CARGA DE DATOS BIOMÉTRICO",
             desc: "Importación masiva de checadas (TXT/CSV/Excel) del dispositivo físico.",
-            action: "RhAsisFBio"
+            action: "RhAsisCasc.mostrarVistaBiometrico()"
         },
         {
             titulo: "CONTROL DE RETARDOS",

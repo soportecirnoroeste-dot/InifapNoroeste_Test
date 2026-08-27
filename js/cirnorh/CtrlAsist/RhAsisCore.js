@@ -1,24 +1,24 @@
 // js/cirnorh/asistencia/RhAsisCore.js
 
 function cargarAsistenciaRh() {
-    renderizarVistaModulo('asistencia', "Registro de retardos, faltas, permisos y carga biométrica.", [
+    renderizarVistaModulo('asistencia', "Registro de retardos, faltas, permisos y justificantes.", [
         { 
-            titulo: "Carga de Datos Biométrico", 
-            desc: "Importación y procesamiento de checadas (.xlsx, .csv) con estilos INIFAP.", 
-            action: "RhAsisCasc.mostrarVistaBiometrico()" 
+            titulo: "CARGA DE RELOJ BIOMÉTRICO", 
+            desc: "Importación masiva de checadas (TXT/CSV/Excel) del dispositivo físico.", 
+            action: "RhAsisCasc.mostrarVistaBiometrico()" // Esto dibuja la vista que usará RhAsisFBio
         },
         { 
-            titulo: "Control de Retardos", 
+            titulo: "CONTROL DE RETARDOS", 
             desc: "Monitoreo y acumulación quincenal de entradas tarde.", 
             action: "RhAsisCasc.mostrarControlRetardos()" 
         },
         { 
-            titulo: "Justificantes Médicos", 
+            titulo: "JUSTIFICANTES MÉDICOS", 
             desc: "Carga y validación de incapacidades o permisos oficiales.", 
-            action: "RhAsisForm.mostrarModalJustificante()" 
+            action: "RhAsisCasc.mostrarModalJustificante()" 
         },
         { 
-            titulo: "Reporte de Asistencia", 
+            titulo: "REPORTE DE ASISTENCIA", 
             desc: "Generación de listas de asistencia globales por centro.", 
             action: "RhAsisCasc.mostrarReporteGlobal()" 
         }

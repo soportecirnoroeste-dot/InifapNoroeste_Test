@@ -142,7 +142,7 @@ function renderizarVistaModulo(idOpt, descripcion, itemsIndice = []) {
         let htmlTarjetasIndice = '';
         if (itemsIndice && itemsIndice.length > 0) {
             htmlTarjetasIndice = itemsIndice.map(item => `
-                <div class="p-4 rounded-xl border border-stone-200 bg-stone-50/50 hover:border-[#249444] hover:bg-emerald-50/30 transition-all cursor-pointer group shadow-xs">
+                <div onclick="${item.action || ''}" class="p-4 rounded-xl border border-stone-200 bg-stone-50/50 hover:border-[#249444] hover:bg-emerald-50/30 transition-all cursor-pointer group shadow-xs">
                     <h4 class="font-bold text-xs text-stone-800 uppercase group-hover:text-[#249444] mb-1">${item.titulo}</h4>
                     <p class="text-[11px] text-stone-500 leading-relaxed">${item.desc}</p>
                 </div>
@@ -168,7 +168,6 @@ function renderizarVistaModulo(idOpt, descripcion, itemsIndice = []) {
         `;
     }
 }
-
 // Interceptor global de clics para detectar cualquier retorno al menú principal
 document.addEventListener('click', (event) => {
     const target = event.target.closest('button, a');

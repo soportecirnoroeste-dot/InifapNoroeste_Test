@@ -37,12 +37,11 @@
 
     // 2. Cargar dinámicamente el script del departamento
     const script = document.createElement('script');
-    script.src = `js/${nombreCortoUrl}.js`;
-
+    script.src = `js/${nombreCortoUrl}/${nombreCortoUrl}.js`;
     script.onload = () => {
         // Buscamos de forma flexible la variable de configuración global sin importar mayúsculas/minúsculas exactas
         let deptoData = null;
-        
+
         // Intentar nombres comunes: [depto]Config, [depto], o buscar en window la que termine en Config
         const posiblesNombres = [
             nombreCortoUrl + 'Config',
@@ -76,19 +75,19 @@
     };
 
     script.onerror = () => {
-        console.error("No se pudo cargar el archivo de script: js/" + nombreCortoUrl + ".js");
-        mostrarErrorConfig(nombreCortoUrl, "Archivo js/" + nombreCortoUrl + ".js no encontrado");
+        console.error("No se pudo cargar el archivo de script: js/" + nombreCortoUrl + "/" + nombreCortoUrl + ".js");
+        mostrarErrorConfig(nombreCortoUrl, "Archivo js/" + nombreCortoUrl + "/" + nombreCortoUrl + ".js no encontrado");
     };
 
     document.head.appendChild(script);
 })();
 
 // Función global para redibujar el menú principal (tarjetas) de cualquier depto
-window.restaurarMenuDepto = function(nombreCortoUrl) {
+window.restaurarMenuDepto = function (nombreCortoUrl) {
     if (!nombreCortoUrl) {
         nombreCortoUrl = localStorage.getItem('depto_activo_actual') || '';
     }
-    
+
     // Buscar la configuración activa en la ventana
     const nombreVarEncontrada = Object.keys(window).find(k => k.toLowerCase() === nombreCortoUrl.toLowerCase() + 'config');
     const deptoData = nombreVarEncontrada ? window[nombreVarEncontrada] : null;
@@ -149,7 +148,7 @@ window.restaurarMenuDepto = function(nombreCortoUrl) {
     }
 };
 
-window.actualizarBotonRegresar = function(modo, deptoKey = '') {
+window.actualizarBotonRegresar = function (modo, deptoKey = '') {
     const btnRegresar = document.getElementById('btn-regresar');
     if (!btnRegresar) return;
 

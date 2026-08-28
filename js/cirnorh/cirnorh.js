@@ -47,7 +47,9 @@ function obtenerContenedor() {
     return document.getElementById('app-container') || document.querySelector('main') || document.body;
 }
 
-// 1. FUNCIÓN MAESTRA DE CARGA INICIAL (Ordenada primero para evitar errores de referencia)
+// ==========================================
+// CONTROLADOR MAESTRO DEL HISTORIAL (Atrás / Adelante)
+// ==========================================
 function procesarCargaInicialSeccion() {
     const urlParams = new URLSearchParams(window.location.search);
     const seccion = urlParams.get('seccion');
@@ -56,6 +58,7 @@ function procesarCargaInicialSeccion() {
 
     console.log("🧭 Procesando estado URL -> Sección:", seccion, "| Vista:", vista);
 
+    // CASO 1: Estamos dentro de la vista biométrica
     if (seccion === 'asistencia' && vista === 'biometrico') {
         sessionStorage.setItem('submodulo_activo_cirnorh', 'asistencia');
         if (window.RhAsisCasc && typeof window.RhAsisCasc.mostrarVistaBiometrico === 'function') {
@@ -64,15 +67,27 @@ function procesarCargaInicialSeccion() {
             cargarAsistenciaRh();
         }
     } 
-    else if (seccion === 'asistencia' && (!vista || vista === 'null' || vista === '')) {
+    // CASO 2: Estamos en la sección de asistencia (pero sin vista interna)
+    else if (seccion === 'asistencia') {
         sessionStorage.setItem('submodulo_activo_cirnorh', 'asistencia');
         cargarAsistenciaRh(); 
     } 
+    // CASO 3: Cualquier otra sección general (personal, vacaciones, etc.)
     else if (seccion) {
         sessionStorage.setItem('submodulo_activo_cirnorh', seccion);
         ejecutarCargaSeccion(seccion);
     } 
+    // CASO 4: Si la URL no tiene sección (por ejemplo, dimos atrás del todo en el submódulo)
     else {
+        const submoduloGuardado = sessionStorage.getItem('submodulo_activo_cirnorh');
+        if (submoduloGuardado) {
+            // Si el usuario estaba en un submódulo y dio atrás, lo mandamos a la sección guardada de forma limpia
+            const deptoActual = urlParams.get('depto') || 'cirnorh';
+            window.history.replaceState({ seccion: submoduloGuardado }, '', `main.html?depto=${deptoActual}&seccion=${submoduloGuardado}`);
+            ejecutarCargaSeccion(submoduloGuardado);
+            return;
+        }
+
         limpiarSeccionUrl();
         if (contenedor) {
             contenedor.innerHTML = ''; 

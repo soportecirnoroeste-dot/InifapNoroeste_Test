@@ -9,10 +9,16 @@ window.RhAsisCasc = {
             return;
         }
 
-        // AQUÍ ESTÁ LA INTEGRACIÓN: Actualizamos la dirección de la flecha de retorno
+        // INTEGRACIÓN: Configuramos el botón de regresar para que vuelva al submódulo de asistencia
         const nombreCortoActual = localStorage.getItem('depto_activo_actual') || 'cirnorh';
         if (typeof window.actualizarBotonRegresar === 'function') {
-            window.actualizarBotonRegresar('vista-interna', nombreCortoActual, 'seccion=asistencia');
+            window.actualizarBotonRegresar('vista-interna', nombreCortoActual, () => {
+                if (typeof cargarAsistenciaRh === 'function') {
+                    cargarAsistenciaRh();
+                } else {
+                    window.location.href = `main.html?depto=${nombreCortoActual}&seccion=asistencia`;
+                }
+            });
         }
 
         contenedor.innerHTML = `

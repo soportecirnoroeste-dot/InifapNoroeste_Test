@@ -220,27 +220,30 @@ function procesarCargaInicialSeccion() {
 
     console.log("🧭 Procesando estado URL -> Sección:", seccion, "| Vista:", vista);
 
-    if (seccion === 'asistencia' && vista === 'biometrico') {
-        // Si la URL indica que estamos en el biométrico, aseguramos renderizarlo
+    // Si estamos en asistencia PERO la vista está vacía o es null (dimos atrás desde el biométrico)
+    if (seccion === 'asistencia' && (!vista || vista === 'null' || vista === '')) {
+        sessionStorage.removeItem('submodulo_activo_cirnorh');
+        cargarAsistenciaRh(); // Esto pinta el menú de control de asistencia (la foto 2)
+    } 
+    else if (seccion === 'asistencia' && vista === 'biometrico') {
         sessionStorage.setItem('submodulo_activo_cirnorh', 'asistencia');
         if (window.RhAsisCasc && typeof window.RhAsisCasc.mostrarVistaBiometrico === 'function') {
             window.RhAsisCasc.mostrarVistaBiometrico();
         } else {
             cargarAsistenciaRh();
         }
-    } else if (seccion) {
-        // Si estamos en cualquier otra sección general
+    } 
+    else if (seccion) {
         sessionStorage.setItem('submodulo_activo_cirnorh', seccion);
         ejecutarCargaSeccion(seccion);
-    } else {
-        // Si no hay sección, limpiamos y dejamos el contenedor listo
+    } 
+    else {
         limpiarSeccionUrl();
         if (contenedor) {
-            contenedor.innerHTML = ''; // O tu vista por defecto del departamento
+            contenedor.innerHTML = '';
         }
     }
 
-    // Revelamos el contenedor de forma limpia
     if (contenedor) {
         contenedor.style.transition = 'opacity 0.2s ease-in';
         contenedor.style.opacity = '1';

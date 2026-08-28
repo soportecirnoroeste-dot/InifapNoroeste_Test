@@ -48,17 +48,21 @@ function obtenerContenedor() {
 }
 
 // ==========================================
-// CONTROLADOR MAESTRO DEL HISTORIAL (Atrás / Adelante)
+// CONTROLADOR MAESTRO DEL HISTORIAL (Soporte total a popstate y history.state)
 // ==========================================
-function procesarCargaInicialSeccion() {
+function procesarCargaInicialSeccion(event) {
+    // Intentamos rescatar los datos primero del estado del historial (event.state), 
+    // y si no existen, los leemos directamente de la URL actual.
     const urlParams = new URLSearchParams(window.location.search);
-    const seccion = urlParams.get('seccion');
-    const vista = urlParams.get('vista');
+    
+    let seccion = event && event.state && event.state.seccion ? event.state.seccion : urlParams.get('seccion');
+    let vista = event && event.state && event.state.vista ? event.state.vista : urlParams.get('vista');
+
     const contenedor = obtenerContenedor();
 
-    console.log("🧭 Procesando estado URL -> Sección:", seccion, "| Vista:", vista);
+    console.log("🧭 Procesando estado -> Sección:", seccion, "| Vista:", vista, "| EventState:", event?.state);
 
-    // CASO 1: Estamos dentro de la vista biométrica
+    // CASO 1: Vista biométrica dentro de asistencia
     if (seccion === 'asistencia' && vista === 'biometrico') {
         sessionStorage.setItem('submodulo_activo_cirnorh', 'asistencia');
         if (window.RhAsisCasc && typeof window.RhAsisCasc.mostrarVistaBiometrico === 'function') {
@@ -67,7 +71,7 @@ function procesarCargaInicialSeccion() {
             cargarAsistenciaRh();
         }
     } 
-    // CASO 2: Estamos en la sección de asistencia (pero sin vista interna)
+    // CASO 2: Sección de asistencia general (menú de tarjetas)
     else if (seccion === 'asistencia') {
         sessionStorage.setItem('submodulo_activo_cirnorh', 'asistencia');
         cargarAsistenciaRh(); 
@@ -77,11 +81,10 @@ function procesarCargaInicialSeccion() {
         sessionStorage.setItem('submodulo_activo_cirnorh', seccion);
         ejecutarCargaSeccion(seccion);
     } 
-    // CASO 4: Si la URL no tiene sección (por ejemplo, dimos atrás del todo en el submódulo)
+    // CASO 4: Si la URL está completamente limpia (por ejemplo, al dar atrás al inicio)
     else {
         const submoduloGuardado = sessionStorage.getItem('submodulo_activo_cirnorh');
         if (submoduloGuardado) {
-            // Si el usuario estaba en un submódulo y dio atrás, lo mandamos a la sección guardada de forma limpia
             const deptoActual = urlParams.get('depto') || 'cirnorh';
             window.history.replaceState({ seccion: submoduloGuardado }, '', `main.html?depto=${deptoActual}&seccion=${submoduloGuardado}`);
             ejecutarCargaSeccion(submoduloGuardado);
@@ -100,6 +103,15 @@ function procesarCargaInicialSeccion() {
         contenedor.style.visibility = 'visible';
     }
 }
+
+// Aseguramos que el evento popstate le pase el 'event' con el state a nuestra función
+window.addEventListener('popstate', (event) => {
+    procesarCargaInicialSeccion(event);
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    procesarCargaInicialSeccion();
+});
 
 function manejarAccionSeccion(idOpt) {
     const urlParams = new URLSearchParams(window.location.search);
@@ -240,10 +252,3 @@ document.addEventListener('click', function(e) {
     }
 });
 
-window.addEventListener('popstate', () => {
-    procesarCargaInicialSeccion();
-});
-
-document.addEventListener('DOMContentLoaded', () => {
-    procesarCargaInicialSeccion();
-});

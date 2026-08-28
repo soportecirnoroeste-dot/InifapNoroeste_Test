@@ -124,9 +124,11 @@ function renderizarVistaModulo(idOpt, descripcion, itemsIndice = []) {
     const contenedor = obtenerContenedor();
 
     if (contenedor && opt) {
+        // AQUÍ ESTÁ LA INTEGRACIÓN: Le decimos que actualice el botón para que regrese al menú principal del depto
         if (typeof window.actualizarBotonRegresar === 'function') {
             window.actualizarBotonRegresar('submodulo', nombreCortoActual);
         }
+
         let htmlTarjetasIndice = '';
         if (itemsIndice && itemsIndice.length > 0) {
             htmlTarjetasIndice = itemsIndice.map(item => {

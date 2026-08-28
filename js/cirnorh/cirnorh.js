@@ -48,18 +48,25 @@ function obtenerContenedor() {
 }
 
 // Enrutador para entrar a un submódulo y actualizar la URL con historial
+// Enrutador universal para entrar a cualquier submódulo del departamento
 function manejarAccionSeccion(idOpt) {
     const urlParams = new URLSearchParams(window.location.search);
     const deptoActual = urlParams.get('depto') || 'cirnorh';
 
-    // Incluimos un objeto de estado explícito
+    // Construimos la URL limpia para el submódulo que el usuario eligió (ej. asistencia, personal, etc.)
+    const nuevaUrl = `main.html?depto=${deptoActual}&seccion=${idOpt}`;
+
+    // Registramos el estado en el historial de forma dinámica usando idOpt
     window.history.pushState(
-        { modulo: 'asistencia', vista: 'biometrico' },
-        '',
-        `main.html?depto=${deptoActual}&seccion=asistencia&vista=biometrico`
+        { seccion: idOpt }, 
+        '', 
+        nuevaUrl
     );
 
+    // Guardamos en sessionStorage para asegurar persistencia ante recargas F5
     sessionStorage.setItem('submodulo_activo_cirnorh', idOpt);
+
+    // Ejecutamos la carga visual correspondiente
     ejecutarCargaSeccion(idOpt);
 }
 
@@ -206,20 +213,24 @@ window.addEventListener('load', () => {
 // ==========================================
 // CONTROLADOR CENTRALIZADO DE CLICS Y NAVEGACIÓN
 // ==========================================
-document.addEventListener('click', function (e) {
+document.addEventListener('click', function(e) {
     const tarjeta = e.target.closest('.tarjeta-accion');
     if (!tarjeta) return;
 
     const accion = tarjeta.getAttribute('data-accion');
-
+    
     if (accion && accion.includes("cargarVistaBiometrico")) {
         if (window.RhAsisCasc && typeof window.RhAsisCasc.mostrarVistaBiometrico === 'function') {
             const urlParams = new URLSearchParams(window.location.search);
             const deptoActual = urlParams.get('depto') || 'cirnorh';
-
-            // REGISTRAMOS EL SEGUNDO ESCALÓN: La vista interna del biométrico
-            window.history.pushState({ seccion: 'asistencia-biometrico' }, '', `main.html?depto=${deptoActual}&seccion=asistencia&vista=biometrico`);
-
+            
+            // Creamos el escalón para la vista interna del biométrico
+            window.history.pushState(
+                { seccion: 'asistencia', vista: 'biometrico' }, 
+                '', 
+                `main.html?depto=${deptoActual}&seccion=asistencia&vista=biometrico`
+            );
+            
             window.RhAsisCasc.mostrarVistaBiometrico();
         }
     }

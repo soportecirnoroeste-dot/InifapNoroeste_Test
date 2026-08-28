@@ -47,26 +47,20 @@ function obtenerContenedor() {
     return document.getElementById('app-container') || document.querySelector('main') || document.body;
 }
 
-// Enrutador para entrar a un submódulo y actualizar la URL con historial
 // Enrutador universal para entrar a cualquier submódulo del departamento
 function manejarAccionSeccion(idOpt) {
     const urlParams = new URLSearchParams(window.location.search);
     const deptoActual = urlParams.get('depto') || 'cirnorh';
 
-    // Construimos la URL limpia para el submódulo que el usuario eligió (ej. asistencia, personal, etc.)
     const nuevaUrl = `main.html?depto=${deptoActual}&seccion=${idOpt}`;
 
-    // Registramos el estado en el historial de forma dinámica usando idOpt
     window.history.pushState(
         { seccion: idOpt }, 
         '', 
         nuevaUrl
     );
 
-    // Guardamos en sessionStorage para asegurar persistencia ante recargas F5
     sessionStorage.setItem('submodulo_activo_cirnorh', idOpt);
-
-    // Ejecutamos la carga visual correspondiente
     ejecutarCargaSeccion(idOpt);
 }
 
@@ -91,7 +85,7 @@ function ejecutarCargaSeccion(idOpt) {
 function limpiarSeccionUrl() {
     sessionStorage.removeItem('submodulo_activo_cirnorh');
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.has('seccion')) {
+    if (urlParams.has('seccion') || urlParams.has('vista')) {
         const deptoActual = urlParams.get('depto') || 'cirnorh';
         const nuevaUrl = `main.html?depto=${deptoActual}`;
         window.history.replaceState({}, '', nuevaUrl);
@@ -150,9 +144,7 @@ function renderizarVistaModulo(idOpt, descripcion, itemsIndice = []) {
         let htmlTarjetasIndice = '';
         if (itemsIndice && itemsIndice.length > 0) {
             htmlTarjetasIndice = itemsIndice.map(item => {
-                // Obtenemos la acción asegurándonos de que tome la propiedad correcta
                 const laAccion = item.action || item.accion || '';
-
                 return `
                     <div data-accion="${laAccion}" class="tarjeta-accion p-4 rounded-xl border border-stone-200 bg-stone-50/50 hover:border-[#249444] hover:bg-emerald-50/30 transition-all cursor-pointer group shadow-xs">
                         <h4 class="font-bold text-xs text-stone-800 uppercase group-hover:text-[#249444] mb-1">${item.titulo}</h4>
@@ -182,34 +174,6 @@ function renderizarVistaModulo(idOpt, descripcion, itemsIndice = []) {
     }
 }
 
-// Autodetección al presionar F5 evitando el parpadeo visual
-window.addEventListener('load', () => {
-    const contenedor = obtenerContenedor();
-    if (contenedor) {
-        // Ocultamos temporalmente el contenedor para que no se vea el menú parpadeando
-        contenedor.style.opacity = '0';
-        contenedor.style.transition = 'opacity 0.2s ease-in-out';
-    }
-
-    const urlParams = new URLSearchParams(window.location.search);
-    let seccionEnUrl = urlParams.get('seccion') || sessionStorage.getItem('submodulo_activo_cirnorh');
-
-    if (seccionEnUrl) {
-        const deptoActual = urlParams.get('depto') || 'cirnorh';
-        window.history.replaceState({}, '', `main.html?depto=${deptoActual}&seccion=${seccionEnUrl}`);
-        sessionStorage.setItem('submodulo_activo_cirnorh', seccionEnUrl);
-
-        setTimeout(() => {
-            ejecutarCargaSeccion(seccionEnUrl);
-            // Volvemos a mostrar el contenedor ya con el submódulo pintado
-            if (contenedor) contenedor.style.opacity = '1';
-        }, 120);
-    } else {
-        limpiarSeccionUrl();
-        if (contenedor) contenedor.style.opacity = '1';
-    }
-});
-
 // ==========================================
 // CONTROLADOR CENTRALIZADO DE CLICS Y NAVEGACIÓN
 // ==========================================
@@ -224,7 +188,6 @@ document.addEventListener('click', function(e) {
             const urlParams = new URLSearchParams(window.location.search);
             const deptoActual = urlParams.get('depto') || 'cirnorh';
             
-            // Creamos el escalón en el historial
             window.history.pushState(
                 { seccion: 'asistencia', vista: 'biometrico' }, 
                 '', 
@@ -240,59 +203,45 @@ document.addEventListener('click', function(e) {
 // CONTROLADOR MAESTRO DEL HISTORIAL (Atrás / Adelante)
 // ==========================================
 window.addEventListener('popstate', (event) => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const seccion = urlParams.get('seccion');
-    const vista = urlParams.get('vista');
-
-    console.log("🔄 Sincronizando navegación -> Sección:", seccion, "| Vista:", vista);
-
-    // Si la flecha "atrás" te devolvió a asistencia pero sin la vista interna del biométrico:
-    if (seccion === 'asistencia' && !vista) {
-        sessionStorage.removeItem('submodulo_activo_cirnorh');
-        
-        // Ejecutamos exactamente la misma función infalible de tu botón
-        if (window.RhAsisCore && typeof window.RhAsisCore.init === 'function') {
-            window.RhAsisCore.init();
-        } else {
-            ejecutarCargaSeccion('asistencia');
-        }
-    } else if (!seccion) {
-        // Si ya no hay sección, salimos al menú del departamento
-        limpiarSeccionUrl();
-    } else {
-        ejecutarCargaSeccion(seccion);
-    }
+    procesarCargaInicialSeccion();
 });
 
-// Ejecutar de inmediato al cargar el DOM (mucho antes que 'load')
+// Inicialización única unificada al cargar el DOM
 document.addEventListener('DOMContentLoaded', () => {
     procesarCargaInicialSeccion();
 });
 
-// Por si el script se carga de forma diferida (async/defer) y DOMContentLoaded ya pasó
-if (document.readyState === 'interactive' || document.readyState === 'complete') {
-    procesarCargaInicialSeccion();
-}
-
+// Función unificada robusta para procesar el estado de la URL de inmediato
 function procesarCargaInicialSeccion() {
     const urlParams = new URLSearchParams(window.location.search);
-    let seccionEnUrl = urlParams.get('seccion') || sessionStorage.getItem('submodulo_activo_cirnorh');
+    const seccion = urlParams.get('seccion');
+    const vista = urlParams.get('vista');
     const contenedor = obtenerContenedor();
 
-    if (seccionEnUrl) {
-        const deptoActual = urlParams.get('depto') || 'cirnorh';
-        window.history.replaceState({}, '', `main.html?depto=${deptoActual}&seccion=${seccionEnUrl}`);
-        sessionStorage.setItem('submodulo_activo_cirnorh', seccionEnUrl);
+    console.log("🧭 Procesando estado URL -> Sección:", seccion, "| Vista:", vista);
 
-        // Cargamos la sección de inmediato sin esperas artificiales
-        ejecutarCargaSeccion(seccionEnUrl);
+    if (seccion === 'asistencia' && vista === 'biometrico') {
+        // Si la URL indica que estamos en el biométrico, aseguramos renderizarlo
+        sessionStorage.setItem('submodulo_activo_cirnorh', 'asistencia');
+        if (window.RhAsisCasc && typeof window.RhAsisCasc.mostrarVistaBiometrico === 'function') {
+            window.RhAsisCasc.mostrarVistaBiometrico();
+        } else {
+            cargarAsistenciaRh();
+        }
+    } else if (seccion) {
+        // Si estamos en cualquier otra sección general
+        sessionStorage.setItem('submodulo_activo_cirnorh', seccion);
+        ejecutarCargaSeccion(seccion);
     } else {
+        // Si no hay sección, limpiamos y dejamos el contenedor listo
         limpiarSeccionUrl();
+        if (contenedor) {
+            contenedor.innerHTML = ''; // O tu vista por defecto del departamento
+        }
     }
 
-    // Revelamos el contenedor instantáneamente una vez procesado el estado
+    // Revelamos el contenedor de forma limpia
     if (contenedor) {
-        contenedor.classList.add('listo');
         contenedor.style.transition = 'opacity 0.2s ease-in';
         contenedor.style.opacity = '1';
         contenedor.style.visibility = 'visible';

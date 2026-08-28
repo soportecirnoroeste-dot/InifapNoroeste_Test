@@ -54,7 +54,7 @@ function manejarAccionSeccion(idOpt) {
 
     const nuevaUrl = `main.html?depto=${deptoActual}&seccion=${idOpt}`;
     
-    // Usamos pushState para que el menú del submódulo quede registrado en el historial
+    // REGISTRAMOS EL PRIMER ESCALÓN: El submódulo (ej. Control de Asistencia)
     window.history.pushState({ seccion: idOpt }, '', nuevaUrl);
 
     sessionStorage.setItem('submodulo_activo_cirnorh', idOpt);
@@ -205,36 +205,20 @@ window.addEventListener('load', () => {
 // CONTROLADOR CENTRALIZADO DE CLICS Y NAVEGACIÓN
 // ==========================================
 document.addEventListener('click', function(e) {
-    // 1. Detectar clics en tarjetas de acción (ej. Biométrico)
     const tarjeta = e.target.closest('.tarjeta-accion');
-    if (tarjeta) {
-        const accion = tarjeta.getAttribute('data-accion');
-        
-        if (accion && accion.includes("cargarVistaBiometrico")) {
-            if (window.RhAsisCasc && typeof window.RhAsisCasc.mostrarVistaBiometrico === 'function') {
-                const urlParams = new URLSearchParams(window.location.search);
-                const deptoActual = urlParams.get('depto') || 'cirnorh';
-                
-                // Creamos el escalón en el historial para el botón "atrás"
-                window.history.pushState({ seccion: 'asistencia-biometrico' }, '', `main.html?depto=${deptoActual}&seccion=asistencia&vista=biometrico`);
-                
-                window.RhAsisCasc.mostrarVistaBiometrico();
-                return; // Terminamos aquí para esta tarjeta
-            }
-        }
-        return;
-    }
+    if (!tarjeta) return;
 
-    // 2. Detectar clics en botones de retorno o regreso genéricos (si los hubiera)
-    const target = e.target.closest('button, a');
-    if (target) {
-        const textoBoton = target.textContent || '';
-        const idOClase = (target.id + ' ' + target.className).toLowerCase();
-
-        if (textoBoton.includes('Regresar') || idOClase.includes('regresar') || idOClase.includes('back')) {
-            if (typeof limpiarSeccionUrl === 'function') {
-                limpiarSeccionUrl();
-            }
+    const accion = tarjeta.getAttribute('data-accion');
+    
+    if (accion && accion.includes("cargarVistaBiometrico")) {
+        if (window.RhAsisCasc && typeof window.RhAsisCasc.mostrarVistaBiometrico === 'function') {
+            const urlParams = new URLSearchParams(window.location.search);
+            const deptoActual = urlParams.get('depto') || 'cirnorh';
+            
+            // REGISTRAMOS EL SEGUNDO ESCALÓN: La vista interna del biométrico
+            window.history.pushState({ seccion: 'asistencia-biometrico' }, '', `main.html?depto=${deptoActual}&seccion=asistencia&vista=biometrico`);
+            
+            window.RhAsisCasc.mostrarVistaBiometrico();
         }
     }
 });
@@ -244,24 +228,25 @@ document.addEventListener('click', function(e) {
 // ==========================================
 window.addEventListener('popstate', (event) => {
     const urlParams = new URLSearchParams(window.location.search);
+    const depto = urlParams.get('depto') || 'cirnorh';
     const seccion = urlParams.get('seccion');
     const vista = urlParams.get('vista');
 
-    console.log("🔄 Popstate - Sección:", seccion, "| Vista:", vista);
+    console.log("🔄 Historial retrocedió -> Sección:", seccion, "| Vista:", vista);
 
     if (seccion === 'asistencia' && !vista) {
-        // Nos detenemos en el Menú de Control de Asistencia (Foto 2)
-        if (typeof ejecutarCargaSeccion === 'function') {
-            ejecutarCargaSeccion('asistencia');
+        // Si estábamos en el biométrico y damos atrás, caemos AQUÍ: Menú de Asistencia
+        if (window.RhAsisCore && typeof window.RhAsisCore.init === 'function') {
+            window.RhAsisCore.init();
         } else {
-            location.reload();
+            ejecutarCargaSeccion('asistencia');
         }
     } else if (!seccion) {
-        // Solo si no hay sección, salimos al menú del departamento (Foto 1)
+        // Si estamos en el menú de asistencia y damos atrás, caemos AQUÍ: Menú del Departamento
         if (typeof limpiarSeccionUrl === 'function') {
             limpiarSeccionUrl();
         } else {
-            location.reload();
+            window.location.href = `main.html?depto=${depto}`;
         }
     } else {
         ejecutarCargaSeccion(seccion);

@@ -245,21 +245,24 @@ window.addEventListener('popstate', (event) => {
     const seccion = urlParams.get('seccion');
     const vista = urlParams.get('vista');
 
-    console.log("🔄 Navegación detectada por historial - Seccion:", seccion, "| Vista:", vista);
+    console.log("🔄 Popstate detectado - Seccion:", seccion, "| Vista:", vista);
 
+    // Si estamos dentro de asistencia pero salimos de la vista interna (biométrico)
     if (seccion === 'asistencia' && !vista) {
-        // Si estamos en asistencia pero sin vista interna (regresó al menú de asistencia)
-        if (window.RhAsisCore && typeof window.RhAsisCore.renderizarVistaModulo === 'function') {
-            window.RhAsisCore.renderizarVistaModulo();
+        console.log("📂 Volviendo al menú de Control de Asistencia...");
+        if (window.RhAsisCore && typeof window.RhAsisCore.init === 'function') {
+            window.RhAsisCore.init(); // O la función que dibuja el menú de tarjetas de asistencia
+        } else if (typeof ejecutarCargaSeccion === 'function') {
+            ejecutarCargaSeccion('asistencia');
         } else {
             location.reload();
         }
-    } else if (!seccion || seccion === 'personal') {
-        // Si regresó al inicio o a otra sección principal, dejamos que el flujo general lo maneje
-        // O ejecutamos una recarga limpia si el core general lo requiere
-        const deptoActual = urlParams.get('depto') || 'cirnorh';
-        if (typeof ejecutarCargaSeccion === 'function') {
-            ejecutarCargaSeccion(seccion);
+    } 
+    else if (!seccion) {
+        // Si no hay sección en la URL, regresamos al menú principal del departamento (RH)
+        console.log("🏢 Volviendo al menú principal del departamento...");
+        if (typeof limpiarSeccionUrl === 'function') {
+            limpiarSeccionUrl();
         } else {
             location.reload();
         }

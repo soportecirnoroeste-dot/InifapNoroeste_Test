@@ -239,40 +239,27 @@ document.addEventListener('click', function(e) {
 // ==========================================
 // CONTROLADOR MAESTRO DEL HISTORIAL (Atrás / Adelante)
 // ==========================================
-// --- TESTIGO VISUAL FLOTANTE (VERSIÓN LIMPIA) ---
-let testigoDiv = document.getElementById('testigo-navegacion');
-if (!testigoDiv) {
-    testigoDiv = document.createElement('div');
-    testigoDiv.id = 'testigo-navegacion';
-    testigoDiv.style.cssText = 'position:fixed; bottom:15px; right:15px; background:#111; color:#0f0; padding:12px; z-index:999999; font-family:monospace; font-size:13px; border-radius:6px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);';
-    document.body.appendChild(testigoDiv);
-}
-
-function actualizarTestigoVisual() {
-    const p = new URLSearchParams(location.search);
-    testigoDiv.innerHTML = `<b>MONITOR URL:</b><br>Sec: ${p.get('seccion') || 'N/A'}<br>Vista: ${p.get('vista') || 'N/A'}`;
-}
-
-actualizarTestigoVisual();
-
 window.addEventListener('popstate', (event) => {
-    actualizarTestigoVisual();
-    const urlParams = new URLSearchParams(location.search);
+    const urlParams = new URLSearchParams(window.location.search);
     const seccion = urlParams.get('seccion');
     const vista = urlParams.get('vista');
 
-    console.log("🔄 Popstate capturado. Sección:", seccion, "Vista:", vista);
+    console.log("🔄 Popstate capturado -> Sección:", seccion, "| Vista:", vista);
 
+    // Si retrocedimos y la URL se queda en asistencia (salimos del biométrico)
     if (seccion === 'asistencia' && !vista) {
+        sessionStorage.removeItem('submodulo_activo_cirnorh');
+        
+        // Usamos la misma lógica infalible de tu botón
         if (window.RhAsisCore && typeof window.RhAsisCore.init === 'function') {
             window.RhAsisCore.init();
         } else {
-            ejecutarCargaSeccion('asistencia');
+            executarCargaSeccion('asistencia');
         }
     } else if (!seccion) {
         limpiarSeccionUrl();
     } else {
-        ejecutarCargaSeccion(idOpt = seccion);
+        ejecutarCargaSeccion(seccion);
     }
 });
 

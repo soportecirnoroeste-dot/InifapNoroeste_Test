@@ -48,21 +48,25 @@ function obtenerContenedor() {
 }
 
 // ==========================================
-// CONTROLADOR MAESTRO DEL HISTORIAL (Soporte total a popstate y history.state)
+// CONTROLADOR MAESTRO DEL HISTORIAL Y VISTAS
 // ==========================================
 function procesarCargaInicialSeccion(event) {
-    // Intentamos rescatar los datos primero del estado del historial (event.state), 
-    // y si no existen, los leemos directamente de la URL actual.
     const urlParams = new URLSearchParams(window.location.search);
     
-    let seccion = event && event.state && event.state.seccion ? event.state.seccion : urlParams.get('seccion');
-    let vista = event && event.state && event.state.vista ? event.state.vista : urlParams.get('vista');
+    // Rescatamos los valores priorizando el estado real del navegador (event.state)
+    const seccion = event && event.state && 'seccion' in event.state 
+                    ? event.state.seccion 
+                    : urlParams.get('seccion');
+                    
+    const vista = event && event.state && 'vista' in event.state 
+                  ? event.state.vista 
+                  : urlParams.get('vista');
 
     const contenedor = obtenerContenedor();
 
-    console.log("🧭 Procesando estado -> Sección:", seccion, "| Vista:", vista, "| EventState:", event?.state);
+    console.log("🧭 Procesando navegación -> Sección:", seccion, "| Vista:", vista);
 
-    // CASO 1: Vista biométrica dentro de asistencia
+    // 1. Si estamos dentro de la vista biométrica interna
     if (seccion === 'asistencia' && vista === 'biometrico') {
         sessionStorage.setItem('submodulo_activo_cirnorh', 'asistencia');
         if (window.RhAsisCasc && typeof window.RhAsisCasc.mostrarVistaBiometrico === 'function') {
@@ -71,29 +75,19 @@ function procesarCargaInicialSeccion(event) {
             cargarAsistenciaRh();
         }
     } 
-    // CASO 2: Sección de asistencia general (menú de tarjetas)
-    else if (seccion === 'asistencia') {
-        sessionStorage.setItem('submodulo_activo_cirnorh', 'asistencia');
-        cargarAsistenciaRh(); 
-    } 
-    // CASO 3: Cualquier otra sección general (personal, vacaciones, etc.)
+    // 2. Si estamos en un submódulo general (personal, asistencia, vacaciones, etc.)
     else if (seccion) {
         sessionStorage.setItem('submodulo_activo_cirnorh', seccion);
         ejecutarCargaSeccion(seccion);
     } 
-    // CASO 4: Si la URL está completamente limpia (por ejemplo, al dar atrás al inicio)
+    // 3. Si no hay sección (estamos en el menú principal del departamento)
     else {
-        const submoduloGuardado = sessionStorage.getItem('submodulo_activo_cirnorh');
-        if (submoduloGuardado) {
-            const deptoActual = urlParams.get('depto') || 'cirnorh';
-            window.history.replaceState({ seccion: submoduloGuardado }, '', `main.html?depto=${deptoActual}&seccion=${submoduloGuardado}`);
-            ejecutarCargaSeccion(submoduloGuardado);
-            return;
-        }
-
         limpiarSeccionUrl();
         if (contenedor) {
             contenedor.innerHTML = ''; 
+        }
+        if (typeof window.cargarMenuDepartamento === 'function') {
+            window.cargarMenuDepartamento();
         }
     }
 
@@ -104,7 +98,7 @@ function procesarCargaInicialSeccion(event) {
     }
 }
 
-// Aseguramos que el evento popstate le pase el 'event' con el state a nuestra función
+// Escuchamos el botón de retroceso del navegador pasando el evento completo
 window.addEventListener('popstate', (event) => {
     procesarCargaInicialSeccion(event);
 });
@@ -112,6 +106,7 @@ window.addEventListener('popstate', (event) => {
 document.addEventListener('DOMContentLoaded', () => {
     procesarCargaInicialSeccion();
 });
+
 
 function manejarAccionSeccion(idOpt) {
     const urlParams = new URLSearchParams(window.location.search);
@@ -230,7 +225,7 @@ function renderizarVistaModulo(idOpt, descripcion, itemsIndice = []) {
     }
 }
 
-// 2. EVENTOS UNIFICADOS
+// EVENTOS UNIFICADOS
 document.addEventListener('click', function(e) {
     const tarjeta = e.target.closest('.tarjeta-accion');
     if (!tarjeta) return;
@@ -241,14 +236,15 @@ document.addEventListener('click', function(e) {
             const urlParams = new URLSearchParams(window.location.search);
             const deptoActual = urlParams.get('depto') || 'cirnorh';
             
+            // Guardamos el estado exacto en la historia igual que los demás módulos
             window.history.pushState(
                 { seccion: 'asistencia', vista: 'biometrico' }, 
                 '', 
                 `main.html?depto=${deptoActual}&seccion=asistencia&vista=biometrico`
             );
             
+            sessionStorage.setItem('submodulo_activo_cirnorh', 'asistencia');
             window.RhAsisCasc.mostrarVistaBiometrico();
         }
     }
 });
-

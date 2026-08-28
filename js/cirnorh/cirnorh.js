@@ -52,10 +52,12 @@ function manejarAccionSeccion(idOpt) {
     const urlParams = new URLSearchParams(window.location.search);
     const deptoActual = urlParams.get('depto') || 'cirnorh';
 
-    const nuevaUrl = `main.html?depto=${deptoActual}&seccion=${idOpt}`;
-    
-    // REGISTRAMOS EL PRIMER ESCALÓN: El submódulo (ej. Control de Asistencia)
-    window.history.pushState({ seccion: idOpt }, '', nuevaUrl);
+    // Incluimos un objeto de estado explícito
+    window.history.pushState(
+        { modulo: 'asistencia', vista: 'biometrico' },
+        '',
+        `main.html?depto=${deptoActual}&seccion=asistencia&vista=biometrico`
+    );
 
     sessionStorage.setItem('submodulo_activo_cirnorh', idOpt);
     ejecutarCargaSeccion(idOpt);
@@ -204,20 +206,20 @@ window.addEventListener('load', () => {
 // ==========================================
 // CONTROLADOR CENTRALIZADO DE CLICS Y NAVEGACIÓN
 // ==========================================
-document.addEventListener('click', function(e) {
+document.addEventListener('click', function (e) {
     const tarjeta = e.target.closest('.tarjeta-accion');
     if (!tarjeta) return;
 
     const accion = tarjeta.getAttribute('data-accion');
-    
+
     if (accion && accion.includes("cargarVistaBiometrico")) {
         if (window.RhAsisCasc && typeof window.RhAsisCasc.mostrarVistaBiometrico === 'function') {
             const urlParams = new URLSearchParams(window.location.search);
             const deptoActual = urlParams.get('depto') || 'cirnorh';
-            
+
             // REGISTRAMOS EL SEGUNDO ESCALÓN: La vista interna del biométrico
             window.history.pushState({ seccion: 'asistencia-biometrico' }, '', `main.html?depto=${deptoActual}&seccion=asistencia&vista=biometrico`);
-            
+
             window.RhAsisCasc.mostrarVistaBiometrico();
         }
     }
@@ -227,51 +229,24 @@ document.addEventListener('click', function(e) {
 // CONTROLADOR MAESTRO DEL HISTORIAL (Atrás / Adelante)
 // ==========================================
 window.addEventListener('popstate', (event) => {
-    // Leemos los parámetros directamente de la URL actual del navegador
     const urlParams = new URLSearchParams(window.location.search);
-    const depto = urlParams.get('depto') || 'cirnorh';
     const seccion = urlParams.get('seccion');
     const vista = urlParams.get('vista');
 
-    console.log("🔄 Popstate ejecutado -> Sección:", seccion, "| Vista:", vista);
+    console.log("🔄 Popstate capturado. Sección:", seccion, "Vista:", vista);
 
-    // Caso 1: Estábamos en una vista interna (como biométrico) y damos atrás
-    if (seccion === 'asistencia' && vista === 'biometrico') {
-        // Si por alguna razón el historial se salta un paso, forzamos ir al menú de asistencia
-        if (typeof ejecutarCargaSeccion === 'function') {
-            ejecutarCargaSeccion('asistencia');
-        } else {
-            location.reload();
-        }
-        return;
-    }
-
-    // Caso 2: Estamos en la sección de asistencia (sin vista interna) -> Aquí debe frenar (Foto 2)
+    // Si retrocedimos y ya no hay vista interna, pintamos el menú de asistencia
     if (seccion === 'asistencia' && !vista) {
-        console.log("🛑 Deteniéndose en el Menú de Control de Asistencia");
         if (window.RhAsisCore && typeof window.RhAsisCore.init === 'function') {
             window.RhAsisCore.init();
-        } else if (typeof ejecutarCargaSeccion === 'function') {
+        } else {
             ejecutarCargaSeccion('asistencia');
-        } else {
-            location.reload();
         }
-        return;
+    } else if (!seccion) {
+        limpiarSeccionUrl();
+    } else {
+        ejecutarCargaSeccion(seccion);
     }
-
-    // Caso 3: Si ya no hay sección en absoluto, regresamos al menú del departamento (Foto 1)
-    if (!seccion) {
-        console.log("🏢 Saliendo al Menú Principal del Departamento");
-        if (typeof limpiarSeccionUrl === 'function') {
-            limpiarSeccionUrl();
-        } else {
-            window.location.href = `main.html?depto=${depto}`;
-        }
-        return;
-    }
-
-    // Cualquier otro caso estándar
-    ejecutarCargaSeccion(seccion);
 });
 
 // Ejecutar de inmediato al cargar el DOM (mucho antes que 'load')

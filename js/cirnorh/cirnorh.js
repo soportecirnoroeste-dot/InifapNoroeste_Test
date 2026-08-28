@@ -47,13 +47,16 @@ function obtenerContenedor() {
     return document.getElementById('app-container') || document.querySelector('main') || document.body;
 }
 
-// Enrutador para entrar a un submódulo y actualizar la URL
+// Enrutador para entrar a un submódulo y actualizar la URL con historial
 function manejarAccionSeccion(idOpt) {
     const urlParams = new URLSearchParams(window.location.search);
     const deptoActual = urlParams.get('depto') || 'cirnorh';
 
     const nuevaUrl = `main.html?depto=${deptoActual}&seccion=${idOpt}`;
-    window.history.replaceState({}, '', nuevaUrl);
+    
+    // Usamos pushState en lugar de replaceState para que el navegador 
+    // guarde este paso como un escalón en el historial de navegación
+    window.history.pushState({ seccion: idOpt }, '', nuevaUrl);
 
     // Guardamos en sessionStorage para asegurar persistencia ante recargas F5
     sessionStorage.setItem('submodulo_activo_cirnorh', idOpt);
@@ -247,23 +250,29 @@ window.addEventListener('popstate', (event) => {
     const seccion = urlParams.get('seccion');
     const vista = urlParams.get('vista');
 
-    console.log("🔄 Popstate detectado - Sección:", seccion, "| Vista:", vista);
+    console.log("🔄 Popstate - Sección:", seccion, "| Vista:", vista);
 
+    // Si retrocedimos desde el biométrico, estamos en asistencia pero sin vista interna
     if (seccion === 'asistencia' && !vista) {
-        // Si damos atrás desde el biométrico, volvemos a pintar el menú de Asistencia
+        console.log("📂 Deteniéndose en el Menú de Control de Asistencia");
         if (window.RhAsisCore && typeof window.RhAsisCore.init === 'function') {
-            window.RhAsisCore.init();
+            window.RhAsisCore.init(); // Dibuja las tarjetas de asistencia
+        } else if (typeof ejecutarCargaSeccion === 'function') {
+            ejecutarCargaSeccion('asistencia');
         } else {
-            manejarAccionSeccion('asistencia');
+            location.reload();
         }
-    } else if (!seccion) {
-        // Si no hay sección, regresamos al menú del departamento principal
+    } 
+    else if (!seccion) {
+        // Si no hay sección, ahora sí salimos al menú principal del departamento
+        console.log("🏢 Saliendo al Menú de Departamento");
         if (typeof limpiarSeccionUrl === 'function') {
             limpiarSeccionUrl();
         } else {
             location.reload();
         }
-    } else {
+    } 
+    else {
         ejecutarCargaSeccion(seccion);
     }
 });

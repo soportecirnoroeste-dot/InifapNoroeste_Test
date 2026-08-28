@@ -47,6 +47,45 @@ function obtenerContenedor() {
     return document.getElementById('app-container') || document.querySelector('main') || document.body;
 }
 
+// 1. FUNCIÓN MAESTRA DE CARGA INICIAL (Ordenada primero para evitar errores de referencia)
+function procesarCargaInicialSeccion() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const seccion = urlParams.get('seccion');
+    const vista = urlParams.get('vista');
+    const contenedor = obtenerContenedor();
+
+    console.log("🧭 Procesando estado URL -> Sección:", seccion, "| Vista:", vista);
+
+    if (seccion === 'asistencia' && vista === 'biometrico') {
+        sessionStorage.setItem('submodulo_activo_cirnorh', 'asistencia');
+        if (window.RhAsisCasc && typeof window.RhAsisCasc.mostrarVistaBiometrico === 'function') {
+            window.RhAsisCasc.mostrarVistaBiometrico();
+        } else {
+            cargarAsistenciaRh();
+        }
+    } 
+    else if (seccion === 'asistencia' && (!vista || vista === 'null' || vista === '')) {
+        sessionStorage.setItem('submodulo_activo_cirnorh', 'asistencia');
+        cargarAsistenciaRh(); 
+    } 
+    else if (seccion) {
+        sessionStorage.setItem('submodulo_activo_cirnorh', seccion);
+        ejecutarCargaSeccion(seccion);
+    } 
+    else {
+        limpiarSeccionUrl();
+        if (contenedor) {
+            contenedor.innerHTML = ''; 
+        }
+    }
+
+    if (contenedor) {
+        contenedor.style.transition = 'opacity 0.2s ease-in';
+        contenedor.style.opacity = '1';
+        contenedor.style.visibility = 'visible';
+    }
+}
+
 function manejarAccionSeccion(idOpt) {
     const urlParams = new URLSearchParams(window.location.search);
     const deptoActual = urlParams.get('depto') || 'cirnorh';
@@ -164,44 +203,30 @@ function renderizarVistaModulo(idOpt, descripcion, itemsIndice = []) {
     }
 }
 
-// ==========================================
-// CONTROLADOR DE CLICS HOMOLOGADO AL RESTO DEL SISTEMA
-// ==========================================
+// 2. EVENTOS UNIFICADOS
 document.addEventListener('click', function(e) {
     const tarjeta = e.target.closest('.tarjeta-accion');
     if (!tarjeta) return;
 
     const accion = tarjeta.getAttribute('data-accion');
-    
     if (accion && accion.includes("cargarVistaBiometrico")) {
         if (window.RhAsisCasc && typeof window.RhAsisCasc.mostrarVistaBiometrico === 'function') {
             const urlParams = new URLSearchParams(window.location.search);
             const deptoActual = urlParams.get('depto') || 'cirnorh';
             
-            // Actualizamos la URL suavemente para reflejar la vista interna
             window.history.pushState(
                 { seccion: 'asistencia', vista: 'biometrico' }, 
                 '', 
                 `main.html?depto=${deptoActual}&seccion=asistencia&vista=biometrico`
             );
             
-            // Renderizamos la vista del biométrico tal como lo hacemos en las demás secciones
             window.RhAsisCasc.mostrarVistaBiometrico();
         }
     }
 });
 
-window.addEventListener('popstate', (event) => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const seccion = urlParams.get('seccion');
-    const vista = urlParams.get('vista');
-
-    // Si salimos del biométrico pero seguimos en asistencia, pintamos el menú de asistencia
-    if (seccion === 'asistencia' && (!vista || vista === 'null' || vista === '')) {
-        cargarAsistenciaRh();
-    } else {
-        procesarCargaInicialSeccion();
-    }
+window.addEventListener('popstate', () => {
+    procesarCargaInicialSeccion();
 });
 
 document.addEventListener('DOMContentLoaded', () => {

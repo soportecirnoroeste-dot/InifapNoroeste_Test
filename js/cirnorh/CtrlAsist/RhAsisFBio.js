@@ -52,7 +52,7 @@ window.RhAsisFBio = {
         }
     },
 
-    // Acción para guardar los datos procesados en el almacenamiento local del sistema
+    // Acción para guardar y mapear los datos procesados con la estructura del Google Sheets
     guardarDatosProcesados: function() {
         if (Object.keys(RhAsisFBio.groupedData).length === 0) {
             alert("No hay datos cargados para guardar.");
@@ -60,8 +60,36 @@ window.RhAsisFBio = {
         }
 
         try {
-            localStorage.setItem('cirnorh_asistencia_biometrico', JSON.stringify(RhAsisFBio.groupedData));
-            alert("✅ ¡Datos del biométrico guardados y sincronizados correctamente con el sistema de Recursos Humanos!");
+            const datosParaGuardar = [];
+
+            // Recorremos y mapeamos cada registro con los nombres exactos de los campos del Sheets
+            Object.keys(RhAsisFBio.groupedData).forEach(id => {
+                const empleado = RhAsisFBio.groupedData[id];
+                
+                empleado.rows.forEach(row => {
+                    const registroMapeado = {
+                        "NumEmp": row[0],         // No. Empleado
+                        "RHBHraEnt": row[4],      // Hora Entrada
+                        "RHBHraSal": row[5],      // Hora Salida
+                        "RHBHraReg": row[6],      // Registro
+                        "RHBNomReg": row[7],      // Salida / Entrada
+                        "RHBFecReg": row[8],      // Fecha
+                        "RHBDía": row[9],         // Día
+                        "RHBRetMen": row[10],     // Retardo Menor
+                        "RHBRetMed": row[11],     // Retardo Mediano
+                        "RHBRetMay": row[12],     // Retardo Mayor
+                        "RHBFalta": row[13]       // Falta
+                    };
+                    
+                    datosParaGuardar.push(registroMapeado);
+                });
+            });
+
+            // Guardamos el paquete mapeado listo para el Sheets
+            localStorage.setItem('cirnorh_asistencia_biometrico', JSON.stringify(datosParaGuardar));
+            
+            console.log("Datos mapeados listos para Google Sheets:", datosParaGuardar);
+            alert("✅ ¡Datos del biométrico mapeados y guardados correctamente con la estructura de Google Sheets!");
         } catch (e) {
             console.error(e);
             alert("Error al guardar localmente los datos.");

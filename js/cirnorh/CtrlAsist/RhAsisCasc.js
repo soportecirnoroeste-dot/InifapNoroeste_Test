@@ -19,22 +19,6 @@ contenedor.innerHTML = `
                         <h4 class="font-bold text-stone-800 text-sm uppercase">Módulo Biométrico - INIFAP</h4>
                         <p class="text-xs text-stone-500">Cargue el reporte oficial RH_CONTROL_ASISTENCIA_V2 para gestionar incidencias.</p>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <button onclick="
-                            console.log('🔙 Volviendo al menú principal y actualizando historial...');
-                            sessionStorage.removeItem('submodulo_activo_cirnorh');
-                            const urlParams = new URLSearchParams(window.location.search);
-                            const deptoActual = urlParams.get('depto') || 'cirnorh';
-                            window.history.pushState({}, '', \`main.html?depto=\${deptoActual}&seccion=asistencia\`);
-                            if(window.RhAsisCore && typeof window.RhAsisCore.init === 'function') {
-                                window.RhAsisCore.init();
-                            } else {
-                                location.reload();
-                            }
-                        " class="px-4 py-2 text-xs font-semibold text-stone-600 bg-stone-100 hover:bg-stone-200 rounded-xl transition-all cursor-pointer">
-                            ← Volver
-                        </button>
-                    </div>
                 </div>
 
                 <!-- Barra de Acciones y Carga de Archivo -->

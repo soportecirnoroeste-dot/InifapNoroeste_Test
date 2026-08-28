@@ -220,12 +220,8 @@ function procesarCargaInicialSeccion() {
 
     console.log("🧭 Procesando estado URL -> Sección:", seccion, "| Vista:", vista);
 
-    // Si estamos en asistencia PERO la vista está vacía o es null (dimos atrás desde el biométrico)
-    if (seccion === 'asistencia' && (!vista || vista === 'null' || vista === '')) {
-        sessionStorage.removeItem('submodulo_activo_cirnorh');
-        cargarAsistenciaRh(); // Esto pinta el menú de control de asistencia (la foto 2)
-    } 
-    else if (seccion === 'asistencia' && vista === 'biometrico') {
+    // CASO A: Estamos dentro de la vista biométrica
+    if (seccion === 'asistencia' && vista === 'biometrico') {
         sessionStorage.setItem('submodulo_activo_cirnorh', 'asistencia');
         if (window.RhAsisCasc && typeof window.RhAsisCasc.mostrarVistaBiometrico === 'function') {
             window.RhAsisCasc.mostrarVistaBiometrico();
@@ -233,14 +229,21 @@ function procesarCargaInicialSeccion() {
             cargarAsistenciaRh();
         }
     } 
+    // CASO B: Estamos en el menú de asistencia (dimos atrás desde el biométrico o entramos directo)
+    else if (seccion === 'asistencia' && (!vista || vista === 'null' || vista === '')) {
+        sessionStorage.setItem('submodulo_activo_cirnorh', 'asistencia');
+        cargarAsistenciaRh(); // ¡Aquí está la clave! Se queda en el menú de asistencia en lugar de salirse
+    } 
+    // CASO C: Cualquier otra sección general (personal, vacaciones, etc.)
     else if (seccion) {
         sessionStorage.setItem('submodulo_activo_cirnorh', seccion);
         ejecutarCargaSeccion(seccion);
     } 
+    // CASO D: Menú principal absoluto del departamento
     else {
         limpiarSeccionUrl();
         if (contenedor) {
-            contenedor.innerHTML = '';
+            contenedor.innerHTML = ''; // O tu vista inicial por defecto del depto
         }
     }
 

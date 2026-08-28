@@ -1,3 +1,5 @@
+// js/cirnorh/asistencia/RhAsisCasc.js
+
 window.RhAsisCasc = {
     mostrarVistaBiometrico: function() {
         const contenedor = document.getElementById('app-container') || document.querySelector('main') || document.body;
@@ -7,7 +9,13 @@ window.RhAsisCasc = {
             return;
         }
 
-contenedor.innerHTML = `
+        // AQUÍ ESTÁ LA INTEGRACIÓN: Actualizamos la dirección de la flecha de retorno
+        const nombreCortoActual = localStorage.getItem('depto_activo_actual') || 'cirnorh';
+        if (typeof window.actualizarBotonRegresar === 'function') {
+            window.actualizarBotonRegresar('vista-interna', nombreCortoActual, 'seccion=asistencia');
+        }
+
+        contenedor.innerHTML = `
             <div class="space-y-6 animate-fade-in">
                 <!-- Cabecera de la sección -->
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-stone-200">

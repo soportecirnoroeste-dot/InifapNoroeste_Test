@@ -11,20 +11,33 @@ window.RhAsisCasc = {
         
         console.log("🎨 TESTIGO: Contenedor encontrado, inyectando HTML del biométrico...");
 
-        contenedor.innerHTML = `
+contenedor.innerHTML = `
             <div class="space-y-6 animate-fade-in">
+                <!-- Cabecera de la sección -->
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-stone-200">
                     <div>
                         <h4 class="font-bold text-stone-800 text-sm uppercase">Módulo Biométrico - INIFAP</h4>
                         <p class="text-xs text-stone-500">Cargue el reporte oficial RH_CONTROL_ASISTENCIA_V2 para gestionar incidencias.</p>
                     </div>
                     <div class="flex items-center gap-2">
-                        <button onclick="console.log('🔙 Volviendo al menú principal...'); if(window.RhAsisCore) window.RhAsisCore.init();" class="px-4 py-2 text-xs font-semibold text-stone-600 bg-stone-100 hover:bg-stone-200 rounded-xl transition-all cursor-pointer">
+                        <button onclick="
+                            console.log('🔙 Volviendo al menú principal y actualizando historial...');
+                            sessionStorage.removeItem('submodulo_activo_cirnorh');
+                            const urlParams = new URLSearchParams(window.location.search);
+                            const deptoActual = urlParams.get('depto') || 'cirnorh';
+                            window.history.pushState({}, '', \`main.html?depto=\${deptoActual}&seccion=asistencia\`);
+                            if(window.RhAsisCore && typeof window.RhAsisCore.init === 'function') {
+                                window.RhAsisCore.init();
+                            } else {
+                                location.reload();
+                            }
+                        " class="px-4 py-2 text-xs font-semibold text-stone-600 bg-stone-100 hover:bg-stone-200 rounded-xl transition-all cursor-pointer">
                             ← Volver
                         </button>
                     </div>
                 </div>
 
+                <!-- Barra de Acciones y Carga de Archivo -->
                 <div class="flex flex-wrap items-center justify-between gap-4 bg-stone-50 p-4 rounded-2xl border border-stone-200">
                     <div class="flex items-center gap-3">
                         <input type="file" id="uploadBiometrico" class="hidden" accept=".xlsx, .xlsm, .csv" onchange="RhAsisFBio.manejarCargaArchivo(this)">
@@ -38,6 +51,7 @@ window.RhAsisCasc = {
                     <div id="statsCounter" class="text-xs text-stone-600 font-medium"></div>
                 </div>
 
+                <!-- Buscador y Toolbar -->
                 <div id="toolbarBiometrico" class="hidden flex items-center justify-between bg-white p-4 rounded-xl border border-stone-200 shadow-xs">
                     <div class="relative w-full max-w-md">
                         <span class="absolute left-3 top-1/2 -translate-y-1/2 opacity-50">🔍</span>
@@ -49,11 +63,13 @@ window.RhAsisCasc = {
                     </button>
                 </div>
 
+                <!-- Contenedor Principal de Pestañas y Datos -->
                 <div id="appContainerBio" class="hidden bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden flex flex-col min-h-[450px]">
                     <div class="flex border-b border-stone-200 bg-stone-100 overflow-x-auto custom-scrollbar" id="tabContainerBio"></div>
                     <div id="tabContentBio" class="p-6"></div>
                 </div>
 
+                <!-- Estado Vacío Inicial -->
                 <div id="emptyStateBio" class="py-16 text-center">
                     <div class="max-w-md mx-auto bg-stone-50 p-8 rounded-2xl border border-dashed border-stone-300">
                         <div class="text-4xl mb-3">📊</div>

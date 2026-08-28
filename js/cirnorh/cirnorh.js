@@ -180,6 +180,7 @@ function procesarCargaInicialSeccion(event) {
                   ? event.state.vista 
                   : urlParams.get('vista');
 
+    const depto = urlParams.get('depto') || 'cirnorh';
     const contenedor = obtenerContenedor();
 
     console.log("🧭 Procesando navegación -> Sección:", seccion, "| Vista:", vista);
@@ -187,25 +188,48 @@ function procesarCargaInicialSeccion(event) {
     // CASO 1: Vista interna del Biométrico
     if (seccion === 'asistencia' && vista === 'biometrico') {
         sessionStorage.setItem('submodulo_activo_cirnorh', 'asistencia');
+        
+        // 👉 AQUÍ ES DONDE DEBE IR EL BLOQUE:
+        if (typeof window.actualizarBotonRegresar === 'function') {
+            window.actualizarBotonRegresar('vista-interna', depto, 'seccion=asistencia');
+        }
+
         if (window.RhAsisCasc && typeof window.RhAsisCasc.mostrarVistaBiometrico === 'function') {
             window.RhAsisCasc.mostrarVistaBiometrico();
         } else if (typeof cargarVistaBiometrico === 'function') {
             cargarVistaBiometrico();
         }
     } 
-    // CASO 2: Submódulo de Asistencia general (Menú de tarjetas de asistencia)
+    // CASO 2: Submódulo de Asistencia general
     else if (seccion === 'asistencia') {
         sessionStorage.setItem('submodulo_activo_cirnorh', 'asistencia');
+        
+        // Si estás en el submódulo general, el botón regresa al menú principal del depto
+        if (typeof window.actualizarBotonRegresar === 'function') {
+            window.actualizarBotonRegresar('submodulo', depto);
+        }
+
         cargarAsistenciaRh(); 
     } 
-    // CASO 3: Cualquier otra sección (personal, vacaciones, etc.)
+    // CASO 3: Cualquier otra sección
     else if (seccion) {
         sessionStorage.setItem('submodulo_activo_cirnorh', seccion);
+        
+        if (typeof window.actualizarBotonRegresar === 'function') {
+            window.actualizarBotonRegresar('submodulo', depto);
+        }
+
         ejecutarCargaSeccion(seccion);
     } 
     // CASO 4: Menú Principal del departamento
     else {
         sessionStorage.removeItem('submodulo_activo_cirnorh');
+        
+        // En el menú principal, el botón regresa al index general de departamentos
+        if (typeof window.actualizarBotonRegresar === 'function') {
+            window.actualizarBotonRegresar('principal', depto);
+        }
+
         if (contenedor) {
             contenedor.innerHTML = ''; 
         }

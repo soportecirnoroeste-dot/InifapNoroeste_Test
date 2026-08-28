@@ -54,13 +54,10 @@ function manejarAccionSeccion(idOpt) {
 
     const nuevaUrl = `main.html?depto=${deptoActual}&seccion=${idOpt}`;
     
-    // Usamos pushState en lugar de replaceState para que el navegador 
-    // guarde este paso como un escalón en el historial de navegación
+    // Usamos pushState para que el menú del submódulo quede registrado en el historial
     window.history.pushState({ seccion: idOpt }, '', nuevaUrl);
 
-    // Guardamos en sessionStorage para asegurar persistencia ante recargas F5
     sessionStorage.setItem('submodulo_activo_cirnorh', idOpt);
-
     ejecutarCargaSeccion(idOpt);
 }
 
@@ -252,27 +249,21 @@ window.addEventListener('popstate', (event) => {
 
     console.log("🔄 Popstate - Sección:", seccion, "| Vista:", vista);
 
-    // Si retrocedimos desde el biométrico, estamos en asistencia pero sin vista interna
     if (seccion === 'asistencia' && !vista) {
-        console.log("📂 Deteniéndose en el Menú de Control de Asistencia");
-        if (window.RhAsisCore && typeof window.RhAsisCore.init === 'function') {
-            window.RhAsisCore.init(); // Dibuja las tarjetas de asistencia
-        } else if (typeof ejecutarCargaSeccion === 'function') {
+        // Nos detenemos en el Menú de Control de Asistencia (Foto 2)
+        if (typeof ejecutarCargaSeccion === 'function') {
             ejecutarCargaSeccion('asistencia');
         } else {
             location.reload();
         }
-    } 
-    else if (!seccion) {
-        // Si no hay sección, ahora sí salimos al menú principal del departamento
-        console.log("🏢 Saliendo al Menú de Departamento");
+    } else if (!seccion) {
+        // Solo si no hay sección, salimos al menú del departamento (Foto 1)
         if (typeof limpiarSeccionUrl === 'function') {
             limpiarSeccionUrl();
         } else {
             location.reload();
         }
-    } 
-    else {
+    } else {
         ejecutarCargaSeccion(seccion);
     }
 });

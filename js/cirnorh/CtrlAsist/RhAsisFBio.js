@@ -52,7 +52,7 @@ window.RhAsisFBio = {
         }
     },
 
-    // Acción para guardar y mapear los datos procesados con la estructura del Google Sheets
+    // Acción para mapear los datos y exportarlos listos para Google Sheets
     guardarDatosProcesados: function() {
         if (Object.keys(RhAsisFBio.groupedData).length === 0) {
             alert("No hay datos cargados para guardar.");
@@ -60,43 +60,52 @@ window.RhAsisFBio = {
         }
 
         try {
-            const datosParaGuardar = [];
+            // Creamos los encabezados exactos que pide tu pestaña "Biometrico" en Google Sheets
+            const headersSheets = [
+                "NumEmp", "RHBHraEnt", "RHBHraSal", "RHBHraReg", 
+                "RHBNomReg", "RHBFecReg", "RHBDía", "RHBRetMen", 
+                "RHBRetMed", "RHBRetMay", "RHBFalta"
+            ];
 
-            // Recorremos y mapeamos cada registro con los nombres exactos de los campos del Sheets
+            const rowsParaSheets = [headersSheets];
+
+            // Recorremos todos los empleados y sus registros para mapearlos ordenadamente
             Object.keys(RhAsisFBio.groupedData).forEach(id => {
                 const empleado = RhAsisFBio.groupedData[id];
                 
                 empleado.rows.forEach(row => {
-                    const registroMapeado = {
-                        "NumEmp": row[0],         // No. Empleado
-                        "RHBHraEnt": row[4],      // Hora Entrada
-                        "RHBHraSal": row[5],      // Hora Salida
-                        "RHBHraReg": row[6],      // Registro
-                        "RHBNomReg": row[7],      // Salida / Entrada
-                        "RHBFecReg": row[8],      // Fecha
-                        "RHBDía": row[9],         // Día
-                        "RHBRetMen": row[10],     // Retardo Menor
-                        "RHBRetMed": row[11],     // Retardo Mediano
-                        "RHBRetMay": row[12],     // Retardo Mayor
-                        "RHBFalta": row[13]       // Falta
-                    };
-                    
-                    datosParaGuardar.push(registroMapeado);
+                    const filaMapeada = [
+                        row[0],   // NumEmp
+                        row[4],   // RHBHraEnt
+                        row[5],   // RHBHraSal
+                        row[6],   // RHBHraReg
+                        row[7],   // RHBNomReg
+                        row[8],   // RHBFecReg
+                        row[9],   // RHBDía
+                        row[10],  // RHBRetMen
+                        row[11],  // RHBRetMed
+                        row[12],  // RHBRetMay
+                        row[13]   // RHBFalta
+                    ];
+                    rowsParaSheets.push(filaMapeada);
                 });
             });
 
-            // Guardamos el paquete mapeado listo para el Sheets
-            localStorage.setItem('cirnorh_asistencia_biometrico', JSON.stringify(datosParaGuardar));
+            // Generamos un archivo Excel descargable con el formato listo para el Sheets
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(rowsParaSheets);
+            XLSX.utils.book_append_sheet(wb, ws, "Biometrico");
             
-            console.log("Datos mapeados listos para Google Sheets:", datosParaGuardar);
-            alert("✅ ¡Datos del biométrico mapeados y guardados correctamente con la estructura de Google Sheets!");
+            XLSX.writeFile(wb, `Datos_Listos_Para_Google_Sheets.xlsx`);
+            
+            alert("✅ ¡Datos leídos, mapeados y descargados con éxito en un Excel listo para tu Google Sheets!");
         } catch (e) {
             console.error(e);
-            alert("Error al guardar localmente los datos.");
+            alert("Error al procesar y guardar los datos.");
         }
     },
 
-    // Generador de libro de Excel con estilos institucionales INIFAP
+    // Generador de libro de Excel con estilos institucionales INIFAP (para reportes completos)
     generateWorkbook: function() {
         const wb = XLSX.utils.book_new();
         const fondoHoja = "E9F5E9";

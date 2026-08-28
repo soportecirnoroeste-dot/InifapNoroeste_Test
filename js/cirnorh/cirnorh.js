@@ -227,30 +227,51 @@ document.addEventListener('click', function(e) {
 // CONTROLADOR MAESTRO DEL HISTORIAL (Atrás / Adelante)
 // ==========================================
 window.addEventListener('popstate', (event) => {
+    // Leemos los parámetros directamente de la URL actual del navegador
     const urlParams = new URLSearchParams(window.location.search);
     const depto = urlParams.get('depto') || 'cirnorh';
     const seccion = urlParams.get('seccion');
     const vista = urlParams.get('vista');
 
-    console.log("🔄 Historial retrocedió -> Sección:", seccion, "| Vista:", vista);
+    console.log("🔄 Popstate ejecutado -> Sección:", seccion, "| Vista:", vista);
 
+    // Caso 1: Estábamos en una vista interna (como biométrico) y damos atrás
+    if (seccion === 'asistencia' && vista === 'biometrico') {
+        // Si por alguna razón el historial se salta un paso, forzamos ir al menú de asistencia
+        if (typeof ejecutarCargaSeccion === 'function') {
+            ejecutarCargaSeccion('asistencia');
+        } else {
+            location.reload();
+        }
+        return;
+    }
+
+    // Caso 2: Estamos en la sección de asistencia (sin vista interna) -> Aquí debe frenar (Foto 2)
     if (seccion === 'asistencia' && !vista) {
-        // Si estábamos en el biométrico y damos atrás, caemos AQUÍ: Menú de Asistencia
+        console.log("🛑 Deteniéndose en el Menú de Control de Asistencia");
         if (window.RhAsisCore && typeof window.RhAsisCore.init === 'function') {
             window.RhAsisCore.init();
-        } else {
+        } else if (typeof ejecutarCargaSeccion === 'function') {
             ejecutarCargaSeccion('asistencia');
+        } else {
+            location.reload();
         }
-    } else if (!seccion) {
-        // Si estamos en el menú de asistencia y damos atrás, caemos AQUÍ: Menú del Departamento
+        return;
+    }
+
+    // Caso 3: Si ya no hay sección en absoluto, regresamos al menú del departamento (Foto 1)
+    if (!seccion) {
+        console.log("🏢 Saliendo al Menú Principal del Departamento");
         if (typeof limpiarSeccionUrl === 'function') {
             limpiarSeccionUrl();
         } else {
             window.location.href = `main.html?depto=${depto}`;
         }
-    } else {
-        ejecutarCargaSeccion(seccion);
+        return;
     }
+
+    // Cualquier otro caso estándar
+    ejecutarCargaSeccion(seccion);
 });
 
 // Ejecutar de inmediato al cargar el DOM (mucho antes que 'load')

@@ -218,21 +218,21 @@ window.addEventListener('load', () => {
 // ESCUCHADOR MAESTRO PARA TARJETAS DINÁMICAS
 // (Esto no afecta en nada a Personal y atrapa el clic del Biométrico)
 // ==========================================
-document.addEventListener('click', function (e) {
+document.addEventListener('click', function(e) {
     const tarjeta = e.target.closest('.tarjeta-accion');
     if (!tarjeta) return;
 
     const accion = tarjeta.getAttribute('data-accion');
     console.log("👉 Acción leída de la tarjeta:", accion);
 
-    // Verificamos si la acción contiene la llamada al biométrico sin importar espacios
-    if (accion && accion.includes("mostrarVistaBiometrico")) {
+    // Verificamos si la acción contiene el nombre que arroja tu tarjeta
+    if (accion && accion.includes("cargarVistaBiometrico")) {
         if (window.RhAsisCasc && typeof window.RhAsisCasc.mostrarVistaBiometrico === 'function') {
-            console.log("🚀 ¡Abriendo vista biométrica con éxito!");
+            console.log("🚀 ¡Abriendo la vista del biométrico!");
             window.RhAsisCasc.mostrarVistaBiometrico();
         } else {
-            console.error("❌ El objeto RhAsisCasc o la función no están disponibles todavía.");
-            alert("El módulo biométrico está cargando, intenta de nuevo en un segundo.");
+            console.error("❌ La función mostrarVistaBiometrico no se encuentra dentro de RhAsisCasc.");
+            alert("El submódulo cargó pero la función interna no está disponible.");
         }
     }
 });

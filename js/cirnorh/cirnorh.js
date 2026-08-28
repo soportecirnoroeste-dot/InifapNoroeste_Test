@@ -223,16 +223,45 @@ document.addEventListener('click', function(e) {
     if (!tarjeta) return;
 
     const accion = tarjeta.getAttribute('data-accion');
-    console.log("👉 Acción leída de la tarjeta:", accion);
-
-    // Verificamos si la acción contiene el nombre que arroja tu tarjeta
+    
     if (accion && accion.includes("cargarVistaBiometrico")) {
         if (window.RhAsisCasc && typeof window.RhAsisCasc.mostrarVistaBiometrico === 'function') {
-            console.log("🚀 ¡Abriendo la vista del biométrico!");
+            // 1. Cambiamos la URL y registramos el estado en el historial del navegador
+            const urlParams = new URLSearchParams(window.location.search);
+            const deptoActual = urlParams.get('depto') || 'cirnorh';
+            window.history.pushState({ seccion: 'asistencia-biometrico' }, '', `main.html?depto=${deptoActual}&seccion=asistencia&vista=biometrico`);
+            
+            // 2. Renderizamos la vista del biométrico
             window.RhAsisCasc.mostrarVistaBiometrico();
+        }
+    }
+});
+
+// ==========================================
+// ESCUCHADOR GLOBAL DE HISTORIAL (ATRÁS / ADELANTE)
+// ==========================================
+window.addEventListener('popstate', (event) => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const seccion = urlParams.get('seccion');
+    const vista = urlParams.get('vista');
+
+    console.log("🔄 Navegación detectada por historial - Seccion:", seccion, "| Vista:", vista);
+
+    if (seccion === 'asistencia' && !vista) {
+        // Si estamos en asistencia pero sin vista interna (regresó al menú de asistencia)
+        if (window.RhAsisCore && typeof window.RhAsisCore.renderizarVistaModulo === 'function') {
+            window.RhAsisCore.renderizarVistaModulo();
         } else {
-            console.error("❌ La función mostrarVistaBiometrico no se encuentra dentro de RhAsisCasc.");
-            alert("El submódulo cargó pero la función interna no está disponible.");
+            location.reload();
+        }
+    } else if (!seccion || seccion === 'personal') {
+        // Si regresó al inicio o a otra sección principal, dejamos que el flujo general lo maneje
+        // O ejecutamos una recarga limpia si el core general lo requiere
+        const deptoActual = urlParams.get('depto') || 'cirnorh';
+        if (typeof ejecutarCargaSeccion === 'function') {
+            ejecutarCargaSeccion(seccion);
+        } else {
+            location.reload();
         }
     }
 });

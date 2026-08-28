@@ -224,7 +224,7 @@ document.addEventListener('click', function(e) {
             const urlParams = new URLSearchParams(window.location.search);
             const deptoActual = urlParams.get('depto') || 'cirnorh';
             
-            // Creamos el escalón para la vista interna del biométrico
+            // Creamos el escalón en el historial
             window.history.pushState(
                 { seccion: 'asistencia', vista: 'biometrico' }, 
                 '', 
@@ -244,19 +244,20 @@ window.addEventListener('popstate', (event) => {
     const seccion = urlParams.get('seccion');
     const vista = urlParams.get('vista');
 
-    console.log("🔄 Popstate capturado -> Sección:", seccion, "| Vista:", vista);
+    console.log("🔄 Sincronizando navegación -> Sección:", seccion, "| Vista:", vista);
 
-    // Si retrocedimos y la URL se queda en asistencia (salimos del biométrico)
+    // Si la flecha "atrás" te devolvió a asistencia pero sin la vista interna del biométrico:
     if (seccion === 'asistencia' && !vista) {
         sessionStorage.removeItem('submodulo_activo_cirnorh');
         
-        // Usamos la misma lógica infalible de tu botón
+        // Ejecutamos exactamente la misma función infalible de tu botón
         if (window.RhAsisCore && typeof window.RhAsisCore.init === 'function') {
             window.RhAsisCore.init();
         } else {
-            executarCargaSeccion('asistencia');
+            ejecutarCargaSeccion('asistencia');
         }
     } else if (!seccion) {
+        // Si ya no hay sección, salimos al menú del departamento
         limpiarSeccionUrl();
     } else {
         ejecutarCargaSeccion(seccion);

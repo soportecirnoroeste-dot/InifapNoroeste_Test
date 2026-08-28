@@ -160,6 +160,9 @@ function renderizarVistaModulo(idOpt, descripcion, itemsIndice = []) {
     }
 }
 
+// ==========================================
+// CONTROLADOR MAESTRO DE NAVEGACIÓN Y HISTORIAL
+// ==========================================
 function obtenerContenedor() {
     return document.getElementById('app-container') || document.querySelector('main') || document.body;
 }
@@ -167,7 +170,6 @@ function obtenerContenedor() {
 function procesarCargaInicialSeccion(event) {
     const urlParams = new URLSearchParams(window.location.search);
     
-    // Rescatamos los valores priorizando el estado del historial (event.state) o la URL
     const seccion = event && event.state && 'seccion' in event.state 
                     ? event.state.seccion 
                     : urlParams.get('seccion');
@@ -187,11 +189,9 @@ function procesarCargaInicialSeccion(event) {
             window.RhAsisCasc.mostrarVistaBiometrico();
         } else if (typeof cargarVistaBiometrico === 'function') {
             cargarVistaBiometrico();
-        } else {
-            cargarAsistenciaRh();
         }
     } 
-    // CASO 2: Submódulo de Asistencia general
+    // CASO 2: Submódulo de Asistencia general (Menú de tarjetas de asistencia)
     else if (seccion === 'asistencia') {
         sessionStorage.setItem('submodulo_activo_cirnorh', 'asistencia');
         cargarAsistenciaRh(); 
@@ -201,7 +201,7 @@ function procesarCargaInicialSeccion(event) {
         sessionStorage.setItem('submodulo_activo_cirnorh', seccion);
         ejecutarCargaSeccion(seccion);
     } 
-    // CASO 4: Menú Principal del departamento (vacío)
+    // CASO 4: Menú Principal del departamento
     else {
         sessionStorage.removeItem('submodulo_activo_cirnorh');
         if (contenedor) {
@@ -220,7 +220,7 @@ function procesarCargaInicialSeccion(event) {
 }
 
 // ==========================================
-// 2. GESTIÓN GLOBAL DE CLICS Y TARJETAS
+// GESTIÓN GLOBAL DE CLICS Y TARJETAS
 // ==========================================
 document.addEventListener('click', function(e) {
     const tarjeta = e.target.closest('.tarjeta-accion');
@@ -232,7 +232,6 @@ document.addEventListener('click', function(e) {
         const urlParams = new URLSearchParams(window.location.search);
         const deptoActual = urlParams.get('depto') || 'cirnorh';
         
-        // Empujamos el estado exacto al historial del navegador
         window.history.pushState(
             { seccion: 'asistencia', vista: 'biometrico' }, 
             '', 
@@ -250,7 +249,7 @@ document.addEventListener('click', function(e) {
 });
 
 // ==========================================
-// 3. LISTENERS DE HISTORIAL Y ARRANQUE
+// LISTENERS DE HISTORIAL Y ARRANQUE
 // ==========================================
 window.addEventListener('popstate', (event) => {
     procesarCargaInicialSeccion(event);

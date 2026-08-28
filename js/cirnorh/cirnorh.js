@@ -173,19 +173,6 @@ function renderizarVistaModulo(idOpt, descripcion, itemsIndice = []) {
     }
 }
 
-// Interceptor global de clics para detectar cualquier retorno al menú principal
-document.addEventListener('click', (event) => {
-    const target = event.target.closest('button, a');
-    if (!target) return;
-
-    const textoBoton = target.textContent || '';
-    const idOClase = (target.id + ' ' + target.className).toLowerCase();
-
-    if (textoBoton.includes('Regresar') || idOClase.includes('regresar') || idOClase.includes('back')) {
-        limpiarSeccionUrl();
-    }
-});
-
 // Autodetección al presionar F5 evitando el parpadeo visual
 window.addEventListener('load', () => {
     const contenedor = obtenerContenedor();
@@ -215,57 +202,69 @@ window.addEventListener('load', () => {
 });
 
 // ==========================================
-// ESCUCHADOR MAESTRO PARA TARJETAS DINÁMICAS
-// (Esto no afecta en nada a Personal y atrapa el clic del Biométrico)
+// CONTROLADOR CENTRALIZADO DE CLICS Y NAVEGACIÓN
 // ==========================================
 document.addEventListener('click', function(e) {
+    // 1. Detectar clics en tarjetas de acción (ej. Biométrico)
     const tarjeta = e.target.closest('.tarjeta-accion');
-    if (!tarjeta) return;
+    if (tarjeta) {
+        const accion = tarjeta.getAttribute('data-accion');
+        
+        if (accion && accion.includes("cargarVistaBiometrico")) {
+            if (window.RhAsisCasc && typeof window.RhAsisCasc.mostrarVistaBiometrico === 'function') {
+                const urlParams = new URLSearchParams(window.location.search);
+                const deptoActual = urlParams.get('depto') || 'cirnorh';
+                
+                // Creamos el escalón en el historial para el botón "atrás"
+                window.history.pushState({ seccion: 'asistencia-biometrico' }, '', `main.html?depto=${deptoActual}&seccion=asistencia&vista=biometrico`);
+                
+                window.RhAsisCasc.mostrarVistaBiometrico();
+                return; // Terminamos aquí para esta tarjeta
+            }
+        }
+        return;
+    }
 
-    const accion = tarjeta.getAttribute('data-accion');
-    
-    if (accion && accion.includes("cargarVistaBiometrico")) {
-        if (window.RhAsisCasc && typeof window.RhAsisCasc.mostrarVistaBiometrico === 'function') {
-            // 1. Cambiamos la URL y registramos el estado en el historial del navegador
-            const urlParams = new URLSearchParams(window.location.search);
-            const deptoActual = urlParams.get('depto') || 'cirnorh';
-            window.history.pushState({ seccion: 'asistencia-biometrico' }, '', `main.html?depto=${deptoActual}&seccion=asistencia&vista=biometrico`);
-            
-            // 2. Renderizamos la vista del biométrico
-            window.RhAsisCasc.mostrarVistaBiometrico();
+    // 2. Detectar clics en botones de retorno o regreso genéricos (si los hubiera)
+    const target = e.target.closest('button, a');
+    if (target) {
+        const textoBoton = target.textContent || '';
+        const idOClase = (target.id + ' ' + target.className).toLowerCase();
+
+        if (textoBoton.includes('Regresar') || idOClase.includes('regresar') || idOClase.includes('back')) {
+            if (typeof limpiarSeccionUrl === 'function') {
+                limpiarSeccionUrl();
+            }
         }
     }
 });
 
 // ==========================================
-// ESCUCHADOR GLOBAL DE HISTORIAL (ATRÁS / ADELANTE)
+// CONTROLADOR MAESTRO DEL HISTORIAL (Atrás / Adelante)
 // ==========================================
 window.addEventListener('popstate', (event) => {
     const urlParams = new URLSearchParams(window.location.search);
     const seccion = urlParams.get('seccion');
     const vista = urlParams.get('vista');
 
-    console.log("🔄 Popstate detectado - Seccion:", seccion, "| Vista:", vista);
+    console.log("🔄 Popstate detectado - Sección:", seccion, "| Vista:", vista);
 
-    // Si estamos dentro de asistencia pero salimos de la vista interna (biométrico)
     if (seccion === 'asistencia' && !vista) {
-        console.log("📂 Volviendo al menú de Control de Asistencia...");
+        // Si damos atrás desde el biométrico, volvemos a pintar el menú de Asistencia
         if (window.RhAsisCore && typeof window.RhAsisCore.init === 'function') {
-            window.RhAsisCore.init(); // O la función que dibuja el menú de tarjetas de asistencia
-        } else if (typeof ejecutarCargaSeccion === 'function') {
-            ejecutarCargaSeccion('asistencia');
+            window.RhAsisCore.init();
         } else {
-            location.reload();
+            manejarAccionSeccion('asistencia');
         }
-    } 
-    else if (!seccion) {
-        // Si no hay sección en la URL, regresamos al menú principal del departamento (RH)
-        console.log("🏢 Volviendo al menú principal del departamento...");
+    } else if (!seccion) {
+        // Si no hay sección, regresamos al menú del departamento principal
         if (typeof limpiarSeccionUrl === 'function') {
             limpiarSeccionUrl();
         } else {
             location.reload();
         }
+    } else {
+        ejecutarCargaSeccion(seccion);
     }
 });
 

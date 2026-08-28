@@ -148,7 +148,7 @@ window.restaurarMenuDepto = function (nombreCortoUrl) {
     }
 };
 
-window.actualizarBotonRegresar = function (modo, deptoKey = '') {
+window.actualizarBotonRegresar = function (modo, deptoKey = '', extraData = null) {
     const btnRegresar = document.getElementById('btn-regresar');
     if (!btnRegresar) return;
 
@@ -158,6 +158,7 @@ window.actualizarBotonRegresar = function (modo, deptoKey = '') {
         basePath = `/${pathSegments[0]}`;
     }
 
+    // Limpiamos eventos anteriores clonando el nodo
     const nuevoBtn = btnRegresar.cloneNode(true);
     btnRegresar.parentNode.replaceChild(nuevoBtn, btnRegresar);
 
@@ -166,9 +167,31 @@ window.actualizarBotonRegresar = function (modo, deptoKey = '') {
         nuevoBtn.title = "Regresar al menú del departamento";
         nuevoBtn.onclick = (e) => {
             e.preventDefault();
-            window.restaurarMenuDepto(deptoKey);
+            if (typeof window.restaurarMenuDepto === 'function') {
+                window.restaurarMenuDepto(deptoKey);
+            } else {
+                window.location.href = `main.html?depto=${deptoKey}`;
+            }
         };
-    } else {
+    } 
+    else if (modo === 'vista-interna') {
+        // NUEVO: Para regresar desde el Biométrico a la sección de Asistencia
+        nuevoBtn.href = "#";
+        nuevoBtn.title = "Regresar al submódulo de asistencia";
+        nuevoBtn.onclick = (e) => {
+            e.preventDefault();
+            // Ejecutamos la función que vuelve a pintar la asistencia o el callback que le pases
+            if (typeof extraData === 'function') {
+                extraData();
+            } else if (window.RhAsisCasc && typeof window.RhAsisCasc.mostrarVistaAsistencia === 'function') {
+                window.RhAsisCasc.mostrarVistaAsistencia();
+            } else {
+                // Alternativa si manejas la recarga por secciones de tu SPA
+                window.location.href = `main.html?depto=${deptoKey}&seccion=asistencia`;
+            }
+        };
+    } 
+    else {
         nuevoBtn.href = `${basePath}/index.html`;
         nuevoBtn.title = "Regresar al panel principal";
         nuevoBtn.onclick = null;

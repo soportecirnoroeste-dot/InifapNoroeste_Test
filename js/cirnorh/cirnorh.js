@@ -214,19 +214,35 @@ window.addEventListener('load', () => {
 // ESCUCHADOR MAESTRO PARA TARJETAS DINÁMICAS
 // (Esto no afecta en nada a Personal y atrapa el clic del Biométrico)
 // ==========================================
+// ==========================================
+// ESCUCHADOR MAESTRO CON TESTIGO DE CLIC
+// ==========================================
 document.addEventListener('click', function(e) {
+    // Buscamos si el elemento clickeado (o alguno de sus padres) es una tarjeta de acción
     const tarjeta = e.target.closest('.tarjeta-accion');
-    if (!tarjeta) return;
+    
+    if (!tarjeta) {
+        // Si dieron clic en otra parte de la página, no hacemos nada
+        return;
+    }
 
+    // Obtenemos los valores de la tarjeta para depurar en consola
     const accion = tarjeta.getAttribute('data-accion');
-    console.log("🎯 Clic detectado en tarjeta de submódulo:", accion);
+    const tituloTarjeta = tarjeta.querySelector('h4') ? tarjeta.querySelector('h4').innerText : 'Sin título';
+
+    console.log("========================================");
+    console.log("👉 ¡CLIC DETECTADO EN TARJETA!");
+    console.log("📌 Título del Módulo:", tituloTarjeta);
+    console.log("⚙️ Acción asignada (data-accion):", accion);
+    console.log("========================================");
 
     if (accion === "RhAsisCasc.mostrarVistaBiometrico()") {
         if (window.RhAsisCasc && typeof window.RhAsisCasc.mostrarVistaBiometrico === 'function') {
+            console.log("✅ Ejecutando RhAsisCasc.mostrarVistaBiometrico()...");
             window.RhAsisCasc.mostrarVistaBiometrico();
         } else {
-            console.error("❌ ERROR: RhAsisCasc.mostrarVistaBiometrico aún no está disponible.");
-            alert("El submódulo de biométrico aún no termina de cargar.");
+            console.error("❌ ERROR CRÍTICO: RhAsisCasc o el método mostrarVistaBiometrico no existen en el objeto window.");
+            alert("El submódulo de biométrico aún no está disponible en memoria. Revisa si el script RhAsisCasc.js cargó correctamente.");
         }
     }
 });

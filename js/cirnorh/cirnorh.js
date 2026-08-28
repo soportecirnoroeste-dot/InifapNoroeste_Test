@@ -142,7 +142,7 @@ function renderizarVistaModulo(idOpt, descripcion, itemsIndice = []) {
         let htmlTarjetasIndice = '';
         if (itemsIndice && itemsIndice.length > 0) {
             htmlTarjetasIndice = itemsIndice.map(item => `
-                <div onclick="console.log('👉 Clic detectado en tarjeta:', '${item.titulo}'); ${item.action || ''}" class="p-4 rounded-xl border border-stone-200 bg-stone-50/50 hover:border-[#249444] hover:bg-emerald-50/30 transition-all cursor-pointer group shadow-xs">
+                <div data-accion="${item.action || ''}" class="tarjeta-accion p-4 rounded-xl border border-stone-200 bg-stone-50/50 hover:border-[#249444] hover:bg-emerald-50/30 transition-all cursor-pointer group shadow-xs">
                     <h4 class="font-bold text-xs text-stone-800 uppercase group-hover:text-[#249444] mb-1">${item.titulo}</h4>
                     <p class="text-[11px] text-stone-500 leading-relaxed">${item.desc}</p>
                 </div>
@@ -207,6 +207,27 @@ window.addEventListener('load', () => {
     } else {
         limpiarSeccionUrl();
         if (contenedor) contenedor.style.opacity = '1';
+    }
+});
+
+// ==========================================
+// ESCUCHADOR MAESTRO PARA TARJETAS DINÁMICAS
+// (Esto no afecta en nada a Personal y atrapa el clic del Biométrico)
+// ==========================================
+document.addEventListener('click', function(e) {
+    const tarjeta = e.target.closest('.tarjeta-accion');
+    if (!tarjeta) return;
+
+    const accion = tarjeta.getAttribute('data-accion');
+    console.log("🎯 Clic detectado en tarjeta de submódulo:", accion);
+
+    if (accion === "RhAsisCasc.mostrarVistaBiometrico()") {
+        if (window.RhAsisCasc && typeof window.RhAsisCasc.mostrarVistaBiometrico === 'function') {
+            window.RhAsisCasc.mostrarVistaBiometrico();
+        } else {
+            console.error("❌ ERROR: RhAsisCasc.mostrarVistaBiometrico aún no está disponible.");
+            alert("El submódulo de biométrico aún no termina de cargar.");
+        }
     }
 });
 

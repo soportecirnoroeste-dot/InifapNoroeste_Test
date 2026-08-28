@@ -21,17 +21,20 @@ contenedor.innerHTML = `
                     </div>
                     <div class="flex items-center gap-2">
                         <button onclick="
-                            console.log('🔙 Volviendo al menú principal y actualizando historial...');
-                            sessionStorage.removeItem('submodulo_activo_cirnorh');
+                            console.log('🔙 Regresando al menú del submódulo de Asistencia...');
+                            
+                            // Actualizamos la URL para que refleje únicamente la sección de asistencia
                             const urlParams = new URLSearchParams(window.location.search);
                             const deptoActual = urlParams.get('depto') || 'cirnorh';
                             window.history.pushState({}, '', \`main.html?depto=\${deptoActual}&seccion=asistencia\`);
-                            if(window.RhAsisCore && typeof window.RhAsisCore.init === 'function') {
-                                window.RhAsisCore.init();
+                            
+                            // Llamamos a la función del Core que pinta las tarjetas del menú de asistencia
+                            if(window.RhAsisCore && typeof window.RhAsisCore.renderizarVistaModulo === 'function') {
+                                window.RhAsisCore.renderizarVistaModulo();
                             } else {
                                 location.reload();
                             }
-                        " class="px-4 py-2 text-xs font-semibold text-stone-600 bg-stone-100 hover:bg-stone-200 rounded-xl transition-all cursor-pointer">
+                            " class="px-4 py-2 text-xs font-semibold text-stone-600 bg-stone-100 hover:bg-stone-200 rounded-xl transition-all cursor-pointer">
                             ← Volver
                         </button>
                     </div>

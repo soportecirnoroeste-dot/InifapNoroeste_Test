@@ -239,18 +239,20 @@ document.addEventListener('click', function(e) {
 // ==========================================
 // CONTROLADOR MAESTRO DEL HISTORIAL (Atrás / Adelante)
 // ==========================================
-// --- TESTIGO VISUAL FLOTANTE EN PANTALLA ---
-const testigoDiv = document.createElement('div');
-testigoDiv.id = 'testigo-navegacion';
-testigoDiv.style.cssText = 'position:fixed; bottom:15px; right:15px; background:#111; color:#0f0; padding:12px; z-index:999999; font-family:monospace; font-size:13px; border-radius:6px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);';
-document.body.appendChild(testigoDiv);
+// --- TESTIGO VISUAL FLOTANTE (VERSIÓN LIMPIA) ---
+let testigoDiv = document.getElementById('testigo-navegacion');
+if (!testigoDiv) {
+    testigoDiv = document.createElement('div');
+    testigoDiv.id = 'testigo-navegacion';
+    testigoDiv.style.cssText = 'position:fixed; bottom:15px; right:15px; background:#111; color:#0f0; padding:12px; z-index:999999; font-family:monospace; font-size:13px; border-radius:6px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);';
+    document.body.appendChild(testigoDiv);
+}
 
 function actualizarTestigoVisual() {
     const p = new URLSearchParams(location.search);
     testigoDiv.innerHTML = `<b>MONITOR URL:</b><br>Sec: ${p.get('seccion') || 'N/A'}<br>Vista: ${p.get('vista') || 'N/A'}`;
 }
 
-// Actualizar al cargar y registrar eventos
 actualizarTestigoVisual();
 
 window.addEventListener('popstate', (event) => {
@@ -270,7 +272,7 @@ window.addEventListener('popstate', (event) => {
     } else if (!seccion) {
         limpiarSeccionUrl();
     } else {
-        ejecutarCargaSeccion(seccion);
+        ejecutarCargaSeccion(idOpt = seccion);
     }
 });
 

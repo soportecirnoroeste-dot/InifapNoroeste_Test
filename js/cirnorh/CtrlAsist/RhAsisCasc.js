@@ -1,15 +1,11 @@
 window.RhAsisCasc = {
     mostrarVistaBiometrico: function() {
-        console.log("🚀 TESTIGO: Entró correctamente a mostrarVistaBiometrico()");
-
         const contenedor = document.getElementById('app-container') || document.querySelector('main') || document.body;
         
         if (!contenedor) {
             console.error("❌ ERROR: No se encontró ningún contenedor para pintar la vista.");
             return;
         }
-        
-        console.log("🎨 TESTIGO: Contenedor encontrado, inyectando HTML del biométrico...");
 
 contenedor.innerHTML = `
             <div class="space-y-6 animate-fade-in">
@@ -63,7 +59,6 @@ contenedor.innerHTML = `
                 </div>
             </div>
         `;
-        console.log("✅ TESTIGO: HTML del biométrico inyectado con éxito.");
     },
 
     renderTabs: function(filter = "") {

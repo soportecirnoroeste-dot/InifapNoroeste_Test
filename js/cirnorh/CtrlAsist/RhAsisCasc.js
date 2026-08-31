@@ -109,21 +109,18 @@ window.RhAsisCasc = {
                 return;
             }
 
-            // 3. Extraer la primera Fecha de los datos cargados
+            // 3. Extraer el primer NumEmp y la primera Fecha de los datos cargados
+            let primerNumEmp = "";
             let rawFecha = "";
+            
             const primerId = Object.keys(RhAsisFBio.groupedData)[0];
             if (primerId && RhAsisFBio.groupedData[primerId].rows.length > 0) {
                 const primeraFila = RhAsisFBio.groupedData[primerId].rows[0];
-                rawFecha = primeraFila[8] || primeraFila[9] || ""; 
+                primerNumEmp = primeraFila[0] || ""; // Columna 0 (NumEmp)
+                rawFecha = primeraFila[8] || primeraFila[9] || ""; // Columna de Fecha
             }
 
-            if (!rawFecha) {
-                alert("⚠️ No se pudo detectar la fecha en el archivo.");
-                window.RhAsisFBio.groupedData = {};
-                return;
-            }
-
-            // Normalizar formato de fecha a YYYY-MM-DD
+            // Normalizar formato de fecha para visualización en consola
             let fechaNormalizada = "";
             if (rawFecha instanceof Date) {
                 fechaNormalizada = rawFecha.toISOString().split('T')[0];
@@ -141,70 +138,20 @@ window.RhAsisCasc = {
                 }
             }
 
-            if (textCarga) {
-                textCarga.innerText = "Verificando en sistema...";
-            }
+            // 🛑 MODO PRUEBA: Imprimir en consola y detener ejecución (NO GUARDA NADA)
+            console.log("🛑 [MODO PRUEBA] Primer registro detectado en el archivo:");
+            console.log("📌 NumEmp:", primerNumEmp);
+            console.log("📅 Fecha detectada:", rawFecha, "| Normalizada:", fechaNormalizada);
 
-            // 4. CONSULTAR AL BACKEND SI LA FECHA YA EXISTE EN GOOGLE SHEETS
-            if (typeof FetchAPI === 'function') {
-                const verificacion = await FetchAPI("verificarFechaBiometrico", { fecha: fechaNormalizada });
-                console.log("📥 Respuesta de verificación del servidor:", verificacion);
-
-                const yaExiste = verificacion && (verificacion.existe === true || verificacion.existe === "true");
-
-                // 🛑 BLOQUE CONDICIONAL ESTRICTO (IF / ELSE)
-                if (yaExiste) {
-                    // SI YA EXISTE: FRENAMOS TODO AQUÍ Y NO GUARDAMOS NADA
-                    window.RhAsisFBio.groupedData = {}; 
-                    alert("🛑 Los datos de la fecha " + fechaNormalizada + " ya fueron cargados anteriormente. No se realizará ningún guardado.");
-                    return; 
-                } else {
-                    // SI NO EXISTE: ÚNICAMENTE AQUÍ SE PROCEDE A GUARDAR
-                    if (textCarga) {
-                        textCarga.innerText = "Guardando datos...";
-                    }
-
-                    const rowsParaSheets = [];
-                    Object.keys(RhAsisFBio.groupedData).forEach(id => {
-                        const empleado = RhAsisFBio.groupedData[id];
-                        empleado.rows.forEach(row => {
-                            rowsParaSheets.push([
-                                row[0] || "",   // NumEmp
-                                row[4] || "",   // RHBHraEnt
-                                row[5] || "",   // RHBHraSal
-                                row[6] || "",   // RHBHraReg
-                                row[7] || "",   // RHBNomReg
-                                row[8] || "",   // RHBFecReg
-                                row[9] || "",   // RHBDía
-                                row[10] || "",  // RHBRetMen
-                                row[11] || "",  // RHBRetMed
-                                row[12] || "",  // RHBRetMay
-                                row[13] || ""   // RHBFalta
-                            ]);
-                        });
-                    });
-
-                    const resultado = await FetchAPI("guardarBiometrico", {
-                        filas: rowsParaSheets
-                    });
-
-                    if (resultado && resultado.success) {
-                        alert(`✅ ¡Datos cargados y guardados exitosamente en Google Sheets (${rowsParaSheets.length} registros)!`);
-                        if (typeof RhAsisCasc.renderTabs === 'function') {
-                            RhAsisCasc.renderTabs();
-                        }
-                    } else {
-                        alert("⚠️ Aviso al guardar en Sheets: " + (resultado ? resultado.message : "Desconocido"));
-                    }
-                }
-
-            } else {
-                console.error("FetchAPI no está disponible globalmente.");
-            }
+            alert(`🛑 [MODO PRUEBA] Revisa tu consola (F12).\n\nNumEmp: ${primerNumEmp}\nFecha: ${fechaNormalizada}\n\n(No se guardó nada en el servidor).`);
+            
+            // Limpiamos los datos locales para abortar el flujo
+            window.RhAsisFBio.groupedData = {};
+            return;
 
         } catch (error) {
-            console.error("Error en la validación y carga:", error);
-            alert("❌ Ocurrió un error al procesar la validación con el servidor.");
+            console.error("Error en la prueba:", error);
+            alert("❌ Ocurrió un error al procesar el archivo.");
             window.RhAsisFBio.groupedData = {};
         } finally {
             // 🔄 RESTAURAR BOTÓN Y SPINNER

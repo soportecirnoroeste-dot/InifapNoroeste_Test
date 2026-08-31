@@ -96,61 +96,52 @@ window.RhAsisFBio = {
         }
     },
 
-    guardarDatosProcesados: function () {
+    guardarDatosProcesados: async function() {
         if (Object.keys(RhAsisFBio.groupedData).length === 0) {
             alert("No hay datos cargados para guardar. Por favor carga primero el reporte.");
             return;
         }
 
-        // URL de tu Web App desplegada en Google Apps Script (reemplaza con tu URL real si es diferente)
-        const WEB_APP_URL = "AQUÍ_PEGAS_TU_URL_DE_GOOGLE_APPS_SCRIPT";
-
         const rowsParaSheets = [];
 
+        // Recorremos los datos agrupados del biométrico exactamente como se mapean para la tabla
         Object.keys(RhAsisFBio.groupedData).forEach(id => {
             const empleado = RhAsisFBio.groupedData[id];
             empleado.rows.forEach(row => {
                 const filaMapeada = [
-                    row[0] || "",   // NumEmp
-                    row[4] || "",   // RHBHraEnt
-                    row[5] || "",   // RHBHraSal
-                    row[6] || "",   // RHBHraReg
-                    row[7] || "",   // RHBNomReg
-                    row[8] || "",   // RHBFecReg
-                    row[9] || "",   // RHBDía
-                    row[10] || "",  // RHBRetMen
-                    row[11] || "",  // RHBRetMed
-                    row[12] || "",  // RHBRetMay
-                    row[13] || ""   // RHBFalta
+                    row[0] || "",   // NumEmp (Columna A)
+                    row[4] || "",   // RHBHraEnt (Columna B)
+                    row[5] || "",   // RHBHraSal (Columna C)
+                    row[6] || "",   // RHBHraReg (Columna D)
+                    row[7] || "",   // RHBNomReg (Columna E)
+                    row[8] || "",   // RHBFecReg (Columna F)
+                    row[9] || "",   // RHBDía (Columna G)
+                    row[10] || "",  // RHBRetMen (Columna H)
+                    row[11] || "",  // RHBRetMed (Columna I)
+                    row[12] || "",  // RHBRetMay (Columna J)
+                    row[13] || ""   // RHBFalta (Columna K)
                 ];
                 rowsParaSheets.push(filaMapeada);
             });
         });
 
-        // Opción A: Guardado directo en la nube (Google Sheets via WebApp)
-        if (WEB_APP_URL && WEB_APP_URL !== "AQUÍ_PEGAS_TU_URL_DE_GOOGLE_APPS_SCRIPT") {
-            fetch(WEB_APP_URL, {
-                method: "POST",
-                mode: "no-cors", // Omitir si manejas CORS completo, pero no-cors funciona bien para enviar
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    action: "guardarBiometrico",
-                    filas: rowsParaSheets
-                })
-            }).then(() => {
-                alert(`✅ ¡Se enviaron ${rowsParaSheets.length} registros al servidor para almacenarse en Google Sheets!`);
-            }).catch(err => {
-                console.error(err);
-                alert("Hubo un error de red al intentar guardar en Google Sheets.");
+        try {
+            console.log("Enviando " + rowsParaSheets.length + " registros a Google Sheets mediante FetchAPI...");
+
+            // 🎯 Usamos tu función centralizada existente en api.js
+            const resultado = await FetchAPI("guardarBiometrico", {
+                filas: rowsParaSheets
             });
-        } else {
-            // Opción B de respaldo: Descarga el Excel local si no se ha configurado la URL aún
-            const wb = XLSX.utils.book_new();
-            const headersSheets = ["NumEmp", "RHBHraEnt", "RHBHraSal", "RHBHraReg", "RHBNomReg", "RHBFecReg", "RHBDía", "RHBRetMen", "RHBRetMed", "RHBRetMay", "RHBFalta"];
-            const ws = XLSX.utils.aoa_to_sheet([headersSheets, ...rowsParaSheets]);
-            XLSX.utils.book_append_sheet(wb, ws, "Biometrico");
-            XLSX.writeFile(wb, `Datos_Listos_Para_Google_Sheets.xlsx`);
-            alert(`✅ ¡Se procesaron ${rowsParaSheets.length} registros y se descargó el archivo Excel localmente!`);
+
+            if (resultado && resultado.success) {
+                alert(`✅ ¡Éxito! ${resultado.message}`);
+            } else {
+                alert("⚠️ El servidor respondió pero hubo un problema: " + (resultado.message || "Desconocido"));
+            }
+
+        } catch (error) {
+            console.error("Error al guardar en el sistema:", error);
+            alert("❌ Ocurrió un error crítico al intentar guardar los datos en Google Sheets. Revisa la consola para más detalles.");
         }
     },
 

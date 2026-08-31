@@ -4,11 +4,55 @@ window.RhAsisFBio = {
     groupedData: {},
     rawHeader: [],
 
-    // Inicializador automático para enlazar el botón de guardar si existe en el DOM
+    // Inicializador automático para enlazar el botón y restaurar datos si existen en sessionStorage
     init: function() {
         const btnGuardar = document.getElementById('btnGuardarBiometrico') || document.querySelector('.btn-guardar-biometrico');
         if (btnGuardar) {
             btnGuardar.onclick = () => RhAsisFBio.guardarDatosProcesados();
+        }
+
+        // Intentar recuperar datos previos si se recargó la página (F5)
+        RhAsisFBio.restaurarDeSesion();
+    },
+
+    // Guarda el estado actual en la sesión del navegador
+    guardarEnSesion: function() {
+        try {
+            const dataToSave = {
+                groupedData: RhAsisFBio.groupedData,
+                rawHeader: RhAsisFBio.rawHeader
+            };
+            sessionStorage.setItem('rh_asis_fbio_data', JSON.stringify(dataToSave));
+        } catch (e) {
+            console.warn("No se pudo guardar en sessionStorage (probablemente por exceso de tamaño):", e);
+        }
+    },
+
+    // Restaura los datos desde la sesión del navegador tras un F5
+    restaurarDeSesion: function() {
+        try {
+            const saved = sessionStorage.getItem('rh_asis_fbio_data');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                if (parsed && parsed.groupedData && Object.keys(parsed.groupedData).length > 0) {
+                    RhAsisFBio.groupedData = parsed.groupedData;
+                    RhAsisFBio.rawHeader = parsed.rawHeader || [];
+
+                    // Actualizar el contador visual en pantalla
+                    const statsElement = document.getElementById('statsCounter');
+                    if (statsElement) {
+                        statsElement.innerHTML = `Total: <span class="text-[#249444] font-bold">${Object.keys(RhAsisFBio.groupedData).length} empleados</span> recuperados`;
+                    }
+
+                    // Renderizar las pestañas de nuevo
+                    if (typeof RhAsisCasc !== 'undefined' && RhAsisCasc.renderTabsBiometrico) {
+                        RhAsisCasc.renderTabsBiometrico();
+                    }
+                    console.log("🔄 Datos de biométrico restaurados exitosamente tras recarga.");
+                }
+            }
+        } catch (e) {
+            console.error("Error al restaurar los datos de la sesión:", e);
         }
     },
 
@@ -53,6 +97,10 @@ window.RhAsisFBio = {
             if (statsElement) {
                 statsElement.innerHTML = `Total: <span class="text-[#249444] font-bold">${Object.keys(RhAsisFBio.groupedData).length} empleados</span> detectados`;
             }
+
+            // Guardar en sessionStorage para sobrevivir al F5
+            RhAsisFBio.guardarEnSesion();
+
             // Delegamos la renderización de pestañas a la capa cascada/vistas
             if (typeof RhAsisCasc !== 'undefined' && RhAsisCasc.renderTabsBiometrico) {
                 RhAsisCasc.renderTabsBiometrico();
@@ -68,7 +116,6 @@ window.RhAsisFBio = {
         }
 
         try {
-            // Creamos los encabezados exactos que pide tu pestaña "Biometrico" en Google Sheets
             const headersSheets = [
                 "NumEmp", "RHBHraEnt", "RHBHraSal", "RHBHraReg", 
                 "RHBNomReg", "RHBFecReg", "RHBDía", "RHBRetMen", 
@@ -77,7 +124,6 @@ window.RhAsisFBio = {
 
             const rowsParaSheets = [headersSheets];
 
-            // Recorremos todos los empleados y sus registros para mapearlos ordenadamente
             Object.keys(RhAsisFBio.groupedData).forEach(id => {
                 const empleado = RhAsisFBio.groupedData[id];
                 
@@ -99,11 +145,9 @@ window.RhAsisFBio = {
                 });
             });
 
-            // Imprimimos una vista previa limpia en la consola del navegador
             console.log("--- DATOS MAPEADOS PARA GOOGLE SHEETS ---");
             console.table(rowsParaSheets);
 
-            // Generamos un archivo Excel descargable listo para pegarse en el Sheets
             const wb = XLSX.utils.book_new();
             const ws = XLSX.utils.aoa_to_sheet(rowsParaSheets);
             XLSX.utils.book_append_sheet(wb, ws, "Biometrico");

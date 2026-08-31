@@ -4,7 +4,7 @@ window.RhAsisFBio = {
     groupedData: {},
     rawHeader: [],
 
-    init: function() {
+    init: function () {
         const btnGuardar = document.getElementById('btnGuardarBiometrico') || document.querySelector('.btn-guardar-biometrico');
         if (btnGuardar) {
             btnGuardar.onclick = () => RhAsisFBio.guardarDatosProcesados();
@@ -12,7 +12,7 @@ window.RhAsisFBio = {
         RhAsisFBio.restaurarDeSesion();
     },
 
-    guardarEnSesion: function() {
+    guardarEnSesion: function () {
         try {
             const dataToSave = {
                 groupedData: RhAsisFBio.groupedData,
@@ -24,7 +24,7 @@ window.RhAsisFBio = {
         }
     },
 
-    restaurarDeSesion: function() {
+    restaurarDeSesion: function () {
         try {
             const saved = sessionStorage.getItem('rh_asis_fbio_data');
             if (saved) {
@@ -48,7 +48,7 @@ window.RhAsisFBio = {
         }
     },
 
-    manejarCargaArchivo: function(input) {
+    manejarCargaArchivo: function (input) {
         const file = input.files[0];
         if (!file) return;
 
@@ -63,7 +63,7 @@ window.RhAsisFBio = {
         reader.readAsArrayBuffer(file);
     },
 
-    processData: function(rows) {
+    processData: function (rows) {
         RhAsisFBio.groupedData = {};
         let dataStarted = false;
 
@@ -96,55 +96,65 @@ window.RhAsisFBio = {
         }
     },
 
-    guardarDatosProcesados: function() {
+    guardarDatosProcesados: function () {
         if (Object.keys(RhAsisFBio.groupedData).length === 0) {
             alert("No hay datos cargados para guardar. Por favor carga primero el reporte.");
             return;
         }
 
-        try {
-            const headersSheets = [
-                "NumEmp", "RHBHraEnt", "RHBHraSal", "RHBHraReg", 
-                "RHBNomReg", "RHBFecReg", "RHBDía", "RHBRetMen", 
-                "RHBRetMed", "RHBRetMay", "RHBFalta"
-            ];
+        // URL de tu Web App desplegada en Google Apps Script (reemplaza con tu URL real si es diferente)
+        const WEB_APP_URL = "AQUÍ_PEGAS_TU_URL_DE_GOOGLE_APPS_SCRIPT";
 
-            const rowsParaSheets = [headersSheets];
+        const rowsParaSheets = [];
 
-            Object.keys(RhAsisFBio.groupedData).forEach(id => {
-                const empleado = RhAsisFBio.groupedData[id];
-                empleado.rows.forEach(row => {
-                    const filaMapeada = [
-                        row[0],   // NumEmp
-                        row[4],   // RHBHraEnt
-                        row[5],   // RHBHraSal
-                        row[6],   // RHBHraReg
-                        row[7],   // RHBNomReg
-                        row[8],   // RHBFecReg
-                        row[9],   // RHBDía
-                        row[10],  // RHBRetMen
-                        row[11],  // RHBRetMed
-                        row[12],  // RHBRetMay
-                        row[13]   // RHBFalta
-                    ];
-                    rowsParaSheets.push(filaMapeada);
-                });
+        Object.keys(RhAsisFBio.groupedData).forEach(id => {
+            const empleado = RhAsisFBio.groupedData[id];
+            empleado.rows.forEach(row => {
+                const filaMapeada = [
+                    row[0] || "",   // NumEmp
+                    row[4] || "",   // RHBHraEnt
+                    row[5] || "",   // RHBHraSal
+                    row[6] || "",   // RHBHraReg
+                    row[7] || "",   // RHBNomReg
+                    row[8] || "",   // RHBFecReg
+                    row[9] || "",   // RHBDía
+                    row[10] || "",  // RHBRetMen
+                    row[11] || "",  // RHBRetMed
+                    row[12] || "",  // RHBRetMay
+                    row[13] || ""   // RHBFalta
+                ];
+                rowsParaSheets.push(filaMapeada);
             });
+        });
 
+        // Opción A: Guardado directo en la nube (Google Sheets via WebApp)
+        if (WEB_APP_URL && WEB_APP_URL !== "AQUÍ_PEGAS_TU_URL_DE_GOOGLE_APPS_SCRIPT") {
+            fetch(WEB_APP_URL, {
+                method: "POST",
+                mode: "no-cors", // Omitir si manejas CORS completo, pero no-cors funciona bien para enviar
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    action: "guardarBiometrico",
+                    filas: rowsParaSheets
+                })
+            }).then(() => {
+                alert(`✅ ¡Se enviaron ${rowsParaSheets.length} registros al servidor para almacenarse en Google Sheets!`);
+            }).catch(err => {
+                console.error(err);
+                alert("Hubo un error de red al intentar guardar en Google Sheets.");
+            });
+        } else {
+            // Opción B de respaldo: Descarga el Excel local si no se ha configurado la URL aún
             const wb = XLSX.utils.book_new();
-            const ws = XLSX.utils.aoa_to_sheet(rowsParaSheets);
+            const headersSheets = ["NumEmp", "RHBHraEnt", "RHBHraSal", "RHBHraReg", "RHBNomReg", "RHBFecReg", "RHBDía", "RHBRetMen", "RHBRetMed", "RHBRetMay", "RHBFalta"];
+            const ws = XLSX.utils.aoa_to_sheet([headersSheets, ...rowsParaSheets]);
             XLSX.utils.book_append_sheet(wb, ws, "Biometrico");
-            
             XLSX.writeFile(wb, `Datos_Listos_Para_Google_Sheets.xlsx`);
-            
-            alert(`✅ ¡Se procesaron ${rowsParaSheets.length - 1} registros y se descargó el archivo Excel para tu Google Sheets!`);
-        } catch (e) {
-            console.error(e);
-            alert("Error al procesar y guardar los datos.");
+            alert(`✅ ¡Se procesaron ${rowsParaSheets.length} registros y se descargó el archivo Excel localmente!`);
         }
     },
 
-    generateWorkbook: function() {
+    generateWorkbook: function () {
         const wb = XLSX.utils.book_new();
         const fondoHoja = "E9F5E9";
         const MaxFila = 200;
@@ -204,7 +214,7 @@ window.RhAsisFBio = {
         return wb;
     },
 
-    exportarExcel: function() {
+    exportarExcel: function () {
         const wb = RhAsisFBio.generateWorkbook();
         XLSX.writeFile(wb, `Reporte_Biometrico_INIFAP.xlsx`);
     }

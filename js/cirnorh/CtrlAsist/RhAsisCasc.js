@@ -84,7 +84,7 @@ window.RhAsisCasc = {
         const textCarga = document.getElementById('textoCargaBtn');
 
         try {
-            // 🔄 ACTIVAR SPINNER
+            // 🔄 1. ACTIVAR SPINNER DE CARGA
             if (labelCarga) {
                 labelCarga.classList.remove('cursor-pointer', 'bg-[#249444]', 'hover:bg-[#1b7033]');
                 labelCarga.classList.add('bg-stone-400', 'cursor-wait');
@@ -94,10 +94,10 @@ window.RhAsisCasc = {
                 iconoCarga.innerHTML = `<svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
             }
             if (textCarga) {
-                textCarga.innerText = "Verificando datos...";
+                textCarga.innerText = "Analizando archivo...";
             }
 
-            // 1. Procesamos temporalmente el archivo localmente
+            // 2. Procesamos el archivo localmente en memoria (sin guardar nada en Sheets todavía)
             if (typeof RhAsisFBio.manejarCargaArchivo === 'function') {
                 await RhAsisFBio.manejarCargaArchivo(input);
             } else if (typeof RhAsisFBio.procesarArchivoBiometrico === 'function') {
@@ -109,7 +109,7 @@ window.RhAsisCasc = {
                 return;
             }
 
-            // 2. Extraemos exactamente el primer dato de la columna 8 (índice 8 -> RHBFecReg) del primer registro disponible
+            // 3. Extraer el primer registro de la columna 8 (índice 8 -> RHBFecReg) del archivo cargado
             let primeraFechaRHBFecReg = null;
             const primerId = Object.keys(RhAsisFBio.groupedData)[0];
             if (primerId && RhAsisFBio.groupedData[primerId].rows.length > 0) {
@@ -119,31 +119,32 @@ window.RhAsisCasc = {
 
             if (!primeraFechaRHBFecReg) {
                 alert("⚠️ No se pudo detectar el valor de RHBFecReg (columna 8) en el archivo.");
+                window.RhAsisFBio.groupedData = {};
                 return;
             }
 
-            // Normalizamos la fecha a formato string por si viene como objeto Date
+            // Normalizar a formato string YYYY-MM-DD por si viene como objeto Date
             if (primeraFechaRHBFecReg instanceof Date) {
                 primeraFechaRHBFecReg = primeraFechaRHBFecReg.toISOString().split('T')[0];
             }
 
-            console.log("Verificando RHBFecReg en sistema:", primeraFechaRHBFecReg);
             if (textCarga) {
-                textCarga.innerText = "Validando en sistema...";
+                textCarga.innerText = "Verificando en sistema...";
             }
+            console.log("Verificando si ya existe la fecha RHBFecReg:", primeraFechaRHBFecReg);
 
-            // 3. Consultamos al backend si este RHBFecReg ya existe en la hoja Biometrico
+            // 4. CONSULTA AL BACKEND: ¿Existe esta fecha en Google Sheets antes de guardar?
             if (typeof FetchAPI === 'function') {
                 const verificacion = await FetchAPI("verificarFechaBiometrico", { fecha: primeraFechaRHBFecReg });
 
+                // 🛑 CASO A: YA EXISTE EN SISTEMA -> Se detiene todo, se borra de memoria y se avisa
                 if (verificacion && verificacion.existe) {
-                    // 🛑 Si ya existe, abortamos, limpiamos datos y avisamos al usuario tal como pediste
-                    window.RhAsisFBio.groupedData = {};
+                    window.RhAsisFBio.groupedData = {}; // Borramos los datos locales para que no se pinten
                     alert("Ya se cargaron los datos anteriormente. Por favor, revise la información en sistemas.");
-                    return;
+                    return; // SALIDA INMEDIATA SIN GUARDAR NADA
                 }
 
-                // 4. Si no existe, procedemos a guardar
+                // ✅ CASO B: NO EXISTE -> Hasta este punto procedemos a guardar toooodos los datos
                 if (textCarga) {
                     textCarga.innerText = "Guardando datos...";
                 }
@@ -185,8 +186,9 @@ window.RhAsisCasc = {
         } catch (error) {
             console.error("Error en la validación y carga:", error);
             alert("❌ Ocurrió un error al procesar la validación con el servidor.");
+            window.RhAsisFBio.groupedData = {};
         } finally {
-            // 🔄 DESACTIVAR SPINNER
+            // 🔄 RESTAURAR BOTÓN Y SPINNER
             if (labelCarga) {
                 labelCarga.classList.remove('bg-stone-400', 'cursor-wait');
                 labelCarga.classList.add('bg-[#249444]', 'hover:bg-[#1b7033]', 'cursor-pointer');

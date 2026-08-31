@@ -97,7 +97,7 @@ window.RhAsisCasc = {
                 textCarga.innerText = "Verificando datos...";
             }
 
-            // 1. Procesamos temporalmente el archivo localmente para extraer la estructura y la primera fecha
+            // 1. Procesamos temporalmente el archivo localmente
             if (typeof RhAsisFBio.manejarCargaArchivo === 'function') {
                 await RhAsisFBio.manejarCargaArchivo(input);
             } else if (typeof RhAsisFBio.procesarArchivoBiometrico === 'function') {
@@ -109,41 +109,41 @@ window.RhAsisCasc = {
                 return;
             }
 
-            // 2. Extraemos la primera fecha de registro (RHBFecReg) del primer empleado / fila disponible
-            let primeraFecha = null;
+            // 2. Extraemos exactamente el primer dato de la columna 8 (índice 8 -> RHBFecReg) del primer registro disponible
+            let primeraFechaRHBFecReg = null;
             const primerId = Object.keys(RhAsisFBio.groupedData)[0];
             if (primerId && RhAsisFBio.groupedData[primerId].rows.length > 0) {
                 const primeraFila = RhAsisFBio.groupedData[primerId].rows[0];
-                primeraFecha = primeraFila[8] || ""; // Columna F (Índice 8 según el mapeo: RHBFecReg)
+                primeraFechaRHBFecReg = primeraFila[8] || ""; // Columna 8 (RHBFecReg)
             }
 
-            if (!primeraFecha) {
-                alert("⚠️ No se pudo detectar la fecha de registro (RHBFecReg) en el archivo.");
+            if (!primeraFechaRHBFecReg) {
+                alert("⚠️ No se pudo detectar el valor de RHBFecReg (columna 8) en el archivo.");
                 return;
             }
 
-            // Normalizamos la fecha a formato string si viene como objeto Date
-            if (primeraFecha instanceof Date) {
-                primeraFecha = primeraFecha.toISOString().split('T')[0];
+            // Normalizamos la fecha a formato string por si viene como objeto Date
+            if (primeraFechaRHBFecReg instanceof Date) {
+                primeraFechaRHBFecReg = primeraFechaRHBFecReg.toISOString().split('T')[0];
             }
 
-            console.log("Verificando existencia de la fecha en sistema:", primeraFecha);
+            console.log("Verificando RHBFecReg en sistema:", primeraFechaRHBFecReg);
             if (textCarga) {
                 textCarga.innerText = "Validando en sistema...";
             }
 
-            // 3. Consultamos al backend si esta fecha ya fue registrada anteriormente
+            // 3. Consultamos al backend si este RHBFecReg ya existe en la hoja Biometrico
             if (typeof FetchAPI === 'function') {
-                const verificacion = await FetchAPI("verificarFechaBiometrico", { fecha: primeraFecha });
+                const verificacion = await FetchAPI("verificarFechaBiometrico", { fecha: primeraFechaRHBFecReg });
 
                 if (verificacion && verificacion.existe) {
-                    // 🛑 Si ya existe, abortamos el proceso, limpiamos los datos en memoria e informamos al usuario
+                    // 🛑 Si ya existe, abortamos, limpiamos datos y avisamos al usuario tal como pediste
                     window.RhAsisFBio.groupedData = {};
-                    alert(`⚠️ Ya se cargaron los datos anteriormente para la fecha (${primeraFecha}). Por favor, revise la información en sistemas.`);
+                    alert("Ya se cargaron los datos anteriormente. Por favor, revise la información en sistemas.");
                     return;
                 }
 
-                // 4. Si no existe, procedemos a armar los datos y guardarlos automáticamente
+                // 4. Si no existe, procedemos a guardar
                 if (textCarga) {
                     textCarga.innerText = "Guardando datos...";
                 }
@@ -158,7 +158,7 @@ window.RhAsisCasc = {
                             row[5] || "",   // RHBHraSal
                             row[6] || "",   // RHBHraReg
                             row[7] || "",   // RHBNomReg
-                            row[8] || "",   // RHBFecReg
+                            row[8] || "",   // RHBFecReg (Columna 8)
                             row[9] || "",   // RHBDía
                             row[10] || "",  // RHBRetMen
                             row[11] || "",  // RHBRetMed
@@ -210,7 +210,6 @@ window.RhAsisCasc = {
 
         if (!tabContainer || !window.RhAsisFBio || !window.RhAsisFBio.groupedData) return;
 
-        // Si los datos están vacíos (por ejemplo, tras un bloqueo de duplicado), ocultamos la app y mostramos estado vacío
         if (Object.keys(window.RhAsisFBio.groupedData).length === 0) {
             emptyState.classList.remove('hidden');
             appContainer.classList.add('hidden');

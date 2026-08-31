@@ -84,20 +84,20 @@ window.RhAsisCasc = {
         const textCarga = document.getElementById('textoCargaBtn');
 
         try {
-            // 🔄 ACTIVAR SPINNER: Deshabilitamos visualmente el botón y mostramos el indicador de carga
+            // 🔄 ACTIVAR SPINNER
             if (labelCarga) {
                 labelCarga.classList.remove('cursor-pointer', 'bg-[#249444]', 'hover:bg-[#1b7033]');
                 labelCarga.classList.add('bg-stone-400', 'cursor-wait');
-                labelCarga.removeAttribute('for'); // Evita que se vuelva a abrir el explorador mientras procesa
+                labelCarga.removeAttribute('for');
             }
             if (iconoCarga) {
                 iconoCarga.innerHTML = `<svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
             }
             if (textCarga) {
-                textCarga.innerText = "Procesando y guardando...";
+                textCarga.innerText = "Verificando datos...";
             }
 
-            // 1. Procesamos el archivo localmente
+            // 1. Procesamos temporalmente el archivo localmente para extraer la estructura y la primera fecha
             if (typeof RhAsisFBio.manejarCargaArchivo === 'function') {
                 await RhAsisFBio.manejarCargaArchivo(input);
             } else if (typeof RhAsisFBio.procesarArchivoBiometrico === 'function') {
@@ -109,56 +109,88 @@ window.RhAsisCasc = {
                 return;
             }
 
-            // 2. Renderizamos las pestañas en pantalla
-            RhAsisCasc.renderTabs();
+            // 2. Extraemos la primera fecha de registro (RHBFecReg) del primer empleado / fila disponible
+            let primeraFecha = null;
+            const primerId = Object.keys(RhAsisFBio.groupedData)[0];
+            if (primerId && RhAsisFBio.groupedData[primerId].rows.length > 0) {
+                const primeraFila = RhAsisFBio.groupedData[primerId].rows[0];
+                primeraFecha = primeraFila[8] || ""; // Columna F (Índice 8 según el mapeo: RHBFecReg)
+            }
 
-            // 3. Preparamos los datos para Google Sheets
-            const rowsParaSheets = [];
-            Object.keys(RhAsisFBio.groupedData).forEach(id => {
-                const empleado = RhAsisFBio.groupedData[id];
-                empleado.rows.forEach(row => {
-                    rowsParaSheets.push([
-                        row[0] || "",   // NumEmp
-                        row[4] || "",   // RHBHraEnt
-                        row[5] || "",   // RHBHraSal
-                        row[6] || "",   // RHBHraReg
-                        row[7] || "",   // RHBNomReg
-                        row[8] || "",   // RHBFecReg
-                        row[9] || "",   // RHBDía
-                        row[10] || "",  // RHBRetMen
-                        row[11] || "",  // RHBRetMed
-                        row[12] || "",  // RHBRetMay
-                        row[13] || ""   // RHBFalta
-                    ]);
-                });
-            });
+            if (!primeraFecha) {
+                alert("⚠️ No se pudo detectar la fecha de registro (RHBFecReg) en el archivo.");
+                return;
+            }
 
-            console.log("Enviando " + rowsParaSheets.length + " registros a Google Sheets...");
+            // Normalizamos la fecha a formato string si viene como objeto Date
+            if (primeraFecha instanceof Date) {
+                primeraFecha = primeraFecha.toISOString().split('T')[0];
+            }
 
-            // 4. Guardado automático con FetchAPI
+            console.log("Verificando existencia de la fecha en sistema:", primeraFecha);
+            if (textCarga) {
+                textCarga.innerText = "Validando en sistema...";
+            }
+
+            // 3. Consultamos al backend si esta fecha ya fue registrada anteriormente
             if (typeof FetchAPI === 'function') {
+                const verificacion = await FetchAPI("verificarFechaBiometrico", { fecha: primeraFecha });
+
+                if (verificacion && verificacion.existe) {
+                    // 🛑 Si ya existe, abortamos el proceso, limpiamos los datos en memoria e informamos al usuario
+                    window.RhAsisFBio.groupedData = {};
+                    alert(`⚠️ Ya se cargaron los datos anteriormente para la fecha (${primeraFecha}). Por favor, revise la información en sistemas.`);
+                    return;
+                }
+
+                // 4. Si no existe, procedemos a armar los datos y guardarlos automáticamente
+                if (textCarga) {
+                    textCarga.innerText = "Guardando datos...";
+                }
+
+                const rowsParaSheets = [];
+                Object.keys(RhAsisFBio.groupedData).forEach(id => {
+                    const empleado = RhAsisFBio.groupedData[id];
+                    empleado.rows.forEach(row => {
+                        rowsParaSheets.push([
+                            row[0] || "",   // NumEmp
+                            row[4] || "",   // RHBHraEnt
+                            row[5] || "",   // RHBHraSal
+                            row[6] || "",   // RHBHraReg
+                            row[7] || "",   // RHBNomReg
+                            row[8] || "",   // RHBFecReg
+                            row[9] || "",   // RHBDía
+                            row[10] || "",  // RHBRetMen
+                            row[11] || "",  // RHBRetMed
+                            row[12] || "",  // RHBRetMay
+                            row[13] || ""   // RHBFalta
+                        ]);
+                    });
+                });
+
                 const resultado = await FetchAPI("guardarBiometrico", {
                     filas: rowsParaSheets
                 });
 
                 if (resultado && resultado.success) {
-                    console.log("✅ Guardado en Sheets exitoso:", resultado.message);
+                    alert(`✅ ¡Datos cargados y guardados exitosamente en Google Sheets (${rowsParaSheets.length} registros)!`);
+                    RhAsisCasc.renderTabs();
                 } else {
-                    console.warn("⚠️ Aviso al guardar en Sheets:", resultado ? resultado.message : "Desconocido");
+                    alert("⚠️ Aviso al guardar en Sheets: " + (resultado ? resultado.message : "Desconocido"));
                 }
             } else {
                 console.error("FetchAPI no está disponible globalmente.");
             }
 
         } catch (error) {
-            console.error("Error en la carga y guardado automático:", error);
-            alert("❌ Ocurrió un error al procesar el archivo o guardarlo en el sistema.");
+            console.error("Error en la validación y carga:", error);
+            alert("❌ Ocurrió un error al procesar la validación con el servidor.");
         } finally {
-            // 🔄 DESACTIVAR SPINNER: Restauramos el botón a su estado original
+            // 🔄 DESACTIVAR SPINNER
             if (labelCarga) {
                 labelCarga.classList.remove('bg-stone-400', 'cursor-wait');
                 labelCarga.classList.add('bg-[#249444]', 'hover:bg-[#1b7033]', 'cursor-pointer');
-                labelCarga.setAttribute('for', 'uploadBiometrico'); // Volvemos a habilitar la acción del input file
+                labelCarga.setAttribute('for', 'uploadBiometrico');
             }
             if (iconoCarga) {
                 iconoCarga.innerHTML = "📂";
@@ -177,6 +209,13 @@ window.RhAsisCasc = {
         const exportBtn = document.getElementById('exportBtn');
 
         if (!tabContainer || !window.RhAsisFBio || !window.RhAsisFBio.groupedData) return;
+
+        // Si los datos están vacíos (por ejemplo, tras un bloqueo de duplicado), ocultamos la app y mostramos estado vacío
+        if (Object.keys(window.RhAsisFBio.groupedData).length === 0) {
+            emptyState.classList.remove('hidden');
+            appContainer.classList.add('hidden');
+            return;
+        }
 
         emptyState.classList.add('hidden');
         appContainer.classList.remove('hidden');

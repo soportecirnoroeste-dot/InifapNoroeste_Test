@@ -97,7 +97,7 @@ window.RhAsisCasc = {
                 textCarga.innerText = "Analizando archivo...";
             }
 
-            // 2. Procesamos el archivo localmente en memoria (sin guardar nada en Sheets todavía)
+            // 2. Procesamos el archivo localmente en memoria
             if (typeof RhAsisFBio.manejarCargaArchivo === 'function') {
                 await RhAsisFBio.manejarCargaArchivo(input);
             } else if (typeof RhAsisFBio.procesarArchivoBiometrico === 'function') {
@@ -109,42 +109,60 @@ window.RhAsisCasc = {
                 return;
             }
 
-            // 3. Extraer el primer registro de la columna 8 (índice 8 -> RHBFecReg) del archivo cargado
-            let primeraFechaRHBFecReg = null;
+            // 3. Extraer la primera fecha del archivo. Probamos índice 8 u 9 según venga la estructura
+            let rawFecha = null;
             const primerId = Object.keys(RhAsisFBio.groupedData)[0];
             if (primerId && RhAsisFBio.groupedData[primerId].rows.length > 0) {
                 const primeraFila = RhAsisFBio.groupedData[primerId].rows[0];
-                primeraFechaRHBFecReg = primeraFila[8] || ""; // Columna 8 (RHBFecReg)
+                rawFecha = primeraFila[8] || primeraFila[9] || ""; 
             }
 
-            if (!primeraFechaRHBFecReg) {
-                alert("⚠️ No se pudo detectar el valor de RHBFecReg (columna 8) en el archivo.");
+            if (!rawFecha) {
+                alert("⚠️ No se pudo detectar la fecha en el archivo.");
                 window.RhAsisFBio.groupedData = {};
                 return;
             }
 
-            // Normalizar a formato string YYYY-MM-DD por si viene como objeto Date
-            if (primeraFechaRHBFecReg instanceof Date) {
-                primeraFechaRHBFecReg = primeraFechaRHBFecReg.toISOString().split('T')[0];
+            // 4. NORMALIZAR LA FECHA A YYYY-MM-DD de forma infalible (sin importar si viene DD/MM/YYYY o con slashes)
+            let fechaNormalizada = "";
+            if (rawFecha instanceof Date) {
+                fechaNormalizada = rawFecha.toISOString().split('T')[0];
+            } else {
+                let fechaStr = String(rawFecha).trim();
+                // Si viene en formato DD/MM/YYYY (ej. 03/08/2026)
+                if (fechaStr.includes('/')) {
+                    const partes = fechaStr.split('/');
+                    if (partes.length === 3) {
+                        // Asumimos DD/MM/YYYY -> YYYY-MM-DD
+                        fechaNormalizada = `${partes[2]}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}`;
+                    }
+                } else if (fechaStr.includes('-')) {
+                    fechaNormalizada = fechaStr.split('T')[0];
+                } else {
+                    fechaNormalizada = fechaStr;
+                }
             }
+
+            console.log("🔍 Fecha original detectada:", rawFecha, "| Fecha normalizada para buscar:", fechaNormalizada);
 
             if (textCarga) {
                 textCarga.innerText = "Verificando en sistema...";
             }
-            console.log("Verificando si ya existe la fecha RHBFecReg:", primeraFechaRHBFecReg);
 
-            // 4. CONSULTA AL BACKEND: ¿Existe esta fecha en Google Sheets antes de guardar?
+            // 5. CONSULTAR AL BACKEND
             if (typeof FetchAPI === 'function') {
-                const verificacion = await FetchAPI("verificarFechaBiometrico", { fecha: primeraFechaRHBFecReg });
+                const verificacion = await FetchAPI("verificarFechaBiometrico", { fecha: fechaNormalizada });
+                console.log("📥 Respuesta de verificación del servidor:", verificacion);
 
-                // 🛑 CASO A: YA EXISTE EN SISTEMA -> Se detiene todo, se borra de memoria y se avisa
-                if (verificacion && verificacion.existe) {
-                    window.RhAsisFBio.groupedData = {}; // Borramos los datos locales para que no se pinten
-                    alert("Ya se cargaron los datos anteriormente. Por favor, revise la información en sistemas.");
-                    return; // SALIDA INMEDIATA SIN GUARDAR NADA
+                const yaExiste = verificacion && (verificacion.existe === true || verificacion.existe === "true");
+
+                if (yaExiste) {
+                    window.RhAsisFBio.groupedData = {}; // Limpiamos datos locales para que no pinte nada
+                    alert("🛑 ¡Detenido! Ya se cargaron los datos de esta fecha anteriormente (" + fechaNormalizada + ").");
+                    return; // SALIDA INMEDIATA. No guarda nada.
                 }
 
-                // ✅ CASO B: NO EXISTE -> Hasta este punto procedemos a guardar toooodos los datos
+                // 6. SI NO EXISTE, PROCEDEMOS A GUARDAR
                 if (textCarga) {
                     textCarga.innerText = "Guardando datos...";
                 }
@@ -159,7 +177,7 @@ window.RhAsisCasc = {
                             row[5] || "",   // RHBHraSal
                             row[6] || "",   // RHBHraReg
                             row[7] || "",   // RHBNomReg
-                            row[8] || "",   // RHBFecReg (Columna 8)
+                            row[8] || "",   // RHBFecReg
                             row[9] || "",   // RHBDía
                             row[10] || "",  // RHBRetMen
                             row[11] || "",  // RHBRetMed
@@ -188,7 +206,6 @@ window.RhAsisCasc = {
             alert("❌ Ocurrió un error al procesar la validación con el servidor.");
             window.RhAsisFBio.groupedData = {};
         } finally {
-            // 🔄 RESTAURAR BOTÓN Y SPINNER
             if (labelCarga) {
                 labelCarga.classList.remove('bg-stone-400', 'cursor-wait');
                 labelCarga.classList.add('bg-[#249444]', 'hover:bg-[#1b7033]', 'cursor-pointer');

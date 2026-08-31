@@ -182,8 +182,6 @@ function procesarCargaInicialSeccion(event) {
     const depto = urlParams.get('depto') || 'cirnorh';
     const contenedor = obtenerContenedor();
 
-    console.log("🧭 Procesando navegación -> Sección:", seccion, "| Vista:", vista);
-
     // CASO 1: Vista interna del Biométrico
     if (seccion === 'asistencia' && vista === 'biometrico') {
         sessionStorage.setItem('submodulo_activo_cirnorh', 'asistencia');

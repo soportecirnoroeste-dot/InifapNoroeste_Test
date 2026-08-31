@@ -153,15 +153,15 @@ window.RhAsisCasc = {
 
             // 4. CONSULTAR AL BACKEND SI LA FECHA YA EXISTE EN GOOGLE SHEETS
             if (typeof FetchAPI === 'function') {
-                const verificacion = await FetchAPI("verificarFechaBiometrico", { fecha: fechaNormalizada });
-                console.log("📥 Respuesta cruda completa:", verificacion);
+                const verificacion = await FetchAPI("verificarFechaBiometrico", {
+                    action: "verificarFechaBiometrico", // <--- ¡Asegúrate de mandar esto!
+                    fecha: fechaNormalizada
+                });
 
-                // Mostramos el objeto convertido a texto para que el alert sí lo dibuje en pantalla
+                console.log("📥 Respuesta cruda completa:", verificacion);
                 alert("📥 Respuesta del servidor:\n" + JSON.stringify(verificacion, null, 2));
 
-                // Forzamos la validación a booleano real
-                const yaExiste = verificacion && (verificacion.existe === true || verificacion.existe === "true" || String(verificacion.existe).toLowerCase() === "true");
-
+                const yaExiste = verificacion && (verificacion.existe === true || verificacion.existe === "true");
                 console.log("🔎 ¿Se encontró la fecha en Sheets (Evaluado)?", yaExiste);
                 /* alert(`📋 [PASO 2] Resultado de búsqueda en Google Sheets:\n\n¿La fecha ${fechaNormalizada} fue encontrada? -> ${yaExiste}`);*/
 

@@ -30,30 +30,29 @@ window.RhAsisCasc = {
                     </div>
                 </div>
 
-                <!-- Barra de Acciones y Carga de Archivo -->
+                <!-- Barra de Acciones Principales y Buscador alineado a la derecha -->
                 <div class="flex flex-wrap items-center justify-between gap-4 bg-stone-50 p-4 rounded-2xl border border-stone-200">
-                    <div class="flex items-center gap-3">
-                        <input type="file" id="uploadBiometrico" class="hidden" accept=".xlsx, .xlsm, .csv" onchange="RhAsisFBio.manejarCargaArchivo(this)">
+                    <!-- Grupo Izquierdo: Botones principales (Carga de Datos fusionada y Exportar) -->
+                    <div class="flex flex-wrap items-center gap-3">
+                        <input type="file" id="uploadBiometrico" class="hidden" accept=".xlsx, .xlsm, .csv" onchange="RhAsisCasc.manejarCargaYGuardadoAutomatico(this)">
+                        
+                        <!-- 🎯 Botón fusionado: Carga de Datos -->
                         <label for="uploadBiometrico" class="px-4 py-2.5 bg-[#249444] hover:bg-[#1b7033] text-white text-xs font-bold rounded-xl cursor-pointer shadow-sm transition-all flex items-center gap-2">
-                            <span>📂</span> Cargar Reporte Biométrico
+                            <span>📂</span> Carga de Datos
                         </label>
+
+                        <!-- Botón Exportar reporte -->
                         <button id="exportBtn" disabled onclick="RhAsisFBio.exportarExcel()" class="bg-stone-300 opacity-50 cursor-not-allowed text-stone-700 px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
-                            <span>📥</span> Exportar Todo
+                            <span>📥</span> Exportar reporte
                         </button>
                     </div>
-                    <div id="statsCounter" class="text-xs text-stone-600 font-medium"></div>
-                </div>
 
-                <!-- Buscador y Toolbar -->
-                <div id="toolbarBiometrico" class="hidden flex items-center justify-between bg-white p-4 rounded-xl border border-stone-200 shadow-xs">
-                    <div class="relative w-full max-w-md">
+                    <!-- 🎯 Grupo Derecho: Buscador por nombre o número de empleado alineado a la línea principal -->
+                    <div class="relative w-full sm:w-80">
                         <span class="absolute left-3 top-1/2 -translate-y-1/2 opacity-50">🔍</span>
-                        <input type="text" id="searchInputBio" placeholder="Buscar empleado por nombre o ID..." oninput="RhAsisCasc.filtrarPestañas(this.value)"
-                            class="w-full pl-10 pr-4 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-[#249444] transition-all">
+                        <input type="text" id="searchInputBio" placeholder="Buscar por nombre o N° emp..." oninput="RhAsisCasc.filtrarPestañas(this.value)"
+                            class="w-full pl-10 pr-4 py-2.5 bg-white border border-stone-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-[#249444] transition-all shadow-xs">
                     </div>
-                    <button onclick="RhAsisFBio.guardarDatosProcesados()" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl transition-all shadow-sm flex items-center gap-1.5 cursor-pointer">
-                        💾 Guardar Datos en Sistema
-                    </button>
                 </div>
 
                 <!-- Contenedor Principal de Pestañas y Datos -->
@@ -79,18 +78,84 @@ window.RhAsisCasc = {
         }
     },
 
+    // 🎯 FUSIÓN DE ACCIÓN: Carga el archivo, lo procesa en pantalla y lo guarda automáticamente en Sheets
+    manejarCargaYGuardadoAutomatico: async function(input) {
+        const file = input.files[0];
+        if (!file) return;
+
+        try {
+            // 1. Ejecutamos la función original que procesa el archivo y llena RhAsisFBio.groupedData
+            if (typeof RhAsisFBio.manejarCargaArchivo === 'function') {
+                await RhAsisFBio.manejarCargaArchivo(input);
+            } else if (typeof RhAsisFBio.procesarArchivoBiometrico === 'function') {
+                await RhAsisFBio.procesarArchivoBiometrico(file);
+            }
+
+            if (!window.RhAsisFBio.groupedData || Object.keys(window.RhAsisFBio.groupedData).length === 0) {
+                alert("El archivo se leyó pero no se encontraron datos válidos.");
+                return;
+            }
+
+            // 2. Renderizamos las pestañas en pantalla de inmediato
+            RhAsisCasc.renderTabs();
+
+            // 3. Preparamos los datos estructurados para enviarlos a Google Sheets
+            const rowsParaSheets = [];
+            Object.keys(RhAsisFBio.groupedData).forEach(id => {
+                const empleado = RhAsisFBio.groupedData[id];
+                empleado.rows.forEach(row => {
+                    rowsParaSheets.push([
+                        row[0] || "",   // NumEmp
+                        row[4] || "",   // RHBHraEnt
+                        row[5] || "",   // RHBHraSal
+                        row[6] || "",   // RHBHraReg
+                        row[7] || "",   // RHBNomReg
+                        row[8] || "",   // RHBFecReg
+                        row[9] || "",   // RHBDía
+                        row[10] || "",  // RHBRetMen
+                        row[11] || "",  // RHBRetMed
+                        row[12] || "",  // RHBRetMay
+                        row[13] || ""   // RHBFalta
+                    ]);
+                });
+            });
+
+            console.log("Enviando " + rowsParaSheets.length + " registros a Google Sheets...");
+
+            // 4. Guardado automático usando la FetchAPI centralizada de api.js
+            if (typeof FetchAPI === 'function') {
+                const resultado = await FetchAPI("guardarBiometrico", {
+                    filas: rowsParaSheets
+                });
+
+                if (resultado && resultado.success) {
+                    console.log("✅ Guardado en Sheets exitoso:", resultado.message);
+                } else {
+                    console.warn("⚠️ Aviso al guardar en Sheets:", resultado ? resultado.message : "Desconocido");
+                }
+            } else {
+                console.error("FetchAPI no está disponible globalmente.");
+            }
+
+        } catch (error) {
+            console.error("Error en la carga y guardado automático:", error);
+            alert("❌ Ocurrió un error al procesar el archivo o guardarlo en el sistema.");
+        } finally {
+            // Limpiamos el input file para permitir volver a cargar el mismo archivo si es necesario
+            input.value = "";
+        }
+    },
+
     renderTabs: function(filter = "") {
         const tabContainer = document.getElementById('tabContainerBio');
         const emptyState = document.getElementById('emptyStateBio');
         const appContainer = document.getElementById('appContainerBio');
-        const toolbar = document.getElementById('toolbarBiometrico');
         const exportBtn = document.getElementById('exportBtn');
 
         if (!tabContainer || !window.RhAsisFBio || !window.RhAsisFBio.groupedData) return;
 
         emptyState.classList.add('hidden');
         appContainer.classList.remove('hidden');
-        toolbar.classList.remove('hidden');
 
         exportBtn.disabled = false;
         exportBtn.className = "bg-[#249444] hover:bg-[#1b7033] text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-2 cursor-pointer";

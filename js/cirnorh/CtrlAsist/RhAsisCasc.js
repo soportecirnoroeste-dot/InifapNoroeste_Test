@@ -115,12 +115,18 @@ window.RhAsisCasc = {
             
             const primerId = Object.keys(RhAsisFBio.groupedData)[0];
             if (primerId && RhAsisFBio.groupedData[primerId].rows.length > 0) {
-                const primeraFila = RhAsisFBio.groupedData[primerId].rows[0];
+                const primeraFila = RhAsisFBio.groupedData[primerId].rows.length > 0 ? RhAsisFBio.groupedData[primerId].rows[0] : [];
                 primerNumEmp = primeraFila[0] || ""; // Columna 0 (NumEmp)
                 rawFecha = primeraFila[8] || primeraFila[9] || ""; // Columna de Fecha
             }
 
-            // Normalizar formato de fecha para visualización en consola
+            if (!rawFecha) {
+                alert("⚠️ No se pudo detectar la fecha en el archivo.");
+                window.RhAsisFBio.groupedData = {};
+                return;
+            }
+
+            // Normalizar formato de fecha a YYYY-MM-DD
             let fechaNormalizada = "";
             if (rawFecha instanceof Date) {
                 fechaNormalizada = rawFecha.toISOString().split('T')[0];
@@ -138,20 +144,35 @@ window.RhAsisCasc = {
                 }
             }
 
-            // 🛑 MODO PRUEBA: Imprimir en consola y detener ejecución (NO GUARDA NADA)
-            console.log("🛑 [MODO PRUEBA] Primer registro detectado en el archivo:");
-            console.log("📌 NumEmp:", primerNumEmp);
-            console.log("📅 Fecha detectada:", rawFecha, "| Normalizada:", fechaNormalizada);
+            // 📢 MOSTRAR EN PANTALLA EL PRIMER REGISTRO ENCONTRADO
+            alert(`🔍 [PASO 1] Primer registro leído:\n\n• NumEmp: ${primerNumEmp}\n• Fecha: ${fechaNormalizada}`);
 
-            alert(`🛑 [MODO PRUEBA] Revisa tu consola (F12).\n\nNumEmp: ${primerNumEmp}\nFecha: ${fechaNormalizada}\n\n(No se guardó nada en el servidor).`);
-            
-            // Limpiamos los datos locales para abortar el flujo
-            window.RhAsisFBio.groupedData = {};
-            return;
+            if (textCarga) {
+                textCarga.innerText = "Verificando en sistema...";
+            }
+
+            // 4. CONSULTAR AL BACKEND SI LA FECHA YA EXISTE EN GOOGLE SHEETS
+            if (typeof FetchAPI === 'function') {
+                const verificacion = await FetchAPI("verificarFechaBiometrico", { fecha: fechaNormalizada });
+                console.log("📥 Respuesta de verificación del servidor:", verificacion);
+
+                const yaExiste = verificacion && (verificacion.existe === true || verificacion.existe === "true");
+
+                // 📢 MOSTRAR EN PANTALLA Y EN CONSOLA EL RESULTADO DE LA BUSQUEDA (TRUE / FALSE)
+                console.log("🔎 ¿Se encontró la fecha en Sheets?", yaExiste);
+                alert(`📋 [PASO 2] Resultado de búsqueda en Google Sheets:\n\n¿La fecha ${fechaNormalizada} fue encontrada? -> ${yaExiste}\n\n(No se guardará nada, prueba finalizada).`);
+
+                // Limpiamos los datos locales para abortar el flujo y asegurar que no guarde nada
+                window.RhAsisFBio.groupedData = {};
+                return;
+
+            } else {
+                console.error("FetchAPI no está disponible globalmente.");
+            }
 
         } catch (error) {
             console.error("Error en la prueba:", error);
-            alert("❌ Ocurrió un error al procesar el archivo.");
+            alert("❌ Ocurrió un error al procesar la validación.");
             window.RhAsisFBio.groupedData = {};
         } finally {
             // 🔄 RESTAURAR BOTÓN Y SPINNER

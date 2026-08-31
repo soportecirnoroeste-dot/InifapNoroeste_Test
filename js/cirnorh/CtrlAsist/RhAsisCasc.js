@@ -152,50 +152,52 @@ window.RhAsisCasc = {
 
                 const yaExiste = verificacion && (verificacion.existe === true || verificacion.existe === "true");
 
-                // 🛑 SI YA EXISTE: DETENEMOS EL FLUJO Y NO GUARDAMOS NADA
+                // 🛑 BLOQUE CONDICIONAL ESTRICTO (IF / ELSE)
                 if (yaExiste) {
+                    // SI YA EXISTE: FRENAMOS TODO AQUÍ Y NO GUARDAMOS NADA
                     window.RhAsisFBio.groupedData = {}; 
                     alert("🛑 Los datos de la fecha " + fechaNormalizada + " ya fueron cargados anteriormente. No se realizará ningún guardado.");
                     return; 
-                }
-
-                // 5. SI NO EXISTE: PROCEDEMOS A GUARDAR LOS DATOS EN GOOGLE SHEETS
-                if (textCarga) {
-                    textCarga.innerText = "Guardando datos...";
-                }
-
-                const rowsParaSheets = [];
-                Object.keys(RhAsisFBio.groupedData).forEach(id => {
-                    const empleado = RhAsisFBio.groupedData[id];
-                    empleado.rows.forEach(row => {
-                        rowsParaSheets.push([
-                            row[0] || "",   // NumEmp
-                            row[4] || "",   // RHBHraEnt
-                            row[5] || "",   // RHBHraSal
-                            row[6] || "",   // RHBHraReg
-                            row[7] || "",   // RHBNomReg
-                            row[8] || "",   // RHBFecReg
-                            row[9] || "",   // RHBDía
-                            row[10] || "",  // RHBRetMen
-                            row[11] || "",  // RHBRetMed
-                            row[12] || "",  // RHBRetMay
-                            row[13] || ""   // RHBFalta
-                        ]);
-                    });
-                });
-
-                const resultado = await FetchAPI("guardarBiometrico", {
-                    filas: rowsParaSheets
-                });
-
-                if (resultado && resultado.success) {
-                    alert(`✅ ¡Datos cargados y guardados exitosamente en Google Sheets (${rowsParaSheets.length} registros)!`);
-                    if (typeof RhAsisCasc.renderTabs === 'function') {
-                        RhAsisCasc.renderTabs();
-                    }
                 } else {
-                    alert("⚠️ Aviso al guardar en Sheets: " + (resultado ? resultado.message : "Desconocido"));
+                    // SI NO EXISTE: ÚNICAMENTE AQUÍ SE PROCEDE A GUARDAR
+                    if (textCarga) {
+                        textCarga.innerText = "Guardando datos...";
+                    }
+
+                    const rowsParaSheets = [];
+                    Object.keys(RhAsisFBio.groupedData).forEach(id => {
+                        const empleado = RhAsisFBio.groupedData[id];
+                        empleado.rows.forEach(row => {
+                            rowsParaSheets.push([
+                                row[0] || "",   // NumEmp
+                                row[4] || "",   // RHBHraEnt
+                                row[5] || "",   // RHBHraSal
+                                row[6] || "",   // RHBHraReg
+                                row[7] || "",   // RHBNomReg
+                                row[8] || "",   // RHBFecReg
+                                row[9] || "",   // RHBDía
+                                row[10] || "",  // RHBRetMen
+                                row[11] || "",  // RHBRetMed
+                                row[12] || "",  // RHBRetMay
+                                row[13] || ""   // RHBFalta
+                            ]);
+                        });
+                    });
+
+                    const resultado = await FetchAPI("guardarBiometrico", {
+                        filas: rowsParaSheets
+                    });
+
+                    if (resultado && resultado.success) {
+                        alert(`✅ ¡Datos cargados y guardados exitosamente en Google Sheets (${rowsParaSheets.length} registros)!`);
+                        if (typeof RhAsisCasc.renderTabs === 'function') {
+                            RhAsisCasc.renderTabs();
+                        }
+                    } else {
+                        alert("⚠️ Aviso al guardar en Sheets: " + (resultado ? resultado.message : "Desconocido"));
+                    }
                 }
+
             } else {
                 console.error("FetchAPI no está disponible globalmente.");
             }

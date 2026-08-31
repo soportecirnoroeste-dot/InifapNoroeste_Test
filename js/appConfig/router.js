@@ -2,6 +2,7 @@
 (function () {
     const params = new URLSearchParams(window.location.search);
     let nombreCortoUrl = (params.get('depto') || '').toLowerCase().trim();
+    let seccionUrl = (params.get('seccion') || '').toLowerCase().trim();
 
     if (!nombreCortoUrl) {
         nombreCortoUrl = (localStorage.getItem('depto_activo_actual') || '').toLowerCase().trim();
@@ -14,6 +15,13 @@
     }
 
     localStorage.setItem('depto_activo_actual', nombreCortoUrl);
+
+    // Si la URL trae una sección, la respaldamos en sessionStorage; si no, intentamos recuperarla
+    if (seccionUrl) {
+        sessionStorage.setItem('seccion_activa_actual', seccionUrl);
+    } else {
+        seccionUrl = sessionStorage.getItem('seccion_activa_actual') || '';
+    }
 
     // 1. Obtener el nombre oficial de la caché
     let nombreOficialDep = nombreCortoUrl;
@@ -39,10 +47,8 @@
     const script = document.createElement('script');
     script.src = `js/${nombreCortoUrl}/${nombreCortoUrl}.js`;
     script.onload = () => {
-        // Buscamos de forma flexible la variable de configuración global sin importar mayúsculas/minúsculas exactas
         let deptoData = null;
 
-        // Intentar nombres comunes: [depto]Config, [depto], o buscar en window la que termine en Config
         const posiblesNombres = [
             nombreCortoUrl + 'Config',
             nombreCortoUrl.toUpperCase() + 'Config',
@@ -65,8 +71,20 @@
             const contenedorApp = document.getElementById('app-container');
             if (!contenedorApp) return;
 
-            // Renderizamos el menú de tarjetas correctamente para este departamento
-            window.restaurarMenuDepto(nombreCortoUrl);
+            // RESTAURACIÓN INTELIGENTE TRAS F5 SEGÚN LA SECCIÓN ACTIVA:
+            if (seccionUrl === 'asistencia' && typeof window.cargarAsistenciaRh === 'function') {
+                window.cargarAsistenciaRh();
+                if (typeof window.actualizarBotonRegresar === 'function') {
+                    window.actualizarBotonRegresar('submodulo', nombreCortoUrl);
+                }
+            } else if (seccionUrl === 'biometrico' && window.RhAsisCasc && typeof window.RhAsisCasc.mostrarVistaBiometrico === 'function') {
+                window.RhAsisCasc.mostrarVistaBiometrico();
+            } else if (seccionUrl && window.RhAsisCasc && typeof window.RhAsisCasc[seccionUrl] === 'function') {
+                window.RhAsisCasc[seccionUrl]();
+            } else {
+                // Si no hay sub-sección activa previa, mostramos el menú de tarjetas principal
+                window.restaurarMenuDepto(nombreCortoUrl);
+            }
 
         } else {
             console.error("No se encontró una estructura de opciones válida para el depto: " + nombreCortoUrl);
@@ -88,7 +106,13 @@ window.restaurarMenuDepto = function (nombreCortoUrl) {
         nombreCortoUrl = localStorage.getItem('depto_activo_actual') || '';
     }
 
-    // Buscar la configuración activa en la ventana
+    // Limpiamos los rastros de sub-sección al volver al menú principal de tarjetas
+    sessionStorage.removeItem('seccion_activa_actual');
+
+    const urlClean = new URL(window.location);
+    urlClean.searchParams.delete('seccion');
+    window.history.replaceState({}, '', urlClean);
+
     const nombreVarEncontrada = Object.keys(window).find(k => k.toLowerCase() === nombreCortoUrl.toLowerCase() + 'config');
     const deptoData = nombreVarEncontrada ? window[nombreVarEncontrada] : null;
     const contenedorApp = document.getElementById('app-container');
@@ -158,7 +182,6 @@ window.actualizarBotonRegresar = function (modo, deptoKey = '', extraData = null
         basePath = `/${pathSegments[0]}`;
     }
 
-    // Limpiamos eventos anteriores clonando el nodo
     const nuevoBtn = btnRegresar.cloneNode(true);
     btnRegresar.parentNode.replaceChild(nuevoBtn, btnRegresar);
 
@@ -175,18 +198,15 @@ window.actualizarBotonRegresar = function (modo, deptoKey = '', extraData = null
         };
     } 
     else if (modo === 'vista-interna') {
-        // NUEVO: Para regresar desde el Biométrico a la sección de Asistencia
         nuevoBtn.href = "#";
         nuevoBtn.title = "Regresar al submódulo de asistencia";
         nuevoBtn.onclick = (e) => {
             e.preventDefault();
-            // Ejecutamos la función que vuelve a pintar la asistencia o el callback que le pases
             if (typeof extraData === 'function') {
                 extraData();
             } else if (window.RhAsisCasc && typeof window.RhAsisCasc.mostrarVistaAsistencia === 'function') {
                 window.RhAsisCasc.mostrarVistaAsistencia();
             } else {
-                // Alternativa si manejas la recarga por secciones de tu SPA
                 window.location.href = `main.html?depto=${deptoKey}&seccion=asistencia`;
             }
         };

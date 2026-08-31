@@ -9,7 +9,6 @@ window.RhAsisCasc = {
             return;
         }
 
-        // INTEGRACIÓN: Configuramos el botón de regresar para que vuelva al submódulo de asistencia
         const nombreCortoActual = localStorage.getItem('depto_activo_actual') || 'cirnorh';
         if (typeof window.actualizarBotonRegresar === 'function') {
             window.actualizarBotonRegresar('vista-interna', nombreCortoActual, () => {
@@ -73,6 +72,11 @@ window.RhAsisCasc = {
                 </div>
             </div>
         `;
+
+        // Si ya había datos en memoria/sesión al pintar la vista, los renderizamos de inmediato
+        if (window.RhAsisFBio && window.RhAsisFBio.groupedData && Object.keys(window.RhAsisFBio.groupedData).length > 0) {
+            RhAsisCasc.renderTabs();
+        }
     },
 
     renderTabs: function(filter = "") {
@@ -104,6 +108,11 @@ window.RhAsisCasc = {
             tabContainer.appendChild(tabBtn);
             if (index === 0) RhAsisCasc.switchTab(id, tabBtn);
         });
+    },
+
+    // Alias para evitar errores de sincronización de nombres
+    renderTabsBiometrico: function(filter = "") {
+        RhAsisCasc.renderTabs(filter);
     },
 
     switchTab: function(id, element) {
@@ -148,13 +157,5 @@ window.RhAsisCasc = {
 
     filtrarPestañas: function(texto) {
         RhAsisCasc.renderTabs(texto);
-    },
-
-    mostrarControlRetardos: function() {
-        alert("Control de Retardos cargado desde la estructura modular.");
-    },
-
-    mostrarReporteGlobal: function() {
-        alert("Reporte de Asistencia global.");
     }
 };

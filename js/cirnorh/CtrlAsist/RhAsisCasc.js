@@ -144,9 +144,6 @@ window.RhAsisCasc = {
                 }
             }
 
-            // 📢 MOSTRAR EN PANTALLA EL PRIMER REGISTRO ENCONTRADO
-            alert(`🔍 [PASO 1] Primer registro leído:\n\n• NumEmp: ${primerNumEmp}\n• Fecha: ${fechaNormalizada}`);
-
             if (textCarga) {
                 textCarga.innerText = "Verificando en sistema...";
             }
@@ -158,21 +155,61 @@ window.RhAsisCasc = {
 
                 const yaExiste = verificacion && (verificacion.existe === true || verificacion.existe === "true");
 
-                // 📢 MOSTRAR EN PANTALLA Y EN CONSOLA EL RESULTADO DE LA BUSQUEDA (TRUE / FALSE)
                 console.log("🔎 ¿Se encontró la fecha en Sheets?", yaExiste);
-                alert(`📋 [PASO 2] Resultado de búsqueda en Google Sheets:\n\n¿La fecha ${fechaNormalizada} fue encontrada? -> ${yaExiste}\n\n(No se guardará nada, prueba finalizada).`);
 
-                // Limpiamos los datos locales para abortar el flujo y asegurar que no guarde nada
-                window.RhAsisFBio.groupedData = {};
-                return;
+                // 🛑 BLOQUE CONDICIONAL ESTRICTO (IF / ELSE)
+                if (yaExiste) {
+                    // SI YA EXISTE: DETENEMOS EL FLUJO Y NO GUARDAMOS NADA
+                    window.RhAsisFBio.groupedData = {}; 
+                    alert(`🛑 Los datos de la fecha ${fechaNormalizada} ya fueron cargados anteriormente. No se realizará ningún guardado.`);
+                    return; 
+                } else {
+                    // 5. SI NO EXISTE: PROCEDEMOS A GUARDAR LOS DATOS EN GOOGLE SHEETS
+                    if (textCarga) {
+                        textCarga.innerText = "Guardando datos...";
+                    }
+
+                    const rowsParaSheets = [];
+                    Object.keys(RhAsisFBio.groupedData).forEach(id => {
+                        const empleado = RhAsisFBio.groupedData[id];
+                        empleado.rows.forEach(row => {
+                            rowsParaSheets.push([
+                                row[0] || "",   // NumEmp
+                                row[4] || "",   // RHBHraEnt
+                                row[5] || "",   // RHBHraSal
+                                row[6] || "",   // RHBHraReg
+                                row[7] || "",   // RHBNomReg
+                                row[8] || "",   // RHBFecReg
+                                row[9] || "",   // RHBDía
+                                row[10] || "",  // RHBRetMen
+                                row[11] || "",  // RHBRetMed
+                                row[12] || "",  // RHBRetMay
+                                row[13] || ""   // RHBFalta
+                            ]);
+                        });
+                    });
+
+                    const resultado = await FetchAPI("guardarBiometrico", {
+                        filas: rowsParaSheets
+                    });
+
+                    if (resultado && resultado.success) {
+                        alert(`✅ ¡Datos cargados y guardados exitosamente en Google Sheets (${rowsParaSheets.length} registros)!`);
+                        if (typeof RhAsisCasc.renderTabs === 'function') {
+                            RhAsisCasc.renderTabs();
+                        }
+                    } else {
+                        alert("⚠️ Aviso al guardar en Sheets: " + (resultado ? resultado.message : "Desconocido"));
+                    }
+                }
 
             } else {
                 console.error("FetchAPI no está disponible globalmente.");
             }
 
         } catch (error) {
-            console.error("Error en la prueba:", error);
-            alert("❌ Ocurrió un error al procesar la validación.");
+            console.error("Error en la validación y carga:", error);
+            alert("❌ Ocurrió un error al procesar la validación y carga.");
             window.RhAsisFBio.groupedData = {};
         } finally {
             // 🔄 RESTAURAR BOTÓN Y SPINNER

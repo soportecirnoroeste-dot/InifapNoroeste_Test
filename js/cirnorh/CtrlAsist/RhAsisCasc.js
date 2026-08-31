@@ -1,9 +1,9 @@
 // js/cirnorh/asistencia/RhAsisCasc.js
 
 window.RhAsisCasc = {
-    mostrarVistaBiometrico: function() {
+    mostrarVistaBiometrico: function () {
         const contenedor = document.getElementById('app-container') || document.querySelector('main') || document.body;
-        
+
         if (!contenedor) {
             console.error("❌ ERROR: No se encontró ningún contenedor para pintar la vista.");
             return;
@@ -75,7 +75,7 @@ window.RhAsisCasc = {
         }
     },
 
-    manejarCargaYGuardadoAutomatico: async function(input) {
+    manejarCargaYGuardadoAutomatico: async function (input) {
         const file = input.files[0];
         if (!file) return;
 
@@ -112,7 +112,7 @@ window.RhAsisCasc = {
             // 3. Extraer el primer NumEmp y la primera Fecha de los datos cargados
             let primerNumEmp = "";
             let rawFecha = "";
-            
+
             const primerId = Object.keys(RhAsisFBio.groupedData)[0];
             if (primerId && RhAsisFBio.groupedData[primerId].rows.length > 0) {
                 const primeraFila = RhAsisFBio.groupedData[primerId].rows.length > 0 ? RhAsisFBio.groupedData[primerId].rows[0] : [];
@@ -154,20 +154,20 @@ window.RhAsisCasc = {
             // 4. CONSULTAR AL BACKEND SI LA FECHA YA EXISTE EN GOOGLE SHEETS
             if (typeof FetchAPI === 'function') {
                 const verificacion = await FetchAPI("verificarFechaBiometrico", { fecha: fechaNormalizada });
-                console.log("📥 Respuesta de verificación del servidor:", verificacion);
+                console.log("📥 Respuesta cruda del servidor:", verificacion);
 
-                const yaExiste = verificacion && (verificacion.existe === true || verificacion.existe === "true");
+                // Forzamos la validación a booleano real
+                const yaExiste = verificacion && (verificacion.existe === true || verificacion.existe === "true" || String(verificacion.existe).toLowerCase() === "true");
 
-                // 📢 [PASO 2] MOSTRAR EL RESULTADO DE LA BÚSQUEDA (TRUE / FALSE)
-                console.log("🔎 ¿Se encontró la fecha en Sheets?", yaExiste);
+                console.log("🔎 ¿Se encontró la fecha en Sheets (Evaluado)?", yaExiste);
                 alert(`📋 [PASO 2] Resultado de búsqueda en Google Sheets:\n\n¿La fecha ${fechaNormalizada} fue encontrada? -> ${yaExiste}`);
 
                 // 🛑 BLOQUE CONDICIONAL ESTRICTO (IF / ELSE)
                 if (yaExiste) {
                     // SI YA EXISTE: FRENAMOS TODO AQUÍ Y NO GUARDAMOS NADA
-                    window.RhAsisFBio.groupedData = {}; 
+                    window.RhAsisFBio.groupedData = {};
                     alert(`🛑 Los datos de la fecha ${fechaNormalizada} ya fueron cargados anteriormente. No se realizará ningún guardado.`);
-                    return; 
+                    return;
                 } else {
                     // SI NO EXISTE: ÚNICAMENTE AQUÍ SE PROCEDE A GUARDAR
                     if (textCarga) {
@@ -233,7 +233,7 @@ window.RhAsisCasc = {
         }
     },
 
-    renderTabs: function(filter = "") {
+    renderTabs: function (filter = "") {
         const tabContainer = document.getElementById('tabContainerBio');
         const emptyState = document.getElementById('emptyStateBio');
         const appContainer = document.getElementById('appContainerBio');
@@ -268,11 +268,11 @@ window.RhAsisCasc = {
         });
     },
 
-    renderTabsBiometrico: function(filter = "") {
+    renderTabsBiometrico: function (filter = "") {
         RhAsisCasc.renderTabs(filter);
     },
 
-    switchTab: function(id, element) {
+    switchTab: function (id, element) {
         document.querySelectorAll('#tabContainerBio button').forEach(b => {
             b.classList.remove('border-[#249444]', 'text-[#249444]', 'bg-white');
             b.classList.add('border-transparent', 'text-stone-500');
@@ -304,7 +304,7 @@ window.RhAsisCasc = {
         `;
     },
 
-    getRowVisualClass: function(row) {
+    getRowVisualClass: function (row) {
         if (row[13] && row[13] !== "") return "bg-red-500 text-white font-bold";
         if (row[12] && row[12] !== "") return "bg-orange-600 text-white";
         if (row[11] && row[11] !== "") return "bg-orange-400 text-black";
@@ -312,7 +312,7 @@ window.RhAsisCasc = {
         return "bg-emerald-50/40 text-stone-700";
     },
 
-    filtrarPestañas: function(texto) {
+    filtrarPestañas: function (texto) {
         RhAsisCasc.renderTabs(texto);
     }
 };

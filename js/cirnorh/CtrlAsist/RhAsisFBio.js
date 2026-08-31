@@ -6,8 +6,9 @@ window.RhAsisFBio = {
 
     // Inicializador automático para enlazar el botón de guardar si existe en el DOM
     init: function() {
-        const btnGuardar = document.getElementById('btnGuardarBiometrico') || document.querySelector('.btn-guardar-biometrico');
-        if (btnGuardar) {
+        const btnGuardar = document.getElementById('btnGuardarBiometrico') || document.querySelector('.btn-guardar-biometrico') || document.getElementById('exportBtn');
+        if (btnGuardar && !btnGuardar.classList.contains('auth-institucional-locked')) {
+            // Si el botón ya está disponible, aseguramos el enlace
             btnGuardar.onclick = () => RhAsisFBio.guardarDatosProcesados();
         }
     },
@@ -48,11 +49,23 @@ window.RhAsisFBio = {
             RhAsisFBio.groupedData[empId].rows.push(row);
         });
 
-        if (Object.keys(RhAsisFBio.groupedData).length > 0) {
+        const totalEmpleados = Object.keys(RhAsisFBio.groupedData).length;
+
+        if (totalEmpleados > 0) {
             const statsElement = document.getElementById('statsCounter');
             if (statsElement) {
-                statsElement.innerHTML = `Total: <span class="text-[#249444] font-bold">${Object.keys(RhAsisFBio.groupedData).length} empleados</span> detectados`;
+                statsElement.innerHTML = `Total: <span class="text-[#249444] font-bold">${totalEmpleados} empleados</span> detectados`;
             }
+
+            // Mejora automática: Habilitar y conectar botón de guardado en cuanto detecta datos
+            const btnExport = document.getElementById('exportBtn') || document.getElementById('btnGuardarBiometrico');
+            if (btnExport) {
+                btnExport.removeAttribute('disabled');
+                btnExport.classList.remove('bg-stone-300', 'opacity-50', 'cursor-not-allowed');
+                btnExport.classList.add('bg-[#249444]', 'hover:bg-[#1b7033]', 'text-white', 'cursor-pointer');
+                btnExport.onclick = () => RhAsisFBio.guardarDatosProcesados();
+            }
+
             // Delegamos la renderización de pestañas a la capa cascada/vistas
             if (typeof RhAsisCasc !== 'undefined' && RhAsisCasc.renderTabsBiometrico) {
                 RhAsisCasc.renderTabsBiometrico();

@@ -34,10 +34,9 @@ window.RhAsisCasc = {
                 <!-- Barra de Acciones y Carga de Archivo -->
                 <div class="flex flex-wrap items-center justify-between gap-4 bg-stone-50 p-4 rounded-2xl border border-stone-200">
                     <div class="flex items-center gap-3">
-                        <input type="file" id="uploadBiometrico" class="hidden" accept=".xlsx, .xlsm, .csv" onchange="RhAsisFBio.manejarCargaArchivo(this)">
-                        <label for="uploadBiometrico" class="px-4 py-2.5 bg-[#249444] hover:bg-[#1b7033] text-white text-xs font-bold rounded-xl cursor-pointer shadow-sm transition-all flex items-center gap-2">
-                            <span>📂</span> Cargar Reporte Biométrico
-                        </label>
+                        <button onclick="RhAsisFBio.guardarDatosProcesados()" class="bg-[#249444] hover:bg-[#1b7033] text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-sm">
+                            <span>📊</span> Cargar Datos
+                        </button>
                         <button id="exportBtn" disabled onclick="RhAsisFBio.exportarExcel()" class="bg-stone-300 opacity-50 cursor-not-allowed text-stone-700 px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
                             <span>📥</span> Exportar Todo
                         </button>

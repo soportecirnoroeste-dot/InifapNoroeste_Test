@@ -153,25 +153,24 @@ window.RhAsisCasc = {
 
             // 4. CONSULTAR AL BACKEND SI LA FECHA YA EXISTE EN GOOGLE SHEETS
             if (typeof FetchAPI === 'function') {
+                // Tomamos el primer NumEmp del grupo o de tus datos actuales
+                const primerNumEmp = Object.keys(RhAsisFBio.groupedData)[0] || "";
+
                 const verificacion = await FetchAPI("verificarFechaBiometrico", {
-                    action: "verificarFechaBiometrico", // <--- ¡Asegúrate de mandar esto!
+                    action: "verificarFechaBiometrico",
+                    numEmp: primerNumEmp,
                     fecha: fechaNormalizada
                 });
 
-                console.log("📥 Respuesta cruda completa:", verificacion);
-                alert("📥 Respuesta del servidor:\n" + JSON.stringify(verificacion, null, 2));
+                console.log("📥 Respuesta cruda del servidor:", verificacion);
 
                 const yaExiste = verificacion && (verificacion.existe === true || verificacion.existe === "true");
-                console.log("🔎 ¿Se encontró la fecha en Sheets (Evaluado)?", yaExiste);
-                /* alert(`📋 [PASO 2] Resultado de búsqueda en Google Sheets:\n\n¿La fecha ${fechaNormalizada} fue encontrada? -> ${yaExiste}`);*/
 
-                // 🛑 BLOQUE CONDICIONAL ESTRICTO (IF / ELSE)
-                /*if (yaExiste) {
-                    // SI YA EXISTE: FRENAMOS TODO AQUÍ Y NO GUARDAMOS NADA
-                    window.RhAsisFBio.groupedData = {}; 
-                    alert(`🛑 Los datos de la fecha ${fechaNormalizada} ya fueron cargados anteriormente. No se realizará ningún guardado.`);
-                    return; 
-                } else {
+                if (yaExiste) {
+                    window.RhAsisFBio.groupedData = {};
+                    alert(`🛑 Los datos del empleado ${primerNumEmp} para la fecha ${fechaNormalizada} ya fueron cargados anteriormente.`);
+                    return;
+                }/* else {
                     // SI NO EXISTE: ÚNICAMENTE AQUÍ SE PROCEDE A GUARDAR
                     if (textCarga) {
                         textCarga.innerText = "Guardando datos...";

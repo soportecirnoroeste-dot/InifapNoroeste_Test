@@ -154,7 +154,7 @@ window.RhAsisCasc = {
             // 4. CONSULTAR AL BACKEND SI LA FECHA YA EXISTE EN GOOGLE SHEETS
             if (typeof FetchAPI === 'function') {
                 const verificacion = await FetchAPI("verificarFechaBiometrico", { fecha: fechaNormalizada });
-                console.log("📥 Respuesta cruda del servidor:", verificacion);
+                alert("📥 Respuesta cruda del servidor:", verificacion);
 
                 // Forzamos la validación a booleano real
                 const yaExiste = verificacion && (verificacion.existe === true || verificacion.existe === "true" || String(verificacion.existe).toLowerCase() === "true");

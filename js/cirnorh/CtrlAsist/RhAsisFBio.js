@@ -4,6 +4,14 @@ window.RhAsisFBio = {
     groupedData: {},
     rawHeader: [],
 
+    // Inicializador automático para enlazar el botón de guardar si existe en el DOM
+    init: function() {
+        const btnGuardar = document.getElementById('btnGuardarBiometrico') || document.querySelector('.btn-guardar-biometrico');
+        if (btnGuardar) {
+            btnGuardar.onclick = () => RhAsisFBio.guardarDatosProcesados();
+        }
+    },
+
     // Maneja la carga y lectura del archivo Excel/CSV del biométrico
     manejarCargaArchivo: function(input) {
         const file = input.files[0];
@@ -55,7 +63,7 @@ window.RhAsisFBio = {
     // Acción para mapear los datos y exportarlos listos para Google Sheets
     guardarDatosProcesados: function() {
         if (Object.keys(RhAsisFBio.groupedData).length === 0) {
-            alert("No hay datos cargados para guardar.");
+            alert("No hay datos cargados para guardar. Por favor carga primero el reporte.");
             return;
         }
 
@@ -91,14 +99,18 @@ window.RhAsisFBio = {
                 });
             });
 
-            // Generamos un archivo Excel descargable con el formato listo para el Sheets
+            // Imprimimos una vista previa limpia en la consola del navegador
+            console.log("--- DATOS MAPEADOS PARA GOOGLE SHEETS ---");
+            console.table(rowsParaSheets);
+
+            // Generamos un archivo Excel descargable listo para pegarse en el Sheets
             const wb = XLSX.utils.book_new();
             const ws = XLSX.utils.aoa_to_sheet(rowsParaSheets);
             XLSX.utils.book_append_sheet(wb, ws, "Biometrico");
             
             XLSX.writeFile(wb, `Datos_Listos_Para_Google_Sheets.xlsx`);
             
-            alert("✅ ¡Datos leídos, mapeados y descargados con éxito en un Excel listo para tu Google Sheets!");
+            alert(`✅ ¡Se procesaron ${rowsParaSheets.length - 1} registros y se descargó el archivo Excel para tu Google Sheets!`);
         } catch (e) {
             console.error(e);
             alert("Error al procesar y guardar los datos.");
@@ -171,3 +183,10 @@ window.RhAsisFBio = {
         XLSX.writeFile(wb, `Reporte_Biometrico_INIFAP.xlsx`);
     }
 };
+
+// Auto-ejecutar init al cargar el script
+document.addEventListener('DOMContentLoaded', () => {
+    if (typeof RhAsisFBio !== 'undefined' && RhAsisFBio.init) {
+        RhAsisFBio.init();
+    }
+});

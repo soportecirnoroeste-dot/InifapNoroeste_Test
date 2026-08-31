@@ -96,7 +96,7 @@ window.RhAsisFBio = {
         }
     },
 
-    guardarDatosProcesados: async function() {
+    guardarDatosProcesados: async function () {
         if (Object.keys(RhAsisFBio.groupedData).length === 0) {
             alert("No hay datos cargados para guardar. Por favor carga primero el reporte.");
             return;
@@ -104,31 +104,31 @@ window.RhAsisFBio = {
 
         const rowsParaSheets = [];
 
-        // Recorremos los datos agrupados del biométrico exactamente como se mapean para la tabla
+        // Mapeamos los datos agrupados exactamente como los requiere el backend
         Object.keys(RhAsisFBio.groupedData).forEach(id => {
             const empleado = RhAsisFBio.groupedData[id];
             empleado.rows.forEach(row => {
                 const filaMapeada = [
-                    row[0] || "",   // NumEmp (Columna A)
-                    row[4] || "",   // RHBHraEnt (Columna B)
-                    row[5] || "",   // RHBHraSal (Columna C)
-                    row[6] || "",   // RHBHraReg (Columna D)
-                    row[7] || "",   // RHBNomReg (Columna E)
-                    row[8] || "",   // RHBFecReg (Columna F)
-                    row[9] || "",   // RHBDía (Columna G)
-                    row[10] || "",  // RHBRetMen (Columna H)
-                    row[11] || "",  // RHBRetMed (Columna I)
-                    row[12] || "",  // RHBRetMay (Columna J)
-                    row[13] || ""   // RHBFalta (Columna K)
+                    row[0] || "",   // NumEmp
+                    row[4] || "",   // RHBHraEnt
+                    row[5] || "",   // RHBHraSal
+                    row[6] || "",   // RHBHraReg
+                    row[7] || "",   // RHBNomReg
+                    row[8] || "",   // RHBFecReg
+                    row[9] || "",   // RHBDía
+                    row[10] || "",  // RHBRetMen
+                    row[11] || "",  // RHBRetMed
+                    row[12] || "",  // RHBRetMay
+                    row[13] || ""   // RHBFalta
                 ];
                 rowsParaSheets.push(filaMapeada);
             });
         });
 
         try {
-            console.log("Enviando " + rowsParaSheets.length + " registros a Google Sheets mediante FetchAPI...");
+            console.log("Enviando " + rowsParaSheets.length + " registros a Google Sheets...");
 
-            // 🎯 Usamos tu función centralizada existente en api.js
+            // Llamamos a tu api.js centralizada para que guarde en la nube
             const resultado = await FetchAPI("guardarBiometrico", {
                 filas: rowsParaSheets
             });
@@ -136,12 +136,12 @@ window.RhAsisFBio = {
             if (resultado && resultado.success) {
                 alert(`✅ ¡Éxito! ${resultado.message}`);
             } else {
-                alert("⚠️ El servidor respondió pero hubo un problema: " + (resultado.message || "Desconocido"));
+                alert("⚠️ El servidor respondió con un aviso: " + (resultado.message || "Desconocido"));
             }
 
         } catch (error) {
-            console.error("Error al guardar en el sistema:", error);
-            alert("❌ Ocurrió un error crítico al intentar guardar los datos en Google Sheets. Revisa la consola para más detalles.");
+            console.error("Error al conectar con Google Sheets:", error);
+            alert("❌ Ocurrió un error al intentar guardar los datos en Google Sheets. Revisa la consola.");
         }
     },
 

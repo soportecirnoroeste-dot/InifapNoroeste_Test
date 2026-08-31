@@ -124,7 +124,6 @@ function renderizarVistaModulo(idOpt, descripcion, itemsIndice = []) {
     const contenedor = obtenerContenedor();
 
     if (contenedor && opt) {
-        // AQUÍ ESTÁ LA INTEGRACIÓN: Le decimos que actualice el botón para que regrese al menú principal del depto
         if (typeof window.actualizarBotonRegresar === 'function') {
             window.actualizarBotonRegresar('submodulo', nombreCortoActual);
         }
@@ -189,7 +188,6 @@ function procesarCargaInicialSeccion(event) {
     if (seccion === 'asistencia' && vista === 'biometrico') {
         sessionStorage.setItem('submodulo_activo_cirnorh', 'asistencia');
         
-        // 👉 AQUÍ ES DONDE DEBE IR EL BLOQUE:
         if (typeof window.actualizarBotonRegresar === 'function') {
             window.actualizarBotonRegresar('vista-interna', depto, 'seccion=asistencia');
         }
@@ -204,7 +202,6 @@ function procesarCargaInicialSeccion(event) {
     else if (seccion === 'asistencia') {
         sessionStorage.setItem('submodulo_activo_cirnorh', 'asistencia');
         
-        // Si estás en el submódulo general, el botón regresa al menú principal del depto
         if (typeof window.actualizarBotonRegresar === 'function') {
             window.actualizarBotonRegresar('submodulo', depto);
         }
@@ -225,7 +222,6 @@ function procesarCargaInicialSeccion(event) {
     else {
         sessionStorage.removeItem('submodulo_activo_cirnorh');
         
-        // En el menú principal, el botón regresa al index general de departamentos
         if (typeof window.actualizarBotonRegresar === 'function') {
             window.actualizarBotonRegresar('principal', depto);
         }
@@ -235,6 +231,8 @@ function procesarCargaInicialSeccion(event) {
         }
         if (typeof window.cargarMenuDepartamento === 'function') {
             window.cargarMenuDepartamento();
+        } else if (typeof window.restaurarMenuDepto === 'function') {
+            window.restaurarMenuDepto(depto);
         }
     }
 

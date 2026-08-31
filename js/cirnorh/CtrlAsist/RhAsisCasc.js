@@ -32,22 +32,20 @@ window.RhAsisCasc = {
 
                 <!-- Barra de Acciones Principales y Buscador alineado a la derecha -->
                 <div class="flex flex-wrap items-center justify-between gap-4 bg-stone-50 p-4 rounded-2xl border border-stone-200">
-                    <!-- Grupo Izquierdo: Botones principales (Carga de Datos fusionada y Exportar) -->
+                    <!-- Grupo Izquierdo: Botones principales con ID en el label para control del spinner -->
                     <div class="flex flex-wrap items-center gap-3">
                         <input type="file" id="uploadBiometrico" class="hidden" accept=".xlsx, .xlsm, .csv" onchange="RhAsisCasc.manejarCargaYGuardadoAutomatico(this)">
                         
-                        <!-- 🎯 Botón fusionado: Carga de Datos -->
-                        <label for="uploadBiometrico" class="px-4 py-2.5 bg-[#249444] hover:bg-[#1b7033] text-white text-xs font-bold rounded-xl cursor-pointer shadow-sm transition-all flex items-center gap-2">
-                            <span>📂</span> Carga de Datos
+                        <label id="labelCargaDatos" for="uploadBiometrico" class="px-4 py-2.5 bg-[#249444] hover:bg-[#1b7033] text-white text-xs font-bold rounded-xl cursor-pointer shadow-sm transition-all flex items-center gap-2">
+                            <span id="iconoCarga">📂</span> <span id="textoCargaBtn">Carga de Datos</span>
                         </label>
 
-                        <!-- Botón Exportar reporte -->
                         <button id="exportBtn" disabled onclick="RhAsisFBio.exportarExcel()" class="bg-stone-300 opacity-50 cursor-not-allowed text-stone-700 px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
                             <span>📥</span> Exportar reporte
                         </button>
                     </div>
 
-                    <!-- 🎯 Grupo Derecho: Buscador por nombre o número de empleado alineado a la línea principal -->
+                    <!-- Grupo Derecho: Buscador por nombre o número de empleado -->
                     <div class="relative w-full sm:w-80">
                         <span class="absolute left-3 top-1/2 -translate-y-1/2 opacity-50">🔍</span>
                         <input type="text" id="searchInputBio" placeholder="Buscar por nombre o N° emp..." oninput="RhAsisCasc.filtrarPestañas(this.value)"
@@ -72,19 +70,34 @@ window.RhAsisCasc = {
             </div>
         `;
 
-        // Si ya había datos en memoria/sesión al pintar la vista, los renderizamos de inmediato
         if (window.RhAsisFBio && window.RhAsisFBio.groupedData && Object.keys(window.RhAsisFBio.groupedData).length > 0) {
             RhAsisCasc.renderTabs();
         }
     },
 
-    // 🎯 FUSIÓN DE ACCIÓN: Carga el archivo, lo procesa en pantalla y lo guarda automáticamente en Sheets
     manejarCargaYGuardadoAutomatico: async function(input) {
         const file = input.files[0];
         if (!file) return;
 
+        const labelCarga = document.getElementById('labelCargaDatos');
+        const iconoCarga = document.getElementById('iconoCarga');
+        const textCarga = document.getElementById('textoCargaBtn');
+
         try {
-            // 1. Ejecutamos la función original que procesa el archivo y llena RhAsisFBio.groupedData
+            // 🔄 ACTIVAR SPINNER: Deshabilitamos visualmente el botón y mostramos el indicador de carga
+            if (labelCarga) {
+                labelCarga.classList.remove('cursor-pointer', 'bg-[#249444]', 'hover:bg-[#1b7033]');
+                labelCarga.classList.add('bg-stone-400', 'cursor-wait');
+                labelCarga.removeAttribute('for'); // Evita que se vuelva a abrir el explorador mientras procesa
+            }
+            if (iconoCarga) {
+                iconoCarga.innerHTML = `<svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
+            }
+            if (textCarga) {
+                textCarga.innerText = "Procesando y guardando...";
+            }
+
+            // 1. Procesamos el archivo localmente
             if (typeof RhAsisFBio.manejarCargaArchivo === 'function') {
                 await RhAsisFBio.manejarCargaArchivo(input);
             } else if (typeof RhAsisFBio.procesarArchivoBiometrico === 'function') {
@@ -96,10 +109,10 @@ window.RhAsisCasc = {
                 return;
             }
 
-            // 2. Renderizamos las pestañas en pantalla de inmediato
+            // 2. Renderizamos las pestañas en pantalla
             RhAsisCasc.renderTabs();
 
-            // 3. Preparamos los datos estructurados para enviarlos a Google Sheets
+            // 3. Preparamos los datos para Google Sheets
             const rowsParaSheets = [];
             Object.keys(RhAsisFBio.groupedData).forEach(id => {
                 const empleado = RhAsisFBio.groupedData[id];
@@ -122,7 +135,7 @@ window.RhAsisCasc = {
 
             console.log("Enviando " + rowsParaSheets.length + " registros a Google Sheets...");
 
-            // 4. Guardado automático usando la FetchAPI centralizada de api.js
+            // 4. Guardado automático con FetchAPI
             if (typeof FetchAPI === 'function') {
                 const resultado = await FetchAPI("guardarBiometrico", {
                     filas: rowsParaSheets
@@ -141,7 +154,18 @@ window.RhAsisCasc = {
             console.error("Error en la carga y guardado automático:", error);
             alert("❌ Ocurrió un error al procesar el archivo o guardarlo en el sistema.");
         } finally {
-            // Limpiamos el input file para permitir volver a cargar el mismo archivo si es necesario
+            // 🔄 DESACTIVAR SPINNER: Restauramos el botón a su estado original
+            if (labelCarga) {
+                labelCarga.classList.remove('bg-stone-400', 'cursor-wait');
+                labelCarga.classList.add('bg-[#249444]', 'hover:bg-[#1b7033]', 'cursor-pointer');
+                labelCarga.setAttribute('for', 'uploadBiometrico'); // Volvemos a habilitar la acción del input file
+            }
+            if (iconoCarga) {
+                iconoCarga.innerHTML = "📂";
+            }
+            if (textCarga) {
+                textCarga.innerText = "Carga de Datos";
+            }
             input.value = "";
         }
     },
@@ -175,7 +199,6 @@ window.RhAsisCasc = {
         });
     },
 
-    // Alias para evitar errores de sincronización de nombres
     renderTabsBiometrico: function(filter = "") {
         RhAsisCasc.renderTabs(filter);
     },

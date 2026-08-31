@@ -144,6 +144,9 @@ window.RhAsisCasc = {
                 }
             }
 
+            // 📢 [PASO 1] MOSTRAR EN PANTALLA EL PRIMER REGISTRO LEÍDO
+            alert(`🔍 [PASO 1] Primer registro leído:\n\n• NumEmp: ${primerNumEmp}\n• Fecha: ${fechaNormalizada}`);
+
             if (textCarga) {
                 textCarga.innerText = "Verificando en sistema...";
             }
@@ -155,16 +158,18 @@ window.RhAsisCasc = {
 
                 const yaExiste = verificacion && (verificacion.existe === true || verificacion.existe === "true");
 
+                // 📢 [PASO 2] MOSTRAR EL RESULTADO DE LA BÚSQUEDA (TRUE / FALSE)
                 console.log("🔎 ¿Se encontró la fecha en Sheets?", yaExiste);
+                alert(`📋 [PASO 2] Resultado de búsqueda en Google Sheets:\n\n¿La fecha ${fechaNormalizada} fue encontrada? -> ${yaExiste}`);
 
                 // 🛑 BLOQUE CONDICIONAL ESTRICTO (IF / ELSE)
                 if (yaExiste) {
-                    // SI YA EXISTE: DETENEMOS EL FLUJO Y NO GUARDAMOS NADA
+                    // SI YA EXISTE: FRENAMOS TODO AQUÍ Y NO GUARDAMOS NADA
                     window.RhAsisFBio.groupedData = {}; 
                     alert(`🛑 Los datos de la fecha ${fechaNormalizada} ya fueron cargados anteriormente. No se realizará ningún guardado.`);
                     return; 
                 } else {
-                    // 5. SI NO EXISTE: PROCEDEMOS A GUARDAR LOS DATOS EN GOOGLE SHEETS
+                    // SI NO EXISTE: ÚNICAMENTE AQUÍ SE PROCEDE A GUARDAR
                     if (textCarga) {
                         textCarga.innerText = "Guardando datos...";
                     }

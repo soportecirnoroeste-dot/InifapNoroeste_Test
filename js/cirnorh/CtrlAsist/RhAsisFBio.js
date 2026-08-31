@@ -4,18 +4,14 @@ window.RhAsisFBio = {
     groupedData: {},
     rawHeader: [],
 
-    // Inicializador automático para enlazar el botón y restaurar datos si existen en sessionStorage
     init: function() {
         const btnGuardar = document.getElementById('btnGuardarBiometrico') || document.querySelector('.btn-guardar-biometrico');
         if (btnGuardar) {
             btnGuardar.onclick = () => RhAsisFBio.guardarDatosProcesados();
         }
-
-        // Intentar recuperar datos previos si se recargó la página (F5)
         RhAsisFBio.restaurarDeSesion();
     },
 
-    // Guarda el estado actual en la sesión del navegador
     guardarEnSesion: function() {
         try {
             const dataToSave = {
@@ -24,11 +20,10 @@ window.RhAsisFBio = {
             };
             sessionStorage.setItem('rh_asis_fbio_data', JSON.stringify(dataToSave));
         } catch (e) {
-            console.warn("No se pudo guardar en sessionStorage (probablemente por exceso de tamaño):", e);
+            console.warn("No se pudo guardar en sessionStorage:", e);
         }
     },
 
-    // Restaura los datos desde la sesión del navegador tras un F5
     restaurarDeSesion: function() {
         try {
             const saved = sessionStorage.getItem('rh_asis_fbio_data');
@@ -38,17 +33,14 @@ window.RhAsisFBio = {
                     RhAsisFBio.groupedData = parsed.groupedData;
                     RhAsisFBio.rawHeader = parsed.rawHeader || [];
 
-                    // Actualizar el contador visual en pantalla
                     const statsElement = document.getElementById('statsCounter');
                     if (statsElement) {
                         statsElement.innerHTML = `Total: <span class="text-[#249444] font-bold">${Object.keys(RhAsisFBio.groupedData).length} empleados</span> recuperados`;
                     }
 
-                    // Renderizar las pestañas de nuevo
-                    if (typeof RhAsisCasc !== 'undefined' && RhAsisCasc.renderTabsBiometrico) {
-                        RhAsisCasc.renderTabsBiometrico();
+                    if (typeof RhAsisCasc !== 'undefined' && typeof RhAsisCasc.renderTabs === 'function') {
+                        RhAsisCasc.renderTabs();
                     }
-                    console.log("🔄 Datos de biométrico restaurados exitosamente tras recarga.");
                 }
             }
         } catch (e) {
@@ -56,7 +48,6 @@ window.RhAsisFBio = {
         }
     },
 
-    // Maneja la carga y lectura del archivo Excel/CSV del biométrico
     manejarCargaArchivo: function(input) {
         const file = input.files[0];
         if (!file) return;
@@ -72,7 +63,6 @@ window.RhAsisFBio = {
         reader.readAsArrayBuffer(file);
     },
 
-    // Procesa y agrupa los datos por empleado
     processData: function(rows) {
         RhAsisFBio.groupedData = {};
         let dataStarted = false;
@@ -98,17 +88,14 @@ window.RhAsisFBio = {
                 statsElement.innerHTML = `Total: <span class="text-[#249444] font-bold">${Object.keys(RhAsisFBio.groupedData).length} empleados</span> detectados`;
             }
 
-            // Guardar en sessionStorage para sobrevivir al F5
             RhAsisFBio.guardarEnSesion();
 
-            // Delegamos la renderización de pestañas a la capa cascada/vistas
-            if (typeof RhAsisCasc !== 'undefined' && RhAsisCasc.renderTabsBiometrico) {
-                RhAsisCasc.renderTabsBiometrico();
+            if (typeof RhAsisCasc !== 'undefined' && typeof RhAsisCasc.renderTabs === 'function') {
+                RhAsisCasc.renderTabs();
             }
         }
     },
 
-    // Acción para mapear los datos y exportarlos listos para Google Sheets
     guardarDatosProcesados: function() {
         if (Object.keys(RhAsisFBio.groupedData).length === 0) {
             alert("No hay datos cargados para guardar. Por favor carga primero el reporte.");
@@ -126,7 +113,6 @@ window.RhAsisFBio = {
 
             Object.keys(RhAsisFBio.groupedData).forEach(id => {
                 const empleado = RhAsisFBio.groupedData[id];
-                
                 empleado.rows.forEach(row => {
                     const filaMapeada = [
                         row[0],   // NumEmp
@@ -145,9 +131,6 @@ window.RhAsisFBio = {
                 });
             });
 
-            console.log("--- DATOS MAPEADOS PARA GOOGLE SHEETS ---");
-            console.table(rowsParaSheets);
-
             const wb = XLSX.utils.book_new();
             const ws = XLSX.utils.aoa_to_sheet(rowsParaSheets);
             XLSX.utils.book_append_sheet(wb, ws, "Biometrico");
@@ -161,7 +144,6 @@ window.RhAsisFBio = {
         }
     },
 
-    // Generador de libro de Excel con estilos institucionales INIFAP (para reportes completos)
     generateWorkbook: function() {
         const wb = XLSX.utils.book_new();
         const fondoHoja = "E9F5E9";
@@ -228,7 +210,6 @@ window.RhAsisFBio = {
     }
 };
 
-// Auto-ejecutar init al cargar el script
 document.addEventListener('DOMContentLoaded', () => {
     if (typeof RhAsisFBio !== 'undefined' && RhAsisFBio.init) {
         RhAsisFBio.init();

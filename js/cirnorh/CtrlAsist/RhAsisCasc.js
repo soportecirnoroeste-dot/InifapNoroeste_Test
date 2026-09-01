@@ -87,18 +87,23 @@ window.RhAsisCasc = {
         try {
             if (typeof FetchAPI !== 'function') return;
 
-            // 🏢 Obtener la clave de centro activa (ej. "102")
             const claveCentroActivo = RhAsisCasc.obtenerClaveCentroActual ? String(RhAsisCasc.obtenerClaveCentroActual()).trim() : "";
             console.log("📤 [FETCH] Solicitando registros al servidor para el centro:", claveCentroActivo);
 
             const res = await FetchAPI("obtenerTodosLosRegistrosPlano", {
                 action: "obtenerTodosLosRegistrosPlano",
-                claveCentro: claveCentroActivo // 👈 Mandamos la clave al script
+                claveCentro: claveCentroActivo
+            });
+
+            // 🚩 FLAG DE DIAGNÓSTICO EN CONSOLA
+            console.log("🚩 [DIAGNÓSTICO SERVIDOR]:", {
+                claveEnviada: claveCentroActivo,
+                claveRecibidaEnServidor: res ? res.debugCentroRecibido : "Sin respuesta",
+                totalRegistrosDevueltos: res && res.registros ? res.registros.length : 0
             });
 
             if (res && res.registros) {
                 RhAsisCasc.registrosBiometrico = res.registros;
-                console.log("📥 [FETCH] Registros filtrados recibidos del servidor:", RhAsisCasc.registrosBiometrico.length);
                 RhAsisCasc.renderGrid(RhAsisCasc.registrosBiometrico);
             } else {
                 RhAsisCasc.registrosBiometrico = [];

@@ -144,8 +144,6 @@ window.RhAsisCasc = {
                 }
             }
 
-            // 📢 [PASO 1] MOSTRAR EN PANTALLA EL PRIMER REGISTRO LEÍDO
-            alert(`🔍 [PASO 1] Primer registro leído:\n\n• NumEmp: ${primerNumEmp}\n• Fecha: ${fechaNormalizada}`);
 
             if (textCarga) {
                 textCarga.innerText = "Verificando en sistema...";
@@ -161,16 +159,13 @@ window.RhAsisCasc = {
                     numEmp: primerNumEmp,
                     fecha: fechaNormalizada
                 });
-
-                console.log("📥 Respuesta cruda del servidor:", verificacion);
-
                 const yaExiste = verificacion && (verificacion.existe === true || verificacion.existe === "true");
 
                 if (yaExiste) {
                     window.RhAsisFBio.groupedData = {};
                     alert(`🛑 Los datos del empleado ${primerNumEmp} para la fecha ${fechaNormalizada} ya fueron cargados anteriormente.`);
                     return;
-                }/* else {
+                } else {
                     // SI NO EXISTE: ÚNICAMENTE AQUÍ SE PROCEDE A GUARDAR
                     if (textCarga) {
                         textCarga.innerText = "Guardando datos...";
@@ -208,7 +203,7 @@ window.RhAsisCasc = {
                     } else {
                         alert("⚠️ Aviso al guardar en Sheets: " + (resultado ? resultado.message : "Desconocido"));
                     }
-                }*/
+                }
 
             } else {
                 console.error("FetchAPI no está disponible globalmente.");

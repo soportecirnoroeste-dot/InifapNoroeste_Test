@@ -336,7 +336,7 @@ window.RhAsisCasc = {
         let clave = "";
 
         // 1. Buscar el valor directamente en el selector visual activo de la interfaz
-        const selectCentro = document.querySelector('select') || document.getElementById('selectCentro') || document.querySelector('[role="combobox"]');
+        const selectCentro = document.getElementById('filtro-campos-regional') || document.querySelector('select') || document.querySelector('[role="combobox"]');
         if (selectCentro && selectCentro.value) {
             const matchVal = selectCentro.value.match(/^(\d+)/);
             clave = matchVal ? matchVal[1] : selectCentro.value;

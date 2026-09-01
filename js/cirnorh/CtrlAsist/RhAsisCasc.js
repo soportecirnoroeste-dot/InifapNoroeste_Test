@@ -112,7 +112,8 @@ window.RhAsisCasc = {
             RhAsisCasc.renderGrid([]);
         }
     },
-    manejarCargaYGuardadoAutomatico: async function (input) {
+
+manejarCargaYGuardadoAutomatico: async function (input) {
         const file = input.files[0];
         if (!file) return;
 
@@ -181,7 +182,7 @@ window.RhAsisCasc = {
                 textCarga.innerText = "Verificando en sistema...";
             }
 
-            // 🏢 OBTENER LA CLAVE DEL CENTRO DESDE EL SELECTOR DE LA VISTA
+            // 🏢 OBTENER LA CLAVE DEL CENTRO ACTIVO (SIN VALORES FIJOS)
             let claveCentroSeleccionado = "";
             const selectCentro = document.querySelector('select') || document.getElementById('selectCentro') || document.querySelector('[role="combobox"]');
             if (selectCentro && selectCentro.value) {
@@ -189,7 +190,14 @@ window.RhAsisCasc = {
                 claveCentroSeleccionado = matchVal ? matchVal[1] : selectCentro.value;
             }
             if (!claveCentroSeleccionado) {
-                claveCentroSeleccionado = localStorage.getItem('centro_activo_actual') || "200";
+                claveCentroSeleccionado = localStorage.getItem('centro_activo_actual') || localStorage.getItem('depto_activo_actual') || "";
+            }
+
+            // 🛑 VALIDACIÓN ESTRICTA: Si no hay clave de centro real, se detiene la carga
+            if (!claveCentroSeleccionado) {
+                alert("⚠️ No se detectó ninguna clave de centro activa. Por favor selecciona un centro antes de cargar el archivo.");
+                window.RhAsisFBio.groupedData = {};
+                return;
             }
 
             if (typeof FetchAPI === 'function') {
@@ -214,7 +222,7 @@ window.RhAsisCasc = {
                         const empleado = RhAsisFBio.groupedData[id];
                         empleado.rows.forEach(row => {
                             rowsParaSheets.push([
-                                claveCentroSeleccionado, // 👈 1er campo: ClaveCentro
+                                claveCentroSeleccionado, // 👈 1er campo: ClaveCentro real
                                 row[0] || "",   // NumEmp
                                 row[4] || "",   // RHBHraEnt
                                 row[5] || "",   // RHBHraSal
@@ -332,26 +340,18 @@ window.RhAsisCasc = {
     obtenerClaveCentroActual: function () {
         let clave = "";
 
-        // 1. Si lo tienes en una variable global de la app, revísala primero
-        if (window.centroActivoGlobal) {
-            clave = window.centroActivoGlobal;
+        // 1. Buscar el valor directamente en el selector visual activo de la interfaz
+        const selectCentro = document.querySelector('select') || document.getElementById('selectCentro') || document.querySelector('[role="combobox"]');
+        if (selectCentro && selectCentro.value) {
+            const matchVal = selectCentro.value.match(/^(\d+)/);
+            clave = matchVal ? matchVal[1] : selectCentro.value;
         }
 
-        // 2. Si no, búscalo en el localStorage donde se guarda la sesión del centro
+        // 2. Si no hay select activo, buscar estrictamente en el almacenamiento local de la sesión
         if (!clave) {
-            clave = localStorage.getItem('centro_activo_actual') || localStorage.getItem('clave_centro') || "";
+            clave = localStorage.getItem('centro_activo_actual') || localStorage.getItem('depto_activo_actual') || "";
         }
 
-        // 3. Como respaldo final, si hay un elemento select en pantalla
-        if (!clave || clave === "cirnorh") {
-            const selectCentro = document.getElementById('selectCentro') || document.querySelector('select');
-            if (selectCentro && selectCentro.value) {
-                const matchVal = selectCentro.value.match(/^(\d+)/);
-                clave = matchVal ? matchVal[1] : selectCentro.value;
-            }
-        }
-
-        console.log("🏢 [DEBUG] ClaveCentro real obtenida:", clave, claveCentroSeleccionado);
         return String(clave).trim();
     },
 

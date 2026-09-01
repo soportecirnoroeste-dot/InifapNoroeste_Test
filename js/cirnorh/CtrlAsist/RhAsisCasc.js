@@ -329,7 +329,7 @@ window.RhAsisCasc = {
         `;
     },
 
-obtenerClaveCentroActual: function () {
+    obtenerClaveCentroActual: function () {
         let clave = "";
 
         // 1. Si lo tienes en una variable global de la app, revísala primero

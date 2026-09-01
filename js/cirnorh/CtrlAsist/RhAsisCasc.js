@@ -91,7 +91,6 @@ window.RhAsisCasc = {
                 action: "obtenerTodosLosRegistrosPlano"
             });
 
-            console.log("📊 [DEBUG] Lo que devolvió Google Sheets:", res);
 
             if (res && res.registros && res.registros.length > 0) {
                 // 🔍 IGNORAR EL FILTRO POR UN MOMENTO: Asignamos todo directo para ver qué hay
@@ -102,7 +101,6 @@ window.RhAsisCasc = {
 
                 RhAsisCasc.renderGrid(RhAsisCasc.registrosBiometrico);
             } else {
-                console.warn("⚠️ La hoja de Google Sheets no devolvió ningún registro.");
                 RhAsisCasc.registrosBiometrico = [];
                 RhAsisCasc.renderGrid([]);
             }

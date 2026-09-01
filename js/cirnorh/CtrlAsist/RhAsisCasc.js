@@ -321,6 +321,49 @@ window.RhAsisCasc = {
         `;
     },
 
+    cargarDatosDesdeSheets: async function () {
+        try {
+            if (typeof FetchAPI !== 'function') {
+                console.warn("⚠️ FetchAPI no está disponible.");
+                return;
+            }
+
+            const res = await FetchAPI("obtenerTodosLosRegistrosPlano", {
+                action: "obtenerTodosLosRegistrosPlano"
+            });
+
+            console.log("📊 [DEBUG] Registros totales recibidos de Sheets:", res ? res.registros : "Ninguno");
+
+            const claveCentroActivo = RhAsisCasc.obtenerClaveCentroActual();
+            console.log("🏢 [DEBUG] Clave de Centro activa buscando coincidencia:", `"${claveCentroActivo}"`);
+
+            if (res && res.registros && res.registros.length > 0) {
+                // 🔒 FILTRAR ESTRICTAMENTE por el ClaveCentro actual (Columna A / índice 0)
+                RhAsisCasc.registrosBiometrico = res.registros.filter(row => {
+                    const centroFila = String(row[0] || "").trim();
+                    const coincide = centroFila === claveCentroActivo;
+                    return coincide;
+                });
+
+                console.log("✅ [DEBUG] Registros filtrados para este centro:", RhAsisCasc.registrosBiometrico.length);
+                RhAsisCasc.renderGrid(RhAsisCasc.registrosBiometrico);
+            } else {
+                console.warn("⚠️ La hoja 'Biometrico' está vacía o no devolvió registros.");
+                RhAsisCasc.registrosBiometrico = [];
+                RhAsisCasc.renderGrid([]);
+            }
+        } catch (e) {
+            console.error("❌ Error cargando datos del biométrico desde Sheets:", e);
+            RhAsisCasc.registrosBiometrico = [];
+            RhAsisCasc.renderGrid([]);
+        }
+    },
+
+    // Tu función renderGrid se queda abajo tal cual la tienes:
+    renderGrid: function (listaRegistros) {
+        // ... (todo tu código de renderGrid que ya definiste)
+    },
+
     filtrarTablaGeneral: function (texto) {
         const query = texto.toLowerCase().trim();
         if (!query) {

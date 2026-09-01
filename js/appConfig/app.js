@@ -334,7 +334,19 @@ const SistemaGlobal = {
 // ==========================================
 // 3. PUENTES GLOBALES PARA EL HTML
 // ==========================================
+// ==========================================
+// MODIFICACIÓN EN EL FILTRO GLOBAL DE CAMPOS
+// ==========================================
 function filtrarPorCampoRegional(claveCentro) {
+    // 1. Guardamos la clave numérica limpia en localStorage para que esté disponible globalmente
+    if (claveCentro) {
+        localStorage.setItem('centro_activo_actual', String(claveCentro).trim());
+        console.log("💾 [GLOBAL] Centro activo guardado:", claveCentro);
+    } else {
+        localStorage.removeItem('centro_activo_actual');
+    }
+
+    // 2. Ejecutamos la lógica original del sistema
     SistemaGlobal.filtrarPorCampo(claveCentro);
 }
 

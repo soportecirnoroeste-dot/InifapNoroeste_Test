@@ -189,7 +189,7 @@ window.RhAsisCasc = {
                 claveCentroSeleccionado = matchVal ? matchVal[1] : selectCentro.value;
             }
             if (!claveCentroSeleccionado) {
-               // claveCentroSeleccionado = localStorage.getItem('centro_activo_actual') || "102";
+                claveCentroSeleccionado = localStorage.getItem('centro_activo_actual') || "200";
             }
 
             if (typeof FetchAPI === 'function') {

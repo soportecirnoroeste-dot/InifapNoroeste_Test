@@ -198,7 +198,7 @@ window.RhAsisCasc = {
 
             // 🛑 VALIDACIÓN ESTRICTA
             if (!claveCentroSeleccionado) {
-                alert("⚠️ Por favor selecciona un Centro de Trabajo válido en el menú superior antes de continuar.");
+                alert("⚠️ Por favor selecciona un Centro de Trabajo válido en el menú superior antes de continuar. "+ document.getElementById('filtro-campos-regional'));
                 window.RhAsisFBio.groupedData = {};
                 return;
             }

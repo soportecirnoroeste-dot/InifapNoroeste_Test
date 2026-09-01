@@ -307,22 +307,22 @@ window.RhAsisCasc = {
                     </thead>
                     <tbody>
                         ${listaRegistros.map(r => {
-                            const celdas = Array.isArray(r) ? r.slice(0, 12) : headers.map(h => r[h] || "");
-                            return `
+            const celdas = Array.isArray(r) ? r.slice(0, 12) : headers.map(h => r[h] || "");
+            return `
                                 <tr class="bg-white hover:bg-stone-50 text-stone-700">
                                     ${celdas.map(c => {
-                                        let val = c;
-                                        if (val instanceof Date) {
-                                            val = val.toLocaleDateString();
-                                        } else if (typeof val === 'string' && val.includes('T') && val.length > 18) {
-                                            const d = new Date(val);
-                                            if (!isNaN(d)) val = d.toLocaleDateString();
-                                        }
-                                        return `<td class="p-2 border border-stone-200/50 text-center">${val !== null && val !== undefined ? val : ''}</td>`;
-                                    }).join('')}
+                let val = c;
+                if (val instanceof Date) {
+                    val = val.toLocaleDateString();
+                } else if (typeof val === 'string' && val.includes('T') && val.length > 18) {
+                    const d = new Date(val);
+                    if (!isNaN(d)) val = d.toLocaleDateString();
+                }
+                return `<td class="p-2 border border-stone-200/50 text-center">${val !== null && val !== undefined ? val : ''}</td>`;
+            }).join('')}
                                 </tr>
                             `;
-                        }).join('')}
+        }).join('')}
                     </tbody>
                 </table>
             </div>
@@ -332,14 +332,14 @@ window.RhAsisCasc = {
     obtenerClaveCentroActual: function () {
         let clave = "";
 
-        // 1. Buscar el valor directamente en el selector visual activo de la interfaz
+        // 1. Busca el valor en el selector visual
         const selectCentro = document.getElementById('filtro-campos-regional') || document.querySelector('select') || document.querySelector('[role="combobox"]');
         if (selectCentro && selectCentro.value) {
             const matchVal = selectCentro.value.match(/^(\d+)/);
             clave = matchVal ? matchVal[1] : selectCentro.value;
         }
 
-        // 2. Si no hay select activo, buscar estrictamente en el almacenamiento local de la sesión
+        // 2. Si no hay select, busca en localStorage
         if (!clave) {
             clave = localStorage.getItem('centro_activo_actual') || localStorage.getItem('depto_activo_actual') || "";
         }

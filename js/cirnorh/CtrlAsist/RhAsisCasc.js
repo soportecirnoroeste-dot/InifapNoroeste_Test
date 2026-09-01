@@ -182,19 +182,23 @@ window.RhAsisCasc = {
                 textCarga.innerText = "Verificando en sistema...";
             }
 
-            // 🏢 OBTENER LA CLAVE DEL CENTRO: OBLIGATORIAMENTE DEL SELECT OFICIAL
+            // 🏢 OBTENER LA CLAVE DEL CENTRO: DIAGNÓSTICO DEL SELECT
             let claveCentroSeleccionado = "";
             const selectCentro = document.getElementById('filtro-campos-regional');
 
+            console.log("🔍 [DEBUG] Elemento select encontrado:", selectCentro);
+            console.log("🔍 [DEBUG] Valor actual del select (.value):", selectCentro ? selectCentro.value : "NO EXISTE EL SELECT");
+
             if (selectCentro && selectCentro.value) {
-                // Extrae solo los dígitos iniciales del valor (ej. "102" de "102 - C.E. NORMAN E. BORLAUG")
                 const matchVal = selectCentro.value.match(/^(\d+)/);
                 claveCentroSeleccionado = matchVal ? matchVal[1] : selectCentro.value.trim();
             }
 
-            // 🛑 VALIDACIÓN ESTRICTA: Si no hay selección numérica en el select, se detiene
+            console.log("🔍 [DEBUG] ClaveCentro extraída final:", claveCentroSeleccionado);
+
+            // 🛑 VALIDACIÓN ESTRICTA
             if (!claveCentroSeleccionado) {
-                alert("⚠️ Por favor selecciona un Centro de Trabajo válido en el menú superior antes de continuar. "+claveCentroSeleccionado);
+                alert("⚠️ Por favor selecciona un Centro de Trabajo válido en el menú superior antes de continuar.");
                 window.RhAsisFBio.groupedData = {};
                 return;
             }

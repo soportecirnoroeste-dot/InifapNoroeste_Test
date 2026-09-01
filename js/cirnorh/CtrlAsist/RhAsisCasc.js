@@ -182,23 +182,13 @@ window.RhAsisCasc = {
                 textCarga.innerText = "Verificando en sistema...";
             }
 
-            // 🏢 OBTENER LA CLAVE DEL CENTRO: DIAGNÓSTICO DEL SELECT
-            let claveCentroSeleccionado = "";
-            const selectCentro = document.getElementById('filtro-campos-regional');
-
-            console.log("🔍 [DEBUG] Elemento select encontrado:", selectCentro);
-            console.log("🔍 [DEBUG] Valor actual del select (.value):", selectCentro ? selectCentro.value : "NO EXISTE EL SELECT");
-
-            if (selectCentro && selectCentro.value) {
-                const matchVal = selectCentro.value.match(/^(\d+)/);
-                claveCentroSeleccionado = matchVal ? matchVal[1] : selectCentro.value.trim();
-            }
-
-            console.log("🔍 [DEBUG] ClaveCentro extraída final:", claveCentroSeleccionado);
+            // 🏢 OBTENER LA CLAVE DEL CENTRO ACTIVO DE FORMA GLOBAL Y SEGURA
+            let claveCentroSeleccionado = localStorage.getItem('centro_activo_actual') || "";
+            claveCentroSeleccionado = String(claveCentroSeleccionado).trim();
 
             // 🛑 VALIDACIÓN ESTRICTA
             if (!claveCentroSeleccionado) {
-                alert("⚠️ Por favor selecciona un Centro de Trabajo válido en el menú superior antes de continuar. "+ document.getElementById('filtro-campos-regional'));
+                alert("⚠️ Por favor selecciona un Centro de Trabajo válido en el panel principal antes de continuar.");
                 window.RhAsisFBio.groupedData = {};
                 return;
             }

@@ -90,25 +90,35 @@ window.RhAsisCasc = {
             const claveCentroActivo = RhAsisCasc.obtenerClaveCentroActual ? String(RhAsisCasc.obtenerClaveCentroActual()).trim() : "";
             console.log("📤 [FETCH] Solicitando registros al servidor para el centro:", claveCentroActivo);
 
+            // Forzamos el envío asegurando que la URL o el cuerpo lleven la acción y la clave explícitas
             const res = await FetchAPI("obtenerTodosLosRegistrosPlano", {
                 action: "obtenerTodosLosRegistrosPlano",
-                claveCentro: claveCentroActivo
+                claveCentro: claveCentroActivo,
+                centro: claveCentroActivo // Cubrimos ambos nombres por si acaso
             });
+
+            // Si FetchAPI devuelve un texto plano o JSON parseado de forma distinta, lo manejamos de seguro
+            let datosRespuesta = res;
+            if (typeof res === 'string') {
+                try { datosRespuesta = JSON.parse(res); } catch(e) {}
+            }
 
             // 🚩 VER EL OBJETO CRUDO QUE LLEGÓ AL SERVIDOR
             console.log("🚩 [DIAGNÓSTICO DETALLADO]:", {
                 claveEnviadaPorCliente: claveCentroActivo,
-                paramsQueRecibioElServidor: res ? res.paramsCrudosRecibidos : "Sin respuesta",
-                claveProcesadaPorGas: res ? res.debugCentroRecibido : "N/A",
-                totalRegistrosDevueltos: res && res.registros ? res.registros.length : 0
+                paramsQueRecibioElServidor: datosRespuesta ? datosRespuesta.paramsCrudosRecibidos : "Sin respuesta",
+                claveProcesadaPorGas: datosRespuesta ? datosRespuesta.debugCentroRecibido : "N/A",
+                totalRegistrosDevueltos: datosRespuesta && datosRespuesta.registros ? datosRespuesta.registros.length : 0
             });
 
-            if (res && res.registros) {
-                RhAsisCasc.registrosBiometrico = res.registros;
+            if (datosRespuesta && datosRespuesta.registros && datosRespuesta.registros.length > 0) {
+                RhAsisCasc.registrosBiometrico = datosRespuesta.registros;
                 RhAsisCasc.renderGrid(RhAsisCasc.registrosBiometrico);
+                console.log("✅ Registros pintados exitosamente:", datosRespuesta.registros.length);
             } else {
                 RhAsisCasc.registrosBiometrico = [];
                 RhAsisCasc.renderGrid([]);
+                console.warn("⚠️ La consulta no devolvió registros para este centro.");
             }
         } catch (e) {
             console.error("❌ Error cargando datos:", e);

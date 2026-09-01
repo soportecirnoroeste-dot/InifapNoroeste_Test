@@ -189,7 +189,7 @@ window.RhAsisCasc = {
                 claveCentroSeleccionado = matchVal ? matchVal[1] : selectCentro.value;
             }
             if (!claveCentroSeleccionado) {
-                claveCentroSeleccionado = localStorage.getItem('centro_activo_actual') || "102";
+               // claveCentroSeleccionado = localStorage.getItem('centro_activo_actual') || "102";
             }
 
             if (typeof FetchAPI === 'function') {
@@ -351,7 +351,7 @@ window.RhAsisCasc = {
             }
         }
 
-        console.log("🏢 [DEBUG] ClaveCentro real obtenida:", clave);
+        console.log("🏢 [DEBUG] ClaveCentro real obtenida:", clave, claveCentroSeleccionado);
         return String(clave).trim();
     },
 

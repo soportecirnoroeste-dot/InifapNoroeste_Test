@@ -263,13 +263,24 @@ window.RhAsisCasc = {
 
         if (!gridContent) return;
 
-        if (!listaRegistros || listaRegistros.length === 0) {
+        // 🔒 OBTENER LA CLAVE DEL CENTRO ACTUAL PARA VALIDACIÓN ESTRICTA
+        const claveCentroActivo = RhAsisCasc.obtenerClaveCentroActual ? RhAsisCasc.obtenerClaveCentroActual() : "";
+
+        // 🔒 FILTRAR: Solo conservar filas que coincidan exactamente con la clave de centro seleccionada
+        const registrosFiltradosPorCentro = (listaRegistros || []).filter(r => {
+            if (!claveCentroActivo) return true; // Si por algo no hay centro activo, muestra todo
+            const centroFila = String(r[0] || "").trim();
+            return centroFila === String(claveCentroActivo).trim();
+        });
+
+        if (!registrosFiltradosPorCentro || registrosFiltradosPorCentro.length === 0) {
             if (emptyState) emptyState.classList.remove('hidden');
             if (appContainer) appContainer.classList.add('hidden');
             if (exportBtn) {
                 exportBtn.disabled = true;
                 exportBtn.className = "bg-stone-300 opacity-50 cursor-not-allowed text-stone-700 px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2";
             }
+            gridContent.innerHTML = "";
             return;
         }
 
@@ -290,7 +301,7 @@ window.RhAsisCasc = {
                         <tr>${headers.map(h => `<th class="p-2.5 border border-stone-200 text-center">${h}</th>`).join('')}</tr>
                     </thead>
                     <tbody>
-                        ${listaRegistros.map(r => `
+                        ${registrosFiltradosPorCentro.map(r => `
                             <tr class="bg-white hover:bg-stone-50 text-stone-700">
                                 ${r.slice(0, 12).map(c => {
                                     let val = c;

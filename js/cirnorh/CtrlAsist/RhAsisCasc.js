@@ -195,7 +195,7 @@ window.RhAsisCasc = {
 
             // 🛑 VALIDACIÓN ESTRICTA: Si no hay clave de centro real, se detiene la carga
             if (!claveCentroSeleccionado) {
-                alert("⚠️ No se detectó ninguna clave de centro activa. Por favor selecciona un centro antes de cargar el archivo.");
+                alert("⚠️ No se detectó ninguna clave de centro activa. Por favor selecciona un centro antes de cargar el archivo. "+claveCentroSeleccionado+", "+selectCentro);
                 window.RhAsisFBio.groupedData = {};
                 return;
             }

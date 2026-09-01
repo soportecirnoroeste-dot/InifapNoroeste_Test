@@ -110,6 +110,7 @@ window.RhAsisCasc = {
                 claveProcesadaPorGas: datosRespuesta ? datosRespuesta.debugCentroRecibido : "N/A",
                 totalRegistrosDevueltos: datosRespuesta && datosRespuesta.registros ? datosRespuesta.registros.length : 0
             });
+            console.log("Res: "+res);
 
             if (datosRespuesta && datosRespuesta.registros && datosRespuesta.registros.length > 0) {
                 RhAsisCasc.registrosBiometrico = datosRespuesta.registros;

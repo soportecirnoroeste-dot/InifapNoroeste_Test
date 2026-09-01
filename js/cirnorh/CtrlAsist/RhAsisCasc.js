@@ -95,10 +95,11 @@ window.RhAsisCasc = {
                 claveCentro: claveCentroActivo
             });
 
-            // 🚩 FLAG DE DIAGNÓSTICO EN CONSOLA
-            console.log("🚩 [DIAGNÓSTICO SERVIDOR]:", {
-                claveEnviada: claveCentroActivo,
-                claveRecibidaEnServidor: res ? res.debugCentroRecibido : "Sin respuesta",
+            // 🚩 VER EL OBJETO CRUDO QUE LLEGÓ AL SERVIDOR
+            console.log("🚩 [DIAGNÓSTICO DETALLADO]:", {
+                claveEnviadaPorCliente: claveCentroActivo,
+                paramsQueRecibioElServidor: res ? res.paramsCrudosRecibidos : "Sin respuesta",
+                claveProcesadaPorGas: res ? res.debugCentroRecibido : "N/A",
                 totalRegistrosDevueltos: res && res.registros ? res.registros.length : 0
             });
 

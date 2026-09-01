@@ -87,18 +87,18 @@ window.RhAsisCasc = {
         try {
             if (typeof FetchAPI !== 'function') return;
 
+            // 🏢 Obtener la clave de centro activa (ej. "102")
+            const claveCentroActivo = RhAsisCasc.obtenerClaveCentroActual ? String(RhAsisCasc.obtenerClaveCentroActual()).trim() : "";
+            console.log("📤 [FETCH] Solicitando registros al servidor para el centro:", claveCentroActivo);
+
             const res = await FetchAPI("obtenerTodosLosRegistrosPlano", {
-                action: "obtenerTodosLosRegistrosPlano"
+                action: "obtenerTodosLosRegistrosPlano",
+                claveCentro: claveCentroActivo // 👈 Mandamos la clave al script
             });
 
-
-            if (res && res.registros && res.registros.length > 0) {
-                // 🔍 IGNORAR EL FILTRO POR UN MOMENTO: Asignamos todo directo para ver qué hay
+            if (res && res.registros) {
                 RhAsisCasc.registrosBiometrico = res.registros;
-
-                console.log("👀 Mostrando todos los registros sin filtro:", RhAsisCasc.registrosBiometrico.length);
-                console.log("📌 Ejemplo de la primera fila (Columna A / Centro):", RhAsisCasc.registrosBiometrico[0][0]);
-
+                console.log("📥 [FETCH] Registros filtrados recibidos del servidor:", RhAsisCasc.registrosBiometrico.length);
                 RhAsisCasc.renderGrid(RhAsisCasc.registrosBiometrico);
             } else {
                 RhAsisCasc.registrosBiometrico = [];
@@ -316,23 +316,23 @@ window.RhAsisCasc = {
                     </thead>
                     <tbody>
                         ${registrosFiltradosPorCentro.map(r => {
-                            // Extraer las celdas ya sea de un arreglo plano o de un objeto
-                            const celdas = Array.isArray(r) ? r.slice(0, 12) : headers.map(h => r[h] || "");
-                            return `
+            // Extraer las celdas ya sea de un arreglo plano o de un objeto
+            const celdas = Array.isArray(r) ? r.slice(0, 12) : headers.map(h => r[h] || "");
+            return `
                                 <tr class="bg-white hover:bg-stone-50 text-stone-700">
                                     ${celdas.map(c => {
-                                        let val = c;
-                                        if (val instanceof Date) {
-                                            val = val.toLocaleDateString();
-                                        } else if (typeof val === 'string' && val.includes('T') && val.length > 18) {
-                                            const d = new Date(val);
-                                            if (!isNaN(d)) val = d.toLocaleDateString();
-                                        }
-                                        return `<td class="p-2 border border-stone-200/50 text-center">${val !== null && val !== undefined ? val : ''}</td>`;
-                                    }).join('')}
+                let val = c;
+                if (val instanceof Date) {
+                    val = val.toLocaleDateString();
+                } else if (typeof val === 'string' && val.includes('T') && val.length > 18) {
+                    const d = new Date(val);
+                    if (!isNaN(d)) val = d.toLocaleDateString();
+                }
+                return `<td class="p-2 border border-stone-200/50 text-center">${val !== null && val !== undefined ? val : ''}</td>`;
+            }).join('')}
                                 </tr>
                             `;
-                        }).join('')}
+        }).join('')}
                     </tbody>
                 </table>
             </div>

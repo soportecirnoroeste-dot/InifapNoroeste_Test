@@ -1,8 +1,7 @@
 // js/cirnorh/asistencia/RhAsisCasc.js
 
 window.RhAsisCasc = {
-    // Almacén temporal para los empleados agrupados que vienen desde Google Sheets
-    empleadosBiometrico: {},
+    registrosBiometrico: [],
     rawHeaderGlobal: [
         "NO. EMPLEADO", "ADSCRIPCIÓN", "NOMBRE", "RFC", 
         "HORA ENTRADA", "HORA SALIDA", "REGISTRO", 
@@ -52,18 +51,17 @@ window.RhAsisCasc = {
                         </button>
                     </div>
 
-                    <!-- Buscador por nombre o número de empleado -->
+                    <!-- Buscador general en tiempo real -->
                     <div class="relative w-full sm:w-80">
                         <span class="absolute left-3 top-1/2 -translate-y-1/2 opacity-50">🔍</span>
-                        <input type="text" id="searchInputBio" placeholder="Buscar por nombre o N° emp..." oninput="RhAsisCasc.filtrarPestañas(this.value)"
+                        <input type="text" id="searchInputBio" placeholder="Buscar por nombre, RFC o N° emp..." oninput="RhAsisCasc.filtrarTablaGeneral(this.value)"
                             class="w-full pl-10 pr-4 py-2.5 bg-white border border-stone-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-[#249444] transition-all shadow-xs">
                     </div>
                 </div>
 
-                <!-- Contenedor Principal de Pestañas y Datos -->
-                <div id="appContainerBio" class="hidden bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden flex flex-col min-h-[450px]">
-                    <div class="flex border-b border-stone-200 bg-stone-100 overflow-x-auto custom-scrollbar" id="tabContainerBio"></div>
-                    <div id="tabContentBio" class="p-6"></div>
+                <!-- Contenedor Principal de la Tabla con Scroll -->
+                <div id="appContainerBio" class="hidden bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden flex flex-col">
+                    <div id="gridContentBio" class="p-4 max-h-[600px] overflow-y-auto custom-scrollbar"></div>
                 </div>
 
                 <!-- Estado Vacío Inicial -->
@@ -71,34 +69,35 @@ window.RhAsisCasc = {
                     <div class="max-w-md mx-auto bg-stone-50 p-8 rounded-2xl border border-dashed border-stone-300">
                         <div class="text-4xl mb-3">📊</div>
                         <h5 class="text-sm font-bold text-stone-700">Sin datos cargados</h5>
-                        <p class="text-xs text-stone-400 mt-1">Seleccione un archivo de asistencia o verifique los registros guardados.</p>
+                        <p class="text-xs text-stone-400 mt-1">La hoja de cálculo Biometrico no contiene registros actualmente.</p>
                     </div>
                 </div>
             </div>
         `;
 
-        // 🔄 Al abrir la vista, consultamos los datos históricos directamente desde Sheets
+        window.RhAsisFBio.groupedData = {};
+        RhAsisCasc.registrosBiometrico = [];
+        
         await RhAsisCasc.cargarDatosDesdeSheets();
     },
 
-    // Nueva función para traer la ventana del Sheets al CRUD
     cargarDatosDesdeSheets: async function () {
         try {
             if (typeof FetchAPI !== 'function') return;
 
-            // Opcional: Puedes listar primero los empleados o traer una lista general. 
-            // Aprovechamos si ya tienes los IDs en memoria o si cargamos los últimos conocidos.
-            // Si RhAsisFBio tiene datos locales cargados en esta sesión, los usamos; si no, sincronizamos.
-            if (window.RhAsisFBio && window.RhAsisFBio.groupedData && Object.keys(window.RhAsisFBio.groupedData).length > 0) {
-                RhAsisCasc.empleadosBiometrico = window.RhAsisFBio.groupedData;
-                RhAsisCasc.renderTabs();
+            const res = await FetchAPI("obtenerTodosLosRegistrosPlano", {
+                action: "obtenerTodosLosRegistrosPlano"
+            });
+
+            if (res && res.registros && res.registros.length > 0) {
+                RhAsisCasc.registrosBiometrico = res.registros;
+                RhAsisCasc.renderGrid(RhAsisCasc.registrosBiometrico);
             } else {
-                // Si abrimos la vista en frío, podemos intentar pintar las pestañas si hay datos previos
-                // O dejar el estado vacío hasta que carguen un archivo o busquen.
-                // Sin embargo, si deseas consultar un empleado por defecto, puedes hacerlo aquí.
+                RhAsisCasc.registrosBiometrico = [];
+                RhAsisCasc.renderGrid([]);
             }
         } catch (e) {
-            console.error("Error cargando datos del biométrico:", e);
+            console.error("Error cargando datos del biométrico desde Sheets:", e);
         }
     },
 
@@ -213,8 +212,7 @@ window.RhAsisCasc = {
 
                     if (resultado && resultado.success) {
                         alert(`✅ ¡Datos cargados y guardados exitosamente en Google Sheets (${rowsParaSheets.length} registros)!`);
-                        RhAsisCasc.empleadosBiometrico = window.RhAsisFBio.groupedData;
-                        RhAsisCasc.renderTabs();
+                        await RhAsisCasc.cargarDatosDesdeSheets();
                     } else {
                         alert("⚠️ Aviso al guardar en Sheets: " + (resultado ? resultado.message : "Desconocido"));
                     }
@@ -241,118 +239,42 @@ window.RhAsisCasc = {
         }
     },
 
-    renderTabs: function (filter = "") {
-        const tabContainer = document.getElementById('tabContainerBio');
+    renderGrid: function (listaRegistros) {
+        const gridContent = document.getElementById('gridContentBio');
         const emptyState = document.getElementById('emptyStateBio');
         const appContainer = document.getElementById('appContainerBio');
         const exportBtn = document.getElementById('exportBtn');
 
-        const dataSource = window.RhAsisFBio && window.RhAsisFBio.groupedData && Object.keys(window.RhAsisFBio.groupedData).length > 0 
-            ? window.RhAsisFBio.groupedData 
-            : RhAsisCasc.empleadosBiometrico;
+        if (!gridContent) return;
 
-        if (!tabContainer || !dataSource) return;
-
-        const ids = Object.keys(dataSource).filter(id => {
-            const emp = dataSource[id];
-            const nombreMatch = emp.nombre && emp.nombre.toLowerCase().includes(filter.toLowerCase());
-            const idMatch = id.toLowerCase().includes(filter.toLowerCase());
-            return nombreMatch || idMatch;
-        });
-
-        if (ids.length === 0) {
-            emptyState.classList.remove('hidden');
-            appContainer.classList.add('hidden');
+        if (!listaRegistros || listaRegistros.length === 0) {
+            if (emptyState) emptyState.classList.remove('hidden');
+            if (appContainer) appContainer.classList.add('hidden');
+            if (exportBtn) {
+                exportBtn.disabled = true;
+                exportBtn.className = "bg-stone-300 opacity-50 cursor-not-allowed text-stone-700 px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2";
+            }
             return;
         }
 
-        emptyState.classList.add('hidden');
-        appContainer.classList.remove('hidden');
+        if (emptyState) emptyState.classList.add('hidden');
+        if (appContainer) appContainer.classList.remove('hidden');
 
         if (exportBtn) {
             exportBtn.disabled = false;
             exportBtn.className = "bg-[#249444] hover:bg-[#1b7033] text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-2 cursor-pointer";
         }
 
-        tabContainer.innerHTML = "";
-        ids.forEach((id, index) => {
-            const tabBtn = document.createElement('button');
-            tabBtn.className = `px-4 py-3 text-[11px] font-bold uppercase whitespace-nowrap border-b-2 transition-all cursor-pointer ${index === 0 ? 'border-[#249444] text-[#249444] bg-white' : 'border-transparent text-stone-500 hover:bg-stone-200/50'}`;
-            tabBtn.innerHTML = id;
-            tabBtn.onclick = () => RhAsisCasc.switchTab(id, tabBtn);
-            tabContainer.appendChild(tabBtn);
-            if (index === 0) RhAsisCasc.switchTab(id, tabBtn);
-        });
-    },
+        const headers = RhAsisCasc.rawHeaderGlobal;
 
-    renderTabsBiometrico: function (filter = "") {
-        RhAsisCasc.renderTabs(filter);
-    },
-
-    switchTab: async function (id, element) {
-        document.querySelectorAll('#tabContainerBio button').forEach(b => {
-            b.classList.remove('border-[#249444]', 'text-[#249444]', 'bg-white');
-            b.classList.add('border-transparent', 'text-stone-500');
-        });
-        element.classList.remove('border-transparent', 'text-stone-500');
-        element.classList.add('border-[#249444]', 'text-[#249444]', 'bg-white');
-
-        const contentDiv = document.getElementById('tabContentBio');
-        contentDiv.innerHTML = `<div class="text-center py-8 text-stone-400 text-xs">Cargando registros desde Google Sheets...</div>`;
-
-        let filasEmpleado = [];
-        let nombreEmpleado = "";
-
-        // Intentamos primero consultar directamente a Google Sheets con la función optimizada del backend
-        if (typeof FetchAPI === 'function') {
-            try {
-                const res = await FetchAPI("obtenerRegistrosPorEmpleado", {
-                    action: "obtenerRegistrosPorEmpleado",
-                    numEmp: id
-                });
-
-                if (res && res.existe && res.registros) {
-                    filasEmpleado = res.registros.map(r => [
-                        r.numEmp,
-                        r.adscripcion,
-                        r.nombre,
-                        r.rfc,
-                        r.horaEntrada,
-                        r.horaSalida,
-                        r.registro,
-                        r.tipoReg,
-                        r.fechaReg,
-                        r.dia
-                    ]);
-                    nombreEmpleado = res.registros[0].nombre;
-                }
-            } catch (err) {
-                console.error("Error al consultar registros por empleado desde Sheets:", err);
-            }
-        }
-
-        // Fallback por si la red falla: usamos memoria local de RhAsisFBio
-        if (filasEmpleado.length === 0 && window.RhAsisFBio && window.RhAsisFBio.groupedData && window.RhAsisFBio.groupedData[id]) {
-            filasEmpleado = window.RhAsisFBio.groupedData[id].rows;
-            nombreEmpleado = window.RhAsisFBio.groupedData[id].nombre;
-        }
-
-        if (filasEmpleado.length === 0) {
-            contentDiv.innerHTML = `<div class="text-center py-8 text-stone-400 text-xs">No se encontraron registros para este empleado.</div>`;
-            return;
-        }
-
-        const headers = (window.RhAsisFBio && window.RhAsisFBio.rawHeader) ? window.RhAsisFBio.rawHeader : RhAsisCasc.rawHeaderGlobal;
-
-        contentDiv.innerHTML = `
-            <h3 class="text-base font-black mb-4 uppercase tracking-tight text-[#249444]">${nombreEmpleado}</h3>
+        gridContent.innerHTML = `
             <div class="overflow-x-auto rounded-xl border border-stone-200">
                 <table class="w-full text-[10px]">
-                    <thead class="bg-stone-100 font-bold text-stone-700">
-                        <tr>${headers.map(h => `<th class="p-2 border border-stone-200 text-center">${h}</th>`).join('')}</tr>
+                    <thead class="bg-stone-100 font-bold text-stone-700 sticky top-0 z-10">
+                        <tr>${headers.map(h => `<th class="p-2.5 border border-stone-200 text-center">${h}</th>`).join('')}</tr>
                     </thead>
                     <tbody>
-                        ${filasEmpleado.map(r => `
+                        ${listaRegistros.map(r => `
                             <tr class="${RhAsisCasc.getRowVisualClass(r)}">
                                 ${r.map(c => `<td class="p-2 border border-stone-200/50 text-center">${c instanceof Date ? c.toLocaleDateString() : c}</td>`).join('')}
                             </tr>
@@ -363,15 +285,36 @@ window.RhAsisCasc = {
         `;
     },
 
+    filtrarTablaGeneral: function (texto) {
+        const query = texto.toLowerCase().trim();
+        if (!query) {
+            RhAsisCasc.renderGrid(RhAsisCasc.registrosBiometrico);
+            return;
+        }
+
+        const filtrados = RhAsisCasc.registrosBiometrico.filter(row => {
+            // Buscamos en número de empleado (0), adscripción (1), nombre (2), RFC (3) o fecha (8)
+            const numEmp = String(row[0] || "").toLowerCase();
+            const adscripcion = String(row[1] || "").toLowerCase();
+            const nombre = String(row[2] || "").toLowerCase();
+            const rfc = String(row[3] || "").toLowerCase();
+            const fecha = String(row[8] || "").toLowerCase();
+
+            return numEmp.includes(query) || 
+                   adscripcion.includes(query) || 
+                   nombre.includes(query) || 
+                   rfc.includes(query) || 
+                   fecha.includes(query);
+        });
+
+        RhAsisCasc.renderGrid(filtrados);
+    },
+
     getRowVisualClass: function (row) {
         if (row[13] && row[13] !== "") return "bg-red-500 text-white font-bold";
         if (row[12] && row[12] !== "") return "bg-orange-600 text-white";
         if (row[11] && row[11] !== "") return "bg-orange-400 text-black";
         if (row[10] && row[10] !== "") return "bg-yellow-400 text-black";
-        return "bg-emerald-50/40 text-stone-700";
-    },
-
-    filtrarPestañas: function (texto) {
-        RhAsisCasc.renderTabs(texto);
+        return "bg-white hover:bg-stone-50 text-stone-700";
     }
 };

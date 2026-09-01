@@ -163,7 +163,7 @@ window.RhAsisCasc = {
 
                 if (yaExiste) {
                     window.RhAsisFBio.groupedData = {};
-                    alert(`🛑 Los datos del empleado ${primerNumEmp} para la fecha ${fechaNormalizada} ya fueron cargados anteriormente.`);
+                    alert(`🛑 Los datos de los empleados para el periodo del formato, ya fueron cargados anteriormente.`);
                     return;
                 } else {
                     // SI NO EXISTE: ÚNICAMENTE AQUÍ SE PROCEDE A GUARDAR

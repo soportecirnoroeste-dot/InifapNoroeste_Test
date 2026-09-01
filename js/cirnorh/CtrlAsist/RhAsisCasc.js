@@ -200,7 +200,7 @@ window.RhAsisCasc = {
 
             // 3. Respaldo final en el almacenamiento local (evitando nulls)
             if (!claveCentroSeleccionado) {
-                claveCentroSeleccionado = localStorage.getItem('centro_activo_actual') || localStorage.getItem('depto_activo_actual') || "";
+                claveCentroSeleccionado = localStorage.getItem('centro_activo_actual');
             }
 
             claveCentroSeleccionado = String(claveCentroSeleccionado).trim();

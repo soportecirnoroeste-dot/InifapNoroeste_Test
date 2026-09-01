@@ -3,8 +3,8 @@
 window.RhAsisCasc = {
     registrosBiometrico: [],
     rawHeaderGlobal: [
-        "ClaveCentro", "NumEmp", "RHBHraEnt", "RHBHraSal", 
-        "RHBHraReg", "RHBNomReg", "RHBFecReg", "RHBDía", 
+        "ClaveCentro", "NumEmp", "RHBHraEnt", "RHBHraSal",
+        "RHBHraReg", "RHBNomReg", "RHBFecReg", "RHBDía",
         "RHBRetMen", "RHBRetMed", "RHBRetMay", "RHBFalta"
     ],
 
@@ -79,7 +79,7 @@ window.RhAsisCasc = {
             window.RhAsisFBio.groupedData = {};
         }
         RhAsisCasc.registrosBiometrico = [];
-        
+
         await RhAsisCasc.cargarDatosDesdeSheets();
     },
 
@@ -142,8 +142,8 @@ window.RhAsisCasc = {
             const primerId = Object.keys(RhAsisFBio.groupedData)[0];
             if (primerId && RhAsisFBio.groupedData[primerId].rows.length > 0) {
                 const primeraFila = RhAsisFBio.groupedData[primerId].rows[0];
-                primerNumEmp = primeraFila[0] || ""; 
-                rawFecha = primeraFila[8] || primeraFila[9] || ""; 
+                primerNumEmp = primeraFila[0] || "";
+                rawFecha = primeraFila[8] || primeraFila[9] || "";
             }
 
             if (!rawFecha) {
@@ -263,14 +263,14 @@ window.RhAsisCasc = {
 
         if (!gridContent) return;
 
-        // 🔒 OBTENER LA CLAVE DEL CENTRO ACTUAL PARA VALIDACIÓN ESTRICTA
-        const claveCentroActivo = RhAsisCasc.obtenerClaveCentroActual ? RhAsisCasc.obtenerClaveCentroActual() : "";
+        // 🏢 Obtener la clave de centro activa y normalizarla a texto plano sin espacios
+        const claveCentroActivo = RhAsisCasc.obtenerClaveCentroActual ? String(RhAsisCasc.obtenerClaveCentroActual()).trim() : "";
 
-        // 🔒 FILTRAR: Solo conservar filas que coincidan exactamente con la clave de centro seleccionada
+        // 🔒 Filtrado estricto y limpio para evitar duplicados fantasma por espacios o tipos
         const registrosFiltradosPorCentro = (listaRegistros || []).filter(r => {
-            if (!claveCentroActivo) return true; // Si por algo no hay centro activo, muestra todo
+            if (!claveCentroActivo) return true;
             const centroFila = String(r[0] || "").trim();
-            return centroFila === String(claveCentroActivo).trim();
+            return centroFila === claveCentroActivo;
         });
 
         if (!registrosFiltradosPorCentro || registrosFiltradosPorCentro.length === 0) {
@@ -304,15 +304,15 @@ window.RhAsisCasc = {
                         ${registrosFiltradosPorCentro.map(r => `
                             <tr class="bg-white hover:bg-stone-50 text-stone-700">
                                 ${r.slice(0, 12).map(c => {
-                                    let val = c;
-                                    if (val instanceof Date) {
-                                        val = val.toLocaleDateString();
-                                    } else if (typeof val === 'string' && val.includes('T') && val.length > 18) {
-                                        const d = new Date(val);
-                                        if (!isNaN(d)) val = d.toLocaleDateString();
-                                    }
-                                    return `<td class="p-2 border border-stone-200/50 text-center">${val !== null && val !== undefined ? val : ''}</td>`;
-                                }).join('')}
+            let val = c;
+            if (val instanceof Date) {
+                val = val.toLocaleDateString();
+            } else if (typeof val === 'string' && val.includes('T') && val.length > 18) {
+                const d = new Date(val);
+                if (!isNaN(d)) val = d.toLocaleDateString();
+            }
+            return `<td class="p-2 border border-stone-200/50 text-center">${val !== null && val !== undefined ? val : ''}</td>`;
+        }).join('')}
                             </tr>
                         `).join('')}
                     </tbody>

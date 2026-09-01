@@ -190,7 +190,7 @@ window.RhAsisCasc = {
                 claveCentroSeleccionado = matchVal ? matchVal[1] : selectCentro.value;
             }
             if (!claveCentroSeleccionado) {
-                claveCentroSeleccionado = localStorage.getItem('centro_activo_actual') || localStorage.getItem('depto_activo_actual') || "";
+                claveCentroSeleccionado = localStorage.getItem('centro_activo_actual')
             }
 
             // 🛑 VALIDACIÓN ESTRICTA: Si no hay clave de centro real, se detiene la carga

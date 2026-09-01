@@ -182,34 +182,24 @@ window.RhAsisCasc = {
                 textCarga.innerText = "Verificando en sistema...";
             }
 
-            // 🏢 OBTENER LA CLAVE DEL CENTRO ACTIVO DE FORMA SEGURA
+            // 🏢 OBTENER LA CLAVE DEL CENTRO: OBLIGATORIAMENTE DEL SELECT OFICIAL
             let claveCentroSeleccionado = "";
-
-            // 1. Apuntar directamente al selector oficial de la interfaz por su ID real
             const selectCentro = document.getElementById('filtro-campos-regional');
+
             if (selectCentro && selectCentro.value) {
+                // Extrae solo los dígitos iniciales del valor (ej. "102" de "102 - C.E. NORMAN E. BORLAUG")
                 const matchVal = selectCentro.value.match(/^(\d+)/);
                 claveCentroSeleccionado = matchVal ? matchVal[1] : selectCentro.value.trim();
             }
 
-            // 2. Respaldo por si el select no estuviera disponible en ese instante, buscar en la URL
+            // 🛑 VALIDACIÓN ESTRICTA: Si no hay selección numérica en el select, se detiene
             if (!claveCentroSeleccionado) {
-                const urlParams = new URLSearchParams(window.location.search);
-                claveCentroSeleccionado = urlParams.get('depto') || "";
-            }
-
-            // 3. Respaldo final en el almacenamiento local (evitando nulls)
-            if (!claveCentroSeleccionado) {
-                claveCentroSeleccionado = localStorage.getItem('centro_activo_actual');
-            }
-
-            claveCentroSeleccionado = String(claveCentroSeleccionado).trim();
-            // 🛑 VALIDACIÓN ESTRICTA: Si no hay clave de centro real, se detiene la carga
-            if (!claveCentroSeleccionado) {
-                alert("⚠️ No se detectó ninguna clave de centro activa. Por favor selecciona un centro antes de cargar el archivo. " + claveCentroSeleccionado + ", " + selectCentro);
+                alert("⚠️ Por favor selecciona un Centro de Trabajo válido en el menú superior antes de continuar. "+claveCentroSeleccionado);
                 window.RhAsisFBio.groupedData = {};
                 return;
             }
+
+            claveCentroSeleccionado = String(claveCentroSeleccionado).trim();
 
             if (typeof FetchAPI === 'function') {
                 const verificacion = await FetchAPI("verificarFechaBiometrico", {

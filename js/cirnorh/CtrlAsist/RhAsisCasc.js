@@ -329,15 +329,21 @@ window.RhAsisCasc = {
         `;
     },
 
-    obtenerClaveCentroActual: function () {
+obtenerClaveCentroActual: function () {
         let clave = "";
 
-        // 1. Intentar leer del parámetro de la URL (ej. ?depto=cirnorh)
-        const urlParams = new URLSearchParams(window.location.search);
-        clave = urlParams.get('depto') || "";
+        // 1. Si lo tienes en una variable global de la app, revísala primero
+        if (window.centroActivoGlobal) {
+            clave = window.centroActivoGlobal;
+        }
 
-        // 2. Si no está en la URL, buscar en algún selector visual de la interfaz
+        // 2. Si no, búscalo en el localStorage donde se guarda la sesión del centro
         if (!clave) {
+            clave = localStorage.getItem('centro_activo_actual') || localStorage.getItem('clave_centro') || "";
+        }
+
+        // 3. Como respaldo final, si hay un elemento select en pantalla
+        if (!clave || clave === "cirnorh") {
             const selectCentro = document.getElementById('selectCentro') || document.querySelector('select');
             if (selectCentro && selectCentro.value) {
                 const matchVal = selectCentro.value.match(/^(\d+)/);
@@ -345,11 +351,7 @@ window.RhAsisCasc = {
             }
         }
 
-        // 3. Respaldo por si acaso
-        if (!clave) {
-            clave = localStorage.getItem('depto_activo_actual') || "cirnorh";
-        }
-
+        console.log("🏢 [DEBUG] ClaveCentro real obtenida:", clave);
         return String(clave).trim();
     },
 

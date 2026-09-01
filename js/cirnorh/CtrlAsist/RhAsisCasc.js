@@ -91,19 +91,27 @@ window.RhAsisCasc = {
                 action: "obtenerTodosLosRegistrosPlano"
             });
 
+            console.log("📊 [DEBUG] Lo que devolvió Google Sheets:", res);
+
             if (res && res.registros && res.registros.length > 0) {
+                // 🔍 IGNORAR EL FILTRO POR UN MOMENTO: Asignamos todo directo para ver qué hay
                 RhAsisCasc.registrosBiometrico = res.registros;
+
+                console.log("👀 Mostrando todos los registros sin filtro:", RhAsisCasc.registrosBiometrico.length);
+                console.log("📌 Ejemplo de la primera fila (Columna A / Centro):", RhAsisCasc.registrosBiometrico[0][0]);
+
                 RhAsisCasc.renderGrid(RhAsisCasc.registrosBiometrico);
             } else {
+                console.warn("⚠️ La hoja de Google Sheets no devolvió ningún registro.");
                 RhAsisCasc.registrosBiometrico = [];
                 RhAsisCasc.renderGrid([]);
             }
         } catch (e) {
-            console.error("Error cargando datos del biométrico desde Sheets:", e);
+            console.error("❌ Error cargando datos:", e);
+            RhAsisCasc.registrosBiometrico = [];
             RhAsisCasc.renderGrid([]);
         }
     },
-
     manejarCargaYGuardadoAutomatico: async function (input) {
         const file = input.files[0];
         if (!file) return;

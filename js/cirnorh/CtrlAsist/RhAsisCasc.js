@@ -98,6 +98,7 @@ window.RhAsisCasc = {
             }
         } catch (e) {
             console.error("Error cargando datos del biométrico desde Sheets:", e);
+            RhAsisCasc.renderGrid([]);
         }
     },
 
@@ -212,6 +213,7 @@ window.RhAsisCasc = {
 
                     if (resultado && resultado.success) {
                         alert(`✅ ¡Datos cargados y guardados exitosamente en Google Sheets (${rowsParaSheets.length} registros)!`);
+                        // Inmediatamente consultamos y pintamos los datos nuevos
                         await RhAsisCasc.cargarDatosDesdeSheets();
                     } else {
                         alert("⚠️ Aviso al guardar en Sheets: " + (resultado ? resultado.message : "Desconocido"));
@@ -275,8 +277,18 @@ window.RhAsisCasc = {
                     </thead>
                     <tbody>
                         ${listaRegistros.map(r => `
-                            <tr class="${RhAsisCasc.getRowVisualClass(r)}">
-                                ${r.map(c => `<td class="p-2 border border-stone-200/50 text-center">${c instanceof Date ? c.toLocaleDateString() : c}</td>`).join('')}
+                            <tr class="bg-white hover:bg-stone-50 text-stone-700">
+                                ${r.slice(0, 10).map(c => {
+                                    let val = c;
+                                    // Si viene fecha en formato ISO, la formateamos amigable
+                                    if (val instanceof Date) {
+                                        val = val.toLocaleDateString();
+                                    } else if (typeof val === 'string' && val.includes('T') && val.length > 18) {
+                                        const d = new Date(val);
+                                        if (!isNaN(d)) val = d.toLocaleDateString();
+                                    }
+                                    return `<td class="p-2 border border-stone-200/50 text-center">${val !== null && val !== undefined ? val : ''}</td>`;
+                                }).join('')}
                             </tr>
                         `).join('')}
                     </tbody>
@@ -293,7 +305,6 @@ window.RhAsisCasc = {
         }
 
         const filtrados = RhAsisCasc.registrosBiometrico.filter(row => {
-            // Buscamos en número de empleado (0), adscripción (1), nombre (2), RFC (3) o fecha (8)
             const numEmp = String(row[0] || "").toLowerCase();
             const adscripcion = String(row[1] || "").toLowerCase();
             const nombre = String(row[2] || "").toLowerCase();
@@ -308,13 +319,5 @@ window.RhAsisCasc = {
         });
 
         RhAsisCasc.renderGrid(filtrados);
-    },
-
-    getRowVisualClass: function (row) {
-        if (row[13] && row[13] !== "") return "bg-red-500 text-white font-bold";
-        if (row[12] && row[12] !== "") return "bg-orange-600 text-white";
-        if (row[11] && row[11] !== "") return "bg-orange-400 text-black";
-        if (row[10] && row[10] !== "") return "bg-yellow-400 text-black";
-        return "bg-white hover:bg-stone-50 text-stone-700";
     }
 };

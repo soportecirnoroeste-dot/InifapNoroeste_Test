@@ -185,25 +185,25 @@ window.RhAsisCasc = {
             // 🏢 OBTENER LA CLAVE DEL CENTRO ACTIVO DE FORMA SEGURA
             let claveCentroSeleccionado = "";
 
-            // 1. Intentar leer primero del parámetro 'depto' de la URL (ej. ?depto=cirnorh)
-            const urlParams = new URLSearchParams(window.location.search);
-            claveCentroSeleccionado = urlParams.get('depto') || "";
-
-            // 2. Si no está en la URL, buscar en el selector visual de la interfaz
-            if (!claveCentroSeleccionado) {
-                const selectCentro = document.querySelector('select') || document.getElementById('selectCentro') || document.querySelector('[role="combobox"]');
-                if (selectCentro && selectCentro.value) {
-                    claveCentroSeleccionado = selectCentro.value;
-                }
+            // 1. Apuntar directamente al selector oficial de la interfaz por su ID real
+            const selectCentro = document.getElementById('filtro-campos-regional');
+            if (selectCentro && selectCentro.value) {
+                const matchVal = selectCentro.value.match(/^(\d+)/);
+                claveCentroSeleccionado = matchVal ? matchVal[1] : selectCentro.value.trim();
             }
 
-            // 3. Si aún no está, buscar en el almacenamiento local (usando || "" para evitar que devuelva null)
+            // 2. Respaldo por si el select no estuviera disponible en ese instante, buscar en la URL
+            if (!claveCentroSeleccionado) {
+                const urlParams = new URLSearchParams(window.location.search);
+                claveCentroSeleccionado = urlParams.get('depto') || "";
+            }
+
+            // 3. Respaldo final en el almacenamiento local (evitando nulls)
             if (!claveCentroSeleccionado) {
                 claveCentroSeleccionado = localStorage.getItem('centro_activo_actual') || localStorage.getItem('depto_activo_actual') || "";
             }
 
             claveCentroSeleccionado = String(claveCentroSeleccionado).trim();
-
             // 🛑 VALIDACIÓN ESTRICTA: Si no hay clave de centro real, se detiene la carga
             if (!claveCentroSeleccionado) {
                 alert("⚠️ No se detectó ninguna clave de centro activa. Por favor selecciona un centro antes de cargar el archivo. " + claveCentroSeleccionado + ", " + selectCentro);

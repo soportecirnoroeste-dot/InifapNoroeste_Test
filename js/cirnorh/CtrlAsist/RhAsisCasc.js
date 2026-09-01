@@ -8,7 +8,101 @@ window.RhAsisCasc = {
         "RHBRetMen", "RHBRetMed", "RHBRetMay", "RHBFalta"
     ],
 
-    // ... (mantén mostrarVistaBiometrico y cargarDatosDesdeSheets)
+    mostrarVistaBiometrico: async function () {
+        const contenedor = document.getElementById('app-container') || document.querySelector('main') || document.body;
+
+        if (!contenedor) {
+            console.error("❌ ERROR: No se encontró ningún contenedor para pintar la vista.");
+            return;
+        }
+
+        const nombreCortoActual = localStorage.getItem('depto_activo_actual') || 'cirnorh';
+        if (typeof window.actualizarBotonRegresar === 'function') {
+            window.actualizarBotonRegresar('vista-interna', nombreCortoActual, () => {
+                if (typeof cargarAsistenciaRh === 'function') {
+                    cargarAsistenciaRh();
+                } else {
+                    window.location.href = `main.html?depto=${nombreCortoActual}&seccion=asistencia`;
+                }
+            });
+        }
+
+        contenedor.innerHTML = `
+            <div class="space-y-6 animate-fade-in">
+                <!-- Cabecera de la sección -->
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-stone-200">
+                    <div>
+                        <h4 class="font-bold text-stone-800 text-sm uppercase">Módulo Biométrico - INIFAP</h4>
+                        <p class="text-xs text-stone-500">Cargue el reporte oficial RH_CONTROL_ASISTENCIA_V2 para gestionar incidencias.</p>
+                    </div>
+                </div>
+
+                <!-- Barra de Acciones Principales y Buscador -->
+                <div class="flex flex-wrap items-center justify-between gap-4 bg-stone-50 p-4 rounded-2xl border border-stone-200">
+                    <div class="flex flex-wrap items-center gap-3">
+                        <input type="file" id="uploadBiometrico" class="hidden" accept=".xlsx, .xlsm, .csv" onchange="RhAsisCasc.manejarCargaYGuardadoAutomatico(this)">
+                        
+                        <label id="labelCargaDatos" for="uploadBiometrico" class="px-4 py-2.5 bg-[#249444] hover:bg-[#1b7033] text-white text-xs font-bold rounded-xl cursor-pointer shadow-sm transition-all flex items-center gap-2">
+                            <span id="iconoCarga">📂</span> <span id="textoCargaBtn">Carga de Datos</span>
+                        </label>
+
+                        <button id="exportBtn" disabled onclick="if(window.RhAsisFBio && typeof RhAsisFBio.exportarExcel === 'function') RhAsisFBio.exportarExcel()" class="bg-stone-300 opacity-50 cursor-not-allowed text-stone-700 px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
+                            <span>📥</span> Exportar reporte
+                        </button>
+                    </div>
+
+                    <!-- Buscador general en tiempo real -->
+                    <div class="relative w-full sm:w-80">
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 opacity-50">🔍</span>
+                        <input type="text" id="searchInputBio" placeholder="Buscar por centro, N° emp o fecha..." oninput="RhAsisCasc.filtrarTablaGeneral(this.value)"
+                            class="w-full pl-10 pr-4 py-2.5 bg-white border border-stone-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-[#249444] transition-all shadow-xs">
+                    </div>
+                </div>
+
+                <!-- Contenedor Principal de la Tabla con Scroll -->
+                <div id="appContainerBio" class="hidden bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden flex flex-col">
+                    <div id="gridContentBio" class="p-4 max-h-[600px] overflow-y-auto custom-scrollbar"></div>
+                </div>
+
+                <!-- Estado Vacío Inicial -->
+                <div id="emptyStateBio" class="py-16 text-center">
+                    <div class="max-w-md mx-auto bg-stone-50 p-8 rounded-2xl border border-dashed border-stone-300">
+                        <div class="text-4xl mb-3">📊</div>
+                        <h5 class="text-sm font-bold text-stone-700">Sin datos cargados</h5>
+                        <p class="text-xs text-stone-400 mt-1">La hoja de cálculo Biometrico no contiene registros actualmente.</p>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        if (window.RhAsisFBio) {
+            window.RhAsisFBio.groupedData = {};
+        }
+        RhAsisCasc.registrosBiometrico = [];
+        
+        await RhAsisCasc.cargarDatosDesdeSheets();
+    },
+
+    cargarDatosDesdeSheets: async function () {
+        try {
+            if (typeof FetchAPI !== 'function') return;
+
+            const res = await FetchAPI("obtenerTodosLosRegistrosPlano", {
+                action: "obtenerTodosLosRegistrosPlano"
+            });
+
+            if (res && res.registros && res.registros.length > 0) {
+                RhAsisCasc.registrosBiometrico = res.registros;
+                RhAsisCasc.renderGrid(RhAsisCasc.registrosBiometrico);
+            } else {
+                RhAsisCasc.registrosBiometrico = [];
+                RhAsisCasc.renderGrid([]);
+            }
+        } catch (e) {
+            console.error("Error cargando datos del biométrico desde Sheets:", e);
+            RhAsisCasc.renderGrid([]);
+        }
+    },
 
     manejarCargaYGuardadoAutomatico: async function (input) {
         const file = input.files[0];
@@ -31,13 +125,13 @@ window.RhAsisCasc = {
                 textCarga.innerText = "Analizando archivo...";
             }
 
-            if (typeof RhAsisFBio.manejarCargaArchivo === 'function') {
+            if (window.RhAsisFBio && typeof RhAsisFBio.manejarCargaArchivo === 'function') {
                 await RhAsisFBio.manejarCargaArchivo(input);
-            } else if (typeof RhAsisFBio.procesarArchivoBiometrico === 'function') {
+            } else if (window.RhAsisFBio && typeof RhAsisFBio.procesarArchivoBiometrico === 'function') {
                 await RhAsisFBio.procesarArchivoBiometrico(file);
             }
 
-            if (!window.RhAsisFBio.groupedData || Object.keys(window.RhAsisFBio.groupedData).length === 0) {
+            if (!window.RhAsisFBio || !window.RhAsisFBio.groupedData || Object.keys(window.RhAsisFBio.groupedData).length === 0) {
                 alert("El archivo se leyó pero no se encontraron datos válidos.");
                 return;
             }
@@ -112,7 +206,7 @@ window.RhAsisCasc = {
                         const empleado = RhAsisFBio.groupedData[id];
                         empleado.rows.forEach(row => {
                             rowsParaSheets.push([
-                                claveCentroSeleccionado, // 👈 1er campo: ClaveCentro obtenido de la sesión/interfaz
+                                claveCentroSeleccionado, // 👈 1er campo: ClaveCentro
                                 row[0] || "",   // NumEmp
                                 row[4] || "",   // RHBHraEnt
                                 row[5] || "",   // RHBHraSal
@@ -144,7 +238,7 @@ window.RhAsisCasc = {
         } catch (error) {
             console.error("Error en la validación y carga:", error);
             alert("❌ Ocurrió un error al procesar la validación y carga.");
-            window.RhAsisFBio.groupedData = {};
+            if (window.RhAsisFBio) window.RhAsisFBio.groupedData = {};
         } finally {
             if (labelCarga) {
                 labelCarga.classList.remove('bg-stone-400', 'cursor-wait');

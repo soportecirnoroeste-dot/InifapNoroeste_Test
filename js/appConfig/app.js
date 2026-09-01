@@ -190,6 +190,11 @@ const SistemaGlobal = {
             claveCentroInicial = String(camposDeLaRegional[0].claveCentro).trim();
         }
 
+        // GUARDAR EL CENTRO INICIAL AUTOMÁTICAMENTE EN LOCALSTORAGE
+        if (claveCentroInicial) {
+            localStorage.setItem('centro_activo_actual', claveCentroInicial);
+        }
+
         const selectFiltro = document.getElementById('filtro-campos-regional');
         if (selectFiltro && claveCentroInicial) {
             selectFiltro.value = claveCentroInicial;

@@ -236,7 +236,7 @@ window.RhAsisCasc = {
                     });
 
                     if (resultado && resultado.success) {
-                        alert(`✅ ¡Datos cargados y guardados exitosamente para el centro ${claveCentroSeleccionado} (${rowsParaSheets.length} registros)!`);
+                        alert(`✅ ¡Datos cargados y guardados exitosamente para el centro ${claveCentroSeleccionado} ${rowsParaSheets.length} registros!`);
                         await RhAsisCasc.cargarDatosDesdeSheets();
                     } else {
                         alert("⚠️ Aviso al guardar en Sheets: " + (resultado ? resultado.message : "Desconocido"));
@@ -272,15 +272,19 @@ window.RhAsisCasc = {
 
         if (!gridContent) return;
 
-        // 🏢 Obtener la clave de centro activa y normalizarla a texto plano sin espacios
+        // 🏢 Obtener la clave de centro activa de forma segura (ej. "102")
         const claveCentroActivo = RhAsisCasc.obtenerClaveCentroActual ? String(RhAsisCasc.obtenerClaveCentroActual()).trim() : "";
+        console.log("🎯 [RENDER] Filtrando grid estrictamente para el centro:", claveCentroActivo);
 
-        // 🔒 Filtrado estricto y limpio para evitar duplicados fantasma por espacios o tipos
+        // 🔒 Filtrado estricto por la columna de ClaveCentro (índice 0 o propiedad ClaveCentro)
         const registrosFiltradosPorCentro = (listaRegistros || []).filter(r => {
             if (!claveCentroActivo) return true;
-            const centroFila = String(r[0] || "").trim();
+            // Si r es un objeto o un arreglo, capturamos el valor del centro de forma robusta
+            const centroFila = Array.isArray(r) ? String(r[0] || "").trim() : String(r.ClaveCentro || r.claveCentro || "").trim();
             return centroFila === claveCentroActivo;
         });
+
+        console.log(`📊 [RENDER] Total encontrados para el centro ${claveCentroActivo}:`, registrosFiltradosPorCentro.length);
 
         if (!registrosFiltradosPorCentro || registrosFiltradosPorCentro.length === 0) {
             if (emptyState) emptyState.classList.remove('hidden');
@@ -293,6 +297,7 @@ window.RhAsisCasc = {
             return;
         }
 
+        // Mostrar contenedor con scroll y ocultar estado vacío
         if (emptyState) emptyState.classList.add('hidden');
         if (appContainer) appContainer.classList.remove('hidden');
 
@@ -310,20 +315,24 @@ window.RhAsisCasc = {
                         <tr>${headers.map(h => `<th class="p-2.5 border border-stone-200 text-center">${h}</th>`).join('')}</tr>
                     </thead>
                     <tbody>
-                        ${registrosFiltradosPorCentro.map(r => `
-                            <tr class="bg-white hover:bg-stone-50 text-stone-700">
-                                ${r.slice(0, 12).map(c => {
-            let val = c;
-            if (val instanceof Date) {
-                val = val.toLocaleDateString();
-            } else if (typeof val === 'string' && val.includes('T') && val.length > 18) {
-                const d = new Date(val);
-                if (!isNaN(d)) val = d.toLocaleDateString();
-            }
-            return `<td class="p-2 border border-stone-200/50 text-center">${val !== null && val !== undefined ? val : ''}</td>`;
-        }).join('')}
-                            </tr>
-                        `).join('')}
+                        ${registrosFiltradosPorCentro.map(r => {
+                            // Extraer las celdas ya sea de un arreglo plano o de un objeto
+                            const celdas = Array.isArray(r) ? r.slice(0, 12) : headers.map(h => r[h] || "");
+                            return `
+                                <tr class="bg-white hover:bg-stone-50 text-stone-700">
+                                    ${celdas.map(c => {
+                                        let val = c;
+                                        if (val instanceof Date) {
+                                            val = val.toLocaleDateString();
+                                        } else if (typeof val === 'string' && val.includes('T') && val.length > 18) {
+                                            const d = new Date(val);
+                                            if (!isNaN(d)) val = d.toLocaleDateString();
+                                        }
+                                        return `<td class="p-2 border border-stone-200/50 text-center">${val !== null && val !== undefined ? val : ''}</td>`;
+                                    }).join('')}
+                                </tr>
+                            `;
+                        }).join('')}
                     </tbody>
                 </table>
             </div>

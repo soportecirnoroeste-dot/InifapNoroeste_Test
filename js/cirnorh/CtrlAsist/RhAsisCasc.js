@@ -113,7 +113,7 @@ window.RhAsisCasc = {
         }
     },
 
-manejarCargaYGuardadoAutomatico: async function (input) {
+    manejarCargaYGuardadoAutomatico: async function (input) {
         const file = input.files[0];
         if (!file) return;
 

@@ -1,5 +1,5 @@
 // ========================================================
-// MÓDULO DE CONEXIÓN CON APPS SCRIPT / BACKEND
+// MÓDULO DE CONEXIÓN CON APPS SCRIPT / BACKEND (MEJORADO)
 // ========================================================
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDs5fvFxykQniWFZnbUqpbuDAmrIDhMHlVwU4r5B3iPLxBp4FDG7uKrtDBDQEXxEX8fQ/exec";
 
@@ -26,14 +26,14 @@ async function FetchAPI(action, payload = {}) {
 
         let response = await fetch(APPS_SCRIPT_URL, {
             method: "POST",
-            mode: "cors",
+            redirect: "follow", // 👈 Vital para seguir las redirecciones de Google Apps Script sin romper el POST
             headers: {
-                "Content-Type": "text/plain;charset=utf-8",
+                "Content-Type": "text/plain;charset=utf-8", // 👈 Evita la pre-verificación OPTIONS que bloquea CORS en Google
             },
             body: bodyData
         });
 
-        // Capturamos el texto primero para evitar que truene silenciosamente si Google devuelve HTML/Texto plano
+        // Capturamos el texto primero para depurar si ocurre un error de servidor
         let rawText = await response.text();
         
         try {
@@ -41,7 +41,7 @@ async function FetchAPI(action, payload = {}) {
             return data;
         } catch (parseError) {
             console.error("El servidor no devolvió un JSON válido. Respuesta cruda:", rawText);
-            throw new Error("Respuesta inválida del servidor (posible error de despliegue o permisos en Apps Script).");
+            throw new Error("Respuesta inválida del servidor (verifica los permisos de implementación en Apps Script).");
         }
 
     } catch (error) {

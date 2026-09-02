@@ -71,21 +71,25 @@
             const contenedorApp = document.getElementById('app-container');
             if (!contenedorApp) return;
 
-            // RESTAURACIÓN INTELIGENTE: Forzamos a que 'asistencia' o 'biometrico' abran directo el biométrico
+            // RUTA DIRECTA: Evitamos renderizados duplicados evaluando la sección de inmediato
             if ((seccionUrl === 'asistencia' || seccionUrl === 'biometrico') && window.RhAsisCasc && typeof window.RhAsisCasc.mostrarVistaBiometrico === 'function') {
                 window.RhAsisCasc.mostrarVistaBiometrico();
                 
-                // 🚀 FORZAMOS LA ACTUALIZACIÓN DEL BOTÓN DE REGRESAR INMEDIATAMENTE
                 setTimeout(() => {
                     if (typeof window.actualizarBotonRegresar === 'function') {
                         window.actualizarBotonRegresar('submodulo', nombreCortoUrl);
                     }
-                }, 100);
+                }, 50);
 
             } else if (seccionUrl && window.RhAsisCasc && typeof window.RhAsisCasc[seccionUrl] === 'function') {
                 window.RhAsisCasc[seccionUrl]();
+                setTimeout(() => {
+                    if (typeof window.actualizarBotonRegresar === 'function') {
+                        window.actualizarBotonRegresar('submodulo', nombreCortoUrl);
+                    }
+                }, 50);
             } else {
-                // Si no hay sub-sección activa previa, mostramos el menú de tarjetas principal
+                // Si no hay sección activa, mostramos el menú principal de tarjetas de forma limpia
                 window.restaurarMenuDepto(nombreCortoUrl);
             }
 
@@ -109,7 +113,6 @@ window.restaurarMenuDepto = function (nombreCortoUrl) {
         nombreCortoUrl = localStorage.getItem('depto_activo_actual') || '';
     }
 
-    // Limpiamos los rastros de sub-sección al volver al menú principal de tarjetas
     sessionStorage.removeItem('seccion_activa_actual');
 
     const urlClean = new URL(window.location);
@@ -238,9 +241,3 @@ function mostrarErrorConfig(nombreCorto, detalle) {
     `;
     }
 }
-
-window.addEventListener('DOMContentLoaded', () => {
-    document.body.classList.add('auth-checked');
-    const deptoGuardado = localStorage.getItem('depto_activo_actual') || '';
-    window.actualizarBotonRegresar('principal', deptoGuardado);
-});

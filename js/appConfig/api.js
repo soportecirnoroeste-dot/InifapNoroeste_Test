@@ -1,7 +1,7 @@
 // ========================================================
 // MÓDULO DE CONEXIÓN CON APPS SCRIPT / BACKEND (MEJORADO)
 // ========================================================
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDs5fvFxykQniWFZnbUqpbuDAmrIDhMHlVwU4r5B3iPLxBp4FDG7uKrtDBDQEXxEX8fQ/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz1wzz5zC_6Cf4thUdl_5BkAca6m_MM7IWQyPwVAQcMaraPqfX8nBGMQpSdy31_tjz1Aw/exec";
 
 // Hacemos la URL global para que cualquier submódulo pueda usarla
 window.APPS_SCRIPT_URL = APPS_SCRIPT_URL;

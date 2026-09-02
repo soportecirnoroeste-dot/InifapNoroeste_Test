@@ -1,5 +1,5 @@
 // ========================================================
-// MÓDULO DE CONEXIÓN CON APPS SCRIPT / BACKEND (BLINDADO CONTRA REDIRECCIONES)
+// MÓDULO DE CONEXIÓN CON APPS SCRIPT / BACKEND (DEFINITIVO)
 // ========================================================
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDs5fvFxykQniWFZnbUqpbuDAmrIDhMHlVwU4r5B3iPLxBp4FDG7uKrtDBDQEXxEX8fQ/exec";
 
@@ -26,21 +26,15 @@ async function FetchAPI(action, payload = {}) {
 
         let response = await fetch(APPS_SCRIPT_URL, {
             method: "POST",
-            redirect: "manual", // 👈 CAMBIO CRUCIAL: Evita que el navegador brinque a script.googleusercontent.com y mantenga el POST directo
+            redirect: "follow",
             headers: {
                 "Content-Type": "text/plain;charset=utf-8", 
             },
             body: bodyData
         });
 
-        // Si el servidor responde con una redirección manual, manejamos el texto de la respuesta directamente
-        let rawText = "";
-        if (response.type ===opaqueredirect || response.status === 0) {
-            // Caso seguro donde el navegador contuvo la redirección
-            rawText = await response.text();
-        } else {
-            rawText = await response.text();
-        }
+        // Capturamos el texto de la respuesta de manera limpia
+        let rawText = await response.text();
         
         try {
             let data = JSON.parse(rawText);

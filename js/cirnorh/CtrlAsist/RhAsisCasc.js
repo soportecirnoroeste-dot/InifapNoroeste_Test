@@ -27,49 +27,61 @@ window.RhAsisCasc = {
             });
         }
 
+        // 🎯 ESTRUCTURA IDÉNTICA A LA TARJETA PRINCIPAL DEL MÓDULO DE PERSONAL
         contenedor.innerHTML = `
-            <div class="space-y-6 animate-fade-in">
-                <!-- Cabecera de la sección -->
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-stone-200">
+            <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6 space-y-6 animate-fade-in">
+                <!-- Cabecera estilo Personal -->
+                <div class="flex items-start gap-4 pb-6 border-b border-stone-100">
+                    <div class="p-3 bg-stone-100 rounded-2xl text-stone-700 text-xl flex items-center justify-center">
+                        📊
+                    </div>
                     <div>
-                        <h4 class="font-bold text-stone-800 text-sm uppercase">Módulo Biométrico - INIFAP</h4>
-                        <p class="text-xs text-stone-500">Cargue el reporte oficial RH_CONTROL_ASISTENCIA_V2 para gestionar incidencias.</p>
+                        <h3 class="font-bold text-stone-800 text-base">MÓDULO BIOMÉTRICO</h3>
+                        <p class="text-xs text-stone-500 mt-0.5">Cargue el reporte oficial RH_CONTROL_ASISTENCIA_V2 para gestionar incidencias.</p>
                     </div>
                 </div>
 
-                <!-- Barra de Acciones Principales y Buscador -->
-                <div class="flex flex-wrap items-center justify-between gap-4 bg-stone-50 p-4 rounded-2xl border border-stone-200">
+                <!-- Barra de Acciones y Botones dentro de la tarjeta -->
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-stone-50 p-4 rounded-xl border border-stone-200">
                     <div class="flex flex-wrap items-center gap-3">
                         <input type="file" id="uploadBiometrico" class="hidden" accept=".xlsx, .xlsm, .csv" onchange="RhAsisCasc.manejarCargaYGuardadoAutomatico(this)">
                         
-                        <label id="labelCargaDatos" for="uploadBiometrico" class="px-4 py-2.5 bg-[#249444] hover:bg-[#1b7033] text-white text-xs font-bold rounded-xl cursor-pointer shadow-sm transition-all flex items-center gap-2">
+                        <label id="labelCargaDatos" for="uploadBiometrico" class="px-4 py-2.5 bg-[#249444] hover:bg-[#1b7033] text-white text-xs font-bold rounded-xl cursor-pointer shadow-sm transition-all flex items-center justify-center gap-2">
                             <span id="iconoCarga">📂</span> <span id="textoCargaBtn">Carga de Datos</span>
                         </label>
 
-                        <button id="exportBtn" disabled onclick="if(window.RhAsisFBio && typeof RhAsisFBio.exportarExcel === 'function') RhAsisFBio.exportarExcel()" class="bg-stone-300 opacity-50 cursor-not-allowed text-stone-700 px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
+                        <button id="exportBtn" disabled onclick="if(window.RhAsisFBio && typeof RhAsisFBio.exportarExcel === 'function') RhAsisFBio.exportarExcel()" class="bg-stone-300 opacity-50 cursor-not-allowed text-stone-700 px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2">
                             <span>📥</span> Exportar reporte
                         </button>
                     </div>
 
                     <!-- Buscador general en tiempo real -->
                     <div class="relative w-full sm:w-80">
-                        <span class="absolute left-3 top-1/2 -translate-y-1/2 opacity-50">🔍</span>
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 opacity-50 text-xs">🔍</span>
                         <input type="text" id="searchInputBio" placeholder="Buscar por centro, N° emp o fecha..." oninput="RhAsisCasc.filtrarTablaGeneral(this.value)"
-                            class="w-full pl-10 pr-4 py-2.5 bg-white border border-stone-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-[#249444] transition-all shadow-xs">
+                            class="w-full pl-9 pr-4 py-2.5 bg-white border border-stone-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-[#249444] transition-all shadow-xs">
                     </div>
                 </div>
 
-                <!-- Contenedor Principal de la Tabla con Scroll -->
-                <div id="appContainerBio" class="hidden bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden flex flex-col">
-                    <div id="gridContentBio" class="p-4 max-h-[600px] overflow-y-auto custom-scrollbar"></div>
-                </div>
+                <!-- Listado General de Registros -->
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center px-1">
+                        <h4 class="font-bold text-stone-700 text-xs uppercase tracking-wider">Listado General de Biométrico</h4>
+                        <span id="contadorRegistrosBio" class="text-xs text-stone-400 font-medium"></span>
+                    </div>
 
-                <!-- Estado Vacío Inicial -->
-                <div id="emptyStateBio" class="py-16 text-center">
-                    <div class="max-w-md mx-auto bg-stone-50 p-8 rounded-2xl border border-dashed border-stone-300">
-                        <div class="text-4xl mb-3">📊</div>
-                        <h5 class="text-sm font-bold text-stone-700">Sin datos cargados</h5>
-                        <p class="text-xs text-stone-400 mt-1">La hoja de cálculo Biometrico no contiene registros actualmente.</p>
+                    <!-- Contenedor Principal de la Tabla -->
+                    <div id="appContainerBio" class="hidden rounded-xl border border-stone-200 overflow-hidden bg-white">
+                        <div id="gridContentBio" class="max-h-[500px] overflow-y-auto custom-scrollbar"></div>
+                    </div>
+
+                    <!-- Estado Vacío Inicial -->
+                    <div id="emptyStateBio" class="py-12 text-center">
+                        <div class="max-w-md mx-auto bg-stone-50 p-8 rounded-2xl border border-dashed border-stone-300">
+                            <div class="text-3xl mb-2">📊</div>
+                            <h5 class="text-xs font-bold text-stone-700">Sin datos cargados</h5>
+                            <p class="text-[11px] text-stone-400 mt-1">La hoja de cálculo Biometrico no contiene registros actualmente.</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -89,13 +101,10 @@ window.RhAsisCasc = {
 
             const claveCentroActivo = RhAsisCasc.obtenerClaveCentroActual ? String(RhAsisCasc.obtenerClaveCentroActual()).trim() : "";
 
-            // Llamamos a FetchAPI y guardamos el resultado devuelto
             const res = await FetchAPI("obtenerTodosLosRegistrosPlano", {
                 claveCentro: claveCentroActivo,
                 centro: claveCentroActivo
             });
-
-            // 🎯 IMPRIMIR EN CONSOLA EL RETURN EXACTO DEL SCRIPT
 
             if (res && res.success && res.registros) {
                 RhAsisCasc.registrosBiometrico = res.registros;
@@ -126,10 +135,10 @@ window.RhAsisCasc = {
                 labelCarga.removeAttribute('for');
             }
             if (iconoCarga) {
-                iconoCarga.innerHTML = `<svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
+                iconoCarga.innerHTML = `<svg class="animate-spin h-3.5 w-3.5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
             }
             if (textCarga) {
-                textCarga.innerText = "Analizando archivo...";
+                textCarga.innerText = "Analizando...";
             }
 
             if (window.RhAsisFBio && typeof RhAsisFBio.manejarCargaArchivo === 'function') {
@@ -177,21 +186,17 @@ window.RhAsisCasc = {
             }
 
             if (textCarga) {
-                textCarga.innerText = "Verificando en sistema...";
+                textCarga.innerText = "Verificando...";
             }
 
-            // 🏢 OBTENER LA CLAVE DEL CENTRO ACTIVO DE FORMA GLOBAL Y SEGURA
             let claveCentroSeleccionado = localStorage.getItem('centro_activo_actual') || "";
             claveCentroSeleccionado = String(claveCentroSeleccionado).trim();
 
-            // 🛑 VALIDACIÓN ESTRICTA
             if (!claveCentroSeleccionado) {
                 alert("⚠️ Por favor selecciona un Centro de Trabajo válido en el panel principal antes de continuar.");
                 window.RhAsisFBio.groupedData = {};
                 return;
             }
-
-            claveCentroSeleccionado = String(claveCentroSeleccionado).trim();
 
             if (typeof FetchAPI === 'function') {
                 const verificacion = await FetchAPI("verificarFechaBiometrico", {
@@ -207,7 +212,7 @@ window.RhAsisCasc = {
                     return;
                 } else {
                     if (textCarga) {
-                        textCarga.innerText = "Guardando datos...";
+                        textCarga.innerText = "Guardando...";
                     }
 
                     const rowsParaSheets = [];
@@ -215,18 +220,18 @@ window.RhAsisCasc = {
                         const empleado = RhAsisFBio.groupedData[id];
                         empleado.rows.forEach(row => {
                             rowsParaSheets.push([
-                                claveCentroSeleccionado, // 👈 1er campo: ClaveCentro real
-                                row[0] || "",   // NumEmp
-                                row[4] || "",   // RHBHraEnt
-                                row[5] || "",   // RHBHraSal
-                                row[6] || "",   // RHBHraReg
-                                row[7] || "",   // RHBNomReg
-                                row[8] || "",   // RHBFecReg
-                                row[9] || "",   // RHBDía
-                                row[10] || "",  // RHBRetMen
-                                row[11] || "",  // RHBRetMed
-                                row[12] || "",  // RHBRetMay
-                                row[13] || ""   // RHBFalta
+                                claveCentroSeleccionado,
+                                row[0] || "",
+                                row[4] || "",
+                                row[5] || "",
+                                row[6] || "",
+                                row[7] || "",
+                                row[8] || "",
+                                row[9] || "",
+                                row[10] || "",
+                                row[11] || "",
+                                row[12] || "",
+                                row[13] || ""
                             ]);
                         });
                     });
@@ -236,7 +241,7 @@ window.RhAsisCasc = {
                     });
 
                     if (resultado && resultado.success) {
-                        alert(`✅ ¡Datos cargados y guardados exitosamente para el centro ${claveCentroSeleccionado} ${rowsParaSheets.length} registros!`);
+                        alert(`✅ ¡Datos cargados y guardados exitosamente para el centro ${claveCentroSeleccionado} (${rowsParaSheets.length} registros)!`);
                         await RhAsisCasc.cargarDatosDesdeSheets();
                     } else {
                         alert("⚠️ Aviso al guardar en Sheets: " + (resultado ? resultado.message : "Desconocido"));
@@ -269,6 +274,7 @@ window.RhAsisCasc = {
         const emptyState = document.getElementById('emptyStateBio');
         const appContainer = document.getElementById('appContainerBio');
         const exportBtn = document.getElementById('exportBtn');
+        const contador = document.getElementById('contadorRegistrosBio');
 
         if (!gridContent) return;
 
@@ -277,8 +283,9 @@ window.RhAsisCasc = {
             if (appContainer) appContainer.classList.add('hidden');
             if (exportBtn) {
                 exportBtn.disabled = true;
-                exportBtn.className = "bg-stone-300 opacity-50 cursor-not-allowed text-stone-700 px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2";
+                exportBtn.className = "bg-stone-300 opacity-50 cursor-not-allowed text-stone-700 px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2";
             }
+            if (contador) contador.innerText = "";
             gridContent.innerHTML = "";
             return;
         }
@@ -288,52 +295,51 @@ window.RhAsisCasc = {
 
         if (exportBtn) {
             exportBtn.disabled = false;
-            exportBtn.className = "bg-[#249444] hover:bg-[#1b7033] text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-2 cursor-pointer";
+            exportBtn.className = "bg-[#249444] hover:bg-[#1b7033] text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer";
+        }
+
+        if (contador) {
+            contador.innerText = `${listaRegistros.length} registros`;
         }
 
         const headers = RhAsisCasc.rawHeaderGlobal;
 
         gridContent.innerHTML = `
-            <div class="overflow-x-auto rounded-xl border border-stone-200">
-                <table class="w-full text-[10px]">
-                    <thead class="bg-stone-100 font-bold text-stone-700 sticky top-0 z-10">
-                        <tr>${headers.map(h => `<th class="p-2.5 border border-stone-200 text-center">${h}</th>`).join('')}</tr>
-                    </thead>
-                    <tbody>
-                        ${listaRegistros.map(r => {
-            const celdas = Array.isArray(r) ? r.slice(0, 12) : headers.map(h => r[h] || "");
-            return `
-                                <tr class="bg-white hover:bg-stone-50 text-stone-700">
-                                    ${celdas.map(c => {
-                let val = c;
-                if (val instanceof Date) {
-                    val = val.toLocaleDateString();
-                } else if (typeof val === 'string' && val.includes('T') && val.length > 18) {
-                    const d = new Date(val);
-                    if (!isNaN(d)) val = d.toLocaleDateString();
-                }
-                return `<td class="p-2 border border-stone-200/50 text-center">${val !== null && val !== undefined ? val : ''}</td>`;
-            }).join('')}
-                                </tr>
-                            `;
-        }).join('')}
-                    </tbody>
-                </table>
-            </div>
+            <table class="w-full text-[11px] text-left border-collapse">
+                <thead class="bg-stone-100 font-bold text-stone-700 sticky top-0 z-10 border-b border-stone-200">
+                    <tr>${headers.map(h => `<th class="p-3 border-b border-stone-200 text-center">${h}</th>`).join('')}</tr>
+                </thead>
+                <tbody class="divide-y divide-stone-100">
+                    ${listaRegistros.map(r => {
+                        const celdas = Array.isArray(r) ? r.slice(0, 12) : headers.map(h => r[h] || "");
+                        return `
+                            <tr class="bg-white hover:bg-stone-50 transition text-stone-700">
+                                ${celdas.map(c => {
+                                    let val = c;
+                                    if (val instanceof Date) {
+                                        val = val.toLocaleDateString();
+                                    } else if (typeof val === 'string' && val.includes('T') && val.length > 18) {
+                                        const d = new Date(val);
+                                        if (!isNaN(d)) val = d.toLocaleDateString();
+                                    }
+                                    return `<td class="p-2.5 border-b border-stone-100 text-center">${val !== null && val !== undefined && String(val).trim() !== '' ? val : ''}</td>`;
+                                }).join('')}
+                            </tr>
+                        `;
+                    }).join('')}
+                </tbody>
+            </table>
         `;
     },
 
     obtenerClaveCentroActual: function () {
         let clave = "";
-
-        // 1. Busca el valor en el selector visual
         const selectCentro = document.getElementById('filtro-campos-regional') || document.querySelector('select') || document.querySelector('[role="combobox"]');
         if (selectCentro && selectCentro.value) {
             const matchVal = selectCentro.value.match(/^(\d+)/);
             clave = matchVal ? matchVal[1] : selectCentro.value;
         }
 
-        // 2. Si no hay select, busca en localStorage
         if (!clave) {
             clave = localStorage.getItem('centro_activo_actual') || localStorage.getItem('depto_activo_actual') || "";
         }

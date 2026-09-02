@@ -85,14 +85,22 @@ function limpiarSeccionUrl() {
 }
 
 function cargarAsistenciaRh() {
-    // 1. Cargamos la vista biométrica
+    // 1. Actualizamos la URL de forma limpia para que el navegador y el router sepan exactamente dónde estamos
+    const urlActual = new URL(window.location);
+    urlActual.searchParams.set('seccion', 'biometrico');
+    window.history.pushState({ seccion: 'biometrico' }, '', urlActual);
+
+    // 2. Guardamos la sección activa en sessionStorage
+    sessionStorage.setItem('seccion_activa_actual', 'biometrico');
+
+    // 3. Mostramos la vista biométrica
     if (typeof window.RhAsisCasc !== 'undefined' && window.RhAsisCasc.mostrarVistaBiometrico) {
         window.RhAsisCasc.mostrarVistaBiometrico();
     } else if (typeof cargarVistaBiometrico === 'function') {
         cargarVistaBiometrico();
     }
 
-    // 2. Forzamos la actualización del botón de retroceso para que sepa que estás en un submódulo
+    // 4. Actualizamos el botón de retroceso inmediatamente para que apunte al menú principal
     const deptoActual = localStorage.getItem('depto_activo_actual') || '';
     if (typeof window.actualizarBotonRegresar === 'function') {
         window.actualizarBotonRegresar('submodulo', deptoActual);

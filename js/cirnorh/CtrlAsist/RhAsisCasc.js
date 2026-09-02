@@ -3,9 +3,9 @@
 window.RhAsisCasc = {
     registrosBiometrico: [],
     rawHeaderGlobal: [
-        "ClaveCentro", "NumEmp", "RHBHraEnt", "RHBHraSal",
-        "RHBHraReg", "RHBNomReg", "RHBFecReg", "RHBDía",
-        "RHBRetMen", "RHBRetMed", "RHBRetMay", "RHBFalta"
+        "Centro", "Núm. Emp", "Hra.Entrada", "Hra. Salida",
+        "Hra.Registro", "Registro", "Fecha Reg.", "Día Reg.",
+        "Retardo Men.", "Retardo Med.", "Retardo May.", "Falta"
     ],
 
     mostrarVistaBiometrico: async function () {

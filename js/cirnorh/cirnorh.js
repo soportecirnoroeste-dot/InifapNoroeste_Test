@@ -85,11 +85,17 @@ function limpiarSeccionUrl() {
 }
 
 function cargarAsistenciaRh() {
-    // 🚀 Cargamos directamente la vista biométrica sin pasar por el submenú de tarjetas
-    if (typeof RhAsisCasc !== 'undefined' && RhAsisCasc.mostrarVistaBiometrico) {
-        RhAsisCasc.mostrarVistaBiometrico();
+    // 1. Cargamos la vista biométrica
+    if (typeof window.RhAsisCasc !== 'undefined' && window.RhAsisCasc.mostrarVistaBiometrico) {
+        window.RhAsisCasc.mostrarVistaBiometrico();
     } else if (typeof cargarVistaBiometrico === 'function') {
         cargarVistaBiometrico();
+    }
+
+    // 2. Forzamos la actualización del botón de retroceso para que sepa que estás en un submódulo
+    const deptoActual = localStorage.getItem('depto_activo_actual') || '';
+    if (typeof window.actualizarBotonRegresar === 'function') {
+        window.actualizarBotonRegresar('submodulo', deptoActual);
     }
 }
 

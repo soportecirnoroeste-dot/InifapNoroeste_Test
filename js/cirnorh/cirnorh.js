@@ -57,7 +57,12 @@ function ejecutarCargaSeccion(idOpt) {
     if (idOpt === 'personal') {
         if (typeof cargarPersonalRh === 'function') cargarPersonalRh(true);
     } else if (idOpt === 'asistencia') {
-        cargarAsistenciaRh();
+        // 🚀 Salor el submenú y cargar directamente la vista biométrica
+        if (typeof RhAsisCasc !== 'undefined' && RhAsisCasc.mostrarVistaBiometrico) {
+            RhAsisCasc.mostrarVistaBiometrico();
+        } else if (typeof cargarVistaBiometrico === 'function') {
+            cargarVistaBiometrico();
+        }
     } else if (idOpt === 'vacaciones') {
         cargarVacacionesRh();
     } else if (idOpt === 'capacitacion') {
@@ -80,12 +85,12 @@ function limpiarSeccionUrl() {
 }
 
 function cargarAsistenciaRh() {
-    renderizarVistaModulo('asistencia', "Registro de retardos, faltas, permisos y justificantes.", [
-        { titulo: "Carga de Datos Biométrico", desc: "Importación masiva de checadas (TXT/CSV/Excel) del dispositivo físico.", accion: "cargarVistaBiometrico()" },
-        { titulo: "Control de Retardos", desc: "Monitoreo y acumulación quincenal de entradas tarde." },
-        { titulo: "Justificantes Médicos", desc: "Carga y validación de incapacidades o permisos oficiales." },
-        { titulo: "Reporte de Asistencia", desc: "Generación de listas de asistencia globales por centro." }
-    ]);
+    // 🚀 Cargamos directamente la vista biométrica sin pasar por el submenú de tarjetas
+    if (typeof RhAsisCasc !== 'undefined' && RhAsisCasc.mostrarVistaBiometrico) {
+        RhAsisCasc.mostrarVistaBiometrico();
+    } else if (typeof cargarVistaBiometrico === 'function') {
+        cargarVistaBiometrico();
+    }
 }
 
 function cargarVacacionesRh() {

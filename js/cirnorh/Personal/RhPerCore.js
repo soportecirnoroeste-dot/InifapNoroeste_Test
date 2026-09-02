@@ -9,7 +9,7 @@ window._mapRegsCache = window._mapRegsCache || null;
 window._mapCentrosCache = window._mapCentrosCache || null;
 
 function cargarPersonalRh(cargarLista = true) {
-    renderizarVistaModulo('personal');
+    renderizarVistaModulo('personal',"");
 
     const contenedorDinamico = document.getElementById('contenido-submodulo-dinamico');
     if (!contenedorDinamico) return;

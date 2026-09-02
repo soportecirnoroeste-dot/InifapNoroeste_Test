@@ -71,14 +71,17 @@
             const contenedorApp = document.getElementById('app-container');
             if (!contenedorApp) return;
 
-            // RESTAURACIÓN INTELIGENTE: Forzamos a que 'asistencia' abra directo el biométrico
+            // RESTAURACIÓN INTELIGENTE: Forzamos a que 'asistencia' o 'biometrico' abran directo el biométrico
             if ((seccionUrl === 'asistencia' || seccionUrl === 'biometrico') && window.RhAsisCasc && typeof window.RhAsisCasc.mostrarVistaBiometrico === 'function') {
                 window.RhAsisCasc.mostrarVistaBiometrico();
                 
-                // Actualizamos el botón de retroceso para que regrese al menú principal del depto
-                if (typeof window.actualizarBotonRegresar === 'function') {
-                    window.actualizarBotonRegresar('submodulo', nombreCortoUrl);
-                }
+                // 🚀 FORZAMOS LA ACTUALIZACIÓN DEL BOTÓN DE REGRESAR INMEDIATAMENTE
+                setTimeout(() => {
+                    if (typeof window.actualizarBotonRegresar === 'function') {
+                        window.actualizarBotonRegresar('submodulo', nombreCortoUrl);
+                    }
+                }, 100);
+
             } else if (seccionUrl && window.RhAsisCasc && typeof window.RhAsisCasc[seccionUrl] === 'function') {
                 window.RhAsisCasc[seccionUrl]();
             } else {

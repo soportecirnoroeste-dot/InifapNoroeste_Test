@@ -88,7 +88,6 @@ window.RhAsisCasc = {
             if (typeof FetchAPI !== 'function') return;
 
             const claveCentroActivo = RhAsisCasc.obtenerClaveCentroActual ? String(RhAsisCasc.obtenerClaveCentroActual()).trim() : "";
-            console.log("📤 [FETCH] Solicitando registros al servidor para el centro:", claveCentroActivo);
 
             // Llamamos a FetchAPI y guardamos el resultado devuelto
             const res = await FetchAPI("obtenerTodosLosRegistrosPlano", {
@@ -97,12 +96,10 @@ window.RhAsisCasc = {
             });
 
             // 🎯 IMPRIMIR EN CONSOLA EL RETURN EXACTO DEL SCRIPT
-            console.log("📥 RETURN CRUDO DEL SCRIPT DE APPS SCRIPT:", res);
 
             if (res && res.success && res.registros) {
                 RhAsisCasc.registrosBiometrico = res.registros;
                 RhAsisCasc.renderGrid(RhAsisCasc.registrosBiometrico);
-                console.log("✅ Registros pintados exitosamente:", res.registros.length);
             } else {
                 RhAsisCasc.registrosBiometrico = [];
                 RhAsisCasc.renderGrid([]);

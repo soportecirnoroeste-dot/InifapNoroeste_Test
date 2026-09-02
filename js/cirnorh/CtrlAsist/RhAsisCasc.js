@@ -103,7 +103,6 @@ window.RhAsisCasc = {
             } else {
                 RhAsisCasc.registrosBiometrico = [];
                 RhAsisCasc.renderGrid([]);
-                console.warn("⚠️ La consulta no devolvió registros o falló. Mensaje:", res ? res.message : "Sin respuesta");
             }
         } catch (e) {
             console.error("❌ Error crítico capturado en cargarDatosDesdeSheets:", e);

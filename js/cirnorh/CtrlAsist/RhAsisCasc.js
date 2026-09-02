@@ -44,15 +44,16 @@ window.RhAsisCasc = {
                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-stone-50 p-4 rounded-xl border border-stone-200">
                     <div class="flex flex-wrap items-center gap-3">
                         <input type="file" id="uploadBiometrico" class="hidden" accept=".xlsx, .xlsm, .csv" onchange="RhAsisCasc.manejarCargaYGuardadoAutomatico(this)">
-                        
-                        <p class="text-xs text-stone-500 mt-0.5">Cargue el reporte oficial RH_CONTROL_ASISTENCIA_V2 para gestionar incidencias.</p>
-                        <label id="labelCargaDatos" for="uploadBiometrico" class="font-bold text-stone-800 text-sm mb-4 pb-2 border-b border-stone-100 flex items-center gap-2">
+                            <div>
+                                <h4 class="font-bold text-stone-800 text-sm">Gestión de Personal</h4>
+                            </div>
+                        <label id="labelCargaDatos" for="uploadBiometrico" class="px-4 py-2.5 bg-[#249444] hover:bg-[#1b7033] text-white text-xs font-bold rounded-xl cursor-pointer shadow-sm transition-all flex items-center justify-center gap-2">
                             <span id="iconoCarga">+</span> <span id="textoCargaBtn">Carga de Datos</span>
                         </label>
 
-                       <!-- <button id="exportBtn" disabled onclick="if(window.RhAsisFBio && typeof RhAsisFBio.exportarExcel === 'function') RhAsisFBio.exportarExcel()" class="bg-stone-300 opacity-50 cursor-not-allowed text-stone-700 px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2">
+                        <button id="exportBtn" disabled onclick="if(window.RhAsisFBio && typeof RhAsisFBio.exportarExcel === 'function') RhAsisFBio.exportarExcel()" class="bg-stone-300 opacity-50 cursor-not-allowed text-stone-700 px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2">
                             <span>📥</span> Exportar reporte
-                        </button>-->
+                        </button>
                     </div>
 
                     <!-- Buscador general en tiempo real -->

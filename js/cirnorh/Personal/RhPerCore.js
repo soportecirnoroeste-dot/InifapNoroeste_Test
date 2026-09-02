@@ -9,7 +9,7 @@ window._mapRegsCache = window._mapRegsCache || null;
 window._mapCentrosCache = window._mapCentrosCache || null;
 
 function cargarPersonalRh(cargarLista = true) {
-    renderizarVistaModulo('personal', "Directorio de empleados, altas, bajas y estructura organizacional.");
+    renderizarVistaModulo('personal');
 
     const contenedorDinamico = document.getElementById('contenido-submodulo-dinamico');
     if (!contenedorDinamico) return;
@@ -20,7 +20,6 @@ function cargarPersonalRh(cargarLista = true) {
         <div id="contenedor-gestion-personal" class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-stone-50 p-4 rounded-xl border border-stone-200">
             <div>
                 <h4 class="font-bold text-stone-800 text-sm">Gestión de Personal</h4>
-                <p class="text-xs text-stone-500">Visualiza el padrón completo, da de alta o haz clic en un empleado para editar sus datos.</p>
             </div>
             <div class="flex gap-2">
                 <button onclick="mostrarFormularioNuevoPersonal()" class="px-4 py-2 bg-[#249444] text-white rounded-xl text-xs font-bold hover:bg-[#1e7a37] transition flex items-center gap-2">

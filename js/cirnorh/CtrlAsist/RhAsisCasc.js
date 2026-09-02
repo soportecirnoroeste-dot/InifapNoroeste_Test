@@ -36,8 +36,7 @@ window.RhAsisCasc = {
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 21a8 8 0 0 1 13.292-6"/><circle cx="10" cy="8" r="5"/><path d="m16 19 2 2 4-4"/></svg>
                     </div>
                     <div>
-                        <h3 class="font-bold text-stone-800 text-base">MÓDULO BIOMÉTRICO</h3>
-                        <p class="text-xs text-stone-500 mt-0.5">Cargue el reporte oficial RH_CONTROL_ASISTENCIA_V2 para gestionar incidencias.</p>
+                        <h3 class="font-bold text-stone-800 text-base">CONTROL DE ASISTENCIA</h3>
                     </div>
                 </div>
 
@@ -46,13 +45,14 @@ window.RhAsisCasc = {
                     <div class="flex flex-wrap items-center gap-3">
                         <input type="file" id="uploadBiometrico" class="hidden" accept=".xlsx, .xlsm, .csv" onchange="RhAsisCasc.manejarCargaYGuardadoAutomatico(this)">
                         
-                        <label id="labelCargaDatos" for="uploadBiometrico" class="px-4 py-2.5 bg-[#249444] hover:bg-[#1b7033] text-white text-xs font-bold rounded-xl cursor-pointer shadow-sm transition-all flex items-center justify-center gap-2">
-                            <span id="iconoCarga">📂</span> <span id="textoCargaBtn">Carga de Datos</span>
+                        <p class="text-xs text-stone-500 mt-0.5">Cargue el reporte oficial RH_CONTROL_ASISTENCIA_V2 para gestionar incidencias.</p>
+                        <label id="labelCargaDatos" for="uploadBiometrico" class="font-bold text-stone-800 text-sm mb-4 pb-2 border-b border-stone-100 flex items-center gap-2">
+                            <span id="iconoCarga">+</span> <span id="textoCargaBtn">Carga de Datos</span>
                         </label>
 
-                        <button id="exportBtn" disabled onclick="if(window.RhAsisFBio && typeof RhAsisFBio.exportarExcel === 'function') RhAsisFBio.exportarExcel()" class="bg-stone-300 opacity-50 cursor-not-allowed text-stone-700 px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2">
+                       <!-- <button id="exportBtn" disabled onclick="if(window.RhAsisFBio && typeof RhAsisFBio.exportarExcel === 'function') RhAsisFBio.exportarExcel()" class="bg-stone-300 opacity-50 cursor-not-allowed text-stone-700 px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2">
                             <span>📥</span> Exportar reporte
-                        </button>
+                        </button>-->
                     </div>
 
                     <!-- Buscador general en tiempo real -->

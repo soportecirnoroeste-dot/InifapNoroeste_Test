@@ -102,6 +102,7 @@ window.RhAsisCasc = {
             if (typeof res === 'string') {
                 try { datosRespuesta = JSON.parse(res); } catch(e) {}
             }
+            console.log("📤 Registros al servidor para el centro:", res);
 
             // 🚩 VER EL OBJETO CRUDO QUE LLEGÓ AL SERVIDOR
             console.log("🚩 [DIAGNÓSTICO DETALLADO]:", {

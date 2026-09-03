@@ -27,7 +27,6 @@ window.RhAsisCasc = {
             });
         }
 
-        // 🎯 ESTRUCTURA LIMPIA: Título a la izquierda, Filtros (con etiquetas arriba) y Botones a la derecha
         contenedor.innerHTML = `
             <div class="space-y-6 animate-fade-in">
                 <!-- Tarjeta 1: Cabecera principal -->
@@ -306,7 +305,7 @@ window.RhAsisCasc = {
         }
     },
 
-    // 🕒 Función auxiliar para extraer estrictamente solo la hora en formato limpio
+    // 🕒 Mantiene el formato de hora de 24 horas tal como viene guardado en Sheets
     formatearSoloHora: function (valor) {
         if (!valor) return "";
         let valStr = String(valor).trim();
@@ -321,17 +320,6 @@ window.RhAsisCasc = {
             const posibleHora = partesEspacio.find(p => p.includes(':'));
             if (posibleHora) {
                 valStr = posibleHora;
-            }
-        }
-
-        const partesHora = valStr.split(':');
-        if (partesHora.length >= 2) {
-            let horas = parseInt(partesHora[0], 10);
-            const minutos = partesHora[1].padStart(2, '0');
-            const segundos = partesHora[2] ? partesHora[2].substring(0, 2).padStart(2, '0') : null;
-
-            if (!isNaN(horas)) {
-                return segundos ? `${String(horas).padStart(2, '0')}:${minutos}:${segundos}` : `${String(horas).padStart(2, '0')}:${minutos}`;
             }
         }
 
@@ -427,7 +415,6 @@ window.RhAsisCasc = {
         return String(clave).trim();
     },
 
-    // 🔍 Normalizador auxiliar para comparar fechas de forma estricta (YYYY-MM-DD)
     normalizarFechaFiltro: function (fechaStr) {
         if (!fechaStr) return "";
         let str = String(fechaStr).trim();
@@ -439,7 +426,6 @@ window.RhAsisCasc = {
         if (str.includes('/')) {
             const partes = str.split('/');
             if (partes.length === 3) {
-                // Formato DD/MM/YYYY a YYYY-MM-DD
                 return `${partes[2]}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}`;
             }
         }
@@ -461,7 +447,6 @@ window.RhAsisCasc = {
             if (centroFiltro && !centro.includes(centroFiltro)) return false;
             if (numEmpFiltro && !numEmp.includes(numEmpFiltro)) return false;
 
-            // Filtro por rango de fechas (DE - HASTA)
             if (fechaDesde && fechaRegNorm < fechaDesde) return false;
             if (fechaHasta && fechaRegNorm > fechaHasta) return false;
 

@@ -53,29 +53,29 @@ window.RhAsisCasc = {
                         <div class="flex flex-wrap items-end gap-3">
                             <!-- Filtro Fecha DE -->
                             <div class="flex flex-col gap-1">
-                                <label for="filtroFechaDesde" class="text-[10px] font-bold text-stone-500 uppercase tracking-wider">De (Fecha)</label>
+                                <label for="filtroFechaDesde" class="text-[10px] font-bold text-stone-500 uppercase tracking-wider">De</label>
                                 <input type="date" id="filtroFechaDesde" onchange="RhAsisCasc.aplicarFiltrosCombinados()"
                                     class="px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] text-stone-700 shadow-xs cursor-pointer">
                             </div>
 
                             <!-- Filtro Fecha HASTA -->
                             <div class="flex flex-col gap-1">
-                                <label for="filtroFechaHasta" class="text-[10px] font-bold text-stone-500 uppercase tracking-wider">Hasta (Fecha)</label>
+                                <label for="filtroFechaHasta" class="text-[10px] font-bold text-stone-500 uppercase tracking-wider">Hasta</label>
                                 <input type="date" id="filtroFechaHasta" onchange="RhAsisCasc.aplicarFiltrosCombinados()"
                                     class="px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] text-stone-700 shadow-xs cursor-pointer">
-                            </div>
-
-                            <!-- Filtro N° EMP -->
-                            <div class="flex flex-col gap-1">
-                                <label for="filtroNumEmpBio" class="text-[10px] font-bold text-stone-500 uppercase tracking-wider">N° Empleado</label>
-                                <input type="text" id="filtroNumEmpBio" placeholder="Ej. 1042" oninput="RhAsisCasc.aplicarFiltrosCombinados()"
-                                    class="w-28 px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] transition-all shadow-xs text-stone-700">
                             </div>
 
                             <!-- Filtro CENTRO -->
                             <div class="flex flex-col gap-1">
                                 <label for="filtroCentroBio" class="text-[10px] font-bold text-stone-500 uppercase tracking-wider">Centro</label>
-                                <input type="text" id="filtroCentroBio" placeholder="Ej. 01" oninput="RhAsisCasc.aplicarFiltrosCombinados()"
+                                <input type="text" id="filtroCentroBio" oninput="RhAsisCasc.aplicarFiltrosCombinados()"
+                                    class="w-28 px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] transition-all shadow-xs text-stone-700">
+                            </div>
+
+                            <!-- Filtro N° EMP -->
+                            <div class="flex flex-col gap-1">
+                                <label for="filtroNumEmpBio" class="text-[10px] font-bold text-stone-500 uppercase tracking-wider">N° Empleado</label>
+                                <input type="text" id="filtroNumEmpBio" oninput="RhAsisCasc.aplicarFiltrosCombinados()"
                                     class="w-28 px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] transition-all shadow-xs text-stone-700">
                             </div>
 
@@ -83,12 +83,13 @@ window.RhAsisCasc = {
                             
                             <div class="flex items-center gap-2 pt-4 xl:pt-0">
                                 <label id="labelCargaDatos" for="uploadBiometrico" class="px-4 py-2.5 bg-[#249444] hover:bg-[#1b7033] text-white text-xs font-bold rounded-xl cursor-pointer shadow-sm transition-all flex items-center justify-center gap-2">
-                                    <span id="iconoCarga">📂</span>
-                                    <span id="textoCargaBtn">Carga de Datos</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-up-icon lucide-file-up"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M12 12v6"/><path d="m15 15-3-3-3 3"/></svg>
+                                    Carga de Datos
                                 </label>
 
                                 <button id="exportBtn" disabled onclick="if(window.RhAsisFBio && typeof RhAsisFBio.exportarExcel === 'function') RhAsisFBio.exportarExcel()" class="bg-stone-100 border border-stone-200 text-stone-400 opacity-60 cursor-not-allowed px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2">
-                                    <span>📥</span> Exportar reporte
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-down-icon lucide-file-down"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>
+                                    Exportar reporte
                                 </button>
                             </div>
                         </div>

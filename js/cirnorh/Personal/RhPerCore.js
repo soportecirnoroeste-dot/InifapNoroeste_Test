@@ -9,7 +9,7 @@ window._mapRegsCache = window._mapRegsCache || null;
 window._mapCentrosCache = window._mapCentrosCache || null;
 
 function cargarPersonalRh(cargarLista = true) {
-    renderizarVistaModulo('personal',"");
+    renderizarVistaModulo('personal', "");
 
     const contenedorDinamico = document.getElementById('contenido-submodulo-dinamico');
     if (!contenedorDinamico) return;
@@ -38,8 +38,7 @@ function cargarPersonalRh(cargarLista = true) {
                 Capturar Nuevo Empleado
             </h5>
             <form id="form-nuevo-personal" onsubmit="guardarOActualizarPersonal(event)" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
-                
-               <div>
+                <div>
                     <label class="block font-bold text-stone-700 mb-1">Clave Reg:</label>
                     <select name="claveReg" id="select-claveReg" onchange="filtrarCentrosPorRegion()" required class="w-full p-2.5 border border-stone-300 rounded-lg bg-white focus:outline-none focus:border-[#249444]">
                         <option value="" disabled selected>Seleccione una región...</option>
@@ -89,15 +88,24 @@ function cargarPersonalRh(cargarLista = true) {
 
         <div id="contenedor-listado-personal" class="bg-white rounded-xl border border-stone-200 overflow-hidden shadow-sm">
             <div class="p-4 border-b border-stone-100 font-bold text-xs text-stone-700 uppercase tracking-wider">Listado General de Empleados</div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse text-xs">
-                    <thead>
-                        <tr class="bg-stone-50 text-stone-600 border-b border-stone-200">
-                            <th class="p-3">REG</th><th class="p-3">CENTRO</th><th class="p-3">NO. EMP</th><th class="p-3">NOMBRE</th><th class="p-3">PUESTO</th><th class="p-3">DEPARTAMENTO</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabla-personal-body"><tr><td colspan="6" class="p-6 text-center text-stone-400 italic">Cargando registros...</td></tr></tbody>
-                </table>
+            <div class="rounded-xl bg-white">
+                <div class="max-h-[500px] overflow-y-auto overflow-x-auto custom-scrollbar">
+                    <table class="w-full text-left border-collapse text-xs min-w-[950px]">
+                        <thead class="bg-stone-100 font-bold text-stone-700 sticky top-0 z-10 border-b border-stone-200">
+                            <tr>
+                                <th class="p-3 border-b border-stone-200">REG</th>
+                                <th class="p-3 border-b border-stone-200">CENTRO</th>
+                                <th class="p-3 border-b border-stone-200">NO. EMP</th>
+                                <th class="p-3 border-b border-stone-200">NOMBRE</th>
+                                <th class="p-3 border-b border-stone-200">PUESTO</th>
+                                <th class="p-3 border-b border-stone-200">DEPARTAMENTO</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-personal-body" class="divide-y divide-stone-100">
+                            <tr><td colspan="6" class="p-6 text-center text-stone-400 italic">Cargando registros...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     `;
@@ -106,7 +114,6 @@ function cargarPersonalRh(cargarLista = true) {
         cargarDatosGenerales(false);
     }
 }
-
 
 async function cargarDatosGenerales(forzarRecarga = false) {
     if (forzarRecarga) {
@@ -135,7 +142,6 @@ async function cargarDatosGenerales(forzarRecarga = false) {
     ]);
 }
 
-// Al hacer clic en Cancelar
 function cancelarEdicionPersonal() {
     ocultarFormularioPersonal();
 }
@@ -149,7 +155,6 @@ function ocultarFormularioPersonal() {
     if (gestionContainer) gestionContainer.classList.remove('hidden');
     if (listadoContainer) listadoContainer.classList.remove('hidden');
 
-    // Pintamos inmediatamente con la caché local para que cargue al instante sin quedarse en blanco
     if (window._empleadosCache && window._empleadosCache.length > 0) {
         renderizarTablaPersonal(window._empleadosCache);
     }
@@ -164,16 +169,14 @@ async function cargarCatalogosSheets(forzar = false) {
         window._catRegs = data.regionales || [];
         window._catCentros = data.campos || [];
         window._catSitios = data.sitios || [];
-        // 📌 Agregamos el catálogo de departamentos que viene de Sheets
         window._catDepartamentos = data.departamentos || data.deptos || []; 
 
-        // Si ya hay un centro seleccionado, refrescamos sitios
         const selCentro = document.getElementById('select-claveCentro');
         if (selCentro && selCentro.value && typeof filtrarSitiosPorCentro === 'function') {
             filtrarSitiosPorCentro(selCentro.value);
         }
     } catch (e) {
-        console.error("Error al catálogos desde servidor...", e);
+        console.error("Error al cargar catálogos desde servidor...", e);
     }
 }
 
@@ -316,7 +319,6 @@ async function cargarDatosPersonalSheets(forzar = false) {
     }
 }
 
-// Función definitiva para renderizar con formato Clave - NomCorto y velocidad instantánea
 function renderizarTablaPersonal(registros) {
     const tbody = document.getElementById('tabla-personal-body');
     if (!tbody) return;
@@ -326,7 +328,6 @@ function renderizarTablaPersonal(registros) {
         return;
     }
 
-    // Aseguramos mapas de respaldo para regiones y centros
     if (!window._mapRegsCache && window._catRegs) {
         window._mapRegsCache = {};
         window._catRegs.forEach(r => {
@@ -343,7 +344,6 @@ function renderizarTablaPersonal(registros) {
         });
     }
 
-    // Validación inteligente del catálogo de departamentos
     let catDeptosDisponible = false;
     if (window._catDepartamentos && Array.isArray(window._catDepartamentos) && window._catDepartamentos.length > 0) {
         catDeptosDisponible = true;
@@ -357,16 +357,15 @@ function renderizarTablaPersonal(registros) {
             if (cDep) window._mapDeptosCache[cDep] = nomLargo;
         });
     } else {
-        // 🎯 Si el catálogo aún no llega, disparamos un ganchito para re-renderizar en cuanto llegue
         if (!window._esperandoCatDepartamentos) {
             window._esperandoCatDepartamentos = true;
             const intervaloCheck = setInterval(() => {
                 if (window._catDepartamentos && Array.isArray(window._catDepartamentos) && window._catDepartamentos.length > 0) {
                     clearInterval(intervaloCheck);
                     window._esperandoCatDepartamentos = false;
-                    renderizarTablaPersonal(registros); // Se redibuja solito y perfecto en cuanto el catálogo responde
+                    renderizarTablaPersonal(registros);
                 }
-            }, 150); // Revisa cada 150ms si ya llegó el catálogo
+            }, 150);
         }
     }
 
@@ -381,7 +380,6 @@ function renderizarTablaPersonal(registros) {
         const nomCortoCentro = (window._mapCentrosCache && window._mapCentrosCache[cCentro]) || '';
         const centro = nomCortoCentro ? `${cCentro} - ${nomCortoCentro}` : (row.textoCentro || cCentro);
 
-        // Resolución visual del departamento
         let deptoVisual = cDepto;
         if (cDepto) {
             if (window._mapDeptosCache && window._mapDeptosCache[cDepto]) {

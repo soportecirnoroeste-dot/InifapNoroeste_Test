@@ -82,21 +82,15 @@ window.RhAsisCasc = {
                             <input type="file" id="uploadBiometrico" class="hidden" accept=".xlsx, .xlsm, .csv" onchange="RhAsisCasc.manejarCargaYGuardadoAutomatico(this)">
                             
                             <div class="flex items-center gap-2 pt-4 xl:pt-0">
-                                <button id="labelCargaDatos" for="uploadBiometrico" class="px-4 py-2 bg-[#249444] text-white rounded-xl text-xs font-bold hover:bg-[#1e7a37] transition flex items-center gap-2">
+                                <button id="labelCargaDatos" for="uploadBiometrico" class="px-4 py-2 bg-[#249444] text-white rounded-xl text-xs font-bold hover:bg-[#1e7a37] transition flex items-center gap-2 cursor-pointer" onclick="document.getElementById('uploadBiometrico').click();">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-up-icon lucide-file-up"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M12 12v6"/><path d="m15 15-3-3-3 3"/></svg>
-                                    Carga de Datos
+                                    <span id="textoCargaBtn">Carga de Datos</span>
                                 </button>
 
                                 <button id="exportBtn" disabled onclick="if(window.RhAsisFBio && typeof RhAsisFBio.exportarExcel === 'function') RhAsisFBio.exportarExcel()" class="px-4 py-2 bg-[#249444] text-white rounded-xl text-xs font-bold hover:bg-[#1e7a37] transition flex items-center gap-2">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-down-icon lucide-file-down"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>
                                     Exportar reporte
                                 </button>
-
-                                <button id="exportBtn" disabled onclick="if(window.RhAsisFBio && typeof RhAsisFBio.exportarExcel === 'function') RhAsisFBio.exportarExcel()" class="px-4 py-2 bg-[#249444] text-white rounded-xl text-xs font-bold hover:bg-[#1e7a37] transition flex items-center gap-2">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-down-icon lucide-file-down"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>
-                                    Exportar reporte
-                                </button>
-
                             </div>
                         </div>
                     </div>
@@ -168,17 +162,12 @@ window.RhAsisCasc = {
         if (!file) return;
 
         const labelCarga = document.getElementById('labelCargaDatos');
-        const iconoCarga = document.getElementById('iconoCarga');
         const textCarga = document.getElementById('textoCargaBtn');
 
         try {
             if (labelCarga) {
-                labelCarga.classList.remove('cursor-pointer', 'bg-[#249444]', 'hover:bg-[#1b7033]');
+                labelCarga.classList.remove('cursor-pointer', 'bg-[#249444]', 'hover:bg-[#1e7a37]');
                 labelCarga.classList.add('bg-stone-400', 'cursor-wait');
-                labelCarga.removeAttribute('for');
-            }
-            if (iconoCarga) {
-                iconoCarga.innerHTML = `<svg class="animate-spin h-3.5 w-3.5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
             }
             if (textCarga) {
                 textCarga.innerText = "Analizando...";
@@ -300,10 +289,6 @@ window.RhAsisCasc = {
             if (labelCarga) {
                 labelCarga.classList.remove('bg-stone-400', 'cursor-wait');
                 labelCarga.classList.add('bg-[#249444]', 'hover:bg-[#1b7033]', 'cursor-pointer');
-                labelCarga.setAttribute('for', 'uploadBiometrico');
-            }
-            if (iconoCarga) {
-                iconoCarga.innerHTML = "📂";
             }
             if (textCarga) {
                 textCarga.innerText = "Carga de Datos";
@@ -312,21 +297,46 @@ window.RhAsisCasc = {
         }
     },
 
-    // 🕒 Mantiene el formato de hora de 24 horas tal como viene guardado en Sheets
+    // 🕒 Limpia y formatea la hora para mostrar solo Horas y Minutos de manera limpia
     formatearSoloHora: function (valor) {
         if (!valor) return "";
         let valStr = String(valor).trim();
 
-        if (valStr.includes('T')) {
-            const partesT = valStr.split('T');
-            if (partesT.length > 1) {
-                valStr = partesT[1].split('.')[0];
+        // Si viene en formato ISO o fecha de JavaScript (ej. 1899-12-30T15:23:52.000Z)
+        if (valStr.includes('T') || valStr.includes('-')) {
+            const fechaObj = new Date(valStr);
+            if (!isNaN(fechaObj)) {
+                const horas = String(fechaObj.getUTCHours()).padStart(2, '0');
+                const minutos = String(fechaObj.getUTCMinutes()).padStart(2, '0');
+                return `${parseInt(horas)}:${minutos}`;
             }
-        } else if (valStr.includes(' ')) {
+        }
+
+        // Si viene con segundos u otro formato separado por dos puntos (ej. "15:23:52")
+        if (valStr.includes(':')) {
+            const partes = valStr.split(':');
+            if (partes.length >= 2) {
+                const h = parseInt(partes[0], 10);
+                const m = partes[1];
+                if (!isNaN(h)) {
+                    return `${h}:${m}`;
+                }
+            }
+        }
+
+        // Respaldo por si trae espacios u otros prefijos
+        if (valStr.includes(' ')) {
             const partesEspacio = valStr.split(' ');
             const posibleHora = partesEspacio.find(p => p.includes(':'));
             if (posibleHora) {
-                valStr = posibleHora;
+                const partes = posibleHora.split(':');
+                if (partes.length >= 2) {
+                    const h = parseInt(partes[0], 10);
+                    const m = partes[1];
+                    if (!isNaN(h)) {
+                        return `${h}:${m}`;
+                    }
+                }
             }
         }
 

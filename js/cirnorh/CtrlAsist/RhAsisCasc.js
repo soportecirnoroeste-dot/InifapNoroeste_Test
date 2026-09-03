@@ -41,38 +41,32 @@ window.RhAsisCasc = {
                     </div>
                 </div>
 
-                <!-- Tarjeta 2: Título a la izquierda, Filtros con etiquetas superiores y Botones a la derecha -->
+                <!-- Tarjeta 2: Filtros y Botones -->
                 <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6">
                     <div class="flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-6">
-                        <!-- Izquierda: Título de la sección -->
                         <div>
                             <h4 class="font-bold text-stone-800 text-sm">Gestión de Asistencias</h4>
                         </div>
 
-                        <!-- Derecha: Filtros con descripción arriba y Botones -->
                         <div class="flex flex-wrap items-end gap-3">
-                            <!-- Filtro Fecha DE -->
                             <div class="flex flex-col gap-1">
                                 <label for="filtroFechaDesde" class="text-[10px] font-bold text-stone-500 uppercase tracking-wider">De</label>
                                 <input type="date" id="filtroFechaDesde" onchange="RhAsisCasc.aplicarFiltrosCombinados()"
                                     class="px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] text-stone-700 shadow-xs cursor-pointer">
                             </div>
 
-                            <!-- Filtro Fecha HASTA -->
                             <div class="flex flex-col gap-1">
                                 <label for="filtroFechaHasta" class="text-[10px] font-bold text-stone-500 uppercase tracking-wider">Hasta</label>
                                 <input type="date" id="filtroFechaHasta" onchange="RhAsisCasc.aplicarFiltrosCombinados()"
                                     class="px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] text-stone-700 shadow-xs cursor-pointer">
                             </div>
 
-                            <!-- Filtro CENTRO -->
                             <div class="flex flex-col gap-1">
                                 <label for="filtroCentroBio" class="text-[10px] font-bold text-stone-500 uppercase tracking-wider">Centro</label>
                                 <input type="text" id="filtroCentroBio" oninput="RhAsisCasc.aplicarFiltrosCombinados()"
                                     class="w-28 px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] transition-all shadow-xs text-stone-700">
                             </div>
 
-                            <!-- Filtro N° EMP -->
                             <div class="flex flex-col gap-1">
                                 <label for="filtroNumEmpBio" class="text-[10px] font-bold text-stone-500 uppercase tracking-wider">N° Empleado</label>
                                 <input type="text" id="filtroNumEmpBio" oninput="RhAsisCasc.aplicarFiltrosCombinados()"
@@ -81,14 +75,14 @@ window.RhAsisCasc = {
 
                             <input type="file" id="uploadBiometrico" class="hidden" accept=".xlsx, .xlsm, .csv" onchange="RhAsisCasc.manejarCargaYGuardadoAutomatico(this)">
                             
-                            <div class="flex gap-2">
-                                <button id="labelCargaDatos" for="uploadBiometrico" class="px-4 py-2 bg-[#249444] text-white rounded-xl text-xs font-bold hover:bg-[#1e7a37] transition flex items-center gap-2 cursor-pointer" onclick="document.getElementById('uploadBiometrico').click();">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-up-icon lucide-file-up"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M12 12v6"/><path d="m15 15-3-3-3 3"/></svg>
-                                    Carga de Datos
+                            <div class="flex items-center gap-2 pt-4 xl:pt-0">
+                                <button id="labelCargaDatos" class="px-4 py-2 bg-[#249444] text-white rounded-xl text-xs font-bold hover:bg-[#1e7a37] transition flex items-center gap-2 cursor-pointer" onclick="document.getElementById('uploadBiometrico').click();">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-up"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M12 12v6"/><path d="m15 15-3-3-3 3"/></svg>
+                                    <span id="textoCargaBtn">Carga de Datos</span>
                                 </button>
 
                                 <button id="exportBtn" disabled onclick="if(window.RhAsisFBio && typeof RhAsisFBio.exportarExcel === 'function') RhAsisFBio.exportarExcel()" class="px-4 py-2 bg-[#249444] text-white rounded-xl text-xs font-bold hover:bg-[#1e7a37] transition flex items-center gap-2">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-down-icon lucide-file-down"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-down"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>
                                     Exportar reporte
                                 </button>
                             </div>
@@ -103,7 +97,6 @@ window.RhAsisCasc = {
                         <span id="contadorRegistrosBio" class="text-xs text-stone-400 font-medium"></span>
                     </div>
 
-                    <!-- Contenedor Principal de la Tabla con Sincronización Inicial -->
                     <div id="appContainerBio" class="rounded-xl border border-stone-200 overflow-hidden bg-white">
                         <div id="gridContentBio" class="max-h-[500px] overflow-y-auto overflow-x-auto custom-scrollbar">
                             <table class="w-full text-[11px] text-left border-collapse min-w-[950px]">
@@ -251,12 +244,25 @@ window.RhAsisCasc = {
                     Object.keys(RhAsisFBio.groupedData).forEach(id => {
                         const empleado = RhAsisFBio.groupedData[id];
                         empleado.rows.forEach(row => {
+                            let horaRegistro = row[6] || "";
+                            let tipoReg = String(row[7] || "").toUpperCase().trim();
+                            
+                            // Mapeo inteligente para asegurarnos de guardar la hora de registro real en la entrada/salida correspondiente
+                            let hraEntradaFinal = row[4] || "";
+                            let hraSalidaFinal = row[5] || "";
+
+                            if (tipoReg.includes("ENTRADA") && horaRegistro) {
+                                hraEntradaFinal = horaRegistro;
+                            } else if (tipoReg.includes("SALIDA") && horaRegistro) {
+                                hraSalidaFinal = horaRegistro;
+                            }
+
                             rowsParaSheets.push([
                                 claveCentroSeleccionado,
                                 row[0] || "",
-                                row[4] || "",
-                                row[5] || "",
-                                row[6] || "",
+                                hraEntradaFinal,
+                                hraSalidaFinal,
+                                horaRegistro,
                                 row[7] || "",
                                 row[8] || "",
                                 row[9] || "",
@@ -297,12 +303,10 @@ window.RhAsisCasc = {
         }
     },
 
-    // 🕒 Limpia y formatea la hora para mostrar solo Horas y Minutos de manera limpia
     formatearSoloHora: function (valor) {
         if (!valor) return "";
         let valStr = String(valor).trim();
 
-        // Si viene en formato ISO o fecha de JavaScript (ej. 1899-12-30T15:23:52.000Z)
         if (valStr.includes('T') || valStr.includes('-')) {
             const fechaObj = new Date(valStr);
             if (!isNaN(fechaObj)) {
@@ -312,7 +316,6 @@ window.RhAsisCasc = {
             }
         }
 
-        // Si viene con segundos u otro formato separado por dos puntos (ej. "15:23:52")
         if (valStr.includes(':')) {
             const partes = valStr.split(':');
             if (partes.length >= 2) {
@@ -324,7 +327,6 @@ window.RhAsisCasc = {
             }
         }
 
-        // Respaldo por si trae espacios u otros prefijos
         if (valStr.includes(' ')) {
             const partesEspacio = valStr.split(' ');
             const posibleHora = partesEspacio.find(p => p.includes(':'));
@@ -392,7 +394,19 @@ window.RhAsisCasc = {
                 </thead>
                 <tbody class="divide-y divide-stone-100">
                     ${listaRegistros.map(r => {
-                        const celdas = Array.isArray(r) ? r.slice(0, 12) : headers.map(h => r[h] || "");
+                        const celdas = Array.isArray(r) ? [...r.slice(0, 12)] : headers.map(h => r[h] || "");
+                        
+                        // CORRECCIÓN VISUAL DINÁMICA: Si Hra. Entrada u Hra. Salida traen valor genérico fijo (8:00 / 14:00) 
+                        // o queremos que muestren la hora real del registro según corresponda:
+                        const horaRegistro = celdas[4] || "";
+                        const tipoRegistro = String(celdas[5] || "").toUpperCase().trim();
+
+                        if (tipoRegistro.includes("ENTRADA") && horaRegistro) {
+                            celdas[2] = horaRegistro; // Coloca la hora real en Hra. Entrada
+                        } else if (tipoRegistro.includes("SALIDA") && horaRegistro) {
+                            celdas[3] = horaRegistro; // Coloca la hora real en Hra. Salida
+                        }
+
                         return `
                             <tr class="bg-white hover:bg-stone-50 transition text-stone-700">
                                 ${celdas.map((c, index) => {
@@ -459,7 +473,7 @@ window.RhAsisCasc = {
             const centro = String(row[0] || "").toLowerCase();
             const numEmp = String(row[1] || "").toLowerCase();
             const fechaRegRaw = String(row[6] || "").trim();
-            const fechaRegNorm = RhAsisCasc.normalizarFechaFiltro(fechaRegRaw);
+            const fechaRegNorm = RhAsisCasc.normalizarFiltroFecha ? RhAsisCasc.normalizarFiltroFecha(fechaRegRaw) : RhAsisCasc.normalizarFechaFiltro(fechaRegRaw);
 
             if (centroFiltro && !centro.includes(centroFiltro)) return false;
             if (numEmpFiltro && !numEmp.includes(numEmpFiltro)) return false;

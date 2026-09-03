@@ -28,10 +28,15 @@ window.RhAsisCasc = {
         }
 
         contenedor.innerHTML = `
-        <div id="contenedor-gestion-personal" class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-stone-50 p-4 rounded-xl border border-stone-200">
-            <div>
-                <h4 class="font-bold text-stone-800 text-sm">Gestión de Asistencias</h4>
-            </div>
+            <div class="space-y-6 animate-fade-in">
+                <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6">
+                    <div class="flex items-center gap-3">
+                        
+                        <div>
+                            <h3 class="font-bold text-stone-800 text-base">CONTROL DE ASISTENCIA</h3>
+                        </div>
+                    </div>
+                </div>
 
                 <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6">
                     <div class="flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-6">

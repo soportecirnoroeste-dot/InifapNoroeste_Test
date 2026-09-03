@@ -27,7 +27,7 @@ window.RhAsisCasc = {
             });
         }
 
-        // 🎯 ESTRUCTURA IDÉNTICA AL MÓDULO DE PERSONAL EN BLOQUES DE TARJETAS
+        // 🎯 ESTRUCTURA IDÉNTICA AL MÓDULO DE PERSONAL CON GRID Y SINCRONIZANDO
         contenedor.innerHTML = `
             <div class="space-y-6 animate-fade-in">
                 <!-- Tarjeta 1: Cabecera principal -->
@@ -76,17 +76,21 @@ window.RhAsisCasc = {
                         <span id="contadorRegistrosBio" class="text-xs text-stone-400 font-medium"></span>
                     </div>
 
-                    <!-- Contenedor Principal de la Tabla con Scroll Dual -->
-                    <div id="appContainerBio" class="hidden rounded-xl border border-stone-200 overflow-hidden bg-white">
-                        <div id="gridContentBio" class="max-h-[500px] overflow-y-auto overflow-x-auto custom-scrollbar"></div>
-                    </div>
-
-                    <!-- Estado Vacío Inicial -->
-                    <div id="emptyStateBio" class="py-12 text-center">
-                        <div class="max-w-md mx-auto bg-stone-50 p-8 rounded-2xl border border-dashed border-stone-300">
-                            <div class="text-3xl mb-2">📊</div>
-                            <h5 class="text-xs font-bold text-stone-700">Sin datos cargados</h5>
-                            <p class="text-[11px] text-stone-400 mt-1">La hoja de cálculo Biometrico no contiene registros actualmente.</p>
+                    <!-- Contenedor Principal de la Tabla con Estado de Sincronización Inicial -->
+                    <div id="appContainerBio" class="rounded-xl border border-stone-200 overflow-hidden bg-white">
+                        <div id="gridContentBio" class="max-h-[500px] overflow-y-auto overflow-x-auto custom-scrollbar">
+                            <table class="w-full text-[11px] text-left border-collapse min-w-[950px]">
+                                <thead class="bg-stone-100 font-bold text-stone-700 sticky top-0 z-10 border-b border-stone-200">
+                                    <tr>${RhAsisCasc.rawHeaderGlobal.map(h => `<th class="p-3 border-b border-stone-200 text-center whitespace-nowrap">${h}</th>`).join('')}</tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="${RhAsisCasc.rawHeaderGlobal.length}" class="py-12 text-center text-stone-400 italic font-medium">
+                                            SINCRONIZANDO DATOS...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -277,27 +281,36 @@ window.RhAsisCasc = {
 
     renderGrid: function (listaRegistros) {
         const gridContent = document.getElementById('gridContentBio');
-        const emptyState = document.getElementById('emptyStateBio');
-        const appContainer = document.getElementById('appContainerBio');
         const exportBtn = document.getElementById('exportBtn');
         const contador = document.getElementById('contadorRegistrosBio');
 
         if (!gridContent) return;
 
+        const headers = RhAsisCasc.rawHeaderGlobal;
+
         if (!listaRegistros || listaRegistros.length === 0) {
-            if (emptyState) emptyState.classList.remove('hidden');
-            if (appContainer) appContainer.classList.add('hidden');
             if (exportBtn) {
                 exportBtn.disabled = true;
                 exportBtn.className = "bg-stone-100 border border-stone-200 text-stone-400 opacity-60 cursor-not-allowed px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2";
             }
             if (contador) contador.innerText = "";
-            gridContent.innerHTML = "";
+            
+            gridContent.innerHTML = `
+                <table class="w-full text-[11px] text-left border-collapse min-w-[950px]">
+                    <thead class="bg-stone-100 font-bold text-stone-700 sticky top-0 z-10 border-b border-stone-200">
+                        <tr>${headers.map(h => `<th class="p-3 border-b border-stone-200 text-center whitespace-nowrap">${h}</th>`).join('')}</tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="${headers.length}" class="py-12 text-center text-stone-400 italic font-medium">
+                                SIN DATOS REGISTRADOS
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            `;
             return;
         }
-
-        if (emptyState) emptyState.classList.add('hidden');
-        if (appContainer) appContainer.classList.remove('hidden');
 
         if (exportBtn) {
             exportBtn.disabled = false;
@@ -307,8 +320,6 @@ window.RhAsisCasc = {
         if (contador) {
             contador.innerText = `${listaRegistros.length} registros`;
         }
-
-        const headers = RhAsisCasc.rawHeaderGlobal;
 
         gridContent.innerHTML = `
             <table class="w-full text-[11px] text-left border-collapse min-w-[950px]">

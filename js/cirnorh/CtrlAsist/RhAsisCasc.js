@@ -304,6 +304,42 @@ window.RhAsisCasc = {
         }
     },
 
+    // 🕒 Función auxiliar para extraer estrictamente solo la hora en formato limpio
+    formatearSoloHora: function (valor) {
+        if (!valor) return "";
+        let valStr = String(valor).trim();
+
+        // Si incluye una fecha completa con 'T' (ej. 2026-06-05T08:30:00)
+        if (valStr.includes('T')) {
+            const partesT = valStr.split('T');
+            if (partesT.length > 1) {
+                valStr = partesT[1].split('.')[0]; // Tomar la parte de la hora
+            }
+        } 
+        // Si viene con formato de fecha y espacio (ej. 06/05/2026 08:30:00 o 2026-06-05 08:30:00)
+        else if (valStr.includes(' ')) {
+            const partesEspacio = valStr.split(' ');
+            const posibleHora = partesEspacio.find(p => p.includes(':'));
+            if (posibleHora) {
+                valStr = posibleHora;
+            }
+        }
+
+        // Si ya quedó un formato de hora (ej. 08:30:00 o 8:30)
+        const partesHora = valStr.split(':');
+        if (partesHora.length >= 2) {
+            let horas = parseInt(partesHora[0], 10);
+            const minutos = partesHora[1].padStart(2, '0');
+            const segundos = partesHora[2] ? partesHora[2].substring(0, 2).padStart(2, '0') : null;
+
+            if (!isNaN(horas)) {
+                return segundos ? `${String(horas).padStart(2, '0')}:${minutos}:${segundos}` : `${String(horas).padStart(2, '0')}:${minutos}`;
+            }
+        }
+
+        return valStr;
+    },
+
     renderGrid: function (listaRegistros) {
         const gridContent = document.getElementById('gridContentBio');
         const exportBtn = document.getElementById('exportBtn');
@@ -356,14 +392,19 @@ window.RhAsisCasc = {
                         const celdas = Array.isArray(r) ? r.slice(0, 12) : headers.map(h => r[h] || "");
                         return `
                             <tr class="bg-white hover:bg-stone-50 transition text-stone-700">
-                                ${celdas.map(c => {
+                                ${celdas.map((c, index) => {
                                     let val = c;
-                                    if (val instanceof Date) {
+
+                                    // Índices 2 ("Hra.Entrada"), 3 ("Hra. Salida") y 4 ("Hra.Registro") se formatean como hora limpia
+                                    if (index === 2 || index === 3 || index === 4) {
+                                        val = RhAsisCasc.formatearSoloHora(val);
+                                    } else if (val instanceof Date) {
                                         val = val.toLocaleDateString();
                                     } else if (typeof val === 'string' && val.includes('T') && val.length > 18) {
                                         const d = new Date(val);
                                         if (!isNaN(d)) val = d.toLocaleDateString();
                                     }
+
                                     return `<td class="p-2.5 border-b border-stone-100 text-center whitespace-nowrap">${val !== null && val !== undefined && String(val).trim() !== '' ? val : ''}</td>`;
                                 }).join('')}
                             </tr>

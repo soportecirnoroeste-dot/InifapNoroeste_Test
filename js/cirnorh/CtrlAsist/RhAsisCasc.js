@@ -27,7 +27,7 @@ window.RhAsisCasc = {
             });
         }
 
-        // 🎯 ESTRUCTURA LIMPIA: Título a la izquierda, Filtros y Botones a la derecha
+        // 🎯 ESTRUCTURA LIMPIA: Título a la izquierda, Filtros (con etiquetas arriba) y Botones a la derecha
         contenedor.innerHTML = `
             <div class="space-y-6 animate-fade-in">
                 <!-- Tarjeta 1: Cabecera principal -->
@@ -42,54 +42,56 @@ window.RhAsisCasc = {
                     </div>
                 </div>
 
-                <!-- Tarjeta 2: Título a la izquierda, Filtros y Botones a la derecha -->
+                <!-- Tarjeta 2: Título a la izquierda, Filtros con etiquetas superiores y Botones a la derecha -->
                 <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6">
-                    <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
+                    <div class="flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-6">
                         <!-- Izquierda: Título de la sección -->
                         <div class="flex items-center">
                             <h4 class="font-bold text-stone-800 text-sm">Gestión de Asistencia</h4>
                         </div>
 
-                        <!-- Derecha: Filtros y Botones agrupados -->
-                        <div class="flex flex-wrap items-center gap-2.5">
-                            <div class="relative">
-                                <select id="filtroMesBio" onchange="RhAsisCasc.aplicarFiltrosCombinados()" class="px-3 py-2.5 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] text-stone-700 cursor-pointer shadow-xs">
-                                    <option value="">📅 MES</option>
-                                    <option value="01">Enero</option>
-                                    <option value="02">Febrero</option>
-                                    <option value="03">Marzo</option>
-                                    <option value="04">Abril</option>
-                                    <option value="05">Mayo</option>
-                                    <option value="06">Junio</option>
-                                    <option value="07">Julio</option>
-                                    <option value="08">Agosto</option>
-                                    <option value="09">Septiembre</option>
-                                    <option value="10">Octubre</option>
-                                    <option value="11">Noviembre</option>
-                                    <option value="12">Diciembre</option>
-                                </select>
+                        <!-- Derecha: Filtros con descripción arriba y Botones -->
+                        <div class="flex flex-wrap items-end gap-3">
+                            <!-- Filtro Fecha DE -->
+                            <div class="flex flex-col gap-1">
+                                <label for="filtroFechaDesde" class="text-[10px] font-bold text-stone-500 uppercase tracking-wider">De (Fecha)</label>
+                                <input type="date" id="filtroFechaDesde" onchange="RhAsisCasc.aplicarFiltrosCombinados()"
+                                    class="px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] text-stone-700 shadow-xs cursor-pointer">
                             </div>
 
-                            <div class="relative">
-                                <input type="text" id="filtroNumEmpBio" placeholder="👤 N° EMP..." oninput="RhAsisCasc.aplicarFiltrosCombinados()"
-                                    class="w-28 px-3 py-2.5 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] transition-all shadow-xs">
+                            <!-- Filtro Fecha HASTA -->
+                            <div class="flex flex-col gap-1">
+                                <label for="filtroFechaHasta" class="text-[10px] font-bold text-stone-500 uppercase tracking-wider">Hasta (Fecha)</label>
+                                <input type="date" id="filtroFechaHasta" onchange="RhAsisCasc.aplicarFiltrosCombinados()"
+                                    class="px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] text-stone-700 shadow-xs cursor-pointer">
                             </div>
 
-                            <div class="relative">
-                                <input type="text" id="filtroCentroBio" placeholder="🏢 CENTRO..." oninput="RhAsisCasc.aplicarFiltrosCombinados()"
-                                    class="w-28 px-3 py-2.5 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] transition-all shadow-xs">
+                            <!-- Filtro N° EMP -->
+                            <div class="flex flex-col gap-1">
+                                <label for="filtroNumEmpBio" class="text-[10px] font-bold text-stone-500 uppercase tracking-wider">N° Empleado</label>
+                                <input type="text" id="filtroNumEmpBio" placeholder="Ej. 1042" oninput="RhAsisCasc.aplicarFiltrosCombinados()"
+                                    class="w-28 px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] transition-all shadow-xs text-stone-700">
+                            </div>
+
+                            <!-- Filtro CENTRO -->
+                            <div class="flex flex-col gap-1">
+                                <label for="filtroCentroBio" class="text-[10px] font-bold text-stone-500 uppercase tracking-wider">Centro</label>
+                                <input type="text" id="filtroCentroBio" placeholder="Ej. 01" oninput="RhAsisCasc.aplicarFiltrosCombinados()"
+                                    class="w-28 px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] transition-all shadow-xs text-stone-700">
                             </div>
 
                             <input type="file" id="uploadBiometrico" class="hidden" accept=".xlsx, .xlsm, .csv" onchange="RhAsisCasc.manejarCargaYGuardadoAutomatico(this)">
                             
-                            <label id="labelCargaDatos" for="uploadBiometrico" class="px-4 py-2.5 bg-[#249444] hover:bg-[#1b7033] text-white text-xs font-bold rounded-xl cursor-pointer shadow-sm transition-all flex items-center justify-center gap-2">
-                                <span id="iconoCarga">📂</span>
-                                <span id="textoCargaBtn">Carga de Datos</span>
-                            </label>
+                            <div class="flex items-center gap-2 pt-4 xl:pt-0">
+                                <label id="labelCargaDatos" for="uploadBiometrico" class="px-4 py-2.5 bg-[#249444] hover:bg-[#1b7033] text-white text-xs font-bold rounded-xl cursor-pointer shadow-sm transition-all flex items-center justify-center gap-2">
+                                    <span id="iconoCarga">📂</span>
+                                    <span id="textoCargaBtn">Carga de Datos</span>
+                                </label>
 
-                            <button id="exportBtn" disabled onclick="if(window.RhAsisFBio && typeof RhAsisFBio.exportarExcel === 'function') RhAsisFBio.exportarExcel()" class="bg-stone-100 border border-stone-200 text-stone-400 opacity-60 cursor-not-allowed px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2">
-                                <span>📥</span> Exportar reporte
-                            </button>
+                                <button id="exportBtn" disabled onclick="if(window.RhAsisFBio && typeof RhAsisFBio.exportarExcel === 'function') RhAsisFBio.exportarExcel()" class="bg-stone-100 border border-stone-200 text-stone-400 opacity-60 cursor-not-allowed px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2">
+                                    <span>📥</span> Exportar reporte
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -309,15 +311,12 @@ window.RhAsisCasc = {
         if (!valor) return "";
         let valStr = String(valor).trim();
 
-        // Si incluye una fecha completa con 'T' (ej. 2026-06-05T08:30:00)
         if (valStr.includes('T')) {
             const partesT = valStr.split('T');
             if (partesT.length > 1) {
-                valStr = partesT[1].split('.')[0]; // Tomar la parte de la hora
+                valStr = partesT[1].split('.')[0];
             }
-        } 
-        // Si viene con formato de fecha y espacio (ej. 06/05/2026 08:30:00 o 2026-06-05 08:30:00)
-        else if (valStr.includes(' ')) {
+        } else if (valStr.includes(' ')) {
             const partesEspacio = valStr.split(' ');
             const posibleHora = partesEspacio.find(p => p.includes(':'));
             if (posibleHora) {
@@ -325,7 +324,6 @@ window.RhAsisCasc = {
             }
         }
 
-        // Si ya quedó un formato de hora (ej. 08:30:00 o 8:30)
         const partesHora = valStr.split(':');
         if (partesHora.length >= 2) {
             let horas = parseInt(partesHora[0], 10);
@@ -395,7 +393,6 @@ window.RhAsisCasc = {
                                 ${celdas.map((c, index) => {
                                     let val = c;
 
-                                    // Índices 2 ("Hra.Entrada"), 3 ("Hra. Salida") y 4 ("Hra.Registro") se formatean como hora limpia
                                     if (index === 2 || index === 3 || index === 4) {
                                         val = RhAsisCasc.formatearSoloHora(val);
                                     } else if (val instanceof Date) {
@@ -430,30 +427,43 @@ window.RhAsisCasc = {
         return String(clave).trim();
     },
 
+    // 🔍 Normalizador auxiliar para comparar fechas de forma estricta (YYYY-MM-DD)
+    normalizarFechaFiltro: function (fechaStr) {
+        if (!fechaStr) return "";
+        let str = String(fechaStr).trim();
+        if (str.includes('T')) {
+            str = str.split('T')[0];
+        } else if (str.includes(' ')) {
+            str = str.split(' ')[0];
+        }
+        if (str.includes('/')) {
+            const partes = str.split('/');
+            if (partes.length === 3) {
+                // Formato DD/MM/YYYY a YYYY-MM-DD
+                return `${partes[2]}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}`;
+            }
+        }
+        return str;
+    },
+
     aplicarFiltrosCombinados: function () {
-        const mesFiltro = document.getElementById('filtroMesBio')?.value || "";
+        const fechaDesde = document.getElementById('filtroFechaDesde')?.value || "";
+        const fechaHasta = document.getElementById('filtroFechaHasta')?.value || "";
         const numEmpFiltro = document.getElementById('filtroNumEmpBio')?.value.toLowerCase().trim() || "";
         const centroFiltro = document.getElementById('filtroCentroBio')?.value.toLowerCase().trim() || "";
 
         const filtrados = RhAsisCasc.registrosBiometrico.filter(row => {
             const centro = String(row[0] || "").toLowerCase();
             const numEmp = String(row[1] || "").toLowerCase();
-            const fechaReg = String(row[6] || "").trim();
+            const fechaRegRaw = String(row[6] || "").trim();
+            const fechaRegNorm = RhAsisCasc.normalizarFechaFiltro(fechaRegRaw);
 
             if (centroFiltro && !centro.includes(centroFiltro)) return false;
             if (numEmpFiltro && !numEmp.includes(numEmpFiltro)) return false;
 
-            if (mesFiltro) {
-                let mesRegistro = "";
-                if (fechaReg.includes('-')) {
-                    const partes = fechaReg.split('-');
-                    if (partes.length >= 2) mesRegistro = partes[1];
-                } else if (fechaReg.includes('/')) {
-                    const partes = fechaReg.split('/');
-                    if (partes.length >= 2) mesRegistro = partes[1];
-                }
-                if (mesRegistro !== mesFiltro) return false;
-            }
+            // Filtro por rango de fechas (DE - HASTA)
+            if (fechaDesde && fechaRegNorm < fechaDesde) return false;
+            if (fechaHasta && fechaRegNorm > fechaHasta) return false;
 
             return true;
         });

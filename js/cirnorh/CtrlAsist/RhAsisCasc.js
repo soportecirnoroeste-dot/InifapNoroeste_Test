@@ -29,19 +29,17 @@ window.RhAsisCasc = {
 
         contenedor.innerHTML = `
             <div class="space-y-6 animate-fade-in">
-                <!-- Tarjeta 1: Cabecera principal -->
                 <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6">
                     <div class="flex items-center gap-3">
                         <div class="p-2.5 bg-[#f0fdf4] border border-[#c6f6d5] text-[#059669] rounded-xl flex items-center justify-center">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 21a8 8 0 0 1 13.292-6"/><circle cx="10" cy="8" r="5"/><path d="m16 19 2 2 4-4"/></svg>
                         </div>
                         <div>
-                            <h4 class="font-bold text-stone-800 text-sm">Gestión de Asistencias</h4>
+                            <h3 class="font-bold text-stone-800 text-base">CONTROL DE ASISTENCIA</h3>
                         </div>
                     </div>
                 </div>
 
-                <!-- Tarjeta 2: Filtros y Botones -->
                 <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6">
                     <div class="flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-6">
                         <div>
@@ -90,7 +88,6 @@ window.RhAsisCasc = {
                     </div>
                 </div>
 
-                <!-- Tarjeta 3: Contenedor del Listado General -->
                 <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6 space-y-4">
                     <div class="flex justify-between items-center pb-2 border-b border-stone-100">
                         <h4 class="font-bold text-stone-700 text-xs uppercase tracking-wider">Listado General de Biométrico</h4>
@@ -350,31 +347,20 @@ window.RhAsisCasc = {
                     <tr>${headers.map(h => `<th class="p-3 border-b border-stone-200 text-center whitespace-nowrap">${h}</th>`).join('')}</tr>
                 </thead>
                 <tbody class="divide-y divide-stone-100">
-                    ${listaRegistros.map(r => {
+                    ${listaRegistros.map((r, rowIndex) => {
                         const celdas = Array.isArray(r) ? [...r.slice(0, 12)] : headers.map(h => r[h] || "");
                         
-                        const horaRegistro = celdas[4] || "";
-                        const tipoRegistro = String(celdas[5] || "").toUpperCase().trim();
-
-                        if (tipoRegistro.includes("ENTRADA") && horaRegistro) {
-                            celdas[2] = horaRegistro;
-                        } else if (tipoRegistro.includes("SALIDA") && horaRegistro) {
-                            celdas[3] = horaRegistro;
-                        }
+                        // 🔍 INSPECCIÓN EXACTA EN CONSOLA DEL DATO CRUDO TAL CUAL LLEGA
+                        console.log(`[Fila ${rowIndex}] Datos crudos recibidos:`, celdas);
+                        console.log(`[Fila ${rowIndex}] Columna 2 (Hra.Entrada):`, JSON.stringify(celdas[2]), "| Tipo:", typeof celdas[2]);
+                        console.log(`[Fila ${rowIndex}] Columna 3 (Hra.Salida):`, JSON.stringify(celdas[3]), "| Tipo:", typeof celdas[3]);
+                        console.log(`[Fila ${rowIndex}] Columna 4 (Hra.Registro):`, JSON.stringify(celdas[4]), "| Tipo:", typeof celdas[4]);
 
                         return `
                             <tr class="bg-white hover:bg-stone-50 transition text-stone-700">
-                                ${celdas.map((c, index) => {
-                                    let val = c;
-
-                                    if (val instanceof Date) {
-                                        val = val.toLocaleDateString();
-                                    } else if (typeof val === 'string' && val.includes('T') && val.length > 18) {
-                                        const d = new Date(val);
-                                        if (!isNaN(d)) val = d.toLocaleDateString();
-                                    }
-
-                                    return `<td class="p-2.5 border-b border-stone-100 text-center whitespace-nowrap">${val !== null && val !== undefined && String(val).trim() !== '' ? val : ''}</td>`;
+                                ${celdas.map((c) => {
+                                    const val = (c !== null && c !== undefined) ? c : '';
+                                    return `<td class="p-2.5 border-b border-stone-100 text-center whitespace-nowrap">${val}</td>`;
                                 }).join('')}
                             </tr>
                         `;

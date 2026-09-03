@@ -48,8 +48,8 @@ window.RhAsisCasc = {
                                 <h4 class="font-bold text-stone-800 text-sm">Gestión de Personal</h4>
                             </div>
                         <label id="labelCargaDatos" for="uploadBiometrico" class="px-4 py-2.5 bg-[#249444] hover:bg-[#1b7033] text-white text-xs font-bold rounded-xl cursor-pointer shadow-sm transition-all flex items-center justify-center gap-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-                                Carga de Datos
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                            Carga de Datos
                         </label>
 
                         <button id="exportBtn" disabled onclick="if(window.RhAsisFBio && typeof RhAsisFBio.exportarExcel === 'function') RhAsisFBio.exportarExcel()" class="bg-stone-300 opacity-50 cursor-not-allowed text-stone-700 px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2">
@@ -72,9 +72,9 @@ window.RhAsisCasc = {
                         <span id="contadorRegistrosBio" class="text-xs text-stone-400 font-medium"></span>
                     </div>
 
-                    <!-- Contenedor Principal de la Tabla -->
+                    <!-- Contenedor Principal de la Tabla con Scroll Dual (Vertical y Horizontal) -->
                     <div id="appContainerBio" class="hidden rounded-xl border border-stone-200 overflow-hidden bg-white">
-                        <div id="gridContentBio" class="max-h-[500px] overflow-y-auto custom-scrollbar"></div>
+                        <div id="gridContentBio" class="max-h-[500px] overflow-y-auto overflow-x-auto custom-scrollbar"></div>
                     </div>
 
                     <!-- Estado Vacío Inicial -->
@@ -307,9 +307,9 @@ window.RhAsisCasc = {
         const headers = RhAsisCasc.rawHeaderGlobal;
 
         gridContent.innerHTML = `
-            <table class="w-full text-[11px] text-left border-collapse">
+            <table class="w-full text-[11px] text-left border-collapse min-w-[950px]">
                 <thead class="bg-stone-100 font-bold text-stone-700 sticky top-0 z-10 border-b border-stone-200">
-                    <tr>${headers.map(h => `<th class="p-3 border-b border-stone-200 text-center">${h}</th>`).join('')}</tr>
+                    <tr>${headers.map(h => `<th class="p-3 border-b border-stone-200 text-center whitespace-nowrap">${h}</th>`).join('')}</tr>
                 </thead>
                 <tbody class="divide-y divide-stone-100">
                     ${listaRegistros.map(r => {
@@ -324,7 +324,7 @@ window.RhAsisCasc = {
                                         const d = new Date(val);
                                         if (!isNaN(d)) val = d.toLocaleDateString();
                                     }
-                                    return `<td class="p-2.5 border-b border-stone-100 text-center">${val !== null && val !== undefined && String(val).trim() !== '' ? val : ''}</td>`;
+                                    return `<td class="p-2.5 border-b border-stone-100 text-center whitespace-nowrap">${val !== null && val !== undefined && String(val).trim() !== '' ? val : ''}</td>`;
                                 }).join('')}
                             </tr>
                         `;

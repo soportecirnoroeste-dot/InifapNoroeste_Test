@@ -27,93 +27,62 @@ window.RhAsisCasc = {
             });
         }
 
-        // 🎯 ESTRUCTURA ORDENADA: Filtros separados a la derecha, Carga y Exportar a la izquierda
+        // 🎯 ESTRUCTURA IDÉNTICA A LA TARJETA PRINCIPAL DEL MÓDULO DE PERSONAL
         contenedor.innerHTML = `
-            <div class="space-y-6 animate-fade-in">
-                <!-- Tarjeta 1: Cabecera principal -->
-                <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6">
-                    <div class="flex items-center gap-3">
-                        <div class="p-2.5 bg-[#f0fdf4] border border-[#c6f6d5] text-[#059669] rounded-xl flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 21a8 8 0 0 1 13.292-6"/><circle cx="10" cy="8" r="5"/><path d="m16 19 2 2 4-4"/></svg>
-                        </div>
-                        <div>
-                            <h3 class="font-bold text-stone-800 text-base">CONTROL DE ASISTENCIA</h3>
-                        </div>
+            <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6 space-y-6 animate-fade-in">
+                <!-- Cabecera estilo Personal -->
+                <div class="flex items-start gap-4 pb-6 border-b border-stone-100">
+                    <div class="p-2.5 bg-[#f0fdf4] border border-[#c6f6d5] text-[#059669] rounded-xl flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 21a8 8 0 0 1 13.292-6"/><circle cx="10" cy="8" r="5"/><path d="m16 19 2 2 4-4"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-stone-800 text-base">CONTROL DE ASISTENCIA</h3>
                     </div>
                 </div>
 
-                <!-- Tarjeta 2: Barra de acciones y filtros separados -->
-                <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6">
-                    <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
-                        <!-- Izquierda: Botón Carga de Datos y Exportar reporte -->
-                        <div class="flex flex-wrap items-center gap-3">
-                            <input type="file" id="uploadBiometrico" class="hidden" accept=".xlsx, .xlsm, .csv" onchange="RhAsisCasc.manejarCargaYGuardadoAutomatico(this)">
-                            
-                            <label id="labelCargaDatos" for="uploadBiometrico" class="px-4 py-2.5 bg-[#249444] hover:bg-[#1b7033] text-white text-xs font-bold rounded-xl cursor-pointer shadow-sm transition-all flex items-center justify-center gap-2">
-                                <span id="iconoCarga">📂</span>
-                                <span id="textoCargaBtn">Carga de Datos</span>
-                            </label>
-
-                            <button id="exportBtn" disabled onclick="if(window.RhAsisFBio && typeof RhAsisFBio.exportarExcel === 'function') RhAsisFBio.exportarExcel()" class="bg-stone-100 border border-stone-200 text-stone-400 opacity-60 cursor-not-allowed px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2">
-                                <span>📥</span> Exportar reporte
-                            </button>
-                        </div>
-
-                        <!-- Derecha: Filtros separados (Meses, N° Emp, Centro) -->
-                        <div class="flex flex-wrap items-center gap-2.5">
-                            <div class="relative">
-                                <select id="filtroMesBio" onchange="RhAsisCasc.aplicarFiltrosCombinados()" class="px-3 py-2.5 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] text-stone-700 cursor-pointer shadow-xs">
-                                    <option value="">📅 MES</option>
-                                    <option value="01">Enero</option>
-                                    <option value="02">Febrero</option>
-                                    <option value="03">Marzo</option>
-                                    <option value="04">Abril</option>
-                                    <option value="05">Mayo</option>
-                                    <option value="06">Junio</option>
-                                    <option value="07">Julio</option>
-                                    <option value="08">Agosto</option>
-                                    <option value="09">Septiembre</option>
-                                    <option value="10">Octubre</option>
-                                    <option value="11">Noviembre</option>
-                                    <option value="12">Diciembre</option>
-                                </select>
+                <!-- Barra de Acciones y Botones dentro de la tarjeta -->
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-stone-50 p-4 rounded-xl border border-stone-200">
+                    <div class="flex flex-wrap items-center gap-3">
+                        <input type="file" id="uploadBiometrico" class="hidden" accept=".xlsx, .xlsm, .csv" onchange="RhAsisCasc.manejarCargaYGuardadoAutomatico(this)">
+                            <div>
+                                <h4 class="font-bold text-stone-800 text-sm">Gestión de Personal</h4>
                             </div>
+                        <label id="labelCargaDatos" for="uploadBiometrico" class="px-4 py-2.5 bg-[#249444] hover:bg-[#1b7033] text-white text-xs font-bold rounded-xl cursor-pointer shadow-sm transition-all flex items-center justify-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                            Carga de Datos
+                        </label>
 
-                            <div class="relative">
-                                <input type="text" id="filtroNumEmpBio" placeholder="👤 N° EMP..." oninput="RhAsisCasc.aplicarFiltrosCombinados()"
-                                    class="w-32 px-3 py-2.5 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] transition-all shadow-xs">
-                            </div>
+                        <button id="exportBtn" disabled onclick="if(window.RhAsisFBio && typeof RhAsisFBio.exportarExcel === 'function') RhAsisFBio.exportarExcel()" class="bg-stone-300 opacity-50 cursor-not-allowed text-stone-700 px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2">
+                            <span>📥</span> Exportar reporte
+                        </button>
+                    </div>
 
-                            <div class="relative">
-                                <input type="text" id="filtroCentroBio" placeholder="🏢 CENTRO..." oninput="RhAsisCasc.aplicarFiltrosCombinados()"
-                                    class="w-32 px-3 py-2.5 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] transition-all shadow-xs">
-                            </div>
-                        </div>
+                    <!-- Buscador general en tiempo real -->
+                    <div class="relative w-full sm:w-80">
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 opacity-50 text-xs">🔍</span>
+                        <input type="text" id="searchInputBio" placeholder="Buscar por centro, N° emp o fecha..." oninput="RhAsisCasc.filtrarTablaGeneral(this.value)"
+                            class="w-full pl-9 pr-4 py-2.5 bg-white border border-stone-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-[#249444] transition-all shadow-xs">
                     </div>
                 </div>
 
-                <!-- Tarjeta 3: Contenedor del Listado General -->
-                <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6 space-y-4">
-                    <div class="flex justify-between items-center pb-2 border-b border-stone-100">
+                <!-- Listado General de Registros -->
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center px-1">
                         <h4 class="font-bold text-stone-700 text-xs uppercase tracking-wider">Listado General de Biométrico</h4>
                         <span id="contadorRegistrosBio" class="text-xs text-stone-400 font-medium"></span>
                     </div>
 
-                    <!-- Contenedor Principal de la Tabla con Sincronización Inicial -->
-                    <div id="appContainerBio" class="rounded-xl border border-stone-200 overflow-hidden bg-white">
-                        <div id="gridContentBio" class="max-h-[500px] overflow-y-auto overflow-x-auto custom-scrollbar">
-                            <table class="w-full text-[11px] text-left border-collapse min-w-[950px]">
-                                <thead class="bg-stone-100 font-bold text-stone-700 sticky top-0 z-10 border-b border-stone-200">
-                                    <tr>${RhAsisCasc.rawHeaderGlobal.map(h => `<th class="p-3 border-b border-stone-200 text-center whitespace-nowrap">${h}</th>`).join('')}</tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td colspan="${RhAsisCasc.rawHeaderGlobal.length}" class="py-12 text-center text-stone-400 italic font-medium">
-                                            SINCRONIZANDO DATOS...
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                    <!-- Contenedor Principal de la Tabla con Scroll Dual (Vertical y Horizontal) -->
+                    <div id="appContainerBio" class="hidden rounded-xl border border-stone-200 overflow-hidden bg-white">
+                        <div id="gridContentBio" class="max-h-[500px] overflow-y-auto overflow-x-auto custom-scrollbar"></div>
+                    </div>
+
+                    <!-- Estado Vacío Inicial -->
+                    <div id="emptyStateBio" class="py-12 text-center">
+                        <div class="max-w-md mx-auto bg-stone-50 p-8 rounded-2xl border border-dashed border-stone-300">
+                            <div class="text-3xl mb-2">📊</div>
+                            <h5 class="text-xs font-bold text-stone-700">Sin datos cargados</h5>
+                            <p class="text-[11px] text-stone-400 mt-1">La hoja de cálculo Biometrico no contiene registros actualmente.</p>
                         </div>
                     </div>
                 </div>
@@ -304,36 +273,27 @@ window.RhAsisCasc = {
 
     renderGrid: function (listaRegistros) {
         const gridContent = document.getElementById('gridContentBio');
+        const emptyState = document.getElementById('emptyStateBio');
+        const appContainer = document.getElementById('appContainerBio');
         const exportBtn = document.getElementById('exportBtn');
         const contador = document.getElementById('contadorRegistrosBio');
 
         if (!gridContent) return;
 
-        const headers = RhAsisCasc.rawHeaderGlobal;
-
         if (!listaRegistros || listaRegistros.length === 0) {
+            if (emptyState) emptyState.classList.remove('hidden');
+            if (appContainer) appContainer.classList.add('hidden');
             if (exportBtn) {
                 exportBtn.disabled = true;
-                exportBtn.className = "bg-stone-100 border border-stone-200 text-stone-400 opacity-60 cursor-not-allowed px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2";
+                exportBtn.className = "bg-stone-300 opacity-50 cursor-not-allowed text-stone-700 px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2";
             }
             if (contador) contador.innerText = "";
-            
-            gridContent.innerHTML = `
-                <table class="w-full text-[11px] text-left border-collapse min-w-[950px]">
-                    <thead class="bg-stone-100 font-bold text-stone-700 sticky top-0 z-10 border-b border-stone-200">
-                        <tr>${headers.map(h => `<th class="p-3 border-b border-stone-200 text-center whitespace-nowrap">${h}</th>`).join('')}</tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td colspan="${headers.length}" class="py-12 text-center text-stone-400 italic font-medium">
-                                SIN DATOS REGISTRADOS
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            `;
+            gridContent.innerHTML = "";
             return;
         }
+
+        if (emptyState) emptyState.classList.add('hidden');
+        if (appContainer) appContainer.classList.remove('hidden');
 
         if (exportBtn) {
             exportBtn.disabled = false;
@@ -343,6 +303,8 @@ window.RhAsisCasc = {
         if (contador) {
             contador.innerText = `${listaRegistros.length} registros`;
         }
+
+        const headers = RhAsisCasc.rawHeaderGlobal;
 
         gridContent.innerHTML = `
             <table class="w-full text-[11px] text-left border-collapse min-w-[950px]">
@@ -387,36 +349,19 @@ window.RhAsisCasc = {
         return String(clave).trim();
     },
 
-    aplicarFiltrosCombinados: function () {
-        const mesFiltro = document.getElementById('filtroMesBio')?.value || "";
-        const numEmpFiltro = document.getElementById('filtroNumEmpBio')?.value.toLowerCase().trim() || "";
-        const centroFiltro = document.getElementById('filtroCentroBio')?.value.toLowerCase().trim() || "";
+    filtrarTablaGeneral: function (texto) {
+        const query = texto.toLowerCase().trim();
+        if (!query) {
+            RhAsisCasc.renderGrid(RhAsisCasc.registrosBiometrico);
+            return;
+        }
 
         const filtrados = RhAsisCasc.registrosBiometrico.filter(row => {
             const centro = String(row[0] || "").toLowerCase();
             const numEmp = String(row[1] || "").toLowerCase();
-            const fechaReg = String(row[6] || "").trim(); // Fecha Reg.
+            const fecha = String(row[6] || "").toLowerCase();
 
-            // Validar filtro de centro
-            if (centroFiltro && !centro.includes(centroFiltro)) return false;
-
-            // Validar filtro de num emp
-            if (numEmpFiltro && !numEmp.includes(numEmpFiltro)) return false;
-
-            // Validar filtro de mes
-            if (mesFiltro) {
-                let mesRegistro = "";
-                if (fechaReg.includes('-')) {
-                    const partes = fechaReg.split('-');
-                    if (partes.length >= 2) mesRegistro = partes[1]; // formato YYYY-MM-DD
-                } else if (fechaReg.includes('/')) {
-                    const partes = fechaReg.split('/');
-                    if (partes.length >= 2) mesRegistro = partes[1]; // formato DD/MM/YYYY
-                }
-                if (mesRegistro !== mesFiltro) return false;
-            }
-
-            return true;
+            return centro.includes(query) || numEmp.includes(query) || fecha.includes(query);
         });
 
         RhAsisCasc.renderGrid(filtrados);

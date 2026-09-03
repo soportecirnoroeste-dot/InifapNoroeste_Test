@@ -27,7 +27,7 @@ window.RhAsisCasc = {
             });
         }
 
-        // 🎯 ESTRUCTURA ORDENADA: Gestión de Personal a la izquierda, filtros y luego los botones
+        // 🎯 ESTRUCTURA LIMPIA: Título a la izquierda, Filtros y Botones a la derecha
         contenedor.innerHTML = `
             <div class="space-y-6 animate-fade-in">
                 <!-- Tarjeta 1: Cabecera principal -->
@@ -42,14 +42,16 @@ window.RhAsisCasc = {
                     </div>
                 </div>
 
-                <!-- Tarjeta 2: Gestión de Personal, Filtros y Botones -->
+                <!-- Tarjeta 2: Título a la izquierda, Filtros y Botones a la derecha -->
                 <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6">
-                    <div class="flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-4">
-                        <!-- Izquierda: Título Gestión de Personal + Filtros + Botones -->
-                        <div class="flex flex-wrap items-center gap-3">
-                            <h4 class="font-bold text-stone-800 text-sm mr-1">Gestión de Personal</h4>
+                    <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
+                        <!-- Izquierda: Título de la sección -->
+                        <div class="flex items-center">
+                            <h4 class="font-bold text-stone-800 text-sm">Gestión de Asistencia</h4>
+                        </div>
 
-                            <!-- Filtros -->
+                        <!-- Derecha: Filtros y Botones agrupados -->
+                        <div class="flex flex-wrap items-center gap-2.5">
                             <div class="relative">
                                 <select id="filtroMesBio" onchange="RhAsisCasc.aplicarFiltrosCombinados()" class="px-3 py-2.5 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] text-stone-700 cursor-pointer shadow-xs">
                                     <option value="">📅 MES</option>
@@ -78,7 +80,6 @@ window.RhAsisCasc = {
                                     class="w-28 px-3 py-2.5 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] transition-all shadow-xs">
                             </div>
 
-                            <!-- Botones después de los filtros -->
                             <input type="file" id="uploadBiometrico" class="hidden" accept=".xlsx, .xlsm, .csv" onchange="RhAsisCasc.manejarCargaYGuardadoAutomatico(this)">
                             
                             <label id="labelCargaDatos" for="uploadBiometrico" class="px-4 py-2.5 bg-[#249444] hover:bg-[#1b7033] text-white text-xs font-bold rounded-xl cursor-pointer shadow-sm transition-all flex items-center justify-center gap-2">

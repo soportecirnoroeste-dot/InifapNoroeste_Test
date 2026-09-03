@@ -27,49 +27,61 @@ window.RhAsisCasc = {
             });
         }
 
-        // 🎯 ESTRUCTURA IDÉNTICA A LA TARJETA PRINCIPAL DEL MÓDULO DE PERSONAL
+        // 🎯 ESTRUCTURA IDÉNTICA AL MÓDULO DE PERSONAL EN BLOQUES DE TARJETAS
         contenedor.innerHTML = `
-            <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6 space-y-6 animate-fade-in">
-                <div class="flex items-center gap-3 pb-4 border-b border-stone-100">
-                    <div class="p-2.5 bg-[#f0fdf4] border border-[#c6f6d5] text-[#059669] rounded-xl flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 21a8 8 0 0 1 13.292-6"/><circle cx="10" cy="8" r="5"/><path d="m16 19 2 2 4-4"/></svg>
-                    </div>
-                    <div>
-                        <h3 class="font-bold text-stone-800 text-base">CONTROL DE ASISTENCIA</h3>
-                    </div>
-                </div>
-
-                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-1 pb-1">
-                    <div class="flex flex-wrap items-center gap-3">
-                        <input type="file" id="uploadBiometrico" class="hidden" accept=".xlsx, .xlsm, .csv" onchange="RhAsisCasc.manejarCargaYGuardadoAutomatico(this)">
-                        
-                        <label id="labelCargaDatos" for="uploadBiometrico" class="px-4 py-2.5 bg-[#249444] hover:bg-[#1b7033] text-white text-xs font-bold rounded-xl cursor-pointer shadow-sm transition-all flex items-center justify-center gap-2">
-                            <span id="iconoCarga">📂</span>
-                            <span id="textoCargaBtn">Carga de Datos</span>
-                        </label>
-
-                        <button id="exportBtn" disabled onclick="if(window.RhAsisFBio && typeof RhAsisFBio.exportarExcel === 'function') RhAsisFBio.exportarExcel()" class="bg-stone-100 border border-stone-200 text-stone-400 opacity-60 cursor-not-allowed px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2">
-                            <span>📥</span> Exportar reporte
-                        </button>
-                    </div>
-
-                    <div class="relative w-full sm:w-80">
-                        <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 text-xs">🔍</span>
-                        <input type="text" id="searchInputBio" placeholder="BUSCAR POR CENTRO, N° EMP O FECHA..." oninput="RhAsisCasc.filtrarTablaGeneral(this.value)"
-                            class="w-full pl-9 pr-4 py-2.5 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] transition-all shadow-xs">
+            <div class="space-y-6 animate-fade-in">
+                <!-- Tarjeta 1: Cabecera principal -->
+                <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2.5 bg-[#f0fdf4] border border-[#c6f6d5] text-[#059669] rounded-xl flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 21a8 8 0 0 1 13.292-6"/><circle cx="10" cy="8" r="5"/><path d="m16 19 2 2 4-4"/></svg>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-stone-800 text-base">CONTROL DE ASISTENCIA</h3>
+                        </div>
                     </div>
                 </div>
 
-                <div class="space-y-3 pt-2">
-                    <div class="flex justify-between items-center px-1">
+                <!-- Tarjeta 2: Barra de acciones y filtros -->
+                <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6">
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+                        <div class="flex flex-wrap items-center gap-3">
+                            <input type="file" id="uploadBiometrico" class="hidden" accept=".xlsx, .xlsm, .csv" onchange="RhAsisCasc.manejarCargaYGuardadoAutomatico(this)">
+                            
+                            <h4 class="font-bold text-stone-800 text-sm mr-2">Gestión de Personal</h4>
+
+                            <label id="labelCargaDatos" for="uploadBiometrico" class="px-4 py-2.5 bg-[#249444] hover:bg-[#1b7033] text-white text-xs font-bold rounded-xl cursor-pointer shadow-sm transition-all flex items-center justify-center gap-2">
+                                <span id="iconoCarga">📂</span>
+                                <span id="textoCargaBtn">Carga de Datos</span>
+                            </label>
+
+                            <button id="exportBtn" disabled onclick="if(window.RhAsisFBio && typeof RhAsisFBio.exportarExcel === 'function') RhAsisFBio.exportarExcel()" class="bg-stone-100 border border-stone-200 text-stone-400 opacity-60 cursor-not-allowed px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2">
+                                <span>📥</span> Exportar reporte
+                            </button>
+                        </div>
+
+                        <!-- Buscador general en tiempo real -->
+                        <div class="relative w-full sm:w-80">
+                            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 text-xs">🔍</span>
+                            <input type="text" id="searchInputBio" placeholder="BUSCAR POR CENTRO, N° EMP O FECHA..." oninput="RhAsisCasc.filtrarTablaGeneral(this.value)"
+                                class="w-full pl-9 pr-4 py-2.5 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] transition-all shadow-xs">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tarjeta 3: Contenedor del Listado General -->
+                <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6 space-y-4">
+                    <div class="flex justify-between items-center pb-2 border-b border-stone-100">
                         <h4 class="font-bold text-stone-700 text-xs uppercase tracking-wider">Listado General de Biométrico</h4>
                         <span id="contadorRegistrosBio" class="text-xs text-stone-400 font-medium"></span>
                     </div>
 
+                    <!-- Contenedor Principal de la Tabla con Scroll Dual -->
                     <div id="appContainerBio" class="hidden rounded-xl border border-stone-200 overflow-hidden bg-white">
                         <div id="gridContentBio" class="max-h-[500px] overflow-y-auto overflow-x-auto custom-scrollbar"></div>
                     </div>
 
+                    <!-- Estado Vacío Inicial -->
                     <div id="emptyStateBio" class="py-12 text-center">
                         <div class="max-w-md mx-auto bg-stone-50 p-8 rounded-2xl border border-dashed border-stone-300">
                             <div class="text-3xl mb-2">📊</div>

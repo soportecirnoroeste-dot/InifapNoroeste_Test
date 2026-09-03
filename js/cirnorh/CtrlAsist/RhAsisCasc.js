@@ -247,7 +247,6 @@ window.RhAsisCasc = {
                             let horaRegistro = row[6] || "";
                             let tipoReg = String(row[7] || "").toUpperCase().trim();
                             
-                            // Mapeo inteligente para asegurarnos de guardar la hora de registro real en la entrada/salida correspondiente
                             let hraEntradaFinal = row[4] || "";
                             let hraSalidaFinal = row[5] || "";
 
@@ -303,48 +302,6 @@ window.RhAsisCasc = {
         }
     },
 
-    formatearSoloHora: function (valor) {
-        if (!valor) return "";
-        let valStr = String(valor).trim();
-
-        if (valStr.includes('T') || valStr.includes('-')) {
-            const fechaObj = new Date(valStr);
-            if (!isNaN(fechaObj)) {
-                const horas = String(fechaObj.getUTCHours()).padStart(2, '0');
-                const minutos = String(fechaObj.getUTCMinutes()).padStart(2, '0');
-                return `${parseInt(horas)}:${minutos}`;
-            }
-        }
-
-        if (valStr.includes(':')) {
-            const partes = valStr.split(':');
-            if (partes.length >= 2) {
-                const h = parseInt(partes[0], 10);
-                const m = partes[1];
-                if (!isNaN(h)) {
-                    return `${h}:${m}`;
-                }
-            }
-        }
-
-        if (valStr.includes(' ')) {
-            const partesEspacio = valStr.split(' ');
-            const posibleHora = partesEspacio.find(p => p.includes(':'));
-            if (posibleHora) {
-                const partes = posibleHora.split(':');
-                if (partes.length >= 2) {
-                    const h = parseInt(partes[0], 10);
-                    const m = partes[1];
-                    if (!isNaN(h)) {
-                        return `${h}:${m}`;
-                    }
-                }
-            }
-        }
-
-        return valStr;
-    },
-
     renderGrid: function (listaRegistros) {
         const gridContent = document.getElementById('gridContentBio');
         const exportBtn = document.getElementById('exportBtn');
@@ -396,15 +353,13 @@ window.RhAsisCasc = {
                     ${listaRegistros.map(r => {
                         const celdas = Array.isArray(r) ? [...r.slice(0, 12)] : headers.map(h => r[h] || "");
                         
-                        // CORRECCIÓN VISUAL DINÁMICA: Si Hra. Entrada u Hra. Salida traen valor genérico fijo (8:00 / 14:00) 
-                        // o queremos que muestren la hora real del registro según corresponda:
                         const horaRegistro = celdas[4] || "";
                         const tipoRegistro = String(celdas[5] || "").toUpperCase().trim();
 
                         if (tipoRegistro.includes("ENTRADA") && horaRegistro) {
-                            celdas[2] = horaRegistro; // Coloca la hora real en Hra. Entrada
+                            celdas[2] = horaRegistro;
                         } else if (tipoRegistro.includes("SALIDA") && horaRegistro) {
-                            celdas[3] = horaRegistro; // Coloca la hora real en Hra. Salida
+                            celdas[3] = horaRegistro;
                         }
 
                         return `
@@ -412,9 +367,7 @@ window.RhAsisCasc = {
                                 ${celdas.map((c, index) => {
                                     let val = c;
 
-                                    if (index === 2 || index === 3 || index === 4) {
-                                        val = RhAsisCasc.formatearSoloHora(val);
-                                    } else if (val instanceof Date) {
+                                    if (val instanceof Date) {
                                         val = val.toLocaleDateString();
                                     } else if (typeof val === 'string' && val.includes('T') && val.length > 18) {
                                         const d = new Date(val);

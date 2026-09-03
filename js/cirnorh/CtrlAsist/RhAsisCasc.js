@@ -27,7 +27,7 @@ window.RhAsisCasc = {
             });
         }
 
-        // 🎯 ESTRUCTURA IDÉNTICA AL MÓDULO DE PERSONAL CON GRID Y SINCRONIZANDO
+        // 🎯 ESTRUCTURA ORDENADA: Filtros separados a la derecha, Carga y Exportar a la izquierda
         contenedor.innerHTML = `
             <div class="space-y-6 animate-fade-in">
                 <!-- Tarjeta 1: Cabecera principal -->
@@ -42,14 +42,13 @@ window.RhAsisCasc = {
                     </div>
                 </div>
 
-                <!-- Tarjeta 2: Barra de acciones y filtros -->
+                <!-- Tarjeta 2: Barra de acciones y filtros separados -->
                 <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6">
-                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+                    <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
+                        <!-- Izquierda: Botón Carga de Datos y Exportar reporte -->
                         <div class="flex flex-wrap items-center gap-3">
                             <input type="file" id="uploadBiometrico" class="hidden" accept=".xlsx, .xlsm, .csv" onchange="RhAsisCasc.manejarCargaYGuardadoAutomatico(this)">
                             
-                            <h4 class="font-bold text-stone-800 text-sm mr-2">Gestión de Personal</h4>
-
                             <label id="labelCargaDatos" for="uploadBiometrico" class="px-4 py-2.5 bg-[#249444] hover:bg-[#1b7033] text-white text-xs font-bold rounded-xl cursor-pointer shadow-sm transition-all flex items-center justify-center gap-2">
                                 <span id="iconoCarga">📂</span>
                                 <span id="textoCargaBtn">Carga de Datos</span>
@@ -60,11 +59,35 @@ window.RhAsisCasc = {
                             </button>
                         </div>
 
-                        <!-- Buscador general en tiempo real -->
-                        <div class="relative w-full sm:w-80">
-                            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 text-xs">🔍</span>
-                            <input type="text" id="searchInputBio" placeholder="BUSCAR POR CENTRO, N° EMP O FECHA..." oninput="RhAsisCasc.filtrarTablaGeneral(this.value)"
-                                class="w-full pl-9 pr-4 py-2.5 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] transition-all shadow-xs">
+                        <!-- Derecha: Filtros separados (Meses, N° Emp, Centro) -->
+                        <div class="flex flex-wrap items-center gap-2.5">
+                            <div class="relative">
+                                <select id="filtroMesBio" onchange="RhAsisCasc.aplicarFiltrosCombinados()" class="px-3 py-2.5 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] text-stone-700 cursor-pointer shadow-xs">
+                                    <option value="">📅 MES</option>
+                                    <option value="01">Enero</option>
+                                    <option value="02">Febrero</option>
+                                    <option value="03">Marzo</option>
+                                    <option value="04">Abril</option>
+                                    <option value="05">Mayo</option>
+                                    <option value="06">Junio</option>
+                                    <option value="07">Julio</option>
+                                    <option value="08">Agosto</option>
+                                    <option value="09">Septiembre</option>
+                                    <option value="10">Octubre</option>
+                                    <option value="11">Noviembre</option>
+                                    <option value="12">Diciembre</option>
+                                </select>
+                            </div>
+
+                            <div class="relative">
+                                <input type="text" id="filtroNumEmpBio" placeholder="👤 N° EMP..." oninput="RhAsisCasc.aplicarFiltrosCombinados()"
+                                    class="w-32 px-3 py-2.5 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] transition-all shadow-xs">
+                            </div>
+
+                            <div class="relative">
+                                <input type="text" id="filtroCentroBio" placeholder="🏢 CENTRO..." oninput="RhAsisCasc.aplicarFiltrosCombinados()"
+                                    class="w-32 px-3 py-2.5 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] transition-all shadow-xs">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -76,7 +99,7 @@ window.RhAsisCasc = {
                         <span id="contadorRegistrosBio" class="text-xs text-stone-400 font-medium"></span>
                     </div>
 
-                    <!-- Contenedor Principal de la Tabla con Estado de Sincronización Inicial -->
+                    <!-- Contenedor Principal de la Tabla con Sincronización Inicial -->
                     <div id="appContainerBio" class="rounded-xl border border-stone-200 overflow-hidden bg-white">
                         <div id="gridContentBio" class="max-h-[500px] overflow-y-auto overflow-x-auto custom-scrollbar">
                             <table class="w-full text-[11px] text-left border-collapse min-w-[950px]">
@@ -364,19 +387,36 @@ window.RhAsisCasc = {
         return String(clave).trim();
     },
 
-    filtrarTablaGeneral: function (texto) {
-        const query = texto.toLowerCase().trim();
-        if (!query) {
-            RhAsisCasc.renderGrid(RhAsisCasc.registrosBiometrico);
-            return;
-        }
+    aplicarFiltrosCombinados: function () {
+        const mesFiltro = document.getElementById('filtroMesBio')?.value || "";
+        const numEmpFiltro = document.getElementById('filtroNumEmpBio')?.value.toLowerCase().trim() || "";
+        const centroFiltro = document.getElementById('filtroCentroBio')?.value.toLowerCase().trim() || "";
 
         const filtrados = RhAsisCasc.registrosBiometrico.filter(row => {
             const centro = String(row[0] || "").toLowerCase();
             const numEmp = String(row[1] || "").toLowerCase();
-            const fecha = String(row[6] || "").toLowerCase();
+            const fechaReg = String(row[6] || "").trim(); // Fecha Reg.
 
-            return centro.includes(query) || numEmp.includes(query) || fecha.includes(query);
+            // Validar filtro de centro
+            if (centroFiltro && !centro.includes(centroFiltro)) return false;
+
+            // Validar filtro de num emp
+            if (numEmpFiltro && !numEmp.includes(numEmpFiltro)) return false;
+
+            // Validar filtro de mes
+            if (mesFiltro) {
+                let mesRegistro = "";
+                if (fechaReg.includes('-')) {
+                    const partes = fechaReg.split('-');
+                    if (partes.length >= 2) mesRegistro = partes[1]; // formato YYYY-MM-DD
+                } else if (fechaReg.includes('/')) {
+                    const partes = fechaReg.split('/');
+                    if (partes.length >= 2) mesRegistro = partes[1]; // formato DD/MM/YYYY
+                }
+                if (mesRegistro !== mesFiltro) return false;
+            }
+
+            return true;
         });
 
         RhAsisCasc.renderGrid(filtrados);

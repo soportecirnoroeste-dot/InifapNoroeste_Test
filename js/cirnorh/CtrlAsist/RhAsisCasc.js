@@ -454,24 +454,49 @@ window.RhAsisCasc = {
 
     // --- NUEVAS FUNCIONES DE EXPORTACIÓN PARA RhAsisCasc ---
 
-    obtenerRegistrosFiltradosActuales: function () {
-        const fechaDesde = document.getElementById('filtroFechaDesde')?.value || "";
-        const fechaHasta = document.getElementById('filtroFechaHasta')?.value || "";
+obtenerRegistrosFiltradosActuales: function () {
+        const fechaDesdeInput = document.getElementById('filtroFechaDesde')?.value || ""; // Formato YYYY-MM-DD
+        const fechaHastaInput = document.getElementById('filtroFechaHasta')?.value || ""; // Formato YYYY-MM-DD
         const numEmpFiltro = document.getElementById('filtroNumEmpBio')?.value.toLowerCase().trim() || "";
         const centroFiltro = document.getElementById('filtroCentroBio')?.value.toLowerCase().trim() || "";
+
+        // Convertir inputs de fecha a números YYYYMMDD para comparación exacta
+        const valDesde = fechaDesdeInput ? parseInt(fechaDesdeInput.replace(/-/g, ''), 10) : null;
+        const valHasta = fechaHastaInput ? parseInt(fechaHastaInput.replace(/-/g, ''), 10) : null;
 
         return RhAsisCasc.registrosBiometrico.filter(row => {
             if (!Array.isArray(row)) return false;
 
             const centro = String(row[0] || "").toLowerCase();
             const numEmp = String(row[1] || "").toLowerCase();
-            const fechaRegRaw = String(row[6] || "").trim();
-            const fechaRegNorm = RhAsisCasc.normalizarFechaFiltro(fechaRegRaw);
+            const fechaRegRaw = String(row[6] || "").trim(); // Columna de Fecha Reg.
 
             if (centroFiltro && !centro.includes(centroFiltro)) return false;
             if (numEmpFiltro && !numEmp.includes(numEmpFiltro)) return false;
-            if (fechaDesde && fechaRegNorm < fechaDesde) return false;
-            if (fechaHasta && fechaRegNorm > fechaHasta) return false;
+
+            if (valDesde !== null || valHasta !== null) {
+                let fechaNum = null;
+
+                // Si la fecha viene en formato DD/MM/YYYY (ej. "3/8/2026" o "03/08/2026")
+                if (fechaRegRaw.includes('/')) {
+                    const partes = fechaRegRaw.split('/');
+                    if (partes.length === 3) {
+                        const d = partes[0].padStart(2, '0');
+                        const m = partes[1].padStart(2, '0');
+                        const y = partes[2];
+                        fechaNum = parseInt(`${y}${m}${d}`, 10);
+                    }
+                } 
+                // Si viene en formato YYYY-MM-DD
+                else if (fechaRegRaw.includes('-')) {
+                    fechaNum = parseInt(fechaRegRaw.replace(/-/g, ''), 10);
+                }
+
+                if (fechaNum !== null) {
+                    if (valDesde !== null && fechaNum < valDesde) return false;
+                    if (valHasta !== null && fechaNum > valHasta) return false;
+                }
+            }
 
             return true;
         });

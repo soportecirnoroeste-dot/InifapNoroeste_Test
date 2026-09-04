@@ -8,23 +8,23 @@ window.RhAsisCasc = {
         "Retardo Men.", "Retardo Med.", "Retardo May.", "Falta"
     ],
 
-    // Función auxiliar para limpiar la fecha base de Sheets (1899-12-30T...) y extraer solo la hora HH:mm
+    // Función corregida para extraer la hora local exacta sin desfases de zona horaria UTC
     extraerHoraLegible: function (valor) {
         if (!valor) return "";
         let strVal = String(valor).trim();
 
-        // Si viene con formato de fecha ISO serializada de Sheets (ej. 1899-12-30T15:23:52.000Z)
+        // Si viene en formato ISO de fecha base de Sheets (ej. 1899-12-30T...)
         if (strVal.includes('1899-12-30T') || strVal.includes('T')) {
             const fechaObj = new Date(strVal);
             if (!isNaN(fechaObj.getTime())) {
-                // Extraemos las horas y minutos en horario local o UTC según corresponda
-                const horas = String(fechaObj.getUTCHours()).padStart(2, '0');
-                const minutos = String(fechaObj.getUTCMinutes()).padStart(2, '0');
+                // Usamos getHours y getMinutes locales para respetar exactamente la hora de la celda
+                const horas = String(fechaObj.getHours()).padStart(2, '0');
+                const minutos = String(fechaObj.getMinutes()).padStart(2, '0');
                 return `${horas}:${minutos}`;
             }
         }
 
-        // Si ya viene como texto simple de hora, lo devolvemos tal cual
+        // Si ya es un texto simple de hora (ej. "8:00" o "14:00" o "7:49:35"), lo devolvemos limpio
         return strVal;
     },
 
@@ -372,22 +372,13 @@ window.RhAsisCasc = {
                 <tbody class="divide-y divide-stone-100">
                     ${listaRegistros.map(r => {
                         const celdas = Array.isArray(r) ? [...r.slice(0, 12)] : headers.map(h => r[h] || "");
-                        
-                        const horaRegistro = RhAsisCasc.extraerHoraLegible(celdas[4] || "");
-                        const tipoRegistro = String(celdas[5] || "").toUpperCase().trim();
-
-                        if (tipoRegistro.includes("ENTRADA") && horaRegistro) {
-                            celdas[2] = horaRegistro;
-                        } else if (tipoRegistro.includes("SALIDA") && horaRegistro) {
-                            celdas[3] = horaRegistro;
-                        }
 
                         return `
                             <tr class="bg-white hover:bg-stone-50 transition text-stone-700">
                                 ${celdas.map((c, index) => {
                                     let val = c;
 
-                                    // Limpiamos las columnas de hora (Columnas 2, 3 y 4 corresponden a Hra.Entrada, Hra.Salida y Hra.Registro)
+                                    // Si es columna de hora (Índice 2: Hra.Entrada, Índice 3: Hra.Salida, Índice 4: Hra.Registro), aplicamos la limpieza local
                                     if (index === 2 || index === 3 || index === 4) {
                                         val = RhAsisCasc.extraerHoraLegible(val);
                                     } else if (val instanceof Date) {

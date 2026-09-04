@@ -8,6 +8,26 @@ window.RhAsisCasc = {
         "Retardo Men.", "Retardo Med.", "Retardo May.", "Falta"
     ],
 
+    // Función auxiliar para limpiar la fecha base de Sheets (1899-12-30T...) y extraer solo la hora HH:mm
+    extraerHoraLegible: function (valor) {
+        if (!valor) return "";
+        let strVal = String(valor).trim();
+
+        // Si viene con formato de fecha ISO serializada de Sheets (ej. 1899-12-30T15:23:52.000Z)
+        if (strVal.includes('1899-12-30T') || strVal.includes('T')) {
+            const fechaObj = new Date(strVal);
+            if (!isNaN(fechaObj.getTime())) {
+                // Extraemos las horas y minutos en horario local o UTC según corresponda
+                const horas = String(fechaObj.getUTCHours()).padStart(2, '0');
+                const minutos = String(fechaObj.getUTCMinutes()).padStart(2, '0');
+                return `${horas}:${minutos}`;
+            }
+        }
+
+        // Si ya viene como texto simple de hora, lo devolvemos tal cual
+        return strVal;
+    },
+
     mostrarVistaBiometrico: async function () {
         const contenedor = document.getElementById('app-container') || document.querySelector('main') || document.body;
 
@@ -29,15 +49,19 @@ window.RhAsisCasc = {
 
         contenedor.innerHTML = `
             <div class="space-y-6 animate-fade-in">
+                <!-- Tarjeta 1: Cabecera principal -->
                 <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6">
                     <div class="flex items-center gap-3">
-                        
+                        <div class="p-2.5 bg-[#f0fdf4] border border-[#c6f6d5] text-[#059669] rounded-xl flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 21a8 8 0 0 1 13.292-6"/><circle cx="10" cy="8" r="5"/><path d="m16 19 2 2 4-4"/></svg>
+                        </div>
                         <div>
                             <h3 class="font-bold text-stone-800 text-base">CONTROL DE ASISTENCIA</h3>
                         </div>
                     </div>
                 </div>
 
+                <!-- Tarjeta 2: Filtros y Botones -->
                 <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6">
                     <div class="flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-6">
                         <div>
@@ -86,6 +110,7 @@ window.RhAsisCasc = {
                     </div>
                 </div>
 
+                <!-- Tarjeta 3: Contenedor del Listado General -->
                 <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6 space-y-4">
                     <div class="flex justify-between items-center pb-2 border-b border-stone-100">
                         <h4 class="font-bold text-stone-700 text-xs uppercase tracking-wider">Listado General de Biométrico</h4>
@@ -345,20 +370,34 @@ window.RhAsisCasc = {
                     <tr>${headers.map(h => `<th class="p-3 border-b border-stone-200 text-center whitespace-nowrap">${h}</th>`).join('')}</tr>
                 </thead>
                 <tbody class="divide-y divide-stone-100">
-                    ${listaRegistros.map((r, rowIndex) => {
+                    ${listaRegistros.map(r => {
                         const celdas = Array.isArray(r) ? [...r.slice(0, 12)] : headers.map(h => r[h] || "");
                         
-                        // 🔍 INSPECCIÓN EXACTA EN CONSOLA DEL DATO CRUDO TAL CUAL LLEGA
-                        console.log(`[Fila ${rowIndex}] Datos crudos recibidos:`, celdas);
-                        console.log(`[Fila ${rowIndex}] Columna 2 (Hra.Entrada):`, JSON.stringify(celdas[2]), "| Tipo:", typeof celdas[2]);
-                        console.log(`[Fila ${rowIndex}] Columna 3 (Hra.Salida):`, JSON.stringify(celdas[3]), "| Tipo:", typeof celdas[3]);
-                        console.log(`[Fila ${rowIndex}] Columna 4 (Hra.Registro):`, JSON.stringify(celdas[4]), "| Tipo:", typeof celdas[4]);
+                        const horaRegistro = RhAsisCasc.extraerHoraLegible(celdas[4] || "");
+                        const tipoRegistro = String(celdas[5] || "").toUpperCase().trim();
+
+                        if (tipoRegistro.includes("ENTRADA") && horaRegistro) {
+                            celdas[2] = horaRegistro;
+                        } else if (tipoRegistro.includes("SALIDA") && horaRegistro) {
+                            celdas[3] = horaRegistro;
+                        }
 
                         return `
                             <tr class="bg-white hover:bg-stone-50 transition text-stone-700">
-                                ${celdas.map((c) => {
-                                    const val = (c !== null && c !== undefined) ? c : '';
-                                    return `<td class="p-2.5 border-b border-stone-100 text-center whitespace-nowrap">${val}</td>`;
+                                ${celdas.map((c, index) => {
+                                    let val = c;
+
+                                    // Limpiamos las columnas de hora (Columnas 2, 3 y 4 corresponden a Hra.Entrada, Hra.Salida y Hra.Registro)
+                                    if (index === 2 || index === 3 || index === 4) {
+                                        val = RhAsisCasc.extraerHoraLegible(val);
+                                    } else if (val instanceof Date) {
+                                        val = val.toLocaleDateString();
+                                    } else if (typeof val === 'string' && val.includes('T') && val.length > 18 && !val.includes('1899-12-30')) {
+                                        const d = new Date(val);
+                                        if (!isNaN(d)) val = d.toLocaleDateString();
+                                    }
+
+                                    return `<td class="p-2.5 border-b border-stone-100 text-center whitespace-nowrap">${val !== null && val !== undefined && String(val).trim() !== '' ? val : ''}</td>`;
                                 }).join('')}
                             </tr>
                         `;

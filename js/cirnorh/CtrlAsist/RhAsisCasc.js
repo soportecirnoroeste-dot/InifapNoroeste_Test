@@ -64,7 +64,7 @@ window.RhAsisCasc = {
                         </div>
                     </div>
 
-                    <!-- Barra Contenedora Superior (Gestión, Botones y Filtros en un solo bloque) -->
+                    <!-- Barra Contenedora Superior (Gestión, Botones y Filtros) -->
                     <div class="bg-stone-50/60 rounded-2xl border border-stone-200 p-5 space-y-4">
                         <div class="flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-4">
                             <h4 class="font-bold text-stone-800 text-sm">Gestión de Asistencias</h4>
@@ -114,28 +114,26 @@ window.RhAsisCasc = {
                         </div>
                     </div>
 
-                    <!-- Tarjeta Contenedora del Listado (Título y Grid juntos dentro de su propio bloque con borde, igual a la referencia) -->
-                    <div class="bg-white rounded-2xl border border-stone-200 p-5 space-y-4">
-                        <div class="flex justify-between items-center">
+                    <!-- Contenedor Único del Grid (Exacto a tu imagen de referencia: Tarjeta blanca con el título arriba y la tabla dentro sin bordes adicionales extraños) -->
+                    <div class="bg-white rounded-2xl border border-stone-200 overflow-hidden shadow-xs">
+                        <div class="px-6 py-4 border-b border-stone-100 flex justify-between items-center bg-white">
                             <h4 class="font-bold text-stone-800 text-xs uppercase tracking-wider">LISTADO GENERAL DE BIOMÉTRICO</h4>
                             <span id="contadorRegistrosBio" class="text-xs text-stone-400 font-medium">0 registros</span>
                         </div>
 
-                        <div id="appContainerBio" class="rounded-xl border border-stone-200 overflow-hidden bg-white">
-                            <div id="gridContentBio" class="max-h-[500px] overflow-y-auto overflow-x-auto custom-scrollbar">
-                                <table class="w-full text-[11px] text-left border-collapse min-w-[950px]">
-                                    <thead class="bg-stone-100 font-bold text-stone-700 sticky top-0 z-10 border-b border-stone-200">
-                                        <tr>${RhAsisCasc.rawHeaderGlobal.map(h => `<th class="p-3 border-b border-stone-200 text-center whitespace-nowrap">${h}</th>`).join('')}</tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td colspan="${RhAsisCasc.rawHeaderGlobal.length}" class="py-12 text-center text-stone-400 italic font-medium">
-                                                SINCRONIZANDO DATOS...
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
+                        <div id="gridContentBio" class="max-h-[500px] overflow-y-auto overflow-x-auto custom-scrollbar">
+                            <table class="w-full text-[11px] text-left border-collapse min-w-[950px]">
+                                <thead class="bg-stone-50 font-bold text-stone-700 sticky top-0 z-10 border-b border-stone-200">
+                                    <tr>${RhAsisCasc.rawHeaderGlobal.map(h => `<th class="p-3 border-b border-stone-200 text-center whitespace-nowrap">${h}</th>`).join('')}</tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="${RhAsisCasc.rawHeaderGlobal.length}" class="py-12 text-center text-stone-400 italic font-medium">
+                                            SINCRONIZANDO DATOS...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
 
@@ -337,7 +335,7 @@ window.RhAsisCasc = {
             
             gridContent.innerHTML = `
                 <table class="w-full text-[11px] text-left border-collapse min-w-[950px]">
-                    <thead class="bg-stone-100 font-bold text-stone-700 sticky top-0 z-10 border-b border-stone-200">
+                    <thead class="bg-stone-50 font-bold text-stone-700 sticky top-0 z-10 border-b border-stone-200">
                         <tr>${headers.map(h => `<th class="p-3 border-b border-stone-200 text-center whitespace-nowrap">${h}</th>`).join('')}</tr>
                     </thead>
                     <tbody>
@@ -363,7 +361,7 @@ window.RhAsisCasc = {
 
         gridContent.innerHTML = `
             <table class="w-full text-[11px] text-left border-collapse min-w-[950px]">
-                <thead class="bg-stone-100 font-bold text-stone-700 sticky top-0 z-10 border-b border-stone-200">
+                <thead class="bg-stone-50 font-bold text-stone-700 sticky top-0 z-10 border-b border-stone-200">
                     <tr>${headers.map(h => `<th class="p-3 border-b border-stone-200 text-center whitespace-nowrap">${h}</th>`).join('')}</tr>
                 </thead>
                 <tbody class="divide-y divide-stone-100">

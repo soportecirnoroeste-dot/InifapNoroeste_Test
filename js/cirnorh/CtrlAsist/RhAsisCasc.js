@@ -8,40 +8,28 @@ window.RhAsisCasc = {
         "Retardo Men.", "Retardo Med.", "Retardo May.", "Falta"
     ],
 
-    extraerHoraLegible: function (valor, incluirSegundos = false) {
+extraerHoraLegible: function (valor, esRegistroCompleto = false) {
         if (!valor) return "";
-        
-        // Si viene como string directo estilo "8:00" o "14:00:00"
-        if (typeof valor === 'string') {
-            const trimmed = valor.trim();
-            if (/^\d{1,2}:\d{2}(:\d{2})?$/.test(trimmed)) {
-                const partes = trimmed.split(':');
-                let h = partes[0].padStart(2, '0');
-                let m = partes[1].padStart(2, '0');
-                let s = partes[2] ? partes[2].padStart(2, '0') : '00';
-                return incluirSegundos ? `${h}:${m}:${s}` : `${h}:${m}`;
+        let strVal = String(valor).trim();
+
+        // Si viene en formato ISO de fecha base de Sheets (ej. 1899-12-30T15:23:52.000Z)
+        if (strVal.includes('1899-12-30T') || strVal.includes('T')) {
+            const fechaObj = new Date(strVal);
+            if (!isNaN(fechaObj.getTime())) {
+                const horas = String(fechaObj.getHours()).padStart(2, '0');
+                const minutos = String(fechaObj.getMinutes()).padStart(2, '0');
+                
+                // Si es la columna de registro completo, incluimos los segundos
+                if (esRegistroCompleto) {
+                    const segundos = String(fechaObj.getSeconds()).padStart(2, '0');
+                    return `${horas}:${minutos}:${segundos}`;
+                }
+                return `${horas}:${minutos}`;
             }
-            
-            // Si viene como fecha ISO de Apps Script (ej: "1899-12-30T08:00:00.000Z")
-            const fechaParsed = new Date(trimmed);
-            if (!isNaN(fechaParsed.getTime())) {
-                let h = String(fechaParsed.getUTCHours()).padStart(2, '0');
-                let m = String(fechaParsed.getUTCMinutes()).padStart(2, '0');
-                let s = String(fechaParsed.getUTCSeconds()).padStart(2, '0');
-                return incluirSegundos ? `${h}:${m}:${s}` : `${h}:${m}`;
-            }
-        }
-        
-        // Si viene como número decimal de Excel/Sheets (fracción del día)
-        if (typeof valor === 'number') {
-            const totalSegundos = Math.round(valor * 86400);
-            const h = String(Math.floor(totalSegundos / 3600) % 24).padStart(2, '0');
-            const m = String(Math.floor((totalSegundos % 3600) / 60)).padStart(2, '0');
-            const s = String(totalSegundos % 60).padStart(2, '0');
-            return incluirSegundos ? `${h}:${m}:${s}` : `${h}:${m}`;
         }
 
-        return String(valor);
+        // Si ya es un texto (ej. "7:49:35" o "8:00"), lo devolvemos tal cual sin recortar
+        return strVal;
     },
 
     mostrarVistaBiometrico: async function () {

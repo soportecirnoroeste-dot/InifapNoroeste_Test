@@ -48,7 +48,25 @@ window.RhAsisCasc = {
             });
         }
 
+            renderizarVistaModulo('CONTROL DE ASISTENCIA', "");
+
         contenedor.innerHTML = `
+            <div id="contenedor-gestion-personal" class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-stone-50 p-4 rounded-xl border border-stone-200">
+                <div>
+                    <h4 class="font-bold text-stone-800 text-sm">Gestión de Personal</h4>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="mostrarFormularioNuevoPersonal()" class="px-4 py-2 bg-[#249444] text-white rounded-xl text-xs font-bold hover:bg-[#1e7a37] transition flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                        Nuevo Registro
+                    </button>
+                    <button onclick="cargarDatosGenerales(true)" class="px-4 py-2 bg-stone-200 text-stone-700 rounded-xl text-xs font-bold hover:bg-stone-300 transition flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
+                        Actualizar Datos
+                    </button>
+                </div>
+            </div>
+
             <div class="space-y-6 animate-fade-in">
                 <!-- Tarjeta de Título Principal unificada -->
                 <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6">

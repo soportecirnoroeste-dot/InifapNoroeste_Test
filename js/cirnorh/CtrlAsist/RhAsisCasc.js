@@ -266,9 +266,9 @@ window.RhAsisCasc = {
                         const empleado = RhAsisFBio.groupedData[id];
                         if (empleado && Array.isArray(empleado.rows)) {
                             empleado.rows.forEach(row => {
-                                // Capturamos el tipo de registro (ENTRADA o SALIDA) y la hora leída
+                               /* // Capturamos el tipo de registro (ENTRADA o SALIDA) y la hora leída
                                 let tipoReg = (row[5] || "").toString().toUpperCase(); // Ajusta el índice según tu columna de tipo de registro
-                                let horaRegistro = row[4] || ""; // La hora exacta que viene del biométrico
+                                let horaRegistro = row[6] || ""; // La hora exacta que viene del biométrico
 
                                 let hraEntradaFinal = "";
                                 let hraSalidaFinal = "";
@@ -280,14 +280,14 @@ window.RhAsisCasc = {
                                 } else if (tipoReg.includes("SALIDA")) {
                                     hraEntradaFinal = "";
                                     hraSalidaFinal = RhAsisCasc.extraerHoraLegible(horaRegistro, false);
-                                }
+                                }*/
 
                                 rowsParaSheets.push([
                                      claveCentroSeleccionado,
                                     row[0] || "",
-                                    hraEntradaFinal,
-                                    hraSalidaFinal,
-                                    horaRegistro,
+                                    row[4] || "",
+                                    row[5] || "",
+                                    row[6] || "",
                                     row[7] || "",
                                     row[8] || "",
                                     row[9] || "",

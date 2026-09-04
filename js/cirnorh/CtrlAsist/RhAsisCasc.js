@@ -8,33 +8,41 @@ window.RhAsisCasc = {
         "Retardo Men.", "Retardo Med.", "Retardo May.", "Falta"
     ],
 
-    extraerHoraLegible: function (valor, esRegistroCompleto = false) {
+    extraerHoraLegible: function (valor, incluirSegundos = false) {
         if (!valor) return "";
-        let strVal = String(valor).trim();
-
-        // Si viene en formato ISO de fecha de Excel (ej. 1899-12-30T08:00:00.000Z o similar)
-        if (strVal.includes('T')) {
-            const partesT = strVal.split('T');
-            if (partesT.length > 1) {
-                let horaParte = partesT[1].split('.')[0].split('Z')[0]; // Toma "08:00:00"
-                if (!esRegistroCompleto) {
-                    const subH = horaParte.split(':');
-                    return `${subH[0] || '00'}:${subH[1] || '00'}`;
-                }
-                return horaParte;
+        
+        // Si viene como string directo estilo "8:00" o "14:00:00"
+        if (typeof valor === 'string') {
+            const trimmed = valor.trim();
+            if (/^\d{1,2}:\d{2}(:\d{2})?$/.test(trimmed)) {
+                const partes = trimmed.split(':');
+                let h = partes[0].padStart(2, '0');
+                let m = partes[1].padStart(2, '0');
+                let s = partes[2] ? partes[2].padStart(2, '0') : '00';
+                return incluirSegundos ? `${h}:${m}:${s}` : `${h}:${m}`;
+            }
+            
+            // Si viene como fecha ISO de Apps Script (ej: "1899-12-30T08:00:00.000Z")
+            const fechaParsed = new Date(trimmed);
+            if (!isNaN(fechaParsed.getTime())) {
+                // USAR UTC para evitar que la zona horaria del navegador mueva la hora
+                let h = String(fechaParsed.getUTCHours()).padStart(2, '0');
+                let m = String(fechaParsed.getUTCMinutes()).padStart(2, '0');
+                let s = String(fechaParsed.getUTCSeconds()).padStart(2, '0');
+                return incluirSegundos ? `${h}:${m}:${s}` : `${h}:${m}`;
             }
         }
-
-        // Si ya viene como texto plano de hora ("08:00" o "08:00:00")
-        if (strVal.length >= 5 && strVal.includes(':')) {
-            const subH = strVal.split(':');
-            if (!esRegistroCompleto) {
-                return `${subH[0]}:${subH[1]}`;
-            }
-            return strVal;
+        
+        // Si viene como número decimal de Excel/Sheets (fracción del día, ej: 0.3333 = 8:00)
+        if (typeof valor === 'number') {
+            const totalSegundos = Math.round(valor * 86400);
+            const h = String(Math.floor(totalSegundos / 3600) % 24).padStart(2, '0');
+            const m = String(Math.floor((totalSegundos % 3600) / 60)).padStart(2, '0');
+            const s = String(totalSegundos % 60).padStart(2, '0');
+            return incluirSegundos ? `${h}:${m}:${s}` : `${h}:${m}`;
         }
 
-        return strVal;
+        return String(valor);
     },
 
     mostrarVistaBiometrico: async function () {
@@ -268,17 +276,17 @@ window.RhAsisCasc = {
                             empleado.rows.forEach(row => {
                                 rowsParaSheets.push([
                                     claveCentroSeleccionado,       // ClaveCentro
-                                    row[0] || "",                  // NumEmp (Columna A - No. Empleado)
-                                    row[4] || "",                  // RHBHraEnt (Columna E - Hora Entrada)
-                                    row[5] || "",                  // RHBHraSal (Columna F - Hora Salida)
-                                    row[6] || "",                  // RHBHraReg (Columna G - Registro)
-                                    row[7] || "",                  // RHBNomReg (Columna H - Salida / Entrada)
-                                    row[8] || "",                  // RHBFecReg (Columna I - Fecha)
-                                    row[9] || "",                  // RHBDía (Columna J - Día)
-                                    row[10] || "",                 // RHBRetMen (Columna K - Retardo Menor)
-                                    row[11] || "",                 // RHBRetMed (Columna L - Retardo Mediano)
-                                    row[12] || "",                 // RHBRetMay (Columna M - Retardo Mayor)
-                                    row[13] || ""                  // RHBFalta (Columna N - Falta)
+                                    row[0] || "",                  // NumEmp
+                                    row[4] || "",                  // RHBHraEnt
+                                    row[5] || "",                  // RHBHraSal
+                                    row[6] || "",                  // RHBHraReg
+                                    row[7] || "",                  // RHBNomReg
+                                    row[8] || "",                  // RHBFecReg
+                                    row[9] || "",                  // RHBDía
+                                    row[10] || "",                 // RHBRetMen
+                                    row[11] || "",                 // RHBRetMed
+                                    row[12] || "",                 // RHBRetMay
+                                    row[13] || ""                  // RHBFalta
                                 ]);
                             });
                         }
@@ -325,7 +333,6 @@ window.RhAsisCasc = {
         if (!listaRegistros || listaRegistros.length === 0) {
             if (exportBtn) {
                 exportBtn.disabled = true;
-                // Mantenemos la misma clase de altura/padding para el botón deshabilitado también
                 exportBtn.className = "bg-stone-100 border border-stone-200 text-stone-400 opacity-60 cursor-not-allowed px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2";
             }
             if (contador) contador.innerText = "";
@@ -366,25 +373,30 @@ window.RhAsisCasc = {
             const celdas = Array.isArray(r) ? [...r.slice(0, 12)] : headers.map(h => r[h] || "");
 
             return `
-                            <tr class="bg-white hover:bg-stone-50 transition text-stone-700">
-                                ${celdas.map((c, index) => {
+                        <tr class="bg-white hover:bg-stone-50 transition text-stone-700">
+                            ${celdas.map((c, index) => {
                 let val = c;
 
+                // Índices 2 (Hra.Entrada) y 3 (Hra. Salida): formato 24hr corto sin segundos
                 if (index === 2 || index === 3) {
                     val = RhAsisCasc.extraerHoraLegible(val, false);
-                } else if (index === 4) {
+                } 
+                // Índice 4 (Hra.Registro): formato 24hr completo con segundos
+                else if (index === 4) {
                     val = RhAsisCasc.extraerHoraLegible(val, true);
-                } else if (val instanceof Date) {
+                } 
+                else if (val instanceof Date) {
                     val = val.toLocaleDateString();
-                } else if (typeof val === 'string' && val.includes('T') && val.length > 18 && !val.includes('1899-12-30')) {
+                } 
+                else if (typeof val === 'string' && val.includes('T') && val.length > 18 && !val.includes('1899-12-30')) {
                     const d = new Date(val);
                     if (!isNaN(d)) val = d.toLocaleDateString();
                 }
 
                 return `<td class="p-2.5 border-b border-stone-100 text-center whitespace-nowrap">${val !== null && val !== undefined && String(val).trim() !== '' ? val : ''}</td>`;
             }).join('')}
-                            </tr>
-                        `;
+                        </tr>
+                    `;
         }).join('')}
                 </tbody>
             </table>

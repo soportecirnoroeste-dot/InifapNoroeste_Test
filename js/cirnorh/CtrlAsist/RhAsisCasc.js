@@ -266,28 +266,12 @@ window.RhAsisCasc = {
                         const empleado = RhAsisFBio.groupedData[id];
                         if (empleado && Array.isArray(empleado.rows)) {
                             empleado.rows.forEach(row => {
-                               /* // Capturamos el tipo de registro (ENTRADA o SALIDA) y la hora leída
-                                let tipoReg = (row[5] || "").toString().toUpperCase(); // Ajusta el índice según tu columna de tipo de registro
-                                let horaRegistro = row[6] || ""; // La hora exacta que viene del biométrico
-
-                                let hraEntradaFinal = "";
-                                let hraSalidaFinal = "";
-
-                                // Si el registro es ENTRADA, ponemos la hora leída en Hra. Entrada y dejamos Salida vacía (o viceversa)
-                                if (tipoReg.includes("ENTRADA")) {
-                                    hraEntradaFinal = RhAsisCasc.extraerHoraLegible(horaRegistro, false);
-                                    hraSalidaFinal = "";
-                                } else if (tipoReg.includes("SALIDA")) {
-                                    hraEntradaFinal = "";
-                                    hraSalidaFinal = RhAsisCasc.extraerHoraLegible(horaRegistro, false);
-                                }*/
-
                                 rowsParaSheets.push([
-                                     claveCentroSeleccionado,
+                                    claveCentroSeleccionado,
                                     row[0] || "",
-                                    row[4] || "",
-                                    row[5] || "",
-                                    row[6] || "",
+                                    RhAsisCasc.extraerHoraLegible(row[2] || "", false), // Asegura formato limpio para Entrada si está ahí
+                                    RhAsisCasc.extraerHoraLegible(row[5] || "", false), // row[5] limpio
+                                    RhAsisCasc.extraerHoraLegible(row[6] || "", false), // row[6] limpio (Hora de registro)
                                     row[7] || "",
                                     row[8] || "",
                                     row[9] || "",

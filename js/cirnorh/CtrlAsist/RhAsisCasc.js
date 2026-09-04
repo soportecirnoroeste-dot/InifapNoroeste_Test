@@ -266,16 +266,19 @@ window.RhAsisCasc = {
                         const empleado = RhAsisFBio.groupedData[id];
                         if (empleado && Array.isArray(empleado.rows)) {
                             empleado.rows.forEach(row => {
-                                // Extraemos la hora real del registro de la posición correcta (ajusta el índice si tu hora está en otra columna, ej: row[4] o row[6])
-                                let horaExactaRaw = row[4] || row[6] || "";
-                                let horaRegistroLimpia = RhAsisCasc.extraerHoraLegible(horaExactaRaw, false);
+                                // 1. Extraemos y limpiamos la información de acuerdo a tu archivo origen
+                                let numEmp = row[0] || "";          // Columna del número de empleado en el archivo
+                                let horaRaw = row[6] || row[4] || ""; // La hora leída del biométrico (ajusta el índice 6 o 4 según tu archivo)
+                                let tipoReg = String(row[7] || row[5] || "").toUpperCase().trim(); // ENTRADA o SALIDA
+                                let fechaReg = row[8] || "";        // Fecha
+                                let diaReg = row[9] || "";          // Día
 
-                                let tipoReg = String(row[5] || row[7] || "").toUpperCase().trim();
+                                // 2. Limpiamos la hora exacta de la checada para RHBHraReg (Columna E)
+                                let horaRegistroLimpia = RhAsisCasc.extraerHoraLegible(horaRaw, false);
 
-                                // Conservamos los valores originales de entrada y salida que trae la fila, 
-                                // o los asignamos dinámicamente si el renglón es estrictamente una entrada o salida.
-                                let hraEntradaFinal = RhAsisCasc.extraerHoraLegible(row[2] || row[4] || "", false);
-                                let hraSalidaFinal = RhAsisCasc.extraerHoraLegible(row[3] || row[5] || "", false);
+                                // 3. Asignación lógica independiente para Entrada (C) y Salida (D)
+                                let hraEntradaFinal = "";
+                                let hraSalidaFinal = "";
 
                                 if (tipoReg.includes("ENTRADA")) {
                                     hraEntradaFinal = horaRegistroLimpia;
@@ -283,15 +286,20 @@ window.RhAsisCasc = {
                                     hraSalidaFinal = horaRegistroLimpia;
                                 }
 
+                                // 4. Empujamos las columnas respetando estrictamente el orden de tu Google Sheet
                                 rowsParaSheets.push([
-                                    claveCentroSeleccionado,
-                                    row[0] || "",          // NumEmp
-                                    hraEntradaFinal,       // RHBHraEnt (Columna C)
-                                    hraSalidaFinal,        // RHBHraSal (Columna D)
-                                    horaRegistroLimpia,    // RHBHraReg (Columna E - La hora exacta del checo)
-                                    tipoReg,               // RHBNomReg (Columna F - ENTRADA / SALIDA)
-                                    row[6] || row[8] || "",// Fecha
-                                    row[7] || row[9] || "",// Día
+                                    claveCentroSeleccionado, // A: ClaveCentro
+                                    numEmp,                  // B: NumEmp
+                                    hraEntradaFinal,         // C: RHBHraEnt
+                                    hraSalidaFinal,          // D: RHBHraSal
+                                    horaRegistroLimpia,      // E: RHBHraReg (La hora exacta leída)
+                                    tipoReg,                 // F: RHBNomReg (ENTRADA / SALIDA)
+                                    fechaReg,                // G: RHBFecReg
+                                    diaReg,                  // H: RHBDía
+                                    "",                      // I: RHBRetMen
+                                    "",                      // J: RHBRetMed
+                                    "",                      // K: RHBRetMay
+                                    ""                       // L: RHBFalta
                                 ]);
                             });
                         }

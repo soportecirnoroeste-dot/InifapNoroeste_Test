@@ -64,7 +64,7 @@ window.RhAsisCasc = {
                         </div>
                     </div>
 
-                    <!-- Barra Contenedora Unificada (Título, Botones y Filtros dentro del mismo bloque con borde) -->
+                    <!-- Barra Contenedora Superior (Gestión, Botones y Filtros en un solo bloque) -->
                     <div class="bg-stone-50/60 rounded-2xl border border-stone-200 p-5 space-y-4">
                         <div class="flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-4">
                             <h4 class="font-bold text-stone-800 text-sm">Gestión de Asistencias</h4>
@@ -86,7 +86,7 @@ window.RhAsisCasc = {
                             </div>
                         </div>
 
-                        <!-- Filtros integrados dentro de la misma barra unificada -->
+                        <!-- Filtros integrados -->
                         <div class="flex flex-wrap items-end gap-3 pt-2 border-t border-stone-200/60">
                             <div class="flex flex-col gap-1">
                                 <label for="filtroFechaDesde" class="text-[10px] font-bold text-stone-500 uppercase tracking-wider">De</label>
@@ -114,10 +114,10 @@ window.RhAsisCasc = {
                         </div>
                     </div>
 
-                    <!-- Listado General de Biométrico -->
-                    <div class="space-y-4">
+                    <!-- Tarjeta Contenedora del Listado (Título y Grid juntos dentro de su propio bloque con borde, igual a la referencia) -->
+                    <div class="bg-white rounded-2xl border border-stone-200 p-5 space-y-4">
                         <div class="flex justify-between items-center">
-                            <h4 class="font-bold text-stone-700 text-xs uppercase tracking-wider">Listado General de Biométrico</h4>
+                            <h4 class="font-bold text-stone-800 text-xs uppercase tracking-wider">LISTADO GENERAL DE BIOMÉTRICO</h4>
                             <span id="contadorRegistrosBio" class="text-xs text-stone-400 font-medium">0 registros</span>
                         </div>
 

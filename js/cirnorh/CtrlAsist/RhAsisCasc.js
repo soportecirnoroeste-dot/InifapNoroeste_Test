@@ -267,18 +267,18 @@ window.RhAsisCasc = {
                         if (empleado && Array.isArray(empleado.rows)) {
                             empleado.rows.forEach(row => {
                                 rowsParaSheets.push([
-                                     claveCentroSeleccionado,
-                                    row[0] || "",
-                                    row[4] || "",
-                                    row[5] || "",
-                                    row[6] || "",
-                                    row[7] || "",
-                                    row[8] || "",
-                                    row[9] || "",
-                                    row[10] || "",
-                                    row[11] || "",
-                                    row[12] || "",
-                                    row[13] || ""
+                                    claveCentroSeleccionado,       // ClaveCentro
+                                    row[0] || "",                  // NumEmp (Columna A - No. Empleado)
+                                    row[4] || "",                  // RHBHraEnt (Columna E - Hora Entrada)
+                                    row[5] || "",                  // RHBHraSal (Columna F - Hora Salida)
+                                    row[6] || "",                  // RHBHraReg (Columna G - Registro)
+                                    row[7] || "",                  // RHBNomReg (Columna H - Salida / Entrada)
+                                    row[8] || "",                  // RHBFecReg (Columna I - Fecha)
+                                    row[9] || "",                  // RHBDía (Columna J - Día)
+                                    row[10] || "",                 // RHBRetMen (Columna K - Retardo Menor)
+                                    row[11] || "",                 // RHBRetMed (Columna L - Retardo Mediano)
+                                    row[12] || "",                 // RHBRetMay (Columna M - Retardo Mayor)
+                                    row[13] || ""                  // RHBFalta (Columna N - Falta)
                                 ]);
                             });
                         }

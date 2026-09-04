@@ -266,40 +266,35 @@ window.RhAsisCasc = {
                         const empleado = RhAsisFBio.groupedData[id];
                         if (empleado && Array.isArray(empleado.rows)) {
                             empleado.rows.forEach(row => {
-                                // 1. Extraemos y limpiamos la información de acuerdo a tu archivo origen
-                                let numEmp = row[0] || "";          // Columna del número de empleado en el archivo
-                                let horaRaw = row[6] || row[4] || ""; // La hora leída del biométrico (ajusta el índice 6 o 4 según tu archivo)
-                                let tipoReg = String(row[7] || row[5] || "").toUpperCase().trim(); // ENTRADA o SALIDA
-                                let fechaReg = row[8] || "";        // Fecha
-                                let diaReg = row[9] || "";          // Día
+                                // Capturamos el tipo de registro (ENTRADA o SALIDA) y la hora leída
+                                let tipoReg = (row[5] || "").toString().toUpperCase(); // Ajusta el índice según tu columna de tipo de registro
+                                let horaRegistro = row[4] || ""; // La hora exacta que viene del biométrico
 
-                                // 2. Limpiamos la hora exacta de la checada para RHBHraReg (Columna E)
-                                let horaRegistroLimpia = RhAsisCasc.extraerHoraLegible(horaRaw, false);
-
-                                // 3. Asignación lógica independiente para Entrada (C) y Salida (D)
                                 let hraEntradaFinal = "";
                                 let hraSalidaFinal = "";
 
+                                // Si el registro es ENTRADA, ponemos la hora leída en Hra. Entrada y dejamos Salida vacía (o viceversa)
                                 if (tipoReg.includes("ENTRADA")) {
-                                    hraEntradaFinal = horaRegistroLimpia;
+                                    hraEntradaFinal = RhAsisCasc.extraerHoraLegible(horaRegistro, false);
+                                    hraSalidaFinal = "";
                                 } else if (tipoReg.includes("SALIDA")) {
-                                    hraSalidaFinal = horaRegistroLimpia;
+                                    hraEntradaFinal = "";
+                                    hraSalidaFinal = RhAsisCasc.extraerHoraLegible(horaRegistro, false);
                                 }
 
-                                // 4. Empujamos las columnas respetando estrictamente el orden de tu Google Sheet
                                 rowsParaSheets.push([
-                                    claveCentroSeleccionado, // A: ClaveCentro
-                                    numEmp,                  // B: NumEmp
-                                    hraEntradaFinal,         // C: RHBHraEnt
-                                    hraSalidaFinal,          // D: RHBHraSal
-                                    horaRegistroLimpia,      // E: RHBHraReg (La hora exacta leída)
-                                    tipoReg,                 // F: RHBNomReg (ENTRADA / SALIDA)
-                                    fechaReg,                // G: RHBFecReg
-                                    diaReg,                  // H: RHBDía
-                                    "",                      // I: RHBRetMen
-                                    "",                      // J: RHBRetMed
-                                    "",                      // K: RHBRetMay
-                                    ""                       // L: RHBFalta
+                                     claveCentroSeleccionado,
+                                    row[0] || "",
+                                    hraEntradaFinal,
+                                    hraSalidaFinal,
+                                    horaRegistro,
+                                    row[7] || "",
+                                    row[8] || "",
+                                    row[9] || "",
+                                    row[10] || "",
+                                    row[11] || "",
+                                    row[12] || "",
+                                    row[13] || ""
                                 ]);
                             });
                         }

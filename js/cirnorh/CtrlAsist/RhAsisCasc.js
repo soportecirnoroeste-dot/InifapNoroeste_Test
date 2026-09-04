@@ -283,7 +283,7 @@ window.RhAsisCasc = {
                                 }
 
                                 rowsParaSheets.push([
-                                    claveCentroSeleccionado,
+                                     claveCentroSeleccionado,
                                     row[0] || "",
                                     hraEntradaFinal,
                                     hraSalidaFinal,

@@ -362,29 +362,31 @@ window.RhAsisCasc = {
                 </thead>
                 <tbody class="divide-y divide-stone-100">
                     ${listaRegistros.map(r => {
-            const celdas = Array.isArray(r) ? [...r.slice(0, 12)] : headers.map(h => r[h] || "");
+                        // Si r es un array plano devuelto por Sheets (ej. [Centro, NumEmp, HraEnt, HraSal, HraReg, Reg, Fecha, Dia, RetMen, RetMed, RetMay, Falta])
+                        const celdas = Array.isArray(r) ? [...r.slice(0, 12)] : headers.map(h => r[h] || "");
 
-            return `
+                        return `
                             <tr class="bg-white hover:bg-stone-50 transition text-stone-700">
                                 ${celdas.map((c, index) => {
-                let val = c;
+                                    let val = c;
 
-                if (index === 2 || index === 3) {
-                    val = RhAsisCasc.extraerHoraLegible(val, false);
-                } else if (index === 4) {
-                    val = RhAsisCasc.extraerHoraLegible(val, true);
-                } else if (val instanceof Date) {
-                    val = val.toLocaleDateString();
-                } else if (typeof val === 'string' && val.includes('T') && val.length > 18 && !val.includes('1899-12-30')) {
-                    const d = new Date(val);
-                    if (!isNaN(d)) val = d.toLocaleDateString();
-                }
+                                    // Formateo específico según la columna
+                                    if (index === 2 || index === 3) {
+                                        // Hra.Entrada / Hra.Salida (Horas fijas del empleado)
+                                        val = RhAsisCasc.extraerHoraLegible(val, false);
+                                    } else if (index === 4) {
+                                        // Hra.Registro (Hora exacta del checado)
+                                        val = RhAsisCasc.extraerHoraLegible(val, true);
+                                    } else if (index === 6) {
+                                        // Fecha Reg. (Normalizar formato de fecha si viene en ISO o largo)
+                                        val = RhAsisCasc.normalizarFechaFiltro(val) || val;
+                                    }
 
-                return `<td class="p-2.5 border-b border-stone-100 text-center whitespace-nowrap">${val !== null && val !== undefined && String(val).trim() !== '' ? val : ''}</td>`;
-            }).join('')}
+                                    return `<td class="p-2.5 border-b border-stone-100 text-center whitespace-nowrap">${val !== null && val !== undefined && String(val).trim() !== '' ? val : ''}</td>`;
+                                }).join('')}
                             </tr>
                         `;
-        }).join('')}
+                    }).join('')}
                 </tbody>
             </table>
         `;

@@ -8,23 +8,28 @@ window.RhAsisCasc = {
         "Retardo Men.", "Retardo Med.", "Retardo May.", "Falta"
     ],
 
-    // Función corregida para extraer la hora local exacta sin desfases de zona horaria UTC
-    extraerHoraLegible: function (valor) {
+    // Función actualizada para respetar los segundos completos en la hora de registro (RHBHraReg)
+    extraerHoraLegible: function (valor, esRegistroCompleto = false) {
         if (!valor) return "";
         let strVal = String(valor).trim();
 
-        // Si viene en formato ISO de fecha base de Sheets (ej. 1899-12-30T...)
+        // Si viene en formato ISO de fecha base de Sheets (ej. 1899-12-30T15:23:52.000Z)
         if (strVal.includes('1899-12-30T') || strVal.includes('T')) {
             const fechaObj = new Date(strVal);
             if (!isNaN(fechaObj.getTime())) {
-                // Usamos getHours y getMinutes locales para respetar exactamente la hora de la celda
                 const horas = String(fechaObj.getHours()).padStart(2, '0');
                 const minutos = String(fechaObj.getMinutes()).padStart(2, '0');
+                
+                // Si es la columna de registro completo, incluimos los segundos
+                if (esRegistroCompleto) {
+                    const segundos = String(fechaObj.getSeconds()).padStart(2, '0');
+                    return `${horas}:${minutos}:${segundos}`;
+                }
                 return `${horas}:${minutos}`;
             }
         }
 
-        // Si ya es un texto simple de hora (ej. "8:00" o "14:00" o "7:49:35"), lo devolvemos limpio
+        // Si ya es un texto (ej. "7:49:35" o "8:00"), lo devolvemos tal cual sin recortar
         return strVal;
     },
 
@@ -378,10 +383,15 @@ window.RhAsisCasc = {
                                 ${celdas.map((c, index) => {
                                     let val = c;
 
-                                    // Si es columna de hora (Índice 2: Hra.Entrada, Índice 3: Hra.Salida, Índice 4: Hra.Registro), aplicamos la limpieza local
-                                    if (index === 2 || index === 3 || index === 4) {
-                                        val = RhAsisCasc.extraerHoraLegible(val);
-                                    } else if (val instanceof Date) {
+                                    // Índice 2: Hra.Entrada, Índice 3: Hra.Salida (Horas fijas normales)
+                                    if (index === 2 || index === 3) {
+                                        val = RhAsisCasc.extraerHoraLegible(val, false);
+                                    } 
+                                    // Índice 4: Hra.Registro (Aquí queremos que salga completa con segundos ej. 7:49:35)
+                                    else if (index === 4) {
+                                        val = RhAsisCasc.extraerHoraLegible(val, true);
+                                    } 
+                                    else if (val instanceof Date) {
                                         val = val.toLocaleDateString();
                                     } else if (typeof val === 'string' && val.includes('T') && val.length > 18 && !val.includes('1899-12-30')) {
                                         const d = new Date(val);

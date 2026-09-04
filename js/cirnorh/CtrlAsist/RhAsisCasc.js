@@ -713,3 +713,5 @@ window.RhAsisCasc = {
         const sufijo = numEmpFiltro ? `Emp_${numEmpFiltro}` : "Todos_Empleados";
         XLSX.writeFile(wb, `Reporte_Biometrico_${centroActual}_${sufijo}.xlsx`);
     }
+};
+

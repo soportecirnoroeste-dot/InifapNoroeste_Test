@@ -266,35 +266,32 @@ window.RhAsisCasc = {
                         const empleado = RhAsisFBio.groupedData[id];
                         if (empleado && Array.isArray(empleado.rows)) {
                             empleado.rows.forEach(row => {
-                                // Capturamos el tipo de registro (ENTRADA o SALIDA) y la hora leída
-                                let tipoReg = (row[5] || "").toString().toUpperCase(); // Ajusta el índice según tu columna de tipo de registro
-                                let horaRegistro = row[4] || ""; // La hora exacta que viene del biométrico
+                                // Extraemos la hora real del registro de la posición correcta (ajusta el índice si tu hora está en otra columna, ej: row[4] o row[6])
+                                let horaExactaRaw = row[4] || row[6] || "";
+                                let horaRegistroLimpia = RhAsisCasc.extraerHoraLegible(horaExactaRaw, false);
 
-                                let hraEntradaFinal = "";
-                                let hraSalidaFinal = "";
+                                let tipoReg = String(row[5] || row[7] || "").toUpperCase().trim();
 
-                                // Si el registro es ENTRADA, ponemos la hora leída en Hra. Entrada y dejamos Salida vacía (o viceversa)
+                                // Conservamos los valores originales de entrada y salida que trae la fila, 
+                                // o los asignamos dinámicamente si el renglón es estrictamente una entrada o salida.
+                                let hraEntradaFinal = RhAsisCasc.extraerHoraLegible(row[2] || row[4] || "", false);
+                                let hraSalidaFinal = RhAsisCasc.extraerHoraLegible(row[3] || row[5] || "", false);
+
                                 if (tipoReg.includes("ENTRADA")) {
-                                    hraEntradaFinal = RhAsisCasc.extraerHoraLegible(horaRegistro, false);
-                                    hraSalidaFinal = "";
+                                    hraEntradaFinal = horaRegistroLimpia;
                                 } else if (tipoReg.includes("SALIDA")) {
-                                    hraEntradaFinal = "";
-                                    hraSalidaFinal = RhAsisCasc.extraerHoraLegible(horaRegistro, false);
+                                    hraSalidaFinal = horaRegistroLimpia;
                                 }
 
                                 rowsParaSheets.push([
-                                     claveCentroSeleccionado,
-                                    row[0] || "",
-                                    hraEntradaFinal,
-                                    hraSalidaFinal,
-                                    horaRegistro,
-                                    row[7] || "",
-                                    row[8] || "",
-                                    row[9] || "",
-                                    row[10] || "",
-                                    row[11] || "",
-                                    row[12] || "",
-                                    row[13] || ""
+                                    claveCentroSeleccionado,
+                                    row[0] || "",          // NumEmp
+                                    hraEntradaFinal,       // RHBHraEnt (Columna C)
+                                    hraSalidaFinal,        // RHBHraSal (Columna D)
+                                    horaRegistroLimpia,    // RHBHraReg (Columna E - La hora exacta del checo)
+                                    tipoReg,               // RHBNomReg (Columna F - ENTRADA / SALIDA)
+                                    row[6] || row[8] || "",// Fecha
+                                    row[7] || row[9] || "",// Día
                                 ]);
                             });
                         }

@@ -266,15 +266,19 @@ window.RhAsisCasc = {
                         const empleado = RhAsisFBio.groupedData[id];
                         if (empleado && Array.isArray(empleado.rows)) {
                             empleado.rows.forEach(row => {
-                                let horaRegistro = RhAsisCasc.extraerHoraLegible(row[6] || "", true);
-                                let tipoReg = String(row[7] || "").toUpperCase().trim();
+                                // Capturamos el tipo de registro (ENTRADA o SALIDA) y la hora leída
+                                let tipoReg = (row[5] || "").toString().toUpperCase(); // Ajusta el índice según tu columna de tipo de registro
+                                let horaRegistro = row[4] || ""; // La hora exacta que viene del biométrico
 
-                                let hraEntradaFinal = RhAsisCasc.extraerHoraLegible(row[4] || "", false);
-                                let hraSalidaFinal = RhAsisCasc.extraerHoraLegible(row[5] || "", false);
+                                let hraEntradaFinal = "";
+                                let hraSalidaFinal = "";
 
-                                if (tipoReg.includes("ENTRADA") && horaRegistro) {
+                                // Si el registro es ENTRADA, ponemos la hora leída en Hra. Entrada y dejamos Salida vacía (o viceversa)
+                                if (tipoReg.includes("ENTRADA")) {
                                     hraEntradaFinal = RhAsisCasc.extraerHoraLegible(horaRegistro, false);
-                                } else if (tipoReg.includes("SALIDA") && horaRegistro) {
+                                    hraSalidaFinal = "";
+                                } else if (tipoReg.includes("SALIDA")) {
+                                    hraEntradaFinal = "";
                                     hraSalidaFinal = RhAsisCasc.extraerHoraLegible(horaRegistro, false);
                                 }
 

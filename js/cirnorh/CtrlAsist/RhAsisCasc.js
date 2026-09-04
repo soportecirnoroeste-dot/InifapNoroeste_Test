@@ -17,7 +17,7 @@ window.RhAsisCasc = {
             if (!isNaN(fechaObj.getTime())) {
                 const horas = String(fechaObj.getHours()).padStart(2, '0');
                 const minutos = String(fechaObj.getMinutes()).padStart(2, '0');
-                
+
                 if (esRegistroCompleto) {
                     const segundos = String(fechaObj.getSeconds()).padStart(2, '0');
                     return `${horas}:${minutos}:${segundos}`;
@@ -30,8 +30,11 @@ window.RhAsisCasc = {
     },
 
     mostrarVistaBiometrico: async function () {
-        const contenedor = document.getElementById('app-container') || document.querySelector('main') || document.body;
+        renderizarVistaModulo('CONTROL DE ASISTENCIA', "");
+        const contenedor = document.getElementById('contenido-submodulo-dinamico');
+        if (!contenedor) return;
 
+        contenedor.className = "w-full space-y-6";
         if (!contenedor) {
             console.error("❌ ERROR: No se encontró ningún contenedor para pintar la vista.");
             return;
@@ -48,7 +51,6 @@ window.RhAsisCasc = {
             });
         }
 
-            renderizarVistaModulo('CONTROL DE ASISTENCIA', "");
 
         contenedor.innerHTML = `
             <div id="contenedor-gestion-personal" class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-stone-50 p-4 rounded-xl border border-stone-200">
@@ -256,7 +258,7 @@ window.RhAsisCasc = {
                             empleado.rows.forEach(row => {
                                 let horaRegistro = row[6] || "";
                                 let tipoReg = String(row[7] || "").toUpperCase().trim();
-                                
+
                                 let hraEntradaFinal = row[4] || "";
                                 let hraSalidaFinal = row[5] || "";
 
@@ -328,7 +330,7 @@ window.RhAsisCasc = {
                 exportBtn.className = "px-4 py-2 bg-stone-100 border border-stone-200 text-stone-400 opacity-60 cursor-not-allowed rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-xs";
             }
             if (contador) contador.innerText = "0 registros";
-            
+
             gridContent.innerHTML = `
                 <table class="w-full text-[11px] text-left border-collapse min-w-[950px]">
                     <thead class="bg-stone-100 font-bold text-stone-700 sticky top-0 z-10 border-b border-stone-200">
@@ -362,29 +364,29 @@ window.RhAsisCasc = {
                 </thead>
                 <tbody class="divide-y divide-stone-100">
                     ${listaRegistros.map(r => {
-                        const celdas = Array.isArray(r) ? [...r.slice(0, 12)] : headers.map(h => r[h] || "");
+            const celdas = Array.isArray(r) ? [...r.slice(0, 12)] : headers.map(h => r[h] || "");
 
-                        return `
+            return `
                             <tr class="bg-white hover:bg-stone-50 transition text-stone-700">
                                 ${celdas.map((c, index) => {
-                                    let val = c;
+                let val = c;
 
-                                    if (index === 2 || index === 3) {
-                                        val = RhAsisCasc.extraerHoraLegible(val, false);
-                                    } else if (index === 4) {
-                                        val = RhAsisCasc.extraerHoraLegible(val, true);
-                                    } else if (val instanceof Date) {
-                                        val = val.toLocaleDateString();
-                                    } else if (typeof val === 'string' && val.includes('T') && val.length > 18 && !val.includes('1899-12-30')) {
-                                        const d = new Date(val);
-                                        if (!isNaN(d)) val = d.toLocaleDateString();
-                                    }
+                if (index === 2 || index === 3) {
+                    val = RhAsisCasc.extraerHoraLegible(val, false);
+                } else if (index === 4) {
+                    val = RhAsisCasc.extraerHoraLegible(val, true);
+                } else if (val instanceof Date) {
+                    val = val.toLocaleDateString();
+                } else if (typeof val === 'string' && val.includes('T') && val.length > 18 && !val.includes('1899-12-30')) {
+                    const d = new Date(val);
+                    if (!isNaN(d)) val = d.toLocaleDateString();
+                }
 
-                                    return `<td class="p-2.5 border-b border-stone-100 text-center whitespace-nowrap">${val !== null && val !== undefined && String(val).trim() !== '' ? val : ''}</td>`;
-                                }).join('')}
+                return `<td class="p-2.5 border-b border-stone-100 text-center whitespace-nowrap">${val !== null && val !== undefined && String(val).trim() !== '' ? val : ''}</td>`;
+            }).join('')}
                             </tr>
                         `;
-                    }).join('')}
+        }).join('')}
                 </tbody>
             </table>
         `;
@@ -433,7 +435,7 @@ window.RhAsisCasc = {
 
         const filtrados = RhAsisCasc.registrosBiometrico.filter(row => {
             if (!Array.isArray(row)) return false;
-            
+
             const centro = String(row[0] || "").toLowerCase();
             const numEmp = String(row[1] || "").toLowerCase();
             const fechaRegRaw = String(row[6] || "").trim();

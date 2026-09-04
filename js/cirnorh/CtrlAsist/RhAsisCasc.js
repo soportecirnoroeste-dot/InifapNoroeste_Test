@@ -109,7 +109,7 @@ window.RhAsisCasc = {
                                     <span id="textoCargaBtn">Carga de Datos</span>
                                 </button>
 
-                                <button id="exportBtn" disabled onclick="if(window.RhAsisFBio && typeof RhAsisFBio.exportarExcel === 'function') RhAsisFBio.exportarExcel()" class="px-4 py-2 bg-[#249444] text-white rounded-xl text-xs font-bold hover:bg-[#1e7a37] transition flex items-center gap-2 shadow-xs opacity-60 cursor-not-allowed h-[34px]">
+                                <button id="exportBtn" disabled onclick="if(window.RhAsisCasc && typeof RhAsisCasc.exportarExcelCasc === 'function') RhAsisCasc.exportarExcelCasc()" class="px-4 py-2 bg-[#249444] text-white rounded-xl text-xs font-bold hover:bg-[#1e7a37] transition flex items-center gap-2 shadow-xs opacity-60 cursor-not-allowed h-[34px]">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-down"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>
                                     Exportar Información
                                 </button>
@@ -450,5 +450,150 @@ window.RhAsisCasc = {
         });
 
         RhAsisCasc.renderGrid(filtrados);
+    },
+
+    // --- NUEVAS FUNCIONES DE EXPORTACIÓN PARA RhAsisCasc ---
+
+    obtenerRegistrosFiltradosActuales: function () {
+        // Si tienes filtros activos, respeta los elementos filtrados actuales, de lo contrario usa todos
+        const fechaDesde = document.getElementById('filtroFechaDesde')?.value || "";
+        const fechaHasta = document.getElementById('filtroFechaHasta')?.value || "";
+        const numEmpFiltro = document.getElementById('filtroNumEmpBio')?.value.toLowerCase().trim() || "";
+        const centroFiltro = document.getElementById('filtroCentroBio')?.value.toLowerCase().trim() || "";
+
+        return RhAsisCasc.registrosBiometrico.filter(row => {
+            if (!Array.isArray(row)) return false;
+
+            const centro = String(row[0] || "").toLowerCase();
+            const numEmp = String(row[1] || "").toLowerCase();
+            const fechaRegRaw = String(row[6] || "").trim();
+            const fechaRegNorm = RhAsisCasc.normalizarFechaFiltro(fechaRegRaw);
+
+            if (centroFiltro && !centro.includes(centroFiltro)) return false;
+            if (numEmpFiltro && !numEmp.includes(numEmpFiltro)) return false;
+            if (fechaDesde && fechaRegNorm < fechaDesde) return false;
+            if (fechaHasta && fechaRegNorm > fechaHasta) return false;
+
+            return true;
+        });
+    },
+
+    generateWorkbookCasc: function () {
+        const wb = XLSX.utils.book_new();
+        const fondoHoja = "E9F5E9";
+        const MaxFila = 500;
+        const MaxCol = RhAsisCasc.rawHeaderGlobal.length;
+
+        // Obtenemos los registros (ya sea el total o los filtrados en pantalla)
+        const registrosAExportar = RhAsisCasc.obtenerRegistrosFiltradosActuales();
+
+        // Mapeamos y limpiamos las horas igual que en la vista previa del grid
+        const rowsMapeadas = registrosAExportar.map(r => {
+            const celdas = Array.isArray(r) ? [...r.slice(0, 12)] : RhAsisCasc.rawHeaderGlobal.map(h => r[h] || "");
+            return celdas.map((c, index) => {
+                let val = c;
+                if (index === 2 || index === 3) {
+                    val = RhAsisCasc.extraerHoraLegible(val, false);
+                } else if (index === 4) {
+                    val = RhAsisCasc.extraerHoraLegible(val, true);
+                } else if (val instanceof Date) {
+                    val = val.toLocaleDateString();
+                } else if (typeof val === 'string' && val.includes('T') && val.length > 18 && !val.includes('1899-12-30')) {
+                    const d = new Date(val);
+                    if (!isNaN(d)) val = d.toLocaleDateString();
+                }
+                return val !== null && val !== undefined ? val : "";
+            });
+        });
+
+        const wsData = [
+            ["inifap", "", "INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS"],
+            ["Instituto Nacional de Investigaciones", "", "COORDINACIÓN DE ADMINISTRACIÓN Y SISTEMAS"],
+            ["Forestales, Agrícolas y Pecuarias", "", "DIRECCIÓN DE DESARROLLO HUMANO Y PROFESIONALIZACIÓN"],
+            ["", "", "INCIDENCIAS GENERADAS DE ACUERDO AL REGISTRO ELECTRÓNICO V2"],
+            ["", "", "Reporte: RH_CONTROL_ASISTENCIA_CASC"],
+            [],
+            RhAsisCasc.rawHeaderGlobal,
+            ...rowsMapeadas
+        ];
+
+        const ws = XLSX.utils.aoa_to_sheet(wsData);
+        ws['!ref'] = `A1:${XLSX.utils.encode_col(MaxCol - 1)}${Math.max(MaxFila, wsData.length + 10)}`;
+        ws['!view'] = { showGridLines: false };
+
+        // Ajuste automático de anchos de columna
+        const tableRows = wsData.slice(6);
+        const colWidths = RhAsisCasc.rawHeaderGlobal.map((_, colIndex) => {
+            if (colIndex === 0) return { wch: 15 };
+            let maxWidth = 10;
+            tableRows.forEach(row => {
+                const cellValue = row[colIndex];
+                const text = cellValue ? String(cellValue) : "";
+                const currentWidth = cellValue instanceof Date ? 12 : text.length + 2;
+                if (currentWidth > maxWidth) maxWidth = currentWidth;
+            });
+            return { wch: maxWidth };
+        });
+        ws['!cols'] = colWidths;
+
+        // Aplicación de estilos visuales institucionales
+        const totalFilasHoja = wsData.length;
+        for (let r = 0; r < totalFilasHoja; r++) {
+            for (let c = 0; c < MaxCol; c++) {
+                const cellRef = XLSX.utils.encode_cell({ r: r, c: c });
+                if (!ws[cellRef]) ws[cellRef] = { v: "" };
+                let style = {
+                    fill: { type: 'pattern', pattern: 'solid', fgColor: { rgb: fondoHoja } },
+                    font: { sz: 9, name: "Arial" },
+                    alignment: { vertical: "center", horizontal: "center" }
+                };
+
+                if (r === 0 && c === 0) {
+                    style.font = { bold: true, sz: 24, color: { rgb: "249444" }, name: "Arial Black" };
+                    style.alignment.horizontal = "left";
+                }
+                if (r >= 1 && r <= 2 && c >= 0 && c <= 1) {
+                    style.font = { sz: 8, color: { rgb: "1A1A1B" }, bold: true };
+                    style.alignment.horizontal = "left";
+                    style.alignment.wrapText = true;
+                }
+                if (r === 6 && c < RhAsisCasc.rawHeaderGlobal.length) {
+                    style.fill = { type: 'pattern', pattern: 'solid', fgColor: { rgb: "D9D9D9" } };
+                    style.font.bold = true;
+                    style.border = { top: { style: "thin" }, bottom: { style: "thin" }, left: { style: "thin" }, right: { style: "thin" } };
+                }
+                if (r >= 7) {
+                    const dRow = rowsMapeadas[r - 7];
+                    if (dRow && c < RhAsisCasc.rawHeaderGlobal.length) {
+                        let bgColor = fondoHoja;
+                        let fontColor = "000000";
+                        // Evaluamos incidencias en las últimas columnas (Retardos / Faltas)
+                        if (dRow[11]) { // Falta
+                            bgColor = "FF0000"; fontColor = "FFFFFF";
+                        } else if (dRow[10]) { // Retardo May.
+                            bgColor = "E46C0A"; fontColor = "FFFFFF";
+                        } else if (dRow[9]) { // Retardo Med.
+                            bgColor = "FFC000";
+                        } else if (dRow[8]) { // Retardo Men.
+                            bgColor = "FFFF00";
+                        }
+                        style.fill = { type: 'pattern', pattern: 'solid', fgColor: { rgb: bgColor } };
+                        style.font.color = { rgb: fontColor };
+                        style.border = { top: { style: "thin" }, bottom: { style: "thin" }, left: { style: "thin" }, right: { style: "thin" } };
+                    }
+                }
+                ws[cellRef].s = style;
+            }
+        }
+
+        XLSX.utils.book_append_sheet(wb, ws, "Asistencia_Centro");
+        return wb;
+    },
+
+    exportarExcelCasc: function () {
+        const wb = RhAsisCasc.generateWorkbookCasc();
+        const centroActual = RhAsisCasc.obtenerClaveCentroActual() || "General";
+        XLSX.writeFile(wb, `Reporte_Biometrico_Centro_${centroActual}.xlsx`);
     }
 };
+

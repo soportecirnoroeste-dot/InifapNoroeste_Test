@@ -8,7 +8,7 @@ window.RhAsisCasc = {
         "Retardo Men.", "Retardo Med.", "Retardo May.", "Falta"
     ],
 
-extraerHoraLegible: function (valor, esRegistroCompleto = false) {
+    extraerHoraLegible: function (valor, esRegistroCompleto = false) {
         if (!valor) return "";
         let strVal = String(valor).trim();
 
@@ -18,7 +18,7 @@ extraerHoraLegible: function (valor, esRegistroCompleto = false) {
             if (!isNaN(fechaObj.getTime())) {
                 const horas = String(fechaObj.getHours()).padStart(2, '0');
                 const minutos = String(fechaObj.getMinutes()).padStart(2, '0');
-                
+
                 // Si es la columna de registro completo, incluimos los segundos
                 if (esRegistroCompleto) {
                     const segundos = String(fechaObj.getSeconds()).padStart(2, '0');
@@ -262,18 +262,18 @@ extraerHoraLegible: function (valor, esRegistroCompleto = false) {
                         if (empleado && Array.isArray(empleado.rows)) {
                             empleado.rows.forEach(row => {
                                 rowsParaSheets.push([
-                                    claveCentroSeleccionado,       // Col A: ClaveCentro
-                                    row[0] || "",                  // Col B: NumEmp
-                                    row[2] || "",                  // Col C: RHBHraEnt
-                                    row[3] || "",                  // Col D: RHBHraSal
-                                    row[4] || "",                  // Col E: RHBHraReg
-                                    row[5] || "",                  // Col F: RHBNomReg
-                                    row[6] || "",                  // Col G: RHBFecReg
-                                    row[7] || "",                  // Col H: RHBDía
-                                    row[8] || "",                  // Col I: RHBRetMen
-                                    row[9] || "",                  // Col J: RHBRetMed
-                                    row[10] || "",                 // Col K: RHBRetMay
-                                    row[11] || ""                  // Col L: RHBFalta
+                                    claveCentroSeleccionado,       // ClaveCentro
+                                    row[0] || "",                  // NumEmp
+                                    row[4] || "",                  // RHBHraEnt
+                                    row[5] || "",                  // RHBHraSal
+                                    row[6] || "",                  // RHBHraReg
+                                    row[7] || "",                  // RHBNomReg
+                                    row[8] || "",                  // RHBFecReg
+                                    row[9] || "",                  // RHBDía
+                                    row[10] || "",                 // RHBRetMen
+                                    row[11] || "",                 // RHBRetMed
+                                    row[12] || "",                 // RHBRetMay
+                                    row[13] || ""                  // RHBFalta
                                 ]);
                             });
                         }
@@ -367,14 +367,14 @@ extraerHoraLegible: function (valor, esRegistroCompleto = false) {
                 // Índices 2 y 3 corresponden a Hra.Entrada y Hra. Salida (Formato corto de hora sin segundos: "08:00")
                 if (index === 2 || index === 3) {
                     val = RhAsisCasc.extraerHoraLegible(val, false);
-                } 
+                }
                 // Índice 4 corresponde a Hra.Registro (Formato completo con segundos: "7:49:35")
                 else if (index === 4) {
                     val = RhAsisCasc.extraerHoraLegible(val, true);
-                } 
+                }
                 else if (val instanceof Date) {
                     val = val.toLocaleDateString();
-                } 
+                }
                 else if (typeof val === 'string' && val.includes('T') && val.length > 18 && !val.includes('1899-12-30')) {
                     const d = new Date(val);
                     if (!isNaN(d)) val = d.toLocaleDateString();

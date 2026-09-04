@@ -25,7 +25,6 @@ window.RhAsisCasc = {
             // Si viene como fecha ISO de Apps Script (ej: "1899-12-30T08:00:00.000Z")
             const fechaParsed = new Date(trimmed);
             if (!isNaN(fechaParsed.getTime())) {
-                // USAR UTC para evitar que la zona horaria del navegador mueva la hora
                 let h = String(fechaParsed.getUTCHours()).padStart(2, '0');
                 let m = String(fechaParsed.getUTCMinutes()).padStart(2, '0');
                 let s = String(fechaParsed.getUTCSeconds()).padStart(2, '0');
@@ -33,7 +32,7 @@ window.RhAsisCasc = {
             }
         }
         
-        // Si viene como número decimal de Excel/Sheets (fracción del día, ej: 0.3333 = 8:00)
+        // Si viene como número decimal de Excel/Sheets (fracción del día)
         if (typeof valor === 'number') {
             const totalSegundos = Math.round(valor * 86400);
             const h = String(Math.floor(totalSegundos / 3600) % 24).padStart(2, '0');
@@ -225,7 +224,7 @@ window.RhAsisCasc = {
             if (primerId && RhAsisFBio.groupedData[primerId].rows && RhAsisFBio.groupedData[primerId].rows.length > 0) {
                 const primeraFila = RhAsisFBio.groupedData[primerId].rows[0];
                 primerNumEmp = primeraFila[0] || "";
-                rawFecha = primeraFila[8] || primeraFila[9] || "";
+                rawFecha = primeraFila[6] || primeraFila[7] || ""; // Ajustado al índice de fecha en tu estructura
             }
 
             if (!rawFecha) {
@@ -275,18 +274,18 @@ window.RhAsisCasc = {
                         if (empleado && Array.isArray(empleado.rows)) {
                             empleado.rows.forEach(row => {
                                 rowsParaSheets.push([
-                                    claveCentroSeleccionado,       // ClaveCentro
-                                    row[0] || "",                  // NumEmp
-                                    row[4] || "",                  // RHBHraEnt
-                                    row[5] || "",                  // RHBHraSal
-                                    row[6] || "",                  // RHBHraReg
-                                    row[7] || "",                  // RHBNomReg
-                                    row[8] || "",                  // RHBFecReg
-                                    row[9] || "",                  // RHBDía
-                                    row[10] || "",                 // RHBRetMen
-                                    row[11] || "",                 // RHBRetMed
-                                    row[12] || "",                 // RHBRetMay
-                                    row[13] || ""                  // RHBFalta
+                                    claveCentroSeleccionado,       // Col A: ClaveCentro
+                                    row[0] || "",                  // Col B: NumEmp
+                                    row[2] || "",                  // Col C: RHBHraEnt
+                                    row[3] || "",                  // Col D: RHBHraSal
+                                    row[4] || "",                  // Col E: RHBHraReg
+                                    row[5] || "",                  // Col F: RHBNomReg
+                                    row[6] || "",                  // Col G: RHBFecReg
+                                    row[7] || "",                  // Col H: RHBDía
+                                    row[8] || "",                  // Col I: RHBRetMen
+                                    row[9] || "",                  // Col J: RHBRetMed
+                                    row[10] || "",                 // Col K: RHBRetMay
+                                    row[11] || ""                  // Col L: RHBFalta
                                 ]);
                             });
                         }
@@ -377,11 +376,11 @@ window.RhAsisCasc = {
                             ${celdas.map((c, index) => {
                 let val = c;
 
-                // Índices 2 (Hra.Entrada) y 3 (Hra. Salida): formato 24hr corto sin segundos
+                // Índices 2 y 3 corresponden a Hra.Entrada y Hra. Salida (Formato corto de hora sin segundos: "08:00")
                 if (index === 2 || index === 3) {
                     val = RhAsisCasc.extraerHoraLegible(val, false);
                 } 
-                // Índice 4 (Hra.Registro): formato 24hr completo con segundos
+                // Índice 4 corresponde a Hra.Registro (Formato completo con segundos: "7:49:35")
                 else if (index === 4) {
                     val = RhAsisCasc.extraerHoraLegible(val, true);
                 } 

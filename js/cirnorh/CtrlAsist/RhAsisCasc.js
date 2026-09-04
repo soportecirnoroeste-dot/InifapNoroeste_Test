@@ -61,7 +61,6 @@ window.RhAsisCasc = {
                         </div>
                         <div>
                             <h3 class="font-bold text-stone-800 text-base uppercase">CONTROL DE ASISTENCIA</h3>
-                            <p class="text-xs text-stone-400 font-medium">Gestión y monitoreo de registros biométricos de personal</p>
                         </div>
                     </div>
 

@@ -8,19 +8,16 @@ window.RhAsisCasc = {
         "Retardo Men.", "Retardo Med.", "Retardo May.", "Falta"
     ],
 
-    // Función actualizada para respetar los segundos completos en la hora de registro (RHBHraReg)
     extraerHoraLegible: function (valor, esRegistroCompleto = false) {
         if (!valor) return "";
         let strVal = String(valor).trim();
 
-        // Si viene en formato ISO de fecha base de Sheets (ej. 1899-12-30T15:23:52.000Z)
         if (strVal.includes('1899-12-30T') || strVal.includes('T')) {
             const fechaObj = new Date(strVal);
             if (!isNaN(fechaObj.getTime())) {
                 const horas = String(fechaObj.getHours()).padStart(2, '0');
                 const minutos = String(fechaObj.getMinutes()).padStart(2, '0');
                 
-                // Si es la columna de registro completo, incluimos los segundos
                 if (esRegistroCompleto) {
                     const segundos = String(fechaObj.getSeconds()).padStart(2, '0');
                     return `${horas}:${minutos}:${segundos}`;
@@ -29,7 +26,6 @@ window.RhAsisCasc = {
             }
         }
 
-        // Si ya es un texto (ej. "7:49:35" o "8:00"), lo devolvemos tal cual sin recortar
         return strVal;
     },
 
@@ -100,14 +96,15 @@ window.RhAsisCasc = {
 
                             <input type="file" id="uploadBiometrico" class="hidden" accept=".xlsx, .xlsm, .csv" onchange="RhAsisCasc.manejarCargaYGuardadoAutomatico(this)">
                             
+                            <!-- Botones ajustados con el mismo padding vertical (py-2) e interior para igualar la altura exacta de los inputs -->
                             <div class="flex items-center gap-2 pt-4 xl:pt-0">
-                                <button id="labelCargaDatos" class="px-4 py-2 bg-[#249444] text-white rounded-xl text-xs font-bold hover:bg-[#1e7a37] transition flex items-center gap-2 cursor-pointer" onclick="document.getElementById('uploadBiometrico').click();">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-up"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M12 12v6"/><path d="m15 15-3-3-3 3"/></svg>
+                                <button id="labelCargaDatos" class="px-4 py-2 bg-[#249444] text-white rounded-xl text-xs font-bold hover:bg-[#1e7a37] transition flex items-center gap-2 cursor-pointer shadow-xs" onclick="document.getElementById('uploadBiometrico').click();">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-up"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M12 12v6"/><path d="m15 15-3-3-3 3"/></svg>
                                     <span id="textoCargaBtn">Carga de Datos</span>
                                 </button>
 
-                                <button id="exportBtn" disabled onclick="if(window.RhAsisFBio && typeof RhAsisFBio.exportarExcel === 'function') RhAsisFBio.exportarExcel()" class="px-4 py-2 bg-[#249444] text-white rounded-xl text-xs font-bold hover:bg-[#1e7a37] transition flex items-center gap-2">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-down"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>
+                                <button id="exportBtn" disabled onclick="if(window.RhAsisFBio && typeof RhAsisFBio.exportarExcel === 'function') RhAsisFBio.exportarExcel()" class="px-4 py-2 bg-[#249444] text-white rounded-xl text-xs font-bold hover:bg-[#1e7a37] transition flex items-center gap-2 shadow-xs">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-down"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>
                                     Exportar reporte
                                 </button>
                             </div>
@@ -339,7 +336,8 @@ window.RhAsisCasc = {
         if (!listaRegistros || listaRegistros.length === 0) {
             if (exportBtn) {
                 exportBtn.disabled = true;
-                exportBtn.className = "bg-stone-100 border border-stone-200 text-stone-400 opacity-60 cursor-not-allowed px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2";
+                // Mantenemos la misma clase de altura/padding para el botón deshabilitado también
+                exportBtn.className = "bg-stone-100 border border-stone-200 text-stone-400 opacity-60 cursor-not-allowed px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2";
             }
             if (contador) contador.innerText = "";
             
@@ -362,7 +360,7 @@ window.RhAsisCasc = {
 
         if (exportBtn) {
             exportBtn.disabled = false;
-            exportBtn.className = "bg-[#249444] hover:bg-[#1b7033] text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer";
+            exportBtn.className = "px-4 py-2 bg-[#249444] hover:bg-[#1b7033] text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer";
         }
 
         if (contador) {
@@ -383,15 +381,11 @@ window.RhAsisCasc = {
                                 ${celdas.map((c, index) => {
                                     let val = c;
 
-                                    // Índice 2: Hra.Entrada, Índice 3: Hra.Salida (Horas fijas normales)
                                     if (index === 2 || index === 3) {
                                         val = RhAsisCasc.extraerHoraLegible(val, false);
-                                    } 
-                                    // Índice 4: Hra.Registro (Aquí queremos que salga completa con segundos ej. 7:49:35)
-                                    else if (index === 4) {
+                                    } else if (index === 4) {
                                         val = RhAsisCasc.extraerHoraLegible(val, true);
-                                    } 
-                                    else if (val instanceof Date) {
+                                    } else if (val instanceof Date) {
                                         val = val.toLocaleDateString();
                                     } else if (typeof val === 'string' && val.includes('T') && val.length > 18 && !val.includes('1899-12-30')) {
                                         const d = new Date(val);

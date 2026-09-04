@@ -12,18 +12,26 @@ window.RhAsisCasc = {
         if (!valor) return "";
         let strVal = String(valor).trim();
 
-        if (strVal.includes('1899-12-30T') || strVal.includes('T')) {
-            const fechaObj = new Date(strVal);
-            if (!isNaN(fechaObj.getTime())) {
-                const horas = String(fechaObj.getHours()).padStart(2, '0');
-                const minutos = String(fechaObj.getMinutes()).padStart(2, '0');
-                
-                if (esRegistroCompleto) {
-                    const segundos = String(fechaObj.getSeconds()).padStart(2, '0');
-                    return `${horas}:${minutos}:${segundos}`;
+        // Si viene en formato ISO de fecha de Excel (ej. 1899-12-30T08:00:00.000Z o similar)
+        if (strVal.includes('T')) {
+            const partesT = strVal.split('T');
+            if (partesT.length > 1) {
+                let horaParte = partesT[1].split('.')[0].split('Z')[0]; // Toma "08:00:00"
+                if (!esRegistroCompleto) {
+                    const subH = horaParte.split(':');
+                    return `${subH[0] || '00'}:${subH[1] || '00'}`;
                 }
-                return `${horas}:${minutos}`;
+                return horaParte;
             }
+        }
+
+        // Si ya viene como texto plano de hora ("08:00" o "08:00:00")
+        if (strVal.length >= 5 && strVal.includes(':')) {
+            const subH = strVal.split(':');
+            if (!esRegistroCompleto) {
+                return `${subH[0]}:${subH[1]}`;
+            }
+            return strVal;
         }
 
         return strVal;
@@ -161,7 +169,7 @@ window.RhAsisCasc = {
                 centro: claveCentroActivo
             });
 
-            if (res && res.success && res.registros) {
+            if (res && res.success && Array.isArray(res.registros)) {
                 RhAsisCasc.registrosBiometrico = res.registros;
                 RhAsisCasc.renderGrid(RhAsisCasc.registrosBiometrico);
             } else {
@@ -206,7 +214,7 @@ window.RhAsisCasc = {
             let rawFecha = "";
 
             const primerId = Object.keys(RhAsisFBio.groupedData)[0];
-            if (primerId && RhAsisFBio.groupedData[primerId].rows.length > 0) {
+            if (primerId && RhAsisFBio.groupedData[primerId].rows && RhAsisFBio.groupedData[primerId].rows.length > 0) {
                 const primeraFila = RhAsisFBio.groupedData[primerId].rows[0];
                 primerNumEmp = primeraFila[0] || "";
                 rawFecha = primeraFila[8] || primeraFila[9] || "";
@@ -218,28 +226,16 @@ window.RhAsisCasc = {
                 return;
             }
 
-            let fechaNormalizada = "";
-            if (rawFecha instanceof Date) {
-                fechaNormalizada = rawFecha.toISOString().split('T')[0];
-            } else {
-                let fechaStr = String(rawFecha).trim();
-                if (fechaStr.includes('/')) {
-                    const partes = fechaStr.split('/');
-                    if (partes.length === 3) {
-                        fechaNormalizada = `${partes[2]}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}`;
-                    }
-                } else if (fechaStr.includes('-')) {
-                    fechaNormalizada = fechaStr.split('T')[0];
-                } else {
-                    fechaNormalizada = fechaStr;
-                }
-            }
+            let fechaNormalizada = RhAsisCasc.normalizarFechaFiltro(rawFecha);
 
             if (textCarga) {
                 textCarga.innerText = "Verificando...";
             }
 
-            let claveCentroSeleccionado = localStorage.getItem('centro_activo_actual') || "";
+            let claveCentroSeleccionado = RhAsisCasc.obtenerClaveCentroActual();
+            if (!claveCentroSeleccionado) {
+                claveCentroSeleccionado = localStorage.getItem('centro_activo_actual') || "";
+            }
             claveCentroSeleccionado = String(claveCentroSeleccionado).trim();
 
             if (!claveCentroSeleccionado) {
@@ -268,34 +264,36 @@ window.RhAsisCasc = {
                     const rowsParaSheets = [];
                     Object.keys(RhAsisFBio.groupedData).forEach(id => {
                         const empleado = RhAsisFBio.groupedData[id];
-                        empleado.rows.forEach(row => {
-                            let horaRegistro = row[6] || "";
-                            let tipoReg = String(row[7] || "").toUpperCase().trim();
-                            
-                            let hraEntradaFinal = row[4] || "";
-                            let hraSalidaFinal = row[5] || "";
+                        if (empleado && Array.isArray(empleado.rows)) {
+                            empleado.rows.forEach(row => {
+                                let horaRegistro = RhAsisCasc.extraerHoraLegible(row[6] || "", true);
+                                let tipoReg = String(row[7] || "").toUpperCase().trim();
 
-                            if (tipoReg.includes("ENTRADA") && horaRegistro) {
-                                hraEntradaFinal = horaRegistro;
-                            } else if (tipoReg.includes("SALIDA") && horaRegistro) {
-                                hraSalidaFinal = horaRegistro;
-                            }
+                                let hraEntradaFinal = RhAsisCasc.extraerHoraLegible(row[4] || "", false);
+                                let hraSalidaFinal = RhAsisCasc.extraerHoraLegible(row[5] || "", false);
 
-                            rowsParaSheets.push([
-                                claveCentroSeleccionado,
-                                row[0] || "",
-                                hraEntradaFinal,
-                                hraSalidaFinal,
-                                horaRegistro,
-                                row[7] || "",
-                                row[8] || "",
-                                row[9] || "",
-                                row[10] || "",
-                                row[11] || "",
-                                row[12] || "",
-                                row[13] || ""
-                            ]);
-                        });
+                                if (tipoReg.includes("ENTRADA") && horaRegistro) {
+                                    hraEntradaFinal = RhAsisCasc.extraerHoraLegible(horaRegistro, false);
+                                } else if (tipoReg.includes("SALIDA") && horaRegistro) {
+                                    hraSalidaFinal = RhAsisCasc.extraerHoraLegible(horaRegistro, false);
+                                }
+
+                                rowsParaSheets.push([
+                                    claveCentroSeleccionado,
+                                    row[0] || "",
+                                    hraEntradaFinal,
+                                    hraSalidaFinal,
+                                    horaRegistro,
+                                    row[7] || "",
+                                    row[8] || "",
+                                    row[9] || "",
+                                    row[10] || "",
+                                    row[11] || "",
+                                    row[12] || "",
+                                    row[13] || ""
+                                ]);
+                            });
+                        }
                     });
 
                     const resultado = await FetchAPI("guardarBiometrico", {
@@ -339,13 +337,13 @@ window.RhAsisCasc = {
         if (!listaRegistros || listaRegistros.length === 0) {
             if (exportBtn) {
                 exportBtn.disabled = true;
-                exportBtn.className = "bg-stone-100 border border-stone-200 text-stone-400 opacity-60 cursor-not-allowed px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2";
+                exportBtn.className = "px-4 py-2 bg-stone-100 border border-stone-200 text-stone-400 opacity-60 cursor-not-allowed rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-xs h-[34px]";
             }
-            if (contador) contador.innerText = "";
-            
+            if (contador) contador.innerText = "0 registros";
+
             gridContent.innerHTML = `
                 <table class="w-full text-[11px] text-left border-collapse min-w-[950px]">
-                    <thead class="bg-stone-100 font-bold text-stone-700 sticky top-0 z-10 border-b border-stone-200">
+                    <thead class="bg-stone-50 font-bold text-stone-700 sticky top-0 z-10 border-b border-stone-200">
                         <tr>${headers.map(h => `<th class="p-3 border-b border-stone-200 text-center whitespace-nowrap">${h}</th>`).join('')}</tr>
                     </thead>
                     <tbody>
@@ -362,7 +360,7 @@ window.RhAsisCasc = {
 
         if (exportBtn) {
             exportBtn.disabled = false;
-            exportBtn.className = "bg-[#249444] hover:bg-[#1b7033] text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer";
+            exportBtn.className = "px-4 py-2 bg-[#249444] hover:bg-[#1b7033] text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer h-[34px]";
         }
 
         if (contador) {
@@ -371,38 +369,34 @@ window.RhAsisCasc = {
 
         gridContent.innerHTML = `
             <table class="w-full text-[11px] text-left border-collapse min-w-[950px]">
-                <thead class="bg-stone-100 font-bold text-stone-700 sticky top-0 z-10 border-b border-stone-200">
+                <thead class="bg-stone-50 font-bold text-stone-700 sticky top-0 z-10 border-b border-stone-200">
                     <tr>${headers.map(h => `<th class="p-3 border-b border-stone-200 text-center whitespace-nowrap">${h}</th>`).join('')}</tr>
                 </thead>
                 <tbody class="divide-y divide-stone-100">
                     ${listaRegistros.map(r => {
-                        const celdas = Array.isArray(r) ? [...r.slice(0, 12)] : headers.map(h => r[h] || "");
+            const celdas = Array.isArray(r) ? [...r.slice(0, 12)] : headers.map(h => r[h] || "");
 
-                        return `
+            return `
                             <tr class="bg-white hover:bg-stone-50 transition text-stone-700">
                                 ${celdas.map((c, index) => {
-                                    let val = c;
+                let val = c;
 
-                                    // Índice 2: Hra.Entrada, Índice 3: Hra.Salida (Horas fijas normales)
-                                    if (index === 2 || index === 3) {
-                                        val = RhAsisCasc.extraerHoraLegible(val, false);
-                                    } 
-                                    // Índice 4: Hra.Registro (Aquí queremos que salga completa con segundos ej. 7:49:35)
-                                    else if (index === 4) {
-                                        val = RhAsisCasc.extraerHoraLegible(val, true);
-                                    } 
-                                    else if (val instanceof Date) {
-                                        val = val.toLocaleDateString();
-                                    } else if (typeof val === 'string' && val.includes('T') && val.length > 18 && !val.includes('1899-12-30')) {
-                                        const d = new Date(val);
-                                        if (!isNaN(d)) val = d.toLocaleDateString();
-                                    }
+                if (index === 2 || index === 3) {
+                    val = RhAsisCasc.extraerHoraLegible(val, false);
+                } else if (index === 4) {
+                    val = RhAsisCasc.extraerHoraLegible(val, true);
+                } else if (val instanceof Date) {
+                    val = val.toLocaleDateString();
+                } else if (typeof val === 'string' && val.includes('T') && val.length > 18 && !val.includes('1899-12-30')) {
+                    const d = new Date(val);
+                    if (!isNaN(d)) val = d.toLocaleDateString();
+                }
 
-                                    return `<td class="p-2.5 border-b border-stone-100 text-center whitespace-nowrap">${val !== null && val !== undefined && String(val).trim() !== '' ? val : ''}</td>`;
-                                }).join('')}
+                return `<td class="p-2.5 border-b border-stone-100 text-center whitespace-nowrap">${val !== null && val !== undefined && String(val).trim() !== '' ? val : ''}</td>`;
+            }).join('')}
                             </tr>
                         `;
-                    }).join('')}
+        }).join('')}
                 </tbody>
             </table>
         `;
@@ -425,6 +419,9 @@ window.RhAsisCasc = {
 
     normalizarFechaFiltro: function (fechaStr) {
         if (!fechaStr) return "";
+        if (fechaStr instanceof Date) {
+            return fechaStr.toISOString().split('T')[0];
+        }
         let str = String(fechaStr).trim();
         if (str.includes('T')) {
             str = str.split('T')[0];
@@ -432,6 +429,7 @@ window.RhAsisCasc = {
             str = str.split(' ')[0];
         }
         if (str.includes('/')) {
+            str = str.split(' ')[0];
             const partes = str.split('/');
             if (partes.length === 3) {
                 return `${partes[2]}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}`;
@@ -447,6 +445,8 @@ window.RhAsisCasc = {
         const centroFiltro = document.getElementById('filtroCentroBio')?.value.toLowerCase().trim() || "";
 
         const filtrados = RhAsisCasc.registrosBiometrico.filter(row => {
+            if (!Array.isArray(row)) return false;
+
             const centro = String(row[0] || "").toLowerCase();
             const numEmp = String(row[1] || "").toLowerCase();
             const fechaRegRaw = String(row[6] || "").trim();

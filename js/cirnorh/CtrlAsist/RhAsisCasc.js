@@ -50,7 +50,7 @@ window.RhAsisCasc = {
 
         contenedor.innerHTML = `
             <div class="space-y-6 animate-fade-in">
-                <!-- Tarjeta de Título Principal unificada al estilo de la vista Personal -->
+                <!-- Tarjeta de Título Principal unificada -->
                 <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6">
                     <div class="flex items-center gap-3">
                         <div class="p-2.5 bg-[#f0fdf4] border border-[#c6f6d5] text-[#059669] rounded-xl flex items-center justify-center">
@@ -60,7 +60,7 @@ window.RhAsisCasc = {
                     </div>
                 </div>
 
-                <!-- Tarjeta de Gestión con filtros y botones perfectamente nivelados -->
+                <!-- Tarjeta de Gestión con filtros y botones -->
                 <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6">
                     <div class="flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-6">
                         <div>
@@ -100,7 +100,7 @@ window.RhAsisCasc = {
                                     <span id="textoCargaBtn">Carga de Datos</span>
                                 </button>
 
-                                <button id="exportBtn" disabled onclick="if(window.RhAsisFBio && typeof RhAsisFBio.exportarExcel === 'function') RhAsisFBio.exportarExcel()" class="px-4 py-2 bg-[#249444] text-white rounded-xl text-xs font-bold hover:bg-[#1e7a37] transition flex items-center gap-2 shadow-xs">
+                                <button id="exportBtn" disabled onclick="if(window.RhAsisFBio && typeof RhAsisFBio.exportarExcel === 'function') RhAsisFBio.exportarExcel()" class="px-4 py-2 bg-[#249444] text-white rounded-xl text-xs font-bold hover:bg-[#1e7a37] transition flex items-center gap-2 shadow-xs opacity-60 cursor-not-allowed">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-down"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>
                                     Exportar reporte
                                 </button>
@@ -155,7 +155,7 @@ window.RhAsisCasc = {
                 centro: claveCentroActivo
             });
 
-            if (res && res.success && res.registros) {
+            if (res && res.success && Array.isArray(res.registros)) {
                 RhAsisCasc.registrosBiometrico = res.registros;
                 RhAsisCasc.renderGrid(RhAsisCasc.registrosBiometrico);
             } else {
@@ -200,7 +200,7 @@ window.RhAsisCasc = {
             let rawFecha = "";
 
             const primerId = Object.keys(RhAsisFBio.groupedData)[0];
-            if (primerId && RhAsisFBio.groupedData[primerId].rows.length > 0) {
+            if (primerId && RhAsisFBio.groupedData[primerId].rows && RhAsisFBio.groupedData[primerId].rows.length > 0) {
                 const primeraFila = RhAsisFBio.groupedData[primerId].rows[0];
                 primerNumEmp = primeraFila[0] || "";
                 rawFecha = primeraFila[8] || primeraFila[9] || "";
@@ -212,28 +212,16 @@ window.RhAsisCasc = {
                 return;
             }
 
-            let fechaNormalizada = "";
-            if (rawFecha instanceof Date) {
-                fechaNormalizada = rawFecha.toISOString().split('T')[0];
-            } else {
-                let fechaStr = String(rawFecha).trim();
-                if (fechaStr.includes('/')) {
-                    const partes = fechaStr.split('/');
-                    if (partes.length === 3) {
-                        fechaNormalizada = `${partes[2]}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}`;
-                    }
-                } else if (fechaStr.includes('-')) {
-                    fechaNormalizada = fechaStr.split('T')[0];
-                } else {
-                    fechaNormalizada = fechaStr;
-                }
-            }
+            let fechaNormalizada = RhAsisCasc.normalizarFechaFiltro(rawFecha);
 
             if (textCarga) {
                 textCarga.innerText = "Verificando...";
             }
 
-            let claveCentroSeleccionado = localStorage.getItem('centro_activo_actual') || "";
+            let claveCentroSeleccionado = RhAsisCasc.obtenerClaveCentroActual();
+            if (!claveCentroSeleccionado) {
+                claveCentroSeleccionado = localStorage.getItem('centro_activo_actual') || "";
+            }
             claveCentroSeleccionado = String(claveCentroSeleccionado).trim();
 
             if (!claveCentroSeleccionado) {
@@ -262,34 +250,36 @@ window.RhAsisCasc = {
                     const rowsParaSheets = [];
                     Object.keys(RhAsisFBio.groupedData).forEach(id => {
                         const empleado = RhAsisFBio.groupedData[id];
-                        empleado.rows.forEach(row => {
-                            let horaRegistro = row[6] || "";
-                            let tipoReg = String(row[7] || "").toUpperCase().trim();
-                            
-                            let hraEntradaFinal = row[4] || "";
-                            let hraSalidaFinal = row[5] || "";
+                        if (empleado && Array.isArray(empleado.rows)) {
+                            empleado.rows.forEach(row => {
+                                let horaRegistro = row[6] || "";
+                                let tipoReg = String(row[7] || "").toUpperCase().trim();
+                                
+                                let hraEntradaFinal = row[4] || "";
+                                let hraSalidaFinal = row[5] || "";
 
-                            if (tipoReg.includes("ENTRADA") && horaRegistro) {
-                                hraEntradaFinal = horaRegistro;
-                            } else if (tipoReg.includes("SALIDA") && horaRegistro) {
-                                hraSalidaFinal = horaRegistro;
-                            }
+                                if (tipoReg.includes("ENTRADA") && horaRegistro) {
+                                    hraEntradaFinal = horaRegistro;
+                                } else if (tipoReg.includes("SALIDA") && horaRegistro) {
+                                    hraSalidaFinal = horaRegistro;
+                                }
 
-                            rowsParaSheets.push([
-                                claveCentroSeleccionado,
-                                row[0] || "",
-                                hraEntradaFinal,
-                                hraSalidaFinal,
-                                horaRegistro,
-                                row[7] || "",
-                                row[8] || "",
-                                row[9] || "",
-                                row[10] || "",
-                                row[11] || "",
-                                row[12] || "",
-                                row[13] || ""
-                            ]);
-                        });
+                                rowsParaSheets.push([
+                                    claveCentroSeleccionado,
+                                    row[0] || "",
+                                    hraEntradaFinal,
+                                    hraSalidaFinal,
+                                    horaRegistro,
+                                    row[7] || "",
+                                    row[8] || "",
+                                    row[9] || "",
+                                    row[10] || "",
+                                    row[11] || "",
+                                    row[12] || "",
+                                    row[13] || ""
+                                ]);
+                            });
+                        }
                     });
 
                     const resultado = await FetchAPI("guardarBiometrico", {
@@ -333,9 +323,9 @@ window.RhAsisCasc = {
         if (!listaRegistros || listaRegistros.length === 0) {
             if (exportBtn) {
                 exportBtn.disabled = true;
-                exportBtn.className = "bg-stone-100 border border-stone-200 text-stone-400 opacity-60 cursor-not-allowed px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2";
+                exportBtn.className = "px-4 py-2 bg-stone-100 border border-stone-200 text-stone-400 opacity-60 cursor-not-allowed rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-xs";
             }
-            if (contador) contador.innerText = "";
+            if (contador) contador.innerText = "0 registros";
             
             gridContent.innerHTML = `
                 <table class="w-full text-[11px] text-left border-collapse min-w-[950px]">
@@ -415,6 +405,9 @@ window.RhAsisCasc = {
 
     normalizarFechaFiltro: function (fechaStr) {
         if (!fechaStr) return "";
+        if (fechaStr instanceof Date) {
+            return fechaStr.toISOString().split('T')[0];
+        }
         let str = String(fechaStr).trim();
         if (str.includes('T')) {
             str = str.split('T')[0];
@@ -437,6 +430,8 @@ window.RhAsisCasc = {
         const centroFiltro = document.getElementById('filtroCentroBio')?.value.toLowerCase().trim() || "";
 
         const filtrados = RhAsisCasc.registrosBiometrico.filter(row => {
+            if (!Array.isArray(row)) return false;
+            
             const centro = String(row[0] || "").toLowerCase();
             const numEmp = String(row[1] || "").toLowerCase();
             const fechaRegRaw = String(row[6] || "").trim();

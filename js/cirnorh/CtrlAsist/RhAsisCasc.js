@@ -455,7 +455,6 @@ window.RhAsisCasc = {
     // --- NUEVAS FUNCIONES DE EXPORTACIÓN PARA RhAsisCasc ---
 
     obtenerRegistrosFiltradosActuales: function () {
-        // Si tienes filtros activos, respeta los elementos filtrados actuales, de lo contrario usa todos
         const fechaDesde = document.getElementById('filtroFechaDesde')?.value || "";
         const fechaHasta = document.getElementById('filtroFechaHasta')?.value || "";
         const numEmpFiltro = document.getElementById('filtroNumEmpBio')?.value.toLowerCase().trim() || "";
@@ -484,116 +483,233 @@ window.RhAsisCasc = {
         const MaxFila = 500;
         const MaxCol = RhAsisCasc.rawHeaderGlobal.length;
 
-        // Obtenemos los registros (ya sea el total o los filtrados en pantalla)
         const registrosAExportar = RhAsisCasc.obtenerRegistrosFiltradosActuales();
+        const numEmpFiltro = document.getElementById('filtroNumEmpBio')?.value.trim() || "";
 
-        // Mapeamos y limpiamos las horas igual que en la vista previa del grid
-        const rowsMapeadas = registrosAExportar.map(r => {
-            const celdas = Array.isArray(r) ? [...r.slice(0, 12)] : RhAsisCasc.rawHeaderGlobal.map(h => r[h] || "");
-            return celdas.map((c, index) => {
-                let val = c;
-                if (index === 2 || index === 3) {
-                    val = RhAsisCasc.extraerHoraLegible(val, false);
-                } else if (index === 4) {
-                    val = RhAsisCasc.extraerHoraLegible(val, true);
-                } else if (val instanceof Date) {
-                    val = val.toLocaleDateString();
-                } else if (typeof val === 'string' && val.includes('T') && val.length > 18 && !val.includes('1899-12-30')) {
-                    const d = new Date(val);
-                    if (!isNaN(d)) val = d.toLocaleDateString();
-                }
-                return val !== null && val !== undefined ? val : "";
+        // Función auxiliar para mapear registros a filas limpias
+        const mapearRegistros = (lista) => {
+            return lista.map(r => {
+                const celdas = Array.isArray(r) ? [...r.slice(0, 12)] : RhAsisCasc.rawHeaderGlobal.map(h => r[h] || "");
+                return celdas.map((c, index) => {
+                    let val = c;
+                    if (index === 2 || index === 3) {
+                        val = RhAsisCasc.extraerHoraLegible(val, false);
+                    } else if (index === 4) {
+                        val = RhAsisCasc.extraerHoraLegible(val, true);
+                    } else if (val instanceof Date) {
+                        val = val.toLocaleDateString();
+                    } else if (typeof val === 'string' && val.includes('T') && val.length > 18 && !val.includes('1899-12-30')) {
+                        const d = new Date(val);
+                        if (!isNaN(d)) val = d.toLocaleDateString();
+                    }
+                    return val !== null && val !== undefined ? val : "";
+                });
             });
-        });
+        };
 
-        const wsData = [
-            ["inifap", "", "INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS"],
-            ["Instituto Nacional de Investigaciones", "", "COORDINACIÓN DE ADMINISTRACIÓN Y SISTEMAS"],
-            ["Forestales, Agrícolas y Pecuarias", "", "DIRECCIÓN DE DESARROLLO HUMANO Y PROFESIONALIZACIÓN"],
-            ["", "", "INCIDENCIAS GENERADAS DE ACUERDO AL REGISTRO ELECTRÓNICO V2"],
-            ["", "", "Reporte: RH_CONTROL_ASISTENCIA_CASC"],
-            [],
-            RhAsisCasc.rawHeaderGlobal,
-            ...rowsMapeadas
-        ];
-
-        const ws = XLSX.utils.aoa_to_sheet(wsData);
-        ws['!ref'] = `A1:${XLSX.utils.encode_col(MaxCol - 1)}${Math.max(MaxFila, wsData.length + 10)}`;
-        ws['!view'] = { showGridLines: false };
-
-        // Ajuste automático de anchos de columna
-        const tableRows = wsData.slice(6);
-        const colWidths = RhAsisCasc.rawHeaderGlobal.map((_, colIndex) => {
-            if (colIndex === 0) return { wch: 15 };
-            let maxWidth = 10;
-            tableRows.forEach(row => {
-                const cellValue = row[colIndex];
-                const text = cellValue ? String(cellValue) : "";
-                const currentWidth = cellValue instanceof Date ? 12 : text.length + 2;
-                if (currentWidth > maxWidth) maxWidth = currentWidth;
+        // CONDICIÓN: Si el filtro de número de empleado está VACÍO, agrupamos y creamos una pestaña por empleado
+        if (!numEmpFiltro) {
+            // Agrupar registros por el índice del número de empleado (asumiendo que está en la columna 1)
+            const gruposPorEmpleado = {};
+            registrosAExportar.forEach(row => {
+                const empId = String(row[1] || "S_N").trim();
+                if (!gruposPorEmpleado[empId]) {
+                    gruposPorEmpleado[empId] = [];
+                }
+                gruposPorEmpleado[empId].push(row);
             });
-            return { wch: maxWidth };
-        });
-        ws['!cols'] = colWidths;
 
-        // Aplicación de estilos visuales institucionales
-        const totalFilasHoja = wsData.length;
-        for (let r = 0; r < totalFilasHoja; r++) {
-            for (let c = 0; c < MaxCol; c++) {
-                const cellRef = XLSX.utils.encode_cell({ r: r, c: c });
-                if (!ws[cellRef]) ws[cellRef] = { v: "" };
-                let style = {
-                    fill: { type: 'pattern', pattern: 'solid', fgColor: { rgb: fondoHoja } },
-                    font: { sz: 9, name: "Arial" },
-                    alignment: { vertical: "center", horizontal: "center" }
-                };
+            const empleadosKeys = Object.keys(gruposPorEmpleado);
 
-                if (r === 0 && c === 0) {
-                    style.font = { bold: true, sz: 24, color: { rgb: "249444" }, name: "Arial Black" };
-                    style.alignment.horizontal = "left";
-                }
-                if (r >= 1 && r <= 2 && c >= 0 && c <= 1) {
-                    style.font = { sz: 8, color: { rgb: "1A1A1B" }, bold: true };
-                    style.alignment.horizontal = "left";
-                    style.alignment.wrapText = true;
-                }
-                if (r === 6 && c < RhAsisCasc.rawHeaderGlobal.length) {
-                    style.fill = { type: 'pattern', pattern: 'solid', fgColor: { rgb: "D9D9D9" } };
-                    style.font.bold = true;
-                    style.border = { top: { style: "thin" }, bottom: { style: "thin" }, left: { style: "thin" }, right: { style: "thin" } };
-                }
-                if (r >= 7) {
-                    const dRow = rowsMapeadas[r - 7];
-                    if (dRow && c < RhAsisCasc.rawHeaderGlobal.length) {
-                        let bgColor = fondoHoja;
-                        let fontColor = "000000";
-                        // Evaluamos incidencias en las últimas columnas (Retardos / Faltas)
-                        if (dRow[11]) { // Falta
-                            bgColor = "FF0000"; fontColor = "FFFFFF";
-                        } else if (dRow[10]) { // Retardo May.
-                            bgColor = "E46C0A"; fontColor = "FFFFFF";
-                        } else if (dRow[9]) { // Retardo Med.
-                            bgColor = "FFC000";
-                        } else if (dRow[8]) { // Retardo Men.
-                            bgColor = "FFFF00";
+            if (empleadosKeys.length === 0) {
+                // Si no hay datos, creamos una hoja vacía para evitar errores en Excel
+                const wsDataVacia = [
+                    ["inifap", "", "INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS"],
+                    ["", "", "INCIDENCIAS GENERADAS DE ACUERDO AL REGISTRO ELECTRÓNICO V2"],
+                    [],
+                    RhAsisCasc.rawHeaderGlobal
+                ];
+                const wsVacio = XLSX.utils.aoa_to_sheet(wsDataVacia);
+                XLSX.utils.book_append_sheet(wb, wsVacio, "Sin_Datos");
+                return wb;
+            }
+
+            empleadosKeys.forEach(empId => {
+                const rowsMapeadas = mapearRegistros(gruposPorEmpleado[empId]);
+                const wsData = [
+                    ["inifap", "", "INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS"],
+                    ["Instituto Nacional de Investigaciones", "", "COORDINACIÓN DE ADMINISTRACIÓN Y SISTEMAS"],
+                    ["Forestales, Agrícolas y Pecuarias", "", "DIRECCIÓN DE DESARROLLO HUMANO Y PROFESIONALIZACIÓN"],
+                    ["", "", `INCIDENCIAS DEL EMPLEADO: ${empId}`],
+                    ["", "", "Reporte: RH_CONTROL_ASISTENCIA_CASC"],
+                    [],
+                    RhAsisCasc.rawHeaderGlobal,
+                    ...rowsMapeadas
+                ];
+
+                const ws = XLSX.utils.aoa_to_sheet(wsData);
+                ws['!ref'] = `A1:${XLSX.utils.encode_col(MaxCol - 1)}${Math.max(MaxFila, wsData.length + 10)}`;
+                ws['!view'] = { showGridLines: false };
+
+                // Anchos de columna
+                const tableRows = wsData.slice(6);
+                const colWidths = RhAsisCasc.rawHeaderGlobal.map((_, colIndex) => {
+                    if (colIndex === 0) return { wch: 15 };
+                    let maxWidth = 10;
+                    tableRows.forEach(row => {
+                        const cellValue = row[colIndex];
+                        const text = cellValue ? String(cellValue) : "";
+                        const currentWidth = cellValue instanceof Date ? 12 : text.length + 2;
+                        if (currentWidth > maxWidth) maxWidth = currentWidth;
+                    });
+                    return { wch: maxWidth };
+                });
+                ws['!cols'] = colWidths;
+
+                // Estilos institucionales y de incidencias
+                const totalFilasHoja = wsData.length;
+                for (let r = 0; r < totalFilasHoja; r++) {
+                    for (let c = 0; c < MaxCol; c++) {
+                        const cellRef = XLSX.utils.encode_cell({ r: r, c: c });
+                        if (!ws[cellRef]) ws[cellRef] = { v: "" };
+                        let style = { 
+                            fill: { type: 'pattern', pattern: 'solid', fgColor: { rgb: fondoHoja } }, 
+                            font: { sz: 9, name: "Arial" }, 
+                            alignment: { vertical: "center", horizontal: "center" } 
+                        };
+                        
+                        if (r === 0 && c === 0) { 
+                            style.font = { bold: true, sz: 24, color: { rgb: "249444" }, name: "Arial Black" }; 
+                            style.alignment.horizontal = "left"; 
                         }
-                        style.fill = { type: 'pattern', pattern: 'solid', fgColor: { rgb: bgColor } };
-                        style.font.color = { rgb: fontColor };
-                        style.border = { top: { style: "thin" }, bottom: { style: "thin" }, left: { style: "thin" }, right: { style: "thin" } };
+                        if (r >= 1 && r <= 2 && c >= 0 && c <= 1) { 
+                            style.font = { sz: 8, color: { rgb: "1A1A1B" }, bold: true }; 
+                            style.alignment.horizontal = "left"; 
+                            style.alignment.wrapText = true; 
+                        }
+                        if (r === 6 && c < RhAsisCasc.rawHeaderGlobal.length) { 
+                            style.fill = { type: 'pattern', pattern: 'solid', fgColor: { rgb: "D9D9D9" } }; 
+                            style.font.bold = true; 
+                            style.border = { top: { style: "thin" }, bottom: { style: "thin" }, left: { style: "thin" }, right: { style: "thin" } }; 
+                        }
+                        if (r >= 7) {
+                            const dRow = rowsMapeadas[r - 7];
+                            if (dRow && c < RhAsisCasc.rawHeaderGlobal.length) {
+                                let bgColor = fondoHoja; 
+                                let fontColor = "000000";
+                                if (dRow[11]) { // Falta
+                                    bgColor = "FF0000"; fontColor = "FFFFFF"; 
+                                } else if (dRow[10]) { // Retardo May.
+                                    bgColor = "E46C0A"; fontColor = "FFFFFF"; 
+                                } else if (dRow[9]) { // Retardo Med.
+                                    bgColor = "FFC000"; 
+                                } else if (dRow[8]) { // Retardo Men.
+                                    bgColor = "FFFF00"; 
+                                }
+                                style.fill = { type: 'pattern', pattern: 'solid', fgColor: { rgb: bgColor } }; 
+                                style.font.color = { rgb: fontColor }; 
+                                style.border = { top: { style: "thin" }, bottom: { style: "thin" }, left: { style: "thin" }, right: { style: "thin" } };
+                            }
+                        }
+                        ws[cellRef].s = style;
                     }
                 }
-                ws[cellRef].s = style;
+
+                // Limpieza de nombre de pestaña (Excel no permite ciertos caracteres como : \ / ? * [ ])
+                const nombreHojaLimpio = String(empId).replace(/[:\\\/?*\[\]]/g, "_").substring(0, 31);
+                XLSX.utils.book_append_sheet(wb, ws, nombreHojaLimpio);
+            });
+
+        } else {
+            // SI HAY UN NÚMERO DE EMPLEADO ESPECÍFICO: Genera una sola hoja con el resultado filtrado
+            const rowsMapeadas = mapearRegistros(registrosAExportar);
+            const wsData = [
+                ["inifap", "", "INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS"],
+                ["Instituto Nacional de Investigaciones", "", "COORDINACIÓN DE ADMINISTRACIÓN Y SISTEMAS"],
+                ["Forestales, Agrícolas y Pecuarias", "", "DIRECCIÓN DE DESARROLLO HUMANO Y PROFESIONALIZACIÓN"],
+                ["", "", `INCIDENCIAS DEL EMPLEADO: ${numEmpFiltro}`],
+                ["", "", "Reporte: RH_CONTROL_ASISTENCIA_CASC"],
+                [],
+                RhAsisCasc.rawHeaderGlobal,
+                ...rowsMopedas = rowsMapeadas
+            ];
+
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            ws['!ref'] = `A1:${XLSX.utils.encode_col(MaxCol - 1)}${Math.max(MaxFila, wsData.length + 10)}`;
+            ws['!view'] = { showGridLines: false };
+
+            const tableRows = wsData.slice(6);
+            const colWidths = RhAsisCasc.rawHeaderGlobal.map((_, colIndex) => {
+                if (colIndex === 0) return { wch: 15 };
+                let maxWidth = 10;
+                tableRows.forEach(row => {
+                    const cellValue = row[colIndex];
+                    const text = cellValue ? String(cellValue) : "";
+                    const currentWidth = cellValue instanceof Date ? 12 : text.length + 2;
+                    if (currentWidth > maxWidth) maxWidth = currentWidth;
+                });
+                return { wch: maxWidth };
+            });
+            ws['!cols'] = colWidths;
+
+            const totalFilasHoja = wsData.length;
+            for (let r = 0; r < totalFilasHoja; r++) {
+                for (let c = 0; c < MaxCol; c++) {
+                    const cellRef = XLSX.utils.encode_cell({ r: r, c: c });
+                    if (!ws[cellRef]) ws[cellRef] = { v: "" };
+                    let style = { 
+                        fill: { type: 'pattern', pattern: 'solid', fgColor: { rgb: fondoHoja } }, 
+                        font: { sz: 9, name: "Arial" }, 
+                        alignment: { vertical: "center", horizontal: "center" } 
+                    };
+                    
+                    if (r === 0 && c === 0) { 
+                        style.font = { bold: true, sz: 24, color: { rgb: "249444" }, name: "Arial Black" }; 
+                        style.alignment.horizontal = "left"; 
+                    }
+                    if (r >= 1 && r <= 2 && c >= 0 && c <= 1) { 
+                        style.font = { sz: 8, color: { rgb: "1A1A1B" }, bold: true }; 
+                        style.alignment.horizontal = "left"; 
+                        style.alignment.wrapText = true; 
+                    }
+                    if (r === 6 && c < RhAsisCasc.rawHeaderGlobal.length) { 
+                        style.fill = { type: 'pattern', pattern: 'solid', fgColor: { rgb: "D9D9D9" } }; 
+                        style.font.bold = true; 
+                        style.border = { top: { style: "thin" }, bottom: { style: "thin" }, left: { style: "thin" }, right: { style: "thin" } }; 
+                    }
+                    if (r >= 7) {
+                        const dRow = rowsMapeadas[r - 7];
+                        if (dRow && c < RhAsisCasc.rawHeaderGlobal.length) {
+                            let bgColor = fondoHoja; 
+                            let fontColor = "000000";
+                            if (dRow[11]) { 
+                                bgColor = "FF0000"; fontColor = "FFFFFF"; 
+                            } else if (dRow[10]) { 
+                                bgColor = "E46C0A"; fontColor = "FFFFFF"; 
+                            } else if (dRow[9]) { 
+                                bgColor = "FFC000"; 
+                            } else if (dRow[8]) { 
+                                bgColor = "FFFF00"; 
+                            }
+                            style.fill = { type: 'pattern', pattern: 'solid', fgColor: { rgb: bgColor } }; 
+                            style.font.color = { rgb: fontColor }; 
+                            style.border = { top: { style: "thin" }, bottom: { style: "thin" }, left: { style: "thin" }, right: { style: "thin" } };
+                        }
+                    }
+                    ws[cellRef].s = style;
+                }
             }
+
+            XLSX.utils.book_append_sheet(wb, ws, `Emp_${numEmpFiltro}`);
         }
 
-        XLSX.utils.book_append_sheet(wb, ws, "Asistencia_Centro");
         return wb;
     },
 
     exportarExcelCasc: function () {
         const wb = RhAsisCasc.generateWorkbookCasc();
         const centroActual = RhAsisCasc.obtenerClaveCentroActual() || "General";
-        XLSX.writeFile(wb, `Reporte_Biometrico_Centro_${centroActual}.xlsx`);
+        const numEmpFiltro = document.getElementById('filtroNumEmpBio')?.value.trim() || "";
+        const sufijo = numEmpFiltro ? `Emp_${numEmpFiltro}` : "Todos_Empleados";
+        XLSX.writeFile(wb, `Reporte_Biometrico_${centroActual}_${sufijo}.xlsx`);
     }
-};
-

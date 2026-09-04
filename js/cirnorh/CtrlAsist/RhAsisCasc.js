@@ -51,92 +51,95 @@ window.RhAsisCasc = {
         contenedor.innerHTML = `
             <div class="space-y-6 animate-fade-in pb-10">
                 
-                <!-- Tarjeta 1: Título Principal (Estilo RhPercORE) -->
-                <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6">
-                    <div class="flex items-center gap-3">
+                <!-- Contenedor Principal Único (Estilo de la imagen de referencia) -->
+                <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6 space-y-6">
+                    
+                    <!-- Cabecera / Título del Módulo (Enmarcado en rojo) -->
+                    <div class="flex items-center gap-3 pb-4 border-b border-stone-100">
                         <div class="p-2.5 bg-[#f0fdf4] border border-[#c6f6d5] text-[#059669] rounded-xl flex items-center justify-center">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 21a8 8 0 0 1 13.292-6"/><circle cx="10" cy="8" r="5"/><path d="m16 19 2 2 4-4"/></svg>
                         </div>
                         <div>
-                            <h3 class="font-bold text-stone-800 text-base">CONTROL DE ASISTENCIA</h3>
+                            <h3 class="font-bold text-stone-800 text-base uppercase">CONTROL DE ASISTENCIA</h3>
                             <p class="text-xs text-stone-400 font-medium">Gestión y monitoreo de registros biométricos de personal</p>
                         </div>
                     </div>
-                </div>
 
-                <!-- Tarjeta 2: Barra de Gestión de Asistencias y Filtros (Idéntica a Gestión de Personal) -->
-                <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6 space-y-4">
-                    <div class="flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-4">
-                        <h4 class="font-bold text-stone-800 text-sm">Gestión de Asistencias</h4>
+                    <!-- Sección de Gestión, Título de sección y Botones / Filtros (Enmarcado en azul) -->
+                    <div class="space-y-4 pb-4 border-b border-stone-100">
+                        <div class="flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-4">
+                            <h4 class="font-bold text-stone-800 text-sm">Gestión de Asistencias</h4>
 
-                        <!-- Input oculto para carga de archivos -->
-                        <input type="file" id="uploadBiometrico" class="hidden" accept=".xlsx, .xlsm, .csv" onchange="RhAsisCasc.manejarCargaYGuardadoAutomatico(this)">
+                            <!-- Input oculto para carga de archivos -->
+                            <input type="file" id="uploadBiometrico" class="hidden" accept=".xlsx, .xlsm, .csv" onchange="RhAsisCasc.manejarCargaYGuardadoAutomatico(this)">
 
-                        <!-- Botones de Acción a la Derecha -->
-                        <div class="flex items-center gap-2">
-                            <button id="labelCargaDatos" class="px-4 py-2 bg-[#249444] text-white rounded-xl text-xs font-bold hover:bg-[#1e7a37] transition flex items-center gap-2 cursor-pointer shadow-xs" onclick="document.getElementById('uploadBiometrico').click();">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-up"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M12 12v6"/><path d="m15 15-3-3-3 3"/></svg>
-                                <span id="textoCargaBtn">Carga de Datos</span>
-                            </button>
+                            <!-- Botones de Acción a la Derecha -->
+                            <div class="flex items-center gap-2">
+                                <button id="labelCargaDatos" class="px-4 py-2 bg-[#249444] text-white rounded-xl text-xs font-bold hover:bg-[#1e7a37] transition flex items-center gap-2 cursor-pointer shadow-xs" onclick="document.getElementById('uploadBiometrico').click();">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-up"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M12 12v6"/><path d="m15 15-3-3-3 3"/></svg>
+                                    <span id="textoCargaBtn">Carga de Datos</span>
+                                </button>
 
-                            <button id="exportBtn" disabled onclick="if(window.RhAsisFBio && typeof RhAsisFBio.exportarExcel === 'function') RhAsisFBio.exportarExcel()" class="px-4 py-2 bg-[#249444] text-white rounded-xl text-xs font-bold hover:bg-[#1e7a37] transition flex items-center gap-2 shadow-xs opacity-60 cursor-not-allowed">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-down"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>
-                                Exportar reporte
-                            </button>
+                                <button id="exportBtn" disabled onclick="if(window.RhAsisFBio && typeof RhAsisFBio.exportarExcel === 'function') RhAsisFBio.exportarExcel()" class="px-4 py-2 bg-[#249444] text-white rounded-xl text-xs font-bold hover:bg-[#1e7a37] transition flex items-center gap-2 shadow-xs opacity-60 cursor-not-allowed">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-down"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>
+                                    Exportar reporte
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Filtros alineados limpiamente -->
+                        <div class="flex flex-wrap items-end gap-3 pt-1">
+                            <div class="flex flex-col gap-1">
+                                <label for="filtroFechaDesde" class="text-[10px] font-bold text-stone-500 uppercase tracking-wider">De</label>
+                                <input type="date" id="filtroFechaDesde" onchange="RhAsisCasc.aplicarFiltrosCombinados()"
+                                    class="px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] text-stone-700 shadow-xs cursor-pointer">
+                            </div>
+
+                            <div class="flex flex-col gap-1">
+                                <label for="filtroFechaHasta" class="text-[10px] font-bold text-stone-500 uppercase tracking-wider">Hasta</label>
+                                <input type="date" id="filtroFechaHasta" onchange="RhAsisCasc.aplicarFiltrosCombinados()"
+                                    class="px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] text-stone-700 shadow-xs cursor-pointer">
+                            </div>
+
+                            <div class="flex flex-col gap-1">
+                                <label for="filtroCentroBio" class="text-[10px] font-bold text-stone-500 uppercase tracking-wider">Centro</label>
+                                <input type="text" id="filtroCentroBio" oninput="RhAsisCasc.aplicarFiltrosCombinados()" placeholder="Centro..."
+                                    class="w-32 px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] transition-all shadow-xs text-stone-700">
+                            </div>
+
+                            <div class="flex flex-col gap-1">
+                                <label for="filtroNumEmpBio" class="text-[10px] font-bold text-stone-500 uppercase tracking-wider">N° Empleado</label>
+                                <input type="text" id="filtroNumEmpBio" oninput="RhAsisCasc.aplicarFiltrosCombinados()" placeholder="Núm..."
+                                    class="w-32 px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] transition-all shadow-xs text-stone-700">
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Inputs de Filtros distribuidos ordenadamente -->
-                    <div class="flex flex-wrap items-end gap-3 pt-2 border-t border-stone-100">
-                        <div class="flex flex-col gap-1">
-                            <label for="filtroFechaDesde" class="text-[10px] font-bold text-stone-500 uppercase tracking-wider">De</label>
-                            <input type="date" id="filtroFechaDesde" onchange="RhAsisCasc.aplicarFiltrosCombinados()"
-                                class="px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] text-stone-700 shadow-xs cursor-pointer">
+                    <!-- Listado General de Biométrico (Integrado en el mismo contenedor principal) -->
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <h4 class="font-bold text-stone-700 text-xs uppercase tracking-wider">Listado General de Biométrico</h4>
+                            <span id="contadorRegistrosBio" class="text-xs text-stone-400 font-medium">0 registros</span>
                         </div>
 
-                        <div class="flex flex-col gap-1">
-                            <label for="filtroFechaHasta" class="text-[10px] font-bold text-stone-500 uppercase tracking-wider">Hasta</label>
-                            <input type="date" id="filtroFechaHasta" onchange="RhAsisCasc.aplicarFiltrosCombinados()"
-                                class="px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] text-stone-700 shadow-xs cursor-pointer">
-                        </div>
-
-                        <div class="flex flex-col gap-1">
-                            <label for="filtroCentroBio" class="text-[10px] font-bold text-stone-500 uppercase tracking-wider">Centro</label>
-                            <input type="text" id="filtroCentroBio" oninput="RhAsisCasc.aplicarFiltrosCombinados()" placeholder="Centro..."
-                                class="w-32 px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] transition-all shadow-xs text-stone-700">
-                        </div>
-
-                        <div class="flex flex-col gap-1">
-                            <label for="filtroNumEmpBio" class="text-[10px] font-bold text-stone-500 uppercase tracking-wider">N° Empleado</label>
-                            <input type="text" id="filtroNumEmpBio" oninput="RhAsisCasc.aplicarFiltrosCombinados()" placeholder="Núm..."
-                                class="w-32 px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] transition-all shadow-xs text-stone-700">
+                        <div id="appContainerBio" class="rounded-xl border border-stone-200 overflow-hidden bg-white">
+                            <div id="gridContentBio" class="max-h-[500px] overflow-y-auto overflow-x-auto custom-scrollbar">
+                                <table class="w-full text-[11px] text-left border-collapse min-w-[950px]">
+                                    <thead class="bg-stone-100 font-bold text-stone-700 sticky top-0 z-10 border-b border-stone-200">
+                                        <tr>${RhAsisCasc.rawHeaderGlobal.map(h => `<th class="p-3 border-b border-stone-200 text-center whitespace-nowrap">${h}</th>`).join('')}</tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td colspan="${RhAsisCasc.rawHeaderGlobal.length}" class="py-12 text-center text-stone-400 italic font-medium">
+                                                SINCRONIZANDO DATOS...
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Tarjeta 3: Listado General de Biométrico (Estilo de tabla RhPercORE) -->
-                <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6 space-y-4">
-                    <div class="flex justify-between items-center pb-2 border-b border-stone-100">
-                        <h4 class="font-bold text-stone-700 text-xs uppercase tracking-wider">Listado General de Biométrico</h4>
-                        <span id="contadorRegistrosBio" class="text-xs text-stone-400 font-medium">0 registros</span>
-                    </div>
-
-                    <div id="appContainerBio" class="rounded-xl border border-stone-200 overflow-hidden bg-white">
-                        <div id="gridContentBio" class="max-h-[500px] overflow-y-auto overflow-x-auto custom-scrollbar">
-                            <table class="w-full text-[11px] text-left border-collapse min-w-[950px]">
-                                <thead class="bg-stone-100 font-bold text-stone-700 sticky top-0 z-10 border-b border-stone-200">
-                                    <tr>${RhAsisCasc.rawHeaderGlobal.map(h => `<th class="p-3 border-b border-stone-200 text-center whitespace-nowrap">${h}</th>`).join('')}</tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td colspan="${RhAsisCasc.rawHeaderGlobal.length}" class="py-12 text-center text-stone-400 italic font-medium">
-                                            SINCRONIZANDO DATOS...
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
                 </div>
 
             </div>

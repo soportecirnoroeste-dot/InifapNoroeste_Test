@@ -51,11 +51,11 @@ window.RhAsisCasc = {
         contenedor.innerHTML = `
             <div class="space-y-6 animate-fade-in pb-10">
                 
-                <!-- Contenedor Principal Único (Estilo de la imagen de referencia) -->
+                <!-- Tarjeta Principal del Módulo -->
                 <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6 space-y-6">
                     
-                    <!-- Cabecera / Título del Módulo (Enmarcado en rojo) -->
-                    <div class="flex items-center gap-3 pb-4 border-b border-stone-100">
+                    <!-- Cabecera / Título Principal -->
+                    <div class="flex items-center gap-3">
                         <div class="p-2.5 bg-[#f0fdf4] border border-[#c6f6d5] text-[#059669] rounded-xl flex items-center justify-center">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 21a8 8 0 0 1 13.292-6"/><circle cx="10" cy="8" r="5"/><path d="m16 19 2 2 4-4"/></svg>
                         </div>
@@ -65,8 +65,8 @@ window.RhAsisCasc = {
                         </div>
                     </div>
 
-                    <!-- Sección de Gestión, Título de sección y Botones / Filtros (Enmarcado en azul) -->
-                    <div class="space-y-4 pb-4 border-b border-stone-100">
+                    <!-- Barra Contenedora Unificada (Título, Botones y Filtros dentro del mismo bloque con borde) -->
+                    <div class="bg-stone-50/60 rounded-2xl border border-stone-200 p-5 space-y-4">
                         <div class="flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-4">
                             <h4 class="font-bold text-stone-800 text-sm">Gestión de Asistencias</h4>
 
@@ -87,8 +87,8 @@ window.RhAsisCasc = {
                             </div>
                         </div>
 
-                        <!-- Filtros alineados limpiamente -->
-                        <div class="flex flex-wrap items-end gap-3 pt-1">
+                        <!-- Filtros integrados dentro de la misma barra unificada -->
+                        <div class="flex flex-wrap items-end gap-3 pt-2 border-t border-stone-200/60">
                             <div class="flex flex-col gap-1">
                                 <label for="filtroFechaDesde" class="text-[10px] font-bold text-stone-500 uppercase tracking-wider">De</label>
                                 <input type="date" id="filtroFechaDesde" onchange="RhAsisCasc.aplicarFiltrosCombinados()"
@@ -115,7 +115,7 @@ window.RhAsisCasc = {
                         </div>
                     </div>
 
-                    <!-- Listado General de Biométrico (Integrado en el mismo contenedor principal) -->
+                    <!-- Listado General de Biométrico -->
                     <div class="space-y-4">
                         <div class="flex justify-between items-center">
                             <h4 class="font-bold text-stone-700 text-xs uppercase tracking-wider">Listado General de Biométrico</h4>

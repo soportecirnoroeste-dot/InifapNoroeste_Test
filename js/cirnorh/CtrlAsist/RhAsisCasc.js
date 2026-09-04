@@ -325,13 +325,14 @@ window.RhAsisCasc = {
         if (!listaRegistros || listaRegistros.length === 0) {
             if (exportBtn) {
                 exportBtn.disabled = true;
-                exportBtn.className = "px-4 py-2 bg-stone-100 border border-stone-200 text-stone-400 opacity-60 cursor-not-allowed rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-xs h-[34px]";
+                // Mantenemos la misma clase de altura/padding para el botón deshabilitado también
+                exportBtn.className = "bg-stone-100 border border-stone-200 text-stone-400 opacity-60 cursor-not-allowed px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2";
             }
-            if (contador) contador.innerText = "0 registros";
+            if (contador) contador.innerText = "";
 
             gridContent.innerHTML = `
                 <table class="w-full text-[11px] text-left border-collapse min-w-[950px]">
-                    <thead class="bg-stone-50 font-bold text-stone-700 sticky top-0 z-10 border-b border-stone-200">
+                    <thead class="bg-stone-100 font-bold text-stone-700 sticky top-0 z-10 border-b border-stone-200">
                         <tr>${headers.map(h => `<th class="p-3 border-b border-stone-200 text-center whitespace-nowrap">${h}</th>`).join('')}</tr>
                     </thead>
                     <tbody>
@@ -348,7 +349,7 @@ window.RhAsisCasc = {
 
         if (exportBtn) {
             exportBtn.disabled = false;
-            exportBtn.className = "px-4 py-2 bg-[#249444] hover:bg-[#1b7033] text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer h-[34px]";
+            exportBtn.className = "px-4 py-2 bg-[#249444] hover:bg-[#1b7033] text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer";
         }
 
         if (contador) {
@@ -357,36 +358,34 @@ window.RhAsisCasc = {
 
         gridContent.innerHTML = `
             <table class="w-full text-[11px] text-left border-collapse min-w-[950px]">
-                <thead class="bg-stone-50 font-bold text-stone-700 sticky top-0 z-10 border-b border-stone-200">
+                <thead class="bg-stone-100 font-bold text-stone-700 sticky top-0 z-10 border-b border-stone-200">
                     <tr>${headers.map(h => `<th class="p-3 border-b border-stone-200 text-center whitespace-nowrap">${h}</th>`).join('')}</tr>
                 </thead>
                 <tbody class="divide-y divide-stone-100">
                     ${listaRegistros.map(r => {
-                        // Si r es un array plano devuelto por Sheets (ej. [Centro, NumEmp, HraEnt, HraSal, HraReg, Reg, Fecha, Dia, RetMen, RetMed, RetMay, Falta])
-                        const celdas = Array.isArray(r) ? [...r.slice(0, 12)] : headers.map(h => r[h] || "");
+            const celdas = Array.isArray(r) ? [...r.slice(0, 12)] : headers.map(h => r[h] || "");
 
-                        return `
+            return `
                             <tr class="bg-white hover:bg-stone-50 transition text-stone-700">
                                 ${celdas.map((c, index) => {
-                                    let val = c;
+                let val = c;
 
-                                    // Formateo específico según la columna
-                                    if (index === 2 || index === 3) {
-                                        // Hra.Entrada / Hra.Salida (Horas fijas del empleado)
-                                        val = RhAsisCasc.extraerHoraLegible(val, false);
-                                    } else if (index === 4) {
-                                        // Hra.Registro (Hora exacta del checado)
-                                        val = RhAsisCasc.extraerHoraLegible(val, true);
-                                    } else if (index === 6) {
-                                        // Fecha Reg. (Normalizar formato de fecha si viene en ISO o largo)
-                                        val = RhAsisCasc.normalizarFechaFiltro(val) || val;
-                                    }
+                if (index === 2 || index === 3) {
+                    val = RhAsisCasc.extraerHoraLegible(val, false);
+                } else if (index === 4) {
+                    val = RhAsisCasc.extraerHoraLegible(val, true);
+                } else if (val instanceof Date) {
+                    val = val.toLocaleDateString();
+                } else if (typeof val === 'string' && val.includes('T') && val.length > 18 && !val.includes('1899-12-30')) {
+                    const d = new Date(val);
+                    if (!isNaN(d)) val = d.toLocaleDateString();
+                }
 
-                                    return `<td class="p-2.5 border-b border-stone-100 text-center whitespace-nowrap">${val !== null && val !== undefined && String(val).trim() !== '' ? val : ''}</td>`;
-                                }).join('')}
+                return `<td class="p-2.5 border-b border-stone-100 text-center whitespace-nowrap">${val !== null && val !== undefined && String(val).trim() !== '' ? val : ''}</td>`;
+            }).join('')}
                             </tr>
                         `;
-                    }).join('')}
+        }).join('')}
                 </tbody>
             </table>
         `;

@@ -55,7 +55,7 @@ window.RhAsisCasc = {
                 <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6 space-y-6">
                     
                     <!-- Cabecera / Título Principal -->
-                    <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-3 mb-6 pb-4 border-b border-stone-100">
                         <div class="p-2.5 bg-[#f0fdf4] border border-[#c6f6d5] text-[#059669] rounded-xl flex items-center justify-center">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 21a8 8 0 0 1 13.292-6"/><circle cx="10" cy="8" r="5"/><path d="m16 19 2 2 4-4"/></svg>
                         </div>

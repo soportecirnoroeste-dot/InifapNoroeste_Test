@@ -51,60 +51,28 @@ window.RhAsisCasc = {
         contenedor.innerHTML = `
             <div class="space-y-6 animate-fade-in pb-10">
                 
-                <!-- Tarjeta 1: Título Principal -->
+                <!-- Tarjeta 1: Título Principal (Estilo RhPercORE) -->
                 <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                        <div class="flex items-center gap-3">
-                            <div class="p-2.5 bg-[#f0fdf4] border border-[#c6f6d5] text-[#059669] rounded-xl flex items-center justify-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 21a8 8 0 0 1 13.292-6"/><circle cx="10" cy="8" r="5"/><path d="m16 19 2 2 4-4"/></svg>
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-stone-800 text-base">CONTROL DE ASISTENCIA</h3>
-                                <p class="text-xs text-stone-400 font-medium">Gestión y monitoreo de registros biométricos de personal</p>
-                            </div>
+                    <div class="flex items-center gap-3">
+                        <div class="p-2.5 bg-[#f0fdf4] border border-[#c6f6d5] text-[#059669] rounded-xl flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 21a8 8 0 0 1 13.292-6"/><circle cx="10" cy="8" r="5"/><path d="m16 19 2 2 4-4"/></svg>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-stone-800 text-base">CONTROL DE ASISTENCIA</h3>
+                            <p class="text-xs text-stone-400 font-medium">Gestión y monitoreo de registros biométricos de personal</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Tarjeta 2: Gestión con filtros y botones -->
-                <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6 space-y-5">
-                    <div class="flex items-center justify-between pb-3 border-b border-stone-100">
-                        <h4 class="font-bold text-stone-800 text-sm">Gestión de Asistencias y Filtros</h4>
-                    </div>
-
-                    <div class="flex flex-col xl:flex-row items-stretch xl:items-end justify-between gap-4">
-                        
-                        <!-- Bloque de Filtros -->
-                        <div class="flex flex-wrap items-end gap-3">
-                            <div class="flex flex-col gap-1">
-                                <label for="filtroFechaDesde" class="text-[10px] font-bold text-stone-500 uppercase tracking-wider">De</label>
-                                <input type="date" id="filtroFechaDesde" onchange="RhAsisCasc.aplicarFiltrosCombinados()"
-                                    class="px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] text-stone-700 shadow-xs cursor-pointer">
-                            </div>
-
-                            <div class="flex flex-col gap-1">
-                                <label for="filtroFechaHasta" class="text-[10px] font-bold text-stone-500 uppercase tracking-wider">Hasta</label>
-                                <input type="date" id="filtroFechaHasta" onchange="RhAsisCasc.aplicarFiltrosCombinados()"
-                                    class="px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] text-stone-700 shadow-xs cursor-pointer">
-                            </div>
-
-                            <div class="flex flex-col gap-1">
-                                <label for="filtroCentroBio" class="text-[10px] font-bold text-stone-500 uppercase tracking-wider">Centro</label>
-                                <input type="text" id="filtroCentroBio" oninput="RhAsisCasc.aplicarFiltrosCombinados()" placeholder="Centro..."
-                                    class="w-28 px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] transition-all shadow-xs text-stone-700">
-                            </div>
-
-                            <div class="flex flex-col gap-1">
-                                <label for="filtroNumEmpBio" class="text-[10px] font-bold text-stone-500 uppercase tracking-wider">N° Empleado</label>
-                                <input type="text" id="filtroNumEmpBio" oninput="RhAsisCasc.aplicarFiltrosCombinados()" placeholder="Núm..."
-                                    class="w-28 px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] transition-all shadow-xs text-stone-700">
-                            </div>
-                        </div>
+                <!-- Tarjeta 2: Barra de Gestión de Asistencias y Filtros (Idéntica a Gestión de Personal) -->
+                <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6 space-y-4">
+                    <div class="flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-4">
+                        <h4 class="font-bold text-stone-800 text-sm">Gestión de Asistencias</h4>
 
                         <!-- Input oculto para carga de archivos -->
                         <input type="file" id="uploadBiometrico" class="hidden" accept=".xlsx, .xlsm, .csv" onchange="RhAsisCasc.manejarCargaYGuardadoAutomatico(this)">
-                        
-                        <!-- Botones de Acción -->
+
+                        <!-- Botones de Acción a la Derecha -->
                         <div class="flex items-center gap-2">
                             <button id="labelCargaDatos" class="px-4 py-2 bg-[#249444] text-white rounded-xl text-xs font-bold hover:bg-[#1e7a37] transition flex items-center gap-2 cursor-pointer shadow-xs" onclick="document.getElementById('uploadBiometrico').click();">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-up"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M12 12v6"/><path d="m15 15-3-3-3 3"/></svg>
@@ -117,9 +85,36 @@ window.RhAsisCasc = {
                             </button>
                         </div>
                     </div>
+
+                    <!-- Inputs de Filtros distribuidos ordenadamente -->
+                    <div class="flex flex-wrap items-end gap-3 pt-2 border-t border-stone-100">
+                        <div class="flex flex-col gap-1">
+                            <label for="filtroFechaDesde" class="text-[10px] font-bold text-stone-500 uppercase tracking-wider">De</label>
+                            <input type="date" id="filtroFechaDesde" onchange="RhAsisCasc.aplicarFiltrosCombinados()"
+                                class="px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] text-stone-700 shadow-xs cursor-pointer">
+                        </div>
+
+                        <div class="flex flex-col gap-1">
+                            <label for="filtroFechaHasta" class="text-[10px] font-bold text-stone-500 uppercase tracking-wider">Hasta</label>
+                            <input type="date" id="filtroFechaHasta" onchange="RhAsisCasc.aplicarFiltrosCombinados()"
+                                class="px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] text-stone-700 shadow-xs cursor-pointer">
+                        </div>
+
+                        <div class="flex flex-col gap-1">
+                            <label for="filtroCentroBio" class="text-[10px] font-bold text-stone-500 uppercase tracking-wider">Centro</label>
+                            <input type="text" id="filtroCentroBio" oninput="RhAsisCasc.aplicarFiltrosCombinados()" placeholder="Centro..."
+                                class="w-32 px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] transition-all shadow-xs text-stone-700">
+                        </div>
+
+                        <div class="flex flex-col gap-1">
+                            <label for="filtroNumEmpBio" class="text-[10px] font-bold text-stone-500 uppercase tracking-wider">N° Empleado</label>
+                            <input type="text" id="filtroNumEmpBio" oninput="RhAsisCasc.aplicarFiltrosCombinados()" placeholder="Núm..."
+                                class="w-32 px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] transition-all shadow-xs text-stone-700">
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Tarjeta 3: Listado General de Biométrico -->
+                <!-- Tarjeta 3: Listado General de Biométrico (Estilo de tabla RhPercORE) -->
                 <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6 space-y-4">
                     <div class="flex justify-between items-center pb-2 border-b border-stone-100">
                         <h4 class="font-bold text-stone-700 text-xs uppercase tracking-wider">Listado General de Biométrico</h4>
@@ -426,7 +421,7 @@ window.RhAsisCasc = {
             str = str.split(' ')[0];
         }
         if (str.includes('/')) {
-            str = str.split(' ')[0]; // por si trae hora al lado
+            str = str.split(' ')[0];
             const partes = str.split('/');
             if (partes.length === 3) {
                 return `${partes[2]}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}`;

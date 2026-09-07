@@ -517,7 +517,7 @@ window.RhAsisCasc = {
             return;
         }
 
-        // Construimos el documento HTML que Excel interpretará con estilos nativos
+        // Construimos el documento multi-pestaña (XML Spreadsheet / HTML de Excel)
         let htmlContent = `
             <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
             <head>
@@ -530,7 +530,6 @@ window.RhAsisCasc = {
                     .title-inifap { font-size: 18pt; font-weight: bold; color: #249444; text-align: left; }
                     .title-sub { font-size: 8pt; font-weight: bold; text-align: left; }
                     .title-meta { font-size: 9pt; font-weight: bold; text-align: left; }
-                    .default-cell { background-color: #E9F5E9; }
                 </style>
             </head>
             <body>
@@ -539,34 +538,36 @@ window.RhAsisCasc = {
         chavesGrupos.forEach(key => {
             const rowsMapeadas = mapearRegistros(gruposAProcesar[key]);
             const etiquetaEmp = numEmpFiltro ? numEmpFiltro : key;
+            const nombrePestana = `Emp_${etiquetaEmp}`.substring(0, 31); // Excel limita nombres de pestañas a 31 chars
 
-            htmlContent += `
-                <table>
-                    <tr>
-                        <td rowspan="3" colspan="2" class="title-inifap">inifap</td>
-                        <td colspan="${MaxCol - 2}" style="font-size: 9pt; font-weight: bold; text-align: left;">INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS</td>
-                    </tr>
-                    <tr>
-                        <td colspan="${MaxCol - 2}" class="title-sub">COORDINACIÓN DE ADMINISTRACIÓN Y SISTEMAS</td>
-                    </tr>
-                    <tr>
-                        <td colspan="${MaxCol - 2}" class="title-sub">DIRECCIÓN DE DESARROLLO HUMANO Y PROFESIONALIZACIÓN</td>
-                    </tr>
-                    <tr>
-                        <td rowspan="2" colspan="2"></td>
-                        <td colspan="${MaxCol - 2}" class="title-meta">INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp}</td>
-                    </tr>
-                    <tr>
-                        <td colspan="${MaxCol - 2}" class="title-meta">Reporte: RH_CONTROL_ASISTENCIA_CASC</td>
-                    </tr>
-                    <tr><td colspan="${MaxCol}" style="border:none;"></td></tr>
-                    <tr class="bg-header">
-                        ${RhAsisCasc.rawHeaderGlobal.map(h => `<td>${h}</td>`).join('')}
-                    </tr>
+            htmlContent = htmlContent + `
+                <div x:shape="Worksheet" x:name="${nombrePestana}">
+                    <table>
+                        <tr>
+                            <td rowspan="3" colspan="2" class="title-inifap">inifap</td>
+                            <td colspan="${MaxCol - 2}" style="font-size: 9pt; font-weight: bold; text-align: left;">INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS</td>
+                        </tr>
+                        <tr>
+                            <td colspan="${MaxCol - 2}" class="title-sub">COORDINACIÓN DE ADMINISTRACIÓN Y SISTEMAS</td>
+                        </tr>
+                        <tr>
+                            <td colspan="${MaxCol - 2}" class="title-sub">DIRECCIÓN DE DESARROLLO HUMANO Y PROFESIONALIZACIÓN</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2" colspan="2"></td>
+                            <td colspan="${MaxCol - 2}" class="title-meta">INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="${MaxCol - 2}" class="title-meta">Reporte: RH_CONTROL_ASISTENCIA_CASC</td>
+                        </tr>
+                        <tr><td colspan="${MaxCol}" style="border:none;"></td></tr>
+                        <tr class="bg-header">
+                            ${RhAsisCasc.rawHeaderGlobal.map(h => `<td>${h}</td>`).join('')}
+                        </tr>
             `;
 
             rowsMapeadas.forEach(dRow => {
-                let bgColor = "#E9F5E9"; // default-cell
+                let bgColor = "#FFFFFF"; // Fondo blanco por defecto solicitado
                 let fontColor = "#000000";
                 let isBold = false;
 
@@ -587,7 +588,7 @@ window.RhAsisCasc = {
                 htmlContent += `</tr>`;
             });
 
-            htmlContent += `</table><br><br>`;
+            htmlContent += `</table></div><br>`;
         });
 
         htmlContent += `</body></html>`;

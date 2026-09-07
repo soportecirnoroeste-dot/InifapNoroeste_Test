@@ -571,7 +571,6 @@ window.RhAsisCasc = {
             ws['!ref'] = `A1:${XLSX.utils.encode_col(MaxCol - 1)}${MaxFila}`;
             ws['!view'] = { showGridLines: false };
 
-            // Ajustamos las combinaciones estirándolas dinámicamente hasta la última columna de la tabla (MaxCol - 1)
             ws['!merges'] = [
                 { s: { r: 0, c: 0 }, e: { r: 0, c: 1 } },
                 { s: { r: 1, c: 0 }, e: { r: 1, c: 1 } },

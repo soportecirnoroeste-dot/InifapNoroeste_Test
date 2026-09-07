@@ -492,7 +492,7 @@ window.RhAsisCasc = {
 
     generateWorkbookCasc: function () {
         const wb = XLSX.utils.book_new();
-        const fondoHoja = "FFFFFF"; // Fondo blanco limpio como solicitaste
+        const fondoHoja = "E9F5E9";
         const MaxFila = 200;
         const MaxCol = RhAsisCasc.rawHeaderGlobal.length;
 
@@ -501,7 +501,7 @@ window.RhAsisCasc = {
 
         const mapearRegistros = (lista) => {
             return lista.map(r => {
-                const celdas = Array.isArray(r) ? [...r.slice(0, 12)] : RhAsisCasc.rawHeaderGlobal.map(h => r[h] || "");
+                const celdas = Array.isArray(r) ? [...r] : RhAsisCasc.rawHeaderGlobal.map(h => r[h] || "");
                 return celdas.map((c, index) => {
                     let val = c;
                     if (index === 2 || index === 3) {
@@ -537,7 +537,7 @@ window.RhAsisCasc = {
 
         if (chavesGrupos.length === 0) {
             const wsDataVacia = [
-                ["INIFAP", "", "INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS"],
+                ["inifap", "", "INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS"],
                 ["Instituto Nacional de Investigaciones", "", "COORDINACIÓN DE ADMINISTRACIÓN Y SISTEMAS"],
                 ["Forestales, Agrícolas y Pecuarias", "", "DIRECCIÓN DE DESARROLLO HUMANO Y PROFESIONALIZACIÓN"],
                 ["", "", "INCIDENCIAS GENERADAS DE ACUERDO AL REGISTRO ELECTRÓNICO V2"],
@@ -546,7 +546,7 @@ window.RhAsisCasc = {
                 RhAsisCasc.rawHeaderGlobal
             ];
             const wsVacio = XLSX.utils.aoa_to_sheet(wsDataVacia);
-            wsVacio['!ref'] = `A1:${XLSX.utils.encode_col(MaxCol - 1)}200`;
+            wsVacio['!ref'] = `A1:${XLSX.utils.encode_col(MaxCol - 1)}${MaxFila}`;
             wsVacio['!view'] = { showGridLines: false };
             XLSX.utils.book_append_sheet(wb, wsVacio, "Sin_Datos");
             return wb;
@@ -557,7 +557,7 @@ window.RhAsisCasc = {
             const etiquetaEmp = numEmpFiltro ? numEmpFiltro : key;
 
             const wsData = [
-                ["INIFAP", "", "INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS"],
+                ["inifap", "", "INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS"],
                 ["Instituto Nacional de Investigaciones", "", "COORDINACIÓN DE ADMINISTRACIÓN Y SISTEMAS"],
                 ["Forestales, Agrícolas y Pecuarias", "", "DIRECCIÓN DE DESARROLLO HUMANO Y PROFESIONALIZACIÓN"],
                 ["", "", `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp}`],
@@ -570,6 +570,8 @@ window.RhAsisCasc = {
             const ws = XLSX.utils.aoa_to_sheet(wsData);
             ws['!ref'] = `A1:${XLSX.utils.encode_col(MaxCol - 1)}${MaxFila}`;
             ws['!view'] = { showGridLines: false };
+
+            // Ajustamos las combinaciones estirándolas dinámicamente hasta la última columna de la tabla (MaxCol - 1)
             ws['!merges'] = [
                 { s: { r: 0, c: 0 }, e: { r: 0, c: 1 } },
                 { s: { r: 1, c: 0 }, e: { r: 1, c: 1 } },
@@ -621,27 +623,26 @@ window.RhAsisCasc = {
                     if (r === 6 && c < RhAsisCasc.rawHeaderGlobal.length) {
                         style.fill = { type: 'pattern', pattern: 'solid', fgColor: { rgb: "D9D9D9" } };
                         style.font.bold = true;
-                        style.border = { top: { style: "thin", color: { rgb: "888888" } }, bottom: { style: "thin", color: { rgb: "888888" } }, left: { style: "thin", color: { rgb: "888888" } }, right: { style: "thin", color: { rgb: "888888" } } };
+                        style.border = { top: { style: "thin" }, bottom: { style: "thin" }, left: { style: "thin" }, right: { style: "thin" } };
                     }
                     if (r >= 7) {
                         const dRow = rowsMapeadas[r - 7];
                         if (dRow && c < RhAsisCasc.rawHeaderGlobal.length) {
                             let bgColor = fondoHoja;
                             let fontColor = "000000";
-                            // Validaciones de incidencias según las columnas correspondientes
-                            if (dRow[11]) {
+                            if (dRow[13]) {
                                 bgColor = "FF0000"; fontColor = "FFFFFF";
-                            } else if (dRow[10]) {
+                            } else if (dRow[12]) {
                                 bgColor = "E46C0A"; fontColor = "FFFFFF";
-                            } else if (dRow[9]) {
+                            } else if (dRow[11]) {
                                 bgColor = "FFC000";
-                            } else if (dRow[8]) {
+                            } else if (dRow[10]) {
                                 bgColor = "FFFF00";
                             }
                             style.fill = { type: 'pattern', pattern: 'solid', fgColor: { rgb: bgColor } };
                             style.font.color = { rgb: fontColor };
                             style.font.bold = (bgColor !== fondoHoja);
-                            style.border = { top: { style: "thin", color: { rgb: "CCCCCC" } }, bottom: { style: "thin", color: { rgb: "CCCCCC" } }, left: { style: "thin", color: { rgb: "CCCCCC" } }, right: { style: "thin", color: { rgb: "CCCCCC" } } };
+                            style.border = { top: { style: "thin" }, bottom: { style: "thin" }, left: { style: "thin" }, right: { style: "thin" } };
                         }
                     }
                     ws[cellRef].s = style;

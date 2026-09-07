@@ -492,7 +492,8 @@ window.RhAsisCasc = {
 
     generateWorkbookCasc: function () {
         const wb = XLSX.utils.book_new();
-        const MaxFila = 500;
+        const fondoHoja = "FFFFFF"; // Fondo blanco limpio como solicitaste
+        const MaxFila = 200;
         const MaxCol = RhAsisCasc.rawHeaderGlobal.length;
 
         const registrosAExportar = RhAsisCasc.obtenerRegistrosFiltradosActuales();
@@ -567,10 +568,8 @@ window.RhAsisCasc = {
             ];
 
             const ws = XLSX.utils.aoa_to_sheet(wsData);
-            ws['!ref'] = `A1:${XLSX.utils.encode_col(MaxCol - 1)}${Math.max(MaxFila, wsData.length + 10)}`;
+            ws['!ref'] = `A1:${XLSX.utils.encode_col(MaxCol - 1)}${MaxFila}`;
             ws['!view'] = { showGridLines: false };
-
-            // Definición estricta de fusiones (merges) para que el membrete luzca ordenado
             ws['!merges'] = [
                 { s: { r: 0, c: 0 }, e: { r: 0, c: 1 } },
                 { s: { r: 1, c: 0 }, e: { r: 1, c: 1 } },
@@ -596,81 +595,61 @@ window.RhAsisCasc = {
             });
             ws['!cols'] = colWidths;
 
-            const totalFilasHoja = Math.max(MaxFila, wsData.length);
-            for (let r = 0; r < totalFilasHoja; r++) {
+            for (let r = 0; r < MaxFila; r++) {
                 for (let c = 0; c < MaxCol; c++) {
                     const cellRef = XLSX.utils.encode_cell({ r: r, c: c });
                     if (!ws[cellRef]) ws[cellRef] = { v: "" };
 
-                    // Estilo por defecto para el área superior (Fondo blanco limpio, sin relleno)
                     let style = {
-                        font: { sz: 9, name: "Arial", color: { rgb: "000000" } },
-                        alignment: { vertical: "center", horizontal: "center", wrapText: true }
+                        fill: { type: 'pattern', pattern: 'solid', fgColor: { rgb: fondoHoja } },
+                        font: { sz: 9, name: "Arial" },
+                        alignment: { vertical: "center", horizontal: "center" }
                     };
 
-                    // Fila 0, Columna 0: Logotipo INIFAP estilizado en grande y verde corporativo
                     if (r === 0 && c === 0) {
-                        style.font = { bold: true, sz: 22, color: { rgb: "249444" }, name: "Arial Black" };
-                        style.alignment.horizontal = "center";
-                    }
-                    // Filas 1 y 2 (Lado izquierdo)
-                    else if (r >= 1 && r <= 2 && c === 0) {
-                        style.font = { sz: 7.5, color: { rgb: "555555" }, bold: true, name: "Arial" };
-                        style.alignment.horizontal = "center";
-                    }
-                    // Encabezados institucionales derechos (Filas 0 a 4)
-                    else if (r >= 0 && r <= 4 && c >= 2) {
-                        style.font = { sz: 9.5, bold: true, color: { rgb: "1A1A1B" }, name: "Arial" };
+                        style.font = { bold: true, sz: 24, color: { rgb: "249444" }, name: "Arial Black" };
                         style.alignment.horizontal = "left";
                     }
-                    // Fila de Cabecera de la Tabla (Fila 6) - Aquí sí aplicamos fondo gris y bordes
-                    else if (r === 6) {
+                    if (r >= 1 && r <= 2 && c >= 0 && c <= 1) {
+                        style.font = { sz: 8, color: { rgb: "1A1A1B" }, bold: true };
+                        style.alignment.horizontal = "left";
+                        style.alignment.wrapText = true;
+                    }
+                    if (r >= 0 && r <= 4 && c >= 2) {
+                        style.font = { sz: 9, bold: true };
+                    }
+                    if (r === 6 && c < RhAsisCasc.rawHeaderGlobal.length) {
                         style.fill = { type: 'pattern', pattern: 'solid', fgColor: { rgb: "D9D9D9" } };
-                        style.font = { bold: true, sz: 10, color: { rgb: "000000" }, name: "Arial" };
-                        style.border = {
-                            top: { style: "thin", color: { rgb: "888888" } },
-                            bottom: { style: "thin", color: { rgb: "888888" } },
-                            left: { style: "thin", color: { rgb: "888888" } },
-                            right: { style: "thin", color: { rgb: "888888" } }
-                        };
+                        style.font.bold = true;
+                        style.border = { top: { style: "thin", color: { rgb: "888888" } }, bottom: { style: "thin", color: { rgb: "888888" } }, left: { style: "thin", color: { rgb: "888888" } }, right: { style: "thin", color: { rgb: "888888" } } };
                     }
-                    // Filas de Datos de la Tabla (Fila 7 en adelante) - Con bordes y colores condicionales si aplica
-                    else if (r >= 7) {
+                    if (r >= 7) {
                         const dRow = rowsMapeadas[r - 7];
-                        let bgColor = "FFFFFF"; // Fondo blanco por defecto para celdas de la tabla
-                        let fontColor = "000000";
-
-                        if (dRow) {
-                            // Colores condicionales institucionales para incidencias
-                            if (dRow[11] && String(dRow[11]).trim() !== "") { // Falta
+                        if (dRow && c < RhAsisCasc.rawHeaderGlobal.length) {
+                            let bgColor = fondoHoja;
+                            let fontColor = "000000";
+                            // Validaciones de incidencias según las columnas correspondientes
+                            if (dRow[11]) {
                                 bgColor = "FF0000"; fontColor = "FFFFFF";
-                            } else if (dRow[10] && String(dRow[10]).trim() !== "") { // Retardo May.
+                            } else if (dRow[10]) {
                                 bgColor = "E46C0A"; fontColor = "FFFFFF";
-                            } else if (dRow[9] && String(dRow[9]).trim() !== "") { // Retardo Med.
-                                bgColor = "FFC000"; fontColor = "000000";
-                            } else if (dRow[8] && String(dRow[8]).trim() !== "") { // Retardo Men.
-                                bgColor = "FFFF00"; fontColor = "000000";
+                            } else if (dRow[9]) {
+                                bgColor = "FFC000";
+                            } else if (dRow[8]) {
+                                bgColor = "FFFF00";
                             }
+                            style.fill = { type: 'pattern', pattern: 'solid', fgColor: { rgb: bgColor } };
+                            style.font.color = { rgb: fontColor };
+                            style.font.bold = (bgColor !== fondoHoja);
+                            style.border = { top: { style: "thin", color: { rgb: "CCCCCC" } }, bottom: { style: "thin", color: { rgb: "CCCCCC" } }, left: { style: "thin", color: { rgb: "CCCCCC" } }, right: { style: "thin", color: { rgb: "CCCCCC" } } };
                         }
-
-                        style.fill = { type: 'pattern', pattern: 'solid', fgColor: { rgb: bgColor } };
-                        style.font = { sz: 9, name: "Arial", color: { rgb: fontColor }, bold: (bgColor !== "FFFFFF") };
-                        style.border = {
-                            top: { style: "thin", color: { rgb: "CCCCCC" } },
-                            bottom: { style: "thin", color: { rgb: "CCCCCC" } },
-                            left: { style: "thin", color: { rgb: "CCCCCC" } },
-                            right: { style: "thin", color: { rgb: "CCCCCC" } }
-                        };
                     }
-
                     ws[cellRef].s = style;
                 }
             }
-
             const nombreHojaLimpio = String(etiquetaEmp).replace(/[:\\\/?*\[\]]/g, "_").substring(0, 31);
             XLSX.utils.book_append_sheet(wb, ws, nombreHojaLimpio);
         });
-
         return wb;
     },
 

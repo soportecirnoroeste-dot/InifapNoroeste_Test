@@ -529,7 +529,7 @@ exportarExcelCasc: function () {
     </Style>
     <Style ss:ID="LogoInifap">
       <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
-      <Font ss:FontName="Arial" ss:Size="16" ss:Bold="1" ss:Color="#249444"/>
+      <Font ss:FontName="Arial Black" ss:Size="24" ss:Bold="1" ss:Color="#249444"/>
     </Style>
     <Style ss:ID="LogoSubtext">
       <Alignment ss:Horizontal="Center" ss:Vertical="Center" ss:WrapText="1"/>

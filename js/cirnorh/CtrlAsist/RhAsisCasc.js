@@ -501,14 +501,22 @@ window.RhAsisCasc = {
         });
     },
 
-    generateWorkbookCasc: function () {
+    generateWorkbookCasc: function (groupedDataParam) {
+        // Si no se pasa por parámetro, intenta buscarlo en el objeto actual o define un respaldo
+        const datos = groupedDataParam || this.groupedData;
+        
+        if (!datos || typeof datos !== 'object') {
+            console.error("groupedData no está definido o no es válido");
+            return XLSX.utils.book_new();
+        }
+
         const wb = XLSX.utils.book_new();
         const fondoHoja = "E9F5E9"; // Fondo verde suave corporativo
         const MaxFila = 200;
         const MaxCol = 26;
 
-        Object.keys(groupedData).forEach(id => {
-            const emp = groupedData[id];
+        Object.keys(datos).forEach(id => {
+            const emp = datos[id];
             const wsData = [
                 ["inifap", "", "INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS"],
                 ["Instituto Nacional de Investigaciones", "", "COORDINACIÓN DE ADMINISTRACIÓN Y SISTEMAS"],
@@ -622,8 +630,9 @@ window.RhAsisCasc = {
         return wb;
     },
 
-    exportarExcelCasc: function () {
-        const wb = RhAsisCasc.generateWorkbookCasc();
+   exportarExcelCasc: function () {
+        // Asegúrate de pasar la variable groupedData (o el objeto que contenga los datos)
+        const wb = RhAsisCasc.generateWorkbookCasc(groupedData); 
         const centroActual = RhAsisCasc.obtenerClaveCentroActual() || "General";
         const numEmpFiltro = document.getElementById('filtroNumEmpBio')?.value.trim() || "";
         const sufijo = numEmpFiltro ? `Emp_${numEmpFiltro}` : "Todos_Empleados";

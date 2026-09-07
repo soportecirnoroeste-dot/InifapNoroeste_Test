@@ -474,7 +474,7 @@ window.RhAsisCasc = {
         });
     },
 
-exportarExcelCasc: function () {
+    exportarExcelCasc: function () {
         const registrosAExportar = RhAsisCasc.obtenerRegistrosFiltradosActuales();
         const numEmpFiltro = document.getElementById('filtroNumEmpBio')?.value.trim() || "";
         const centroActual = RhAsisCasc.obtenerClaveCentroActual() || "General";
@@ -612,12 +612,12 @@ exportarExcelCasc: function () {
         </Styles>
         `;
 
-                chavesGrupos.forEach(key => {
-                    const rowsMapeadas = mapearRegistros(gruposAProcesar[key]);
-                    const etiquetaEmp = numEmpFiltro ? numEmpFiltro : key;
-                    const nombrePestana = `Emp_${etiquetaEmp}`.replace(/[\*\?\/\\\\[\]]/g, '').substring(0, 31);
+        chavesGrupos.forEach(key => {
+            const rowsMapeadas = mapearRegistros(gruposAProcesar[key]);
+            const etiquetaEmp = numEmpFiltro ? numEmpFiltro : key;
+            const nombrePestana = `Emp_${etiquetaEmp}`.replace(/[\*\?\/\\\\[\]]/g, '').substring(0, 31);
 
-                    xmlContent += `
+            xmlContent += `
         <Worksheet ss:Name="${nombrePestana}">
             <Table>
                 <Row>
@@ -641,39 +641,39 @@ exportarExcelCasc: function () {
                 <Row>
             `;
 
-                RhAsisCasc.rawHeaderGlobal.forEach(h => {
-                    xmlContent += `        <Cell ss:StyleID="HeaderTable"><Data ss:Type="String">${h}</Data></Cell>\n`;
-                });
+            RhAsisCasc.rawHeaderGlobal.forEach(h => {
+                xmlContent += `        <Cell ss:StyleID="HeaderTable"><Data ss:Type="String">${h}</Data></Cell>\n`;
+            });
 
+            xmlContent += `      </Row>\n`;
+
+            rowsMapeadas.forEach(dRow => {
+                let styleId = "CellNormal";
+                if (dRow[13]) {
+                    styleId = "CellFalta";
+                } else if (dRow[12]) {
+                    styleId = "CellRetardoMay";
+                } else if (dRow[11]) {
+                    styleId = "CellRetardoMed";
+                } else if (dRow[10]) {
+                    styleId = "CellRetardoMen";
+                }
+
+                xmlContent += `      <Row>\n`;
+                dRow.forEach(cellVal => {
+                    const safeVal = (cellVal !== null && cellVal !== undefined) ? String(cellVal) : '';
+                    xmlContent += `        <Cell ss:StyleID="${styleId}"><Data ss:Type="String">${safeVal}</Data></Cell>\n`;
+                });
                 xmlContent += `      </Row>\n`;
+            });
 
-                rowsMapeadas.forEach(dRow => {
-                    let styleId = "CellNormal";
-                    if (dRow[13]) {
-                        styleId = "CellFalta";
-                    } else if (dRow[12]) {
-                        styleId = "CellRetardoMay";
-                    } else if (dRow[11]) {
-                        styleId = "CellRetardoMed";
-                    } else if (dRow[10]) {
-                        styleId = "CellRetardoMen";
-                    }
-
-                    xmlContent += `      <Row>\n`;
-                    dRow.forEach(cellVal => {
-                        const safeVal = (cellVal !== null && cellVal !== undefined) ? String(cellVal) : '';
-                        xmlContent += `        <Cell ss:StyleID="${styleId}"><Data ss:Type="String">${safeVal}</Data></Cell>\n`;
-                    });
-                    xmlContent += `      </Row>\n`;
-                });
-
-                xmlContent += `    </Table>
+            xmlContent += `    </Table>
     </Worksheet>\n`;
         });
 
         xmlContent += `</Workbook>`;
 
-        const blob = new Blob([xmlContent], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+        const blob = new Blob([xmlContent], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;

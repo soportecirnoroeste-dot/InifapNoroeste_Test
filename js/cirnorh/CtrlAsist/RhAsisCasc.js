@@ -517,7 +517,7 @@ exportarExcelCasc: function () {
             return;
         }
 
-        let xmlContent = `\uFEFF<xml version="1.0"?>
+        let xmlContent = `\uFEFF<?xml version="1.0"?>
         <Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
                 xmlns:o="urn:schemas-microsoft-com:office:office"
                 xmlns:x="urn:schemas-microsoft-com:office:excel"
@@ -533,14 +533,14 @@ exportarExcelCasc: function () {
             </Style>
             <Style ss:ID="LogoSubtext">
             <Alignment ss:Horizontal="Center" ss:Vertical="Center" ss:WrapText="1"/>
-            <Font ss:FontName="Arial" ss:Size="7.5" ss:Color="#000000"/>
+            <Font ss:FontName="Arial" ss:Size="7.5" ss:Bold="1" ss:Color="#000000"/>
             </Style>
             <Style ss:ID="TitleSub">
-            <Alignment ss:Horizontal="Left" ss:Vertical="Center"/>
+            <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
             <Font ss:FontName="Arial" ss:Size="8.5" ss:Bold="1" ss:Color="#000000"/>
             </Style>
             <Style ss:ID="TitleMeta">
-            <Alignment ss:Horizontal="Left" ss:Vertical="Center"/>
+            <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
             <Font ss:FontName="Arial" ss:Size="9" ss:Bold="1" ss:Color="#000000"/>
             </Style>
             <Style ss:ID="HeaderTable">
@@ -612,12 +612,12 @@ exportarExcelCasc: function () {
         </Styles>
         `;
 
-                chavesGrupos.forEach(key => {
-                    const rowsMapeadas = mapearRegistros(gruposAProcesar[key]);
-                    const etiquetaEmp = numEmpFiltro ? numEmpFiltro : key;
-                    const nombrePestana = `Emp_${etiquetaEmp}`.replace(/[\*\?\/\\\\[\]]/g, '').substring(0, 31);
+        chavesGrupos.forEach(key => {
+            const rowsMapeadas = mapearRegistros(gruposAProcesar[key]);
+            const etiquetaEmp = numEmpFiltro ? numEmpFiltro : key;
+            const nombrePestana = `Emp_${etiquetaEmp}`.replace(/[\*\?\/\\\\[\]]/g, '').substring(0, 31);
 
-                    xmlContent += `
+            xmlContent += `
         <Worksheet ss:Name="${nombrePestana}">
             <Table>
             <Row>
@@ -641,34 +641,34 @@ exportarExcelCasc: function () {
             <Row>
         `;
 
-                RhAsisCasc.rawHeaderGlobal.forEach(h => {
-                    xmlContent += `        <Cell ss:StyleID="HeaderTable"><Data ss:Type="String">${h}</Data></Cell>\n`;
-                });
+            RhAsisCasc.rawHeaderGlobal.forEach(h => {
+                xmlContent += `        <Cell ss:StyleID="HeaderTable"><Data ss:Type="String">${h}</Data></Cell>\n`;
+            });
 
+            xmlContent += `      </Row>\n`;
+
+            rowsMapeadas.forEach(dRow => {
+                let styleId = "CellNormal";
+                if (dRow[13]) {
+                    styleId = "CellFalta";
+                } else if (dRow[12]) {
+                    styleId = "CellRetardoMay";
+                } else if (dRow[11]) {
+                    styleId = "CellRetardoMed";
+                } else if (dRow[10]) {
+                    styleId = "CellRetardoMen";
+                }
+
+                xmlContent += `      <Row>\n`;
+                dRow.forEach(cellVal => {
+                    const safeVal = (cellVal !== null && cellVal !== undefined) ? String(cellVal) : '';
+                    xmlContent += `        <Cell ss:StyleID="${styleId}"><Data ss:Type="String">${safeVal}</Data></Cell>\n`;
+                });
                 xmlContent += `      </Row>\n`;
+            });
 
-                rowsMapeadas.forEach(dRow => {
-                    let styleId = "CellNormal";
-                    if (dRow[13]) {
-                        styleId = "CellFalta";
-                    } else if (dRow[12]) {
-                        styleId = "CellRetardoMay";
-                    } else if (dRow[11]) {
-                        styleId = "CellRetardoMed";
-                    } else if (dRow[10]) {
-                        styleId = "CellRetardoMen";
-                    }
-
-                    xmlContent += `      <Row>\n`;
-                    dRow.forEach(cellVal => {
-                        const safeVal = (cellVal !== null && cellVal !== undefined) ? String(cellVal) : '';
-                        xmlContent += `        <Cell ss:StyleID="${styleId}"><Data ss:Type="String">${safeVal}</Data></Cell>\n`;
-                    });
-                    xmlContent += `      </Row>\n`;
-                });
-
-                xmlContent += `    </Table>
-    </Worksheet>\n`;
+            xmlContent += `    </Table>
+        </Worksheet>\n`;
         });
 
         xmlContent += `</Workbook>`;

@@ -121,7 +121,6 @@ window.RhAsisCasc = {
                     <div class="bg-white rounded-2xl border border-stone-200 overflow-hidden shadow-xs">
                         <div class="px-6 py-4 border-b border-stone-100 flex justify-between items-center bg-white">
                             <h4 class="font-bold text-stone-800 text-xs uppercase tracking-wider">LISTADO GENERAL DE BIOMÉTRICO</h4>
-                            <span id="contadorRegistrosBio" class="text-xs text-stone-400 font-medium">0 registros</span>
                         </div>
 
                         <div id="gridContentBio" class="max-h-[500px] overflow-y-auto overflow-x-auto custom-scrollbar">

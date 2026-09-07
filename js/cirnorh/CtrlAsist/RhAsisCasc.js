@@ -667,7 +667,21 @@ exportarExcelCasc: function () {
                 xmlContent += `      </Row>\n`;
             });
 
-            xmlContent += `    </Table>\n  </Worksheet>\n`;
+            xmlContent += `    </Table>
+    <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+      <PageSetup>
+        <Header x:Margin="0"/>
+        <Footer x:Margin="0"/>
+        <PageMargins x:Bottom="0.75" x:Left="0.7" x:Right="0.7" x:Top="0.75"/>
+      </PageSetup>
+      <Print>
+        <ValidPrinterInfo/>
+        <PaperSizeIndex>9</PaperSizeIndex>
+        <HorizontalResolution>600</HorizontalResolution>
+        <VerticalResolution>600</VerticalResolution>
+      </Print>
+    </WorksheetOptions>
+  </Worksheet>\n`;
         });
 
         xmlContent += `</Workbook>`;

@@ -723,7 +723,7 @@ window.RhAsisCasc = {
         }
 
         return wb;
-    }
+    },
 
     exportarExcelCasc: function () {
         const wb = RhAsisCasc.generateWorkbookCasc();

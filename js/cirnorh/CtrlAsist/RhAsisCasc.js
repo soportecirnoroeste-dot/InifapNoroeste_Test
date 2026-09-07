@@ -474,7 +474,7 @@ window.RhAsisCasc = {
         });
     },
 
-    exportarExcelCasc: function () {
+exportarExcelCasc: function () {
         const registrosAExportar = RhAsisCasc.obtenerRegistrosFiltradosActuales();
         const numEmpFiltro = document.getElementById('filtroNumEmpBio')?.value.trim() || "";
         const centroActual = RhAsisCasc.obtenerClaveCentroActual() || "General";
@@ -612,72 +612,72 @@ window.RhAsisCasc = {
         </Styles>
         `;
 
-        chavesGrupos.forEach(key => {
-            const rowsMapeadas = mapearRegistros(gruposAProcesar[key]);
-            const etiquetaEmp = numEmpFiltro ? numEmpFiltro : key;
-            const nombrePestana = `Emp_${etiquetaEmp}`.replace(/[\*\?\/\\\\[\]]/g, '').substring(0, 31);
+                chavesGrupos.forEach(key => {
+                    const rowsMapeadas = mapearRegistros(gruposAProcesar[key]);
+                    const etiquetaEmp = numEmpFiltro ? numEmpFiltro : key;
+                    const nombrePestana = `Emp_${etiquetaEmp}`.replace(/[\*\?\/\\\\[\]]/g, '').substring(0, 31);
 
-            xmlContent += `
+                    xmlContent += `
         <Worksheet ss:Name="${nombrePestana}">
             <Table>
-                <Row>
-                    <Cell ss:Index="1" ss:MergeAcross="1" ss:StyleID="LogoInifap"><Data ss:Type="String">inifap</Data></Cell>
-                    <Cell ss:Index="3" ss:MergeAcross="${MaxCol - 3}" ss:StyleID="TitleSub"><Data ss:Type="String">INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS</Data></Cell>
-                </Row>
-                <Row>
-                    <Cell ss:Index="1" ss:MergeDown="1" ss:MergeAcross="1" ss:StyleID="LogoSubtext"><Data ss:Type="String">Instituto Nacional de Forestales, Agrícolas y Pecuarias</Data></Cell>
-                    <Cell ss:Index="3" ss:MergeAcross="${MaxCol - 3}" ss:StyleID="TitleSub"><Data ss:Type="String">COORDINACIÓN DE ADMINISTRACIÓN Y SISTEMAS</Data></Cell>
-                </Row>
-                <Row>
-                    <Cell ss:Index="3" ss:MergeAcross="${MaxCol - 3}" ss:StyleID="TitleSub"><Data ss:Type="String">DIRECCIÓN DE DESARROLLO HUMANO Y PROFESIONALIZACIÓN</Data></Cell>
-                </Row>
-                <Row>
-                    <Cell ss:Index="3" ss:MergeAcross="${MaxCol - 3}" ss:StyleID="TitleMeta"><Data ss:Type="String">INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp}</Data></Cell>
-                </Row>
-                <Row>
-                    <Cell ss:Index="3" ss:MergeAcross="${MaxCol - 3}" ss:StyleID="TitleMeta"><Data ss:Type="String">Reporte: RH_CONTROL_ASISTENCIA_CASC</Data></Cell>
-                </Row>
-                <Row><Cell ss:Index="1"><Data ss:Type="String"></Data></Cell></Row>
-                <Row>
-            `;
+            <Row>
+                <Cell ss:Index="1" ss:MergeAcross="1" ss:StyleID="LogoInifap"><Data ss:Type="String">inifap</Data></Cell>
+                <Cell ss:Index="3" ss:MergeAcross="${MaxCol - 3}" ss:StyleID="TitleSub"><Data ss:Type="String">INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS</Data></Cell>
+            </Row>
+            <Row>
+                <Cell ss:Index="1" ss:MergeDown="1" ss:MergeAcross="1" ss:StyleID="LogoSubtext"><Data ss:Type="String">Instituto Nacional de Forestales, Agrícolas y Pecuarias</Data></Cell>
+                <Cell ss:Index="3" ss:MergeAcross="${MaxCol - 3}" ss:StyleID="TitleSub"><Data ss:Type="String">COORDINACIÓN DE ADMINISTRACIÓN Y SISTEMAS</Data></Cell>
+            </Row>
+            <Row>
+                <Cell ss:Index="3" ss:MergeAcross="${MaxCol - 3}" ss:StyleID="TitleSub"><Data ss:Type="String">DIRECCIÓN DE DESARROLLO HUMANO Y PROFESIONALIZACIÓN</Data></Cell>
+            </Row>
+            <Row>
+                <Cell ss:Index="3" ss:MergeAcross="${MaxCol - 3}" ss:StyleID="TitleMeta"><Data ss:Type="String">INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp}</Data></Cell>
+            </Row>
+            <Row>
+                <Cell ss:Index="3" ss:MergeAcross="${MaxCol - 3}" ss:StyleID="TitleMeta"><Data ss:Type="String">Reporte: RH_CONTROL_ASISTENCIA_CASC</Data></Cell>
+            </Row>
+            <Row><Cell ss:Index="1"><Data ss:Type="String"></Data></Cell></Row>
+            <Row>
+        `;
 
-            RhAsisCasc.rawHeaderGlobal.forEach(h => {
-                xmlContent += `        <Cell ss:StyleID="HeaderTable"><Data ss:Type="String">${h}</Data></Cell>\n`;
-            });
-
-            xmlContent += `      </Row>\n`;
-
-            rowsMapeadas.forEach(dRow => {
-                let styleId = "CellNormal";
-                if (dRow[13]) {
-                    styleId = "CellFalta";
-                } else if (dRow[12]) {
-                    styleId = "CellRetardoMay";
-                } else if (dRow[11]) {
-                    styleId = "CellRetardoMed";
-                } else if (dRow[10]) {
-                    styleId = "CellRetardoMen";
-                }
-
-                xmlContent += `      <Row>\n`;
-                dRow.forEach(cellVal => {
-                    const safeVal = (cellVal !== null && cellVal !== undefined) ? String(cellVal) : '';
-                    xmlContent += `        <Cell ss:StyleID="${styleId}"><Data ss:Type="String">${safeVal}</Data></Cell>\n`;
+                RhAsisCasc.rawHeaderGlobal.forEach(h => {
+                    xmlContent += `        <Cell ss:StyleID="HeaderTable"><Data ss:Type="String">${h}</Data></Cell>\n`;
                 });
-                xmlContent += `      </Row>\n`;
-            });
 
-            xmlContent += `    </Table>
+                xmlContent += `      </Row>\n`;
+
+                rowsMapeadas.forEach(dRow => {
+                    let styleId = "CellNormal";
+                    if (dRow[13]) {
+                        styleId = "CellFalta";
+                    } else if (dRow[12]) {
+                        styleId = "CellRetardoMay";
+                    } else if (dRow[11]) {
+                        styleId = "CellRetardoMed";
+                    } else if (dRow[10]) {
+                        styleId = "CellRetardoMen";
+                    }
+
+                    xmlContent += `      <Row>\n`;
+                    dRow.forEach(cellVal => {
+                        const safeVal = (cellVal !== null && cellVal !== undefined) ? String(cellVal) : '';
+                        xmlContent += `        <Cell ss:StyleID="${styleId}"><Data ss:Type="String">${safeVal}</Data></Cell>\n`;
+                    });
+                    xmlContent += `      </Row>\n`;
+                });
+
+                xmlContent += `    </Table>
     </Worksheet>\n`;
         });
 
         xmlContent += `</Workbook>`;
 
-        const blob = new Blob([xmlContent], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8;' });
+        const blob = new Blob([xmlContent], { type: 'application/vnd.ms-excel;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `Reporte_Biometrico_${centroActual}_${numEmpFiltro ? `Emp_${numEmpFiltro}` : "Todos_Empleados"}.xlsx`;
+        a.download = `Reporte_Biometrico_${centroActual}_${numEmpFiltro ? `Emp_${numEmpFiltro}` : "Todos_Empleados"}.xls`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);

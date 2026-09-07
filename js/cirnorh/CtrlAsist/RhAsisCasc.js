@@ -121,6 +121,7 @@ window.RhAsisCasc = {
                     <div class="bg-white rounded-2xl border border-stone-200 overflow-hidden shadow-xs">
                         <div class="px-6 py-4 border-b border-stone-100 flex justify-between items-center bg-white">
                             <h4 class="font-bold text-stone-800 text-xs uppercase tracking-wider">LISTADO GENERAL DE BIOMÉTRICO</h4>
+                            <span id="contadorRegistrosBio" class="text-xs font-bold text-stone-500"></span>
                         </div>
 
                         <div id="gridContentBio" class="max-h-[500px] overflow-y-auto overflow-x-auto custom-scrollbar">
@@ -211,7 +212,7 @@ window.RhAsisCasc = {
             if (primerId && RhAsisFBio.groupedData[primerId].rows && RhAsisFBio.groupedData[primerId].rows.length > 0) {
                 const primeraFila = RhAsisFBio.groupedData[primerId].rows[0];
                 primerNumEmp = primeraFila[0] || "";
-                rawFecha = primeraFila[6] || primeraFila[7] || ""; // Ajustado al índice de fecha en tu estructura
+                rawFecha = primeraFila[8] || primeraFila[7] || ""; // Ajustado al índice de fecha en tu estructura
             }
 
             if (!rawFecha) {
@@ -342,7 +343,7 @@ window.RhAsisCasc = {
 
         if (exportBtn) {
             exportBtn.disabled = false;
-            exportBtn.className = "px-4 py-2 bg-[#249444] hover:bg-[#1b7033] text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer";
+            exportBtn.className = "px-4 py-2 bg-[#249444] hover:bg-[#1e7a37] text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer";
         }
 
         if (contador) {
@@ -363,18 +364,13 @@ window.RhAsisCasc = {
                             ${celdas.map((c, index) => {
                 let val = c;
 
-                // Índices 2 y 3 corresponden a Hra.Entrada y Hra. Salida (Formato corto de hora sin segundos: "08:00")
                 if (index === 2 || index === 3) {
                     val = RhAsisCasc.extraerHoraLegible(val, false);
-                }
-                // Índice 4 corresponde a Hra.Registro (Formato completo con segundos: "7:49:35")
-                else if (index === 4) {
+                } else if (index === 4) {
                     val = RhAsisCasc.extraerHoraLegible(val, true);
-                }
-                else if (val instanceof Date) {
+                } else if (val instanceof Date) {
                     val = val.toLocaleDateString();
-                }
-                else if (typeof val === 'string' && val.includes('T') && val.length > 18 && !val.includes('1899-12-30')) {
+                } else if (typeof val === 'string' && val.includes('T') && val.length > 18 && !val.includes('1899-12-30')) {
                     const d = new Date(val);
                     if (!isNaN(d)) val = d.toLocaleDateString();
                 }
@@ -451,15 +447,12 @@ window.RhAsisCasc = {
         RhAsisCasc.renderGrid(filtrados);
     },
 
-    // --- NUEVAS FUNCIONES DE EXPORTACIÓN PARA RhAsisCasc ---
-
     obtenerRegistrosFiltradosActuales: function () {
-        const fechaDesdeInput = document.getElementById('filtroFechaDesde')?.value || ""; // Formato YYYY-MM-DD
-        const fechaHastaInput = document.getElementById('filtroFechaHasta')?.value || ""; // Formato YYYY-MM-DD
+        const fechaDesdeInput = document.getElementById('filtroFechaDesde')?.value || "";
+        const fechaHastaInput = document.getElementById('filtroFechaHasta')?.value || "";
         const numEmpFiltro = document.getElementById('filtroNumEmpBio')?.value.toLowerCase().trim() || "";
         const centroFiltro = document.getElementById('filtroCentroBio')?.value.toLowerCase().trim() || "";
 
-        // Convertir inputs de fecha a números YYYYMMDD para comparación exacta
         const valDesde = fechaDesdeInput ? parseInt(fechaDesdeInput.replace(/-/g, ''), 10) : null;
         const valHasta = fechaHastaInput ? parseInt(fechaHastaInput.replace(/-/g, ''), 10) : null;
 
@@ -468,15 +461,13 @@ window.RhAsisCasc = {
 
             const centro = String(row[0] || "").toLowerCase();
             const numEmp = String(row[1] || "").toLowerCase();
-            const fechaRegRaw = String(row[6] || "").trim(); // Columna de Fecha Reg.
+            const fechaRegRaw = String(row[6] || "").trim();
 
             if (centroFiltro && !centro.includes(centroFiltro)) return false;
             if (numEmpFiltro && !numEmp.includes(numEmpFiltro)) return false;
 
             if (valDesde !== null || valHasta !== null) {
                 let fechaNum = null;
-
-                // Si la fecha viene en formato DD/MM/YYYY (ej. "3/8/2026" o "03/08/2026")
                 if (fechaRegRaw.includes('/')) {
                     const partes = fechaRegRaw.split('/');
                     if (partes.length === 3) {
@@ -485,9 +476,7 @@ window.RhAsisCasc = {
                         const y = partes[2];
                         fechaNum = parseInt(`${y}${m}${d}`, 10);
                     }
-                }
-                // Si viene en formato YYYY-MM-DD
-                else if (fechaRegRaw.includes('-')) {
+                } else if (fechaRegRaw.includes('-')) {
                     fechaNum = parseInt(fechaRegRaw.replace(/-/g, ''), 10);
                 }
 
@@ -504,33 +493,98 @@ window.RhAsisCasc = {
     generateWorkbookCasc: function () {
         const wb = XLSX.utils.book_new();
         const fondoHoja = "E9F5E9";
-        const MaxFila = 200;
-        const MaxCol = 26;
+        const MaxFila = 500;
+        const MaxCol = RhAsisCasc.rawHeaderGlobal.length;
 
-        Object.keys(groupedData).forEach(id => {
-            const emp = groupedData[id];
-            const wsData = [
+        const registrosAExportar = RhAsisCasc.obtenerRegistrosFiltradosActuales();
+        const numEmpFiltro = document.getElementById('filtroNumEmpBio')?.value.trim() || "";
+
+        const mapearRegistros = (lista) => {
+            return lista.map(r => {
+                const celdas = Array.isArray(r) ? [...r.slice(0, 12)] : RhAsisCasc.rawHeaderGlobal.map(h => r[h] || "");
+                return celdas.map((c, index) => {
+                    let val = c;
+                    if (index === 2 || index === 3) {
+                        val = RhAsisCasc.extraerHoraLegible(val, false);
+                    } else if (index === 4) {
+                        val = RhAsisCasc.extraerHoraLegible(val, true);
+                    } else if (val instanceof Date) {
+                        val = val.toLocaleDateString();
+                    } else if (typeof val === 'string' && val.includes('T') && val.length > 18 && !val.includes('1899-12-30')) {
+                        const d = new Date(val);
+                        if (!isNaN(d)) val = d.toLocaleDateString();
+                    }
+                    return val !== null && val !== undefined ? val : "";
+                });
+            });
+        };
+
+        let gruposAProcesar = {};
+
+        if (!numEmpFiltro) {
+            registrosAExportar.forEach(row => {
+                const empId = String(row[1] || "S_N").trim();
+                if (!gruposAProcesar[empId]) {
+                    gruposAProcesar[empId] = [];
+                }
+                gruposAProcesar[empId].push(row);
+            });
+        } else {
+            gruposAProcesar[`Emp_${numEmpFiltro}`] = registrosAExportar;
+        }
+
+        const chavesGrupos = Object.keys(gruposAProcesar);
+
+        if (chavesGrupos.length === 0) {
+            const wsDataVacia = [
                 ["inifap", "", "INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS"],
                 ["Instituto Nacional de Investigaciones", "", "COORDINACIÓN DE ADMINISTRACIÓN Y SISTEMAS"],
                 ["Forestales, Agrícolas y Pecuarias", "", "DIRECCIÓN DE DESARROLLO HUMANO Y PROFESIONALIZACIÓN"],
                 ["", "", "INCIDENCIAS GENERADAS DE ACUERDO AL REGISTRO ELECTRÓNICO V2"],
                 ["", "", "Reporte: RH_CONTROL_ASISTENCIA_V2"],
                 [],
-                rawHeader,
-                ...emp.rows
+                RhAsisCasc.rawHeaderGlobal
             ];
-            const ws = XLSX.utils.aoa_to_sheet(wsData);
-            ws['!ref'] = `A1:${XLSX.utils.encode_col(MaxCol - 1)}${MaxFila}`;
+            const wsVacio = XLSX.utils.aoa_to_sheet(wsDataVacia);
+            ws['!ref'] = `A1:${XLSX.utils.encode_col(MaxCol - 1)}200`;
             ws['!view'] = { showGridLines: false };
+            XLSX.utils.book_append_sheet(wb, wsVacio, "Sin_Datos");
+            return wb;
+        }
+
+        chavesGrupos.forEach(key => {
+            const rowsMapeadas = mapearRegistros(gruposAProcesar[key]);
+            const etiquetaEmp = numEmpFiltro ? numEmpFiltro : key;
+
+            const wsData = [
+                ["inifap", "", "INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS"],
+                ["Instituto Nacional de Investigaciones", "", "COORDINACIÓN DE ADMINISTRACIÓN Y SISTEMAS"],
+                ["Forestales, Agrícolas y Pecuarias", "", "DIRECCIÓN DE DESARROLLO HUMANO Y PROFESIONALIZACIÓN"],
+                ["", "", `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp}`],
+                ["", "", "Reporte: RH_CONTROL_ASISTENCIA_CASC"],
+                [],
+                RhAsisCasc.rawHeaderGlobal,
+                ...rowsMapeadas
+            ];
+
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            ws['!ref'] = `A1:${XLSX.utils.encode_col(MaxCol - 1)}${Math.max(MaxFila, wsData.length + 10)}`;
+            ws['!view'] = { showGridLines: false };
+
+            // Estructura de celdas unidas (Merges) corporativas exactas
             ws['!merges'] = [
-                { s: { r: 0, c: 0 }, e: { r: 0, c: 1 } }, { s: { r: 1, c: 0 }, e: { r: 1, c: 1 } },
-                { s: { r: 2, c: 0 }, e: { r: 2, c: 1 } }, { s: { r: 0, c: 2 }, e: { r: 0, c: 5 } },
-                { s: { r: 1, c: 2 }, e: { r: 1, c: 5 } }, { s: { r: 2, c: 2 }, e: { r: 2, c: 5 } },
-                { s: { r: 3, c: 2 }, e: { r: 3, c: 5 } }, { s: { r: 4, c: 2 }, e: { r: 4, c: 5 } }
+                { s: { r: 0, c: 0 }, e: { r: 0, c: 1 } }, 
+                { s: { r: 1, c: 0 }, e: { r: 1, c: 1 } },                    
+                { s: { r: 2, c: 0 }, e: { r: 2, c: 1 } }, 
+                { s: { r: 0, c: 2 }, e: { r: 0, c: 5 } }, 
+                { s: { r: 1, c: 2 }, e: { r: 1, c: 5 } }, 
+                { s: { r: 2, c: 2 }, e: { r: 2, c: 5 } },  
+                { s: { r: 3, c: 2 }, e: { r: 3, c: 5 } }, 
+                { s: { r: 4, c: 2 }, e: { r: 4, c: 5 } }  
             ];
 
             const tableRows = wsData.slice(6);
-            const colWidths = rawHeader.map((_, colIndex) => {
+            const colWidths = RhAsisCasc.rawHeaderGlobal.map((_, colIndex) => {
                 if (colIndex === 0) return { wch: 15 };
                 let maxWidth = 10;
                 tableRows.forEach(row => {
@@ -543,28 +597,61 @@ window.RhAsisCasc = {
             });
             ws['!cols'] = colWidths;
 
-            for (let r = 0; r < MaxFila; r++) {
+            const totalFilasHoja = Math.max(MaxFila, wsData.length);
+            for (let r = 0; r < totalFilasHoja; r++) {
                 for (let c = 0; c < MaxCol; c++) {
                     const cellRef = XLSX.utils.encode_cell({ r: r, c: c });
                     if (!ws[cellRef]) ws[cellRef] = { v: "" };
-                    let style = { fill: { type: 'pattern', pattern: 'solid', fgColor: { rgb: fondoHoja } }, font: { sz: 9, name: "Arial" }, alignment: { vertical: "center", horizontal: "center" } };
-                    if (r === 0 && c === 0) { style.font = { bold: true, sz: 24, color: { rgb: "249444" }, name: "Arial Black" }; style.alignment.horizontal = "left"; }
-                    if (r >= 1 && r <= 2 && c >= 0 && c <= 1) { style.font = { sz: 8, color: { rgb: "1A1A1B" }, bold: true }; style.alignment.horizontal = "left"; style.alignment.wrapText = true; }
-                    if (r >= 0 && r <= 4 && c >= 2 && c <= 5) { style.font = { sz: 9, bold: true }; }
-                    if (r === 6 && c < rawHeader.length) { style.fill = { type: 'pattern', pattern: 'solid', fgColor: { rgb: "D9D9D9" } }; style.font.bold = true; style.border = { top: { style: "thin" }, bottom: { style: "thin" }, left: { style: "thin" }, right: { style: "thin" } }; }
+                    let style = {
+                        fill: { type: 'pattern', pattern: 'solid', fgColor: { rgb: fondoHoja } },
+                        font: { sz: 9, name: "Arial" },
+                        alignment: { vertical: "center", horizontal: "center" }
+                    };
+
+                    if (r === 0 && c === 0) {
+                        style.font = { bold: true, sz: 24, color: { rgb: "249444" }, name: "Arial Black" };
+                        style.alignment.horizontal = "left";
+                    }
+                    if (r >= 1 && r <= 2 && c >= 0 && c <= 1) {
+                        style.font = { sz: 8, color: { rgb: "1A1A1B" }, bold: true };
+                        style.alignment.horizontal = "left";
+                        style.alignment.wrapText = true;
+                    }
+                    if (r >= 0 && r <= 4 && c >= 2 && c <= 5) { 
+                        style.font = { sz: 9, bold: true }; 
+                    }
+                    if (r === 6 && c < RhAsisCasc.rawHeaderGlobal.length) {
+                        style.fill = { type: 'pattern', pattern: 'solid', fgColor: { rgb: "D9D9D9" } };
+                        style.font.bold = true;
+                        style.border = { top: { style: "thin" }, bottom: { style: "thin" }, left: { style: "thin" }, right: { style: "thin" } };
+                    }
                     if (r >= 7) {
-                        const dRow = emp.rows[r - 7];
-                        if (dRow && c < rawHeader.length) {
-                            let bgColor = fondoHoja; let fontColor = "000000";
-                            if (dRow[13]) { bgColor = "FF0000"; fontColor = "FFFFFF"; } else if (dRow[12]) { bgColor = "E46C0A"; fontColor = "FFFFFF"; } else if (dRow[11]) { bgColor = "FFC000"; } else if (dRow[10]) { bgColor = "FFFF00"; }
-                            style.fill = { type: 'pattern', pattern: 'solid', fgColor: { rgb: bgColor } }; style.font.color = { rgb: fontColor }; style.border = { top: { style: "thin" }, bottom: { style: "thin" }, left: { style: "thin" }, right: { style: "thin" } };
+                        const dRow = rowsMapeadas[r - 7];
+                        if (dRow && c < RhAsisCasc.rawHeaderGlobal.length) {
+                            let bgColor = fondoHoja;
+                            let fontColor = "000000";
+                            if (dRow[11]) { // Falta
+                                bgColor = "FF0000"; fontColor = "FFFFFF";
+                            } else if (dRow[10]) { // Retardo May.
+                                bgColor = "E46C0A"; fontColor = "FFFFFF";
+                            } else if (dRow[9]) { // Retardo Med.
+                                bgColor = "FFC000";
+                            } else if (dRow[8]) { // Retardo Men.
+                                bgColor = "FFFF00";
+                            }
+                            style.fill = { type: 'pattern', pattern: 'solid', fgColor: { rgb: bgColor } };
+                            style.font.color = { rgb: fontColor };
+                            style.border = { top: { style: "thin" }, bottom: { style: "thin" }, left: { style: "thin" }, right: { style: "thin" } };
                         }
                     }
                     ws[cellRef].s = style;
                 }
             }
-            XLSX.utils.book_append_sheet(wb, ws, id.substring(0, 31));
+
+            const nombreHojaLimpio = String(etiquetaEmp).replace(/[:\\\/?*\[\]]/g, "_").substring(0, 31);
+            XLSX.utils.book_append_sheet(wb, ws, nombreHojaLimpio);
         });
+
         return wb;
     },
 
@@ -576,4 +663,3 @@ window.RhAsisCasc = {
         XLSX.writeFile(wb, `Reporte_Biometrico_${centroActual}_${sufijo}.xlsx`);
     }
 };
-

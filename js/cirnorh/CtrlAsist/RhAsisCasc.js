@@ -473,7 +473,6 @@ window.RhAsisCasc = {
             return true;
         });
     },
-    
 exportarExcelCasc: function () {
         const registrosAExportar = RhAsisCasc.obtenerRegistrosFiltradosActuales();
         const numEmpFiltro = document.getElementById('filtroNumEmpBio')?.value.trim() || "";

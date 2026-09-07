@@ -630,9 +630,16 @@ window.RhAsisCasc = {
         return wb;
     },
 
-   exportarExcelCasc: function () {
-        // Asegúrate de pasar la variable groupedData (o el objeto que contenga los datos)
-        const wb = RhAsisCasc.generateWorkbookCasc(groupedData); 
+exportarExcelCasc: function () {
+        // Buscamos los datos de forma segura donde sea que estén guardados:
+        // 1. Si existe una variable global o local llamada 'groupedData'
+        // 2. Si están guardados dentro de este mismo objeto (this.groupedData)
+        // 3. O un objeto vacío si no se encuentran
+        const datosAProcesar = (typeof groupedData !== 'undefined' ? groupedData : null) || 
+                               (this.groupedData) || 
+                               window.groupedData || {};
+
+        const wb = RhAsisCasc.generateWorkbookCasc(datosAProcesar); 
         const centroActual = RhAsisCasc.obtenerClaveCentroActual() || "General";
         const numEmpFiltro = document.getElementById('filtroNumEmpBio')?.value.trim() || "";
         const sufijo = numEmpFiltro ? `Emp_${numEmpFiltro}` : "Todos_Empleados";

@@ -12,14 +12,12 @@ window.RhAsisCasc = {
         if (!valor) return "";
         let strVal = String(valor).trim();
 
-        // Si viene en formato ISO de fecha base de Sheets (ej. 1899-12-30T15:23:52.000Z)
         if (strVal.includes('1899-12-30T') || strVal.includes('T')) {
             const fechaObj = new Date(strVal);
             if (!isNaN(fechaObj.getTime())) {
                 const horas = String(fechaObj.getHours()).padStart(2, '0');
                 const minutos = String(fechaObj.getMinutes()).padStart(2, '0');
 
-                // Si es la columna de registro completo, incluimos los segundos
                 if (esRegistroCompleto) {
                     const segundos = String(fechaObj.getSeconds()).padStart(2, '0');
                     return `${horas}:${minutos}:${segundos}`;
@@ -28,7 +26,6 @@ window.RhAsisCasc = {
             }
         }
 
-        // Si ya es un texto (ej. "7:49:35" o "8:00"), lo devolvemos tal cual sin recortar
         return strVal;
     },
 
@@ -53,11 +50,7 @@ window.RhAsisCasc = {
 
         contenedor.innerHTML = `
             <div class="space-y-6 animate-fade-in pb-10">
-                
-                <!-- Tarjeta Principal del Módulo -->
                 <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6 space-y-6">
-                    
-                    <!-- Cabecera / Título Principal -->
                     <div class="flex items-center gap-3 mb-6 pb-4 border-b border-stone-100">
                         <div class="p-2.5 bg-[#f0fdf4] border border-[#c6f6d5] text-[#059669] rounded-xl flex items-center justify-center">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 21a8 8 0 0 1 13.292-6"/><circle cx="10" cy="8" r="5"/><path d="m16 19 2 2 4-4"/></svg>
@@ -68,17 +61,11 @@ window.RhAsisCasc = {
                         </div>
                     </div>
 
-                    <!-- Barra Contenedora Superior -->
                     <div class="bg-stone-50/60 rounded-2xl border border-stone-200 p-5 space-y-4">
-                        
-                        <!-- Ficha General: Título y Controles Alineados -->
                         <div class="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4">
                             <h4 class="font-bold text-stone-800 text-sm pt-1">Gestión de Asistencias</h4>
-
-                            <!-- Input oculto para carga de archivos -->
                             <input type="file" id="uploadBiometrico" class="hidden" accept=".xlsx, .xlsm, .csv" onchange="RhAsisCasc.manejarCargaYGuardadoAutomatico(this)">
 
-                            <!-- Filtros y Botones unificados en línea -->
                             <div class="flex flex-wrap items-end gap-3 w-full xl:w-auto">
                                 <div class="flex flex-col gap-1">
                                     <label for="filtroFechaDesde" class="text-[10px] font-bold text-stone-500 uppercase tracking-wider">De</label>
@@ -117,7 +104,6 @@ window.RhAsisCasc = {
                         </div>
                     </div>
 
-                    <!-- Contenedor Único del Grid -->
                     <div class="bg-white rounded-2xl border border-stone-200 overflow-hidden shadow-xs">
                         <div class="px-6 py-4 border-b border-stone-100 flex justify-between items-center bg-white">
                             <h4 class="font-bold text-stone-800 text-xs uppercase tracking-wider">LISTADO GENERAL DE BIOMÉTRICO</h4>
@@ -139,9 +125,7 @@ window.RhAsisCasc = {
                             </table>
                         </div>
                     </div>
-
                 </div>
-
             </div>
         `;
 
@@ -212,7 +196,7 @@ window.RhAsisCasc = {
             if (primerId && RhAsisFBio.groupedData[primerId].rows && RhAsisFBio.groupedData[primerId].rows.length > 0) {
                 const primeraFila = RhAsisFBio.groupedData[primerId].rows[0];
                 primerNumEmp = primeraFila[0] || "";
-                rawFecha = primeraFila[8] || primeraFila[7] || ""; // Ajustado al índice de fecha en tu estructura
+                rawFecha = primeraFila[8] || primeraFila[7] || "";
             }
 
             if (!rawFecha) {
@@ -262,18 +246,18 @@ window.RhAsisCasc = {
                         if (empleado && Array.isArray(empleado.rows)) {
                             empleado.rows.forEach(row => {
                                 rowsParaSheets.push([
-                                    claveCentroSeleccionado,       // ClaveCentro
-                                    row[0] || "",                  // NumEmp
-                                    row[4] || "",                  // RHBHraEnt
-                                    row[5] || "",                  // RHBHraSal
-                                    row[6] || "",                  // RHBHraReg
-                                    row[7] || "",                  // RHBNomReg
-                                    row[8] || "",                  // RHBFecReg
-                                    row[9] || "",                  // RHBDía
-                                    row[10] || "",                 // RHBRetMen
-                                    row[11] || "",                 // RHBRetMed
-                                    row[12] || "",                 // RHBRetMay
-                                    row[13] || ""                  // RHBFalta
+                                    claveCentroSeleccionado,
+                                    row[0] || "",
+                                    row[4] || "",
+                                    row[5] || "",
+                                    row[6] || "",
+                                    row[7] || "",
+                                    row[8] || "",
+                                    row[9] || "",
+                                    row[10] || "",
+                                    row[11] || "",
+                                    row[12] || "",
+                                    row[13] || ""
                                 ]);
                             });
                         }

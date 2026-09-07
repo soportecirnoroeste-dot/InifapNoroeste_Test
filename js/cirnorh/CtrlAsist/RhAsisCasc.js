@@ -492,7 +492,6 @@ window.RhAsisCasc = {
 
     generateWorkbookCasc: function () {
         const wb = XLSX.utils.book_new();
-        const fondoHoja = "E9F5E9";
         const MaxFila = 500;
         const MaxCol = RhAsisCasc.rawHeaderGlobal.length;
 
@@ -603,8 +602,8 @@ window.RhAsisCasc = {
                     const cellRef = XLSX.utils.encode_cell({ r: r, c: c });
                     if (!ws[cellRef]) ws[cellRef] = { v: "" };
 
+                    // Estilo por defecto para el área superior (Fondo blanco limpio, sin relleno)
                     let style = {
-                        fill: { type: 'pattern', pattern: 'solid', fgColor: { rgb: fondoHoja } },
                         font: { sz: 9, name: "Arial", color: { rgb: "000000" } },
                         alignment: { vertical: "center", horizontal: "center", wrapText: true }
                     };
@@ -624,7 +623,7 @@ window.RhAsisCasc = {
                         style.font = { sz: 9.5, bold: true, color: { rgb: "1A1A1B" }, name: "Arial" };
                         style.alignment.horizontal = "left";
                     }
-                    // Fila de Cabecera de la Tabla (Fila 6)
+                    // Fila de Cabecera de la Tabla (Fila 6) - Aquí sí aplicamos fondo gris y bordes
                     else if (r === 6) {
                         style.fill = { type: 'pattern', pattern: 'solid', fgColor: { rgb: "D9D9D9" } };
                         style.font = { bold: true, sz: 10, color: { rgb: "000000" }, name: "Arial" };
@@ -635,13 +634,13 @@ window.RhAsisCasc = {
                             right: { style: "thin", color: { rgb: "888888" } }
                         };
                     }
-                    // Filas de Datos de la Tabla (Fila 7 en adelante)
+                    // Filas de Datos de la Tabla (Fila 7 en adelante) - Con bordes y colores condicionales si aplica
                     else if (r >= 7) {
                         const dRow = rowsMapeadas[r - 7];
-                        if (dRow) {
-                            let bgColor = fondoHoja;
-                            let fontColor = "000000";
+                        let bgColor = "FFFFFF"; // Fondo blanco por defecto para celdas de la tabla
+                        let fontColor = "000000";
 
+                        if (dRow) {
                             // Colores condicionales institucionales para incidencias
                             if (dRow[11] && String(dRow[11]).trim() !== "") { // Falta
                                 bgColor = "FF0000"; fontColor = "FFFFFF";
@@ -652,16 +651,16 @@ window.RhAsisCasc = {
                             } else if (dRow[8] && String(dRow[8]).trim() !== "") { // Retardo Men.
                                 bgColor = "FFFF00"; fontColor = "000000";
                             }
-
-                            style.fill = { type: 'pattern', pattern: 'solid', fgColor: { rgb: bgColor } };
-                            style.font = { sz: 9, name: "Arial", color: { rgb: fontColor }, bold: (bgColor !== fondoHoja) };
-                            style.border = {
-                                top: { style: "thin", color: { rgb: "CCCCCC" } },
-                                bottom: { style: "thin", color: { rgb: "CCCCCC" } },
-                                left: { style: "thin", color: { rgb: "CCCCCC" } },
-                                right: { style: "thin", color: { rgb: "CCCCCC" } }
-                            };
                         }
+
+                        style.fill = { type: 'pattern', pattern: 'solid', fgColor: { rgb: bgColor } };
+                        style.font = { sz: 9, name: "Arial", color: { rgb: fontColor }, bold: (bgColor !== "FFFFFF") };
+                        style.border = {
+                            top: { style: "thin", color: { rgb: "CCCCCC" } },
+                            bottom: { style: "thin", color: { rgb: "CCCCCC" } },
+                            left: { style: "thin", color: { rgb: "CCCCCC" } },
+                            right: { style: "thin", color: { rgb: "CCCCCC" } }
+                        };
                     }
 
                     ws[cellRef].s = style;

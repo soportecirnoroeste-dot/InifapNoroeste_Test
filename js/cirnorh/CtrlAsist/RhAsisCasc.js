@@ -473,17 +473,15 @@ window.RhAsisCasc = {
             return true;
         });
     },
-
+    
 exportarExcelCasc: function () {
         const registrosAExportar = RhAsisCasc.obtenerRegistrosFiltradosActuales();
         const numEmpFiltro = document.getElementById('filtroNumEmpBio')?.value.trim() || "";
         const centroActual = RhAsisCasc.obtenerClaveCentroActual() || "General";
-        const rawHeaders = RhAsisCasc.rawHeaderGlobal;
-        const MaxCol = rawHeaders.length;
 
         const mapearRegistros = (lista) => {
             return lista.map(r => {
-                const celdas = Array.isArray(r) ? [...r] : rawHeaders.map(h => r[h] || "");
+                const celdas = Array.isArray(r) ? [...r] : RhAsisCasc.rawHeaderGlobal.map(h => r[h] || "");
                 return celdas.map((c, index) => {
                     let val = c;
                     if (index === 2 || index === 3) {
@@ -518,7 +516,7 @@ exportarExcelCasc: function () {
             return;
         }
 
-        // Crear el libro de trabajo de Excel (Workbook)
+        // Crear un libro de Excel (Workbook)
         const wb = XLSX.utils.book_new();
 
         chavesGrupos.forEach(key => {
@@ -526,105 +524,58 @@ exportarExcelCasc: function () {
             const etiquetaEmp = numEmpFiltro ? numEmpFiltro : key;
             const nombrePestana = `Emp_${etiquetaEmp}`.replace(/[\*\?\/\\\\[\]]/g, '').substring(0, 31);
 
-            let wsData = [];
+            // Construir la matriz de datos de la hoja
+            const wsData = [
+                ["inifap", "", "INSTITUTO DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS"],
+                ["Instituto Nacional de Forestales,\nAgrícolas y Pecuarias", "", "COORDINACIÓN DE ADMINISTRACIÓN Y SISTEMAS"],
+                ["", "", "DIRECCIÓN DE DESARROLLO HUMANO Y PROFESIONALIZACIÓN"],
+                ["", "", `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp}`],
+                ["", "", "Reporte: RH_CONTROL_ASISTENCIA_CASC"],
+                [], // Fila vacía
+                RhAsisCasc.rawHeaderGlobal // Encabezados de la tabla
+            ];
 
-            // Fila 1: Logo INIFAP y Título principal
-            let row1 = [];
-            row1[0] = { v: "inifap", s: { font: { name: "Arial Black", sz: 24, bold: true, color: { rgb: "249444" } }, alignment: { horizontal: "center", vertical: "center" } } };
-            row1[2] = { v: "INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS", s: { font: { name: "Arial", sz: 8.5, bold: true }, alignment: { horizontal: "center", vertical: "center" } } };
-            wsData.push(row1);
-
-            // Fila 2: Subtexto del Logo y Subtítulo 1
-            let row2 = [];
-            row2[0] = { v: "Instituto Nacional de Forestales, Agrícolas y Pecuarias", s: { font: { name: "Arial", sz: 7.5, bold: true }, alignment: { horizontal: "center", vertical: "center", wrapText: true } } };
-            row2[2] = { v: "COORDINACIÓN DE ADMINISTRACIÓN Y SISTEMAS", s: { font: { name: "Arial", sz: 8.5, bold: true }, alignment: { horizontal: "center", vertical: "center" } } };
-            wsData.push(row2);
-
-            // Fila 3: Subtítulo 2
-            let row3 = [];
-            row3[2] = { v: "DIRECCIÓN DE DESARROLLO HUMANO Y PROFESIONALIZACIÓN", s: { font: { name: "Arial", sz: 8.5, bold: true }, alignment: { horizontal: "center", vertical: "center" } } };
-            wsData.push(row3);
-
-            // Fila 4: Metadatos del empleado
-            let row4 = [];
-            row4[2] = { v: `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp}`, s: { font: { name: "Arial", sz: 9, bold: true }, alignment: { horizontal: "center", vertical: "center" } } };
-            wsData.push(row4);
-
-            // Fila 5: Metadatos de reporte
-            let row5 = [];
-            row5[2] = { v: `Reporte: RH_CONTROL_ASISTENCIA_CASC`, s: { font: { name: "Arial", sz: 9, bold: true }, alignment: { horizontal: "center", vertical: "center" } } };
-            wsData.push(row5);
-
-            // Fila 6: Vacía
-            wsData.push([]);
-
-            // Fila 7: Cabecera de la tabla
-            let headerRow = rawHeaders.map(h => ({
-                v: h,
-                s: {
-                    font: { name: "Arial", sz: 9, bold: true },
-                    fill: { fgColor: { rgb: "D9D9D9" } },
-                    alignment: { horizontal: "center", vertical: "center" },
-                    border: {
-                        top: { style: "thin", color: { rgb: "B0B0B0" } },
-                        bottom: { style: "thin", color: { rgb: "B0B0B0" } },
-                        left: { style: "thin", color: { rgb: "B0B0B0" } },
-                        right: { style: "thin", color: { rgb: "B0B0B0" } }
-                    }
-                }
-            }));
-            wsData.push(headerRow);
-
-            // Filas de datos y colores condicionales (Faltas y Retardos)
-            rowsMapeadas.forEach(dRow => {
-                let fillColor = "FFFFFF";
-                let fontColor = "000000";
-                let isBold = false;
-
-                if (dRow[13]) {
-                    fillColor = "FF0000"; fontColor = "FFFFFF"; isBold = true; // Falta
-                } else if (dRow[12]) {
-                    fillColor = "E46C0A"; fontColor = "FFFFFF"; isBold = true; // Retardo Mayor
-                } else if (dRow[11]) {
-                    fillColor = "FFC000"; isBold = true; // Retardo Mediano
-                } else if (dRow[10]) {
-                    fillColor = "FFFF00"; isBold = true; // Retardo Menor
-                }
-
-                let rowCells = dRow.map(cellVal => ({
-                    v: (cellVal !== null && cellVal !== undefined) ? cellVal : "",
-                    s: {
-                        font: { name: "Arial", sz: 9, bold: isBold, color: { rgb: fontColor } },
-                        fill: { fgColor: { rgb: fillColor } },
-                        alignment: { horizontal: "center", vertical: "center" },
-                        border: {
-                            top: { style: "thin", color: { rgb: "E0E0E0" } },
-                            bottom: { style: "thin", color: { rgb: "E0E0E0" } },
-                            left: { style: "thin", color: { rgb: "E0E0E0" } },
-                            right: { style: "thin", color: { rgb: "E0E0E0" } }
-                        }
-                    }
-                }));
-                wsData.push(rowCells);
-            });
+            // Agregar los registros de la tabla
+            rowsMapeadas.forEach(r => wsData.push(r));
 
             const ws = XLSX.utils.aoa_to_sheet(wsData);
 
-            // Definir las celdas combinadas (Merges) exactas
+            // Combinaciones de celdas clave
             ws['!merges'] = [
                 { s: { r: 0, c: 0 }, e: { r: 0, c: 1 } }, // Logo inifap (A1:B1)
-                { s: { r: 0, c: 2 }, e: { r: 0, c: MaxCol - 1 } }, // Título principal (C1 hasta final)
-                { s: { r: 1, c: 0 }, e: { r: 2, c: 1 } }, // Subtexto logo vertical (A2:B3)
-                { s: { r: 1, c: 2 }, e: { r: 1, c: MaxCol - 1 } }, // Subtítulo 1 (C2 hasta final)
-                { s: { r: 2, c: 2 }, e: { r: 2, c: MaxCol - 1 } }, // Subtítulo 2 (C3 hasta final)
-                { s: { r: 3, c: 2 }, e: { r: 3, c: MaxCol - 1 } }, // Empleado (C4 hasta final)
-                { s: { r: 4, c: 2 }, e: { r: 4, c: MaxCol - 1 } }  // Reporte (C5 hasta final)
+                { s: { r: 1, c: 0 }, e: { r: 2, c: 1 } }, // Subtexto izquierda (A2:B3 en negrita)
+                { s: { r: 0, c: 2 }, e: { r: 0, c: 10 } }, // Título 1 centrado
+                { s: { r: 1, c: 2 }, e: { r: 1, c: 10 } }, // Título 2 centrado
+                { s: { r: 2, c: 2 }, e: { r: 2, c: 10 } }, // Título 3 centrado
+                { s: { r: 3, c: 2 }, e: { r: 3, c: 10 } }, // Título 4 centrado
+                { s: { r: 4, c: 2 }, e: { r: 4, c: 10 } }  // Título 5 centrado
             ];
+
+            // Aplicar estilos y centrado solicitados para C1:C5
+            for (let R = 0; R <= 4; R++) {
+                for (let C = 2; C <= 10; C++) {
+                    const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
+                    if (!ws[cellRef]) ws[cellRef] = { t: 's', v: '' };
+                    ws[cellRef].s = {
+                        alignment: { horizontal: "center", vertical: "center" },
+                        font: { name: "Arial", sz: R === 0 ? 10 : 9, bold: true }
+                    };
+                }
+            }
+
+            // Estilo para celda A2 (negrita)
+            const a2Ref = XLSX.utils.encode_cell({ r: 1, c: 0 });
+            if (ws[a2Ref]) {
+                ws[a2Ref].s = {
+                    alignment: { horizontal: "center", vertical: "center", wrapText: true },
+                    font: { name: "Arial", sz: 8, bold: true }
+                };
+            }
 
             XLSX.utils.book_append_sheet(wb, ws, nombrePestana);
         });
 
-        // Generar archivo con extensión real .xlsx usando SheetJS
+        // Generar archivo con extensión real .xlsx
         const nombreArchivo = `Reporte_Biometrico_${centroActual}_${numEmpFiltro ? `Emp_${numEmpFiltro}` : "Todos_Empleados"}.xlsx`;
         XLSX.writeFile(wb, nombreArchivo);
     }

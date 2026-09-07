@@ -474,7 +474,7 @@ window.RhAsisCasc = {
         });
     },
 
-    exportarExcelCasc: function () {
+exportarExcelCasc: function () {
         const registrosAExportar = RhAsisCasc.obtenerRegistrosFiltradosActuales();
         const numEmpFiltro = document.getElementById('filtroNumEmpBio')?.value.trim() || "";
         const centroActual = RhAsisCasc.obtenerClaveCentroActual() || "General";
@@ -517,7 +517,6 @@ window.RhAsisCasc = {
             return;
         }
 
-        // Estructura XML de libro de Excel con múltiples hojas (Worksheets) reales
         let xmlContent = `\uFEFF<xml version="1.0"?>
 <Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
           xmlns:o="urn:schemas-microsoft-com:office:office"
@@ -528,19 +527,7 @@ window.RhAsisCasc = {
     <Style ss:ID="Default" ss:Name="Normal">
       <Font ss:FontName="Arial" ss:Size="9"/>
     </Style>
-    <Style ss:ID="TitleInifap">
-      <Alignment ss:Horizontal="Left" ss:Vertical="Center"/>
-      <Font ss:FontName="Arial" ss:Size="14" ss:Bold="1" ss:Color="#249444"/>
-    </Style>
-    <Style ss:ID="TitleSub">
-      <Alignment ss:Horizontal="Left" ss:Vertical="Center"/>
-      <Font ss:FontName="Arial" ss:Size="8" ss:Bold="1"/>
-    </Style>
-    <Style ss:ID="TitleMeta">
-      <Alignment ss:Horizontal="Left" ss:Vertical="Center"/>
-      <Font ss:FontName="Arial" ss:Size="9" ss:Bold="1"/>
-    </Style>
-    <Style ss:ID="HeaderTable">
+    <Style ss:ID="LogoInifap">
       <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
       <Borders>
         <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D9D9D9"/>
@@ -548,16 +535,35 @@ window.RhAsisCasc = {
         <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D9D9D9"/>
         <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D9D9D9"/>
       </Borders>
+      <Interior ss:Color="#FFFFFF" ss:Pattern="Solid"/>
+      <Font ss:FontName="Arial" ss:Size="16" ss:Bold="1" ss:Color="#249444"/>
+    </Style>
+    <Style ss:ID="TitleSub">
+      <Alignment ss:Horizontal="Left" ss:Vertical="Center"/>
+      <Font ss:FontName="Arial" ss:Size="8.5" ss:Bold="1" ss:Color="#000000"/>
+    </Style>
+    <Style ss:ID="TitleMeta">
+      <Alignment ss:Horizontal="Left" ss:Vertical="Center"/>
+      <Font ss:FontName="Arial" ss:Size="9" ss:Bold="1" ss:Color="#000000"/>
+    </Style>
+    <Style ss:ID="HeaderTable">
+      <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+      <Borders>
+        <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B0B0B0"/>
+        <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B0B0B0"/>
+        <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B0B0B0"/>
+        <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B0B0B0"/>
+      </Borders>
       <Interior ss:Color="#D9D9D9" ss:Pattern="Solid"/>
       <Font ss:FontName="Arial" ss:Size="9" ss:Bold="1"/>
     </Style>
     <Style ss:ID="CellNormal">
       <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
       <Borders>
-        <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E4E4E4"/>
-        <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E4E4E4"/>
-        <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E4E4E4"/>
-        <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E4E4E4"/>
+        <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+        <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+        <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+        <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
       </Borders>
       <Interior ss:Color="#FFFFFF" ss:Pattern="Solid"/>
       <Font ss:FontName="Arial" ss:Size="9"/>
@@ -565,10 +571,10 @@ window.RhAsisCasc = {
     <Style ss:ID="CellRetardoMen">
       <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
       <Borders>
-        <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E4E4E4"/>
-        <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E4E4E4"/>
-        <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E4E4E4"/>
-        <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E4E4E4"/>
+        <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+        <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+        <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+        <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
       </Borders>
       <Interior ss:Color="#FFFF00" ss:Pattern="Solid"/>
       <Font ss:FontName="Arial" ss:Size="9" ss:Bold="1"/>
@@ -576,10 +582,10 @@ window.RhAsisCasc = {
     <Style ss:ID="CellRetardoMed">
       <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
       <Borders>
-        <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E4E4E4"/>
-        <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E4E4E4"/>
-        <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E4E4E4"/>
-        <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E4E4E4"/>
+        <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+        <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+        <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+        <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
       </Borders>
       <Interior ss:Color="#FFC000" ss:Pattern="Solid"/>
       <Font ss:FontName="Arial" ss:Size="9" ss:Bold="1"/>
@@ -587,10 +593,10 @@ window.RhAsisCasc = {
     <Style ss:ID="CellRetardoMay">
       <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
       <Borders>
-        <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E4E4E4"/>
-        <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E4E4E4"/>
-        <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E4E4E4"/>
-        <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E4E4E4"/>
+        <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+        <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+        <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+        <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
       </Borders>
       <Interior ss:Color="#E46C0A" ss:Pattern="Solid"/>
       <Font ss:FontName="Arial" ss:Size="9" ss:Bold="1" ss:Color="#FFFFFF"/>
@@ -598,10 +604,10 @@ window.RhAsisCasc = {
     <Style ss:ID="CellFalta">
       <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
       <Borders>
-        <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E4E4E4"/>
-        <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E4E4E4"/>
-        <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E4E4E4"/>
-        <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E4E4E4"/>
+        <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+        <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+        <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+        <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
       </Borders>
       <Interior ss:Color="#FF0000" ss:Pattern="Solid"/>
       <Font ss:FontName="Arial" ss:Size="9" ss:Bold="1" ss:Color="#FFFFFF"/>
@@ -618,7 +624,7 @@ window.RhAsisCasc = {
   <Worksheet ss:Name="${nombrePestana}">
     <Table>
       <Row>
-        <Cell ss:MergeAcross="1" ss:StyleID="TitleInifap"><Data ss:Type="String">inifap</Data></Cell>
+        <Cell ss:Index="1" ss:MergeDown="2" ss:MergeAcross="1" ss:StyleID="LogoInifap"><Data ss:Type="String">inifap</Data></Cell>
         <Cell ss:Index="3" ss:MergeAcross="${MaxCol - 3}" ss:StyleID="TitleSub"><Data ss:Type="String">INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS</Data></Cell>
       </Row>
       <Row>
@@ -627,7 +633,6 @@ window.RhAsisCasc = {
       <Row>
         <Cell ss:Index="3" ss:MergeAcross="${MaxCol - 3}" ss:StyleID="TitleSub"><Data ss:Type="String">DIRECCIÓN DE DESARROLLO HUMANO Y PROFESIONALIZACIÓN</Data></Cell>
       </Row>
-      <Row><Cell ss:Index="1"><Data ss:Type="String"></Data></Cell></Row>
       <Row>
         <Cell ss:Index="3" ss:MergeAcross="${MaxCol - 3}" ss:StyleID="TitleMeta"><Data ss:Type="String">INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp}</Data></Cell>
       </Row>

@@ -518,157 +518,157 @@ exportarExcelCasc: function () {
         }
 
         let xmlContent = `\uFEFF<xml version="1.0"?>
-<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
-          xmlns:o="urn:schemas-microsoft-com:office:office"
-          xmlns:x="urn:schemas-microsoft-com:office:excel"
-          xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
-          xmlns:html="http://www.w3.org/TR/REC-html40">
-  <Styles>
-    <Style ss:ID="Default" ss:Name="Normal">
-      <Font ss:FontName="Arial" ss:Size="9"/>
-    </Style>
-    <Style ss:ID="LogoInifap">
-      <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
-      <Font ss:FontName="Arial" ss:Size="16" ss:Bold="1" ss:Color="#249444"/>
-    </Style>
-    <Style ss:ID="LogoSubtextBold">
-      <Alignment ss:Horizontal="Center" ss:Vertical="Center" ss:WrapText="1"/>
-      <Font ss:FontName="Arial" ss:Size="7.5" ss:Bold="1" ss:Color="#000000"/>
-    </Style>
-    <Style ss:ID="TitleSubCentered">
-      <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
-      <Font ss:FontName="Arial" ss:Size="8.5" ss:Bold="1" ss:Color="#000000"/>
-    </Style>
-    <Style ss:ID="TitleMetaCentered">
-      <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
-      <Font ss:FontName="Arial" ss:Size="9" ss:Bold="1" ss:Color="#000000"/>
-    </Style>
-    <Style ss:ID="HeaderTable">
-      <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
-      <Borders>
-        <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B0B0B0"/>
-        <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B0B0B0"/>
-        <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B0B0B0"/>
-        <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B0B0B0"/>
-      </Borders>
-      <Interior ss:Color="#D9D9D9" ss:Pattern="Solid"/>
-      <Font ss:FontName="Arial" ss:Size="9" ss:Bold="1"/>
-    </Style>
-    <Style ss:ID="CellNormal">
-      <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
-      <Borders>
-        <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
-        <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
-        <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
-        <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
-      </Borders>
-      <Interior ss:Color="#FFFFFF" ss:Pattern="Solid"/>
-      <Font ss:FontName="Arial" ss:Size="9"/>
-    </Style>
-    <Style ss:ID="CellRetardoMen">
-      <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
-      <Borders>
-        <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
-        <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
-        <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
-        <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
-      </Borders>
-      <Interior ss:Color="#FFFF00" ss:Pattern="Solid"/>
-      <Font ss:FontName="Arial" ss:Size="9" ss:Bold="1"/>
-    </Style>
-    <Style ss:ID="CellRetardoMed">
-      <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
-      <Borders>
-        <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
-        <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
-        <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
-        <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
-      </Borders>
-      <Interior ss:Color="#FFC000" ss:Pattern="Solid"/>
-      <Font ss:FontName="Arial" ss:Size="9" ss:Bold="1"/>
-    </Style>
-    <Style ss:ID="CellRetardoMay">
-      <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
-      <Borders>
-        <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
-        <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
-        <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
-        <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
-      </Borders>
-      <Interior ss:Color="#E46C0A" ss:Pattern="Solid"/>
-      <Font ss:FontName="Arial" ss:Size="9" ss:Bold="1" ss:Color="#FFFFFF"/>
-    </Style>
-    <Style ss:ID="CellFalta">
-      <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
-      <Borders>
-        <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
-        <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
-        <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
-        <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
-      </Borders>
-      <Interior ss:Color="#FF0000" ss:Pattern="Solid"/>
-      <Font ss:FontName="Arial" ss:Size="9" ss:Bold="1" ss:Color="#FFFFFF"/>
-    </Style>
-  </Styles>
-`;
+        <Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+                xmlns:o="urn:schemas-microsoft-com:office:office"
+                xmlns:x="urn:schemas-microsoft-com:office:excel"
+                xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+                xmlns:html="http://www.w3.org/TR/REC-html40">
+        <Styles>
+            <Style ss:ID="Default" ss:Name="Normal">
+            <Font ss:FontName="Arial" ss:Size="9"/>
+            </Style>
+            <Style ss:ID="LogoInifap">
+            <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+            <Font ss:FontName="Arial Black" ss:Size="24" ss:Bold="1" ss:Color="#249444"/>
+            </Style>
+            <Style ss:ID="LogoSubtext">
+            <Alignment ss:Horizontal="Center" ss:Vertical="Center" ss:WrapText="1"/>
+            <Font ss:FontName="Arial" ss:Size="7.5" ss:Color="#000000"/>
+            </Style>
+            <Style ss:ID="TitleSub">
+            <Alignment ss:Horizontal="Left" ss:Vertical="Center"/>
+            <Font ss:FontName="Arial" ss:Size="8.5" ss:Bold="1" ss:Color="#000000"/>
+            </Style>
+            <Style ss:ID="TitleMeta">
+            <Alignment ss:Horizontal="Left" ss:Vertical="Center"/>
+            <Font ss:FontName="Arial" ss:Size="9" ss:Bold="1" ss:Color="#000000"/>
+            </Style>
+            <Style ss:ID="HeaderTable">
+            <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+            <Borders>
+                <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B0B0B0"/>
+                <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B0B0B0"/>
+                <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B0B0B0"/>
+                <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B0B0B0"/>
+            </Borders>
+            <Interior ss:Color="#D9D9D9" ss:Pattern="Solid"/>
+            <Font ss:FontName="Arial" ss:Size="9" ss:Bold="1"/>
+            </Style>
+            <Style ss:ID="CellNormal">
+            <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+            <Borders>
+                <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+                <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+                <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+                <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+            </Borders>
+            <Interior ss:Color="#FFFFFF" ss:Pattern="Solid"/>
+            <Font ss:FontName="Arial" ss:Size="9"/>
+            </Style>
+            <Style ss:ID="CellRetardoMen">
+            <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+            <Borders>
+                <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+                <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+                <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+                <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+            </Borders>
+            <Interior ss:Color="#FFFF00" ss:Pattern="Solid"/>
+            <Font ss:FontName="Arial" ss:Size="9" ss:Bold="1"/>
+            </Style>
+            <Style ss:ID="CellRetardoMed">
+            <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+            <Borders>
+                <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+                <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+                <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+                <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+            </Borders>
+            <Interior ss:Color="#FFC000" ss:Pattern="Solid"/>
+            <Font ss:FontName="Arial" ss:Size="9" ss:Bold="1"/>
+            </Style>
+            <Style ss:ID="CellRetardoMay">
+            <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+            <Borders>
+                <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+                <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+                <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+                <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+            </Borders>
+            <Interior ss:Color="#E46C0A" ss:Pattern="Solid"/>
+            <Font ss:FontName="Arial" ss:Size="9" ss:Bold="1" ss:Color="#FFFFFF"/>
+            </Style>
+            <Style ss:ID="CellFalta">
+            <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+            <Borders>
+                <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+                <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+                <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+                <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+            </Borders>
+            <Interior ss:Color="#FF0000" ss:Pattern="Solid"/>
+            <Font ss:FontName="Arial" ss:Size="9" ss:Bold="1" ss:Color="#FFFFFF"/>
+            </Style>
+        </Styles>
+        `;
 
-        chavesGrupos.forEach(key => {
-            const rowsMapeadas = mapearRegistros(gruposAProcesar[key]);
-            const etiquetaEmp = numEmpFiltro ? numEmpFiltro : key;
-            const nombrePestana = `Emp_${etiquetaEmp}`.replace(/[\*\?\/\\\\[\]]/g, '').substring(0, 31);
+                chavesGrupos.forEach(key => {
+                    const rowsMapeadas = mapearRegistros(gruposAProcesar[key]);
+                    const etiquetaEmp = numEmpFiltro ? numEmpFiltro : key;
+                    const nombrePestana = `Emp_${etiquetaEmp}`.replace(/[\*\?\/\\\\[\]]/g, '').substring(0, 31);
 
-            xmlContent += `
-  <Worksheet ss:Name="${nombrePestana}">
-    <Table>
-      <Row>
-        <Cell ss:Index="1" ss:MergeAcross="1" ss:StyleID="LogoInifap"><Data ss:Type="String">inifap</Data></Cell>
-        <Cell ss:Index="3" ss:MergeAcross="${MaxCol - 3}" ss:StyleID="TitleSubCentered"><Data ss:Type="String">INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS</Data></Cell>
-      </Row>
-      <Row>
-        <Cell ss:Index="1" ss:MergeDown="1" ss:MergeAcross="1" ss:StyleID="LogoSubtextBold"><Data ss:Type="String">Instituto Nacional de Forestales, Agrícolas y Pecuarias</Data></Cell>
-        <Cell ss:Index="3" ss:MergeAcross="${MaxCol - 3}" ss:StyleID="TitleSubCentered"><Data ss:Type="String">COORDINACIÓN DE ADMINISTRACIÓN Y SISTEMAS</Data></Cell>
-      </Row>
-      <Row>
-        <Cell ss:Index="3" ss:MergeAcross="${MaxCol - 3}" ss:StyleID="TitleSubCentered"><Data ss:Type="String">DIRECCIÓN DE DESARROLLO HUMANO Y PROFESIONALIZACIÓN</Data></Cell>
-      </Row>
-      <Row>
-        <Cell ss:Index="3" ss:MergeAcross="${MaxCol - 3}" ss:StyleID="TitleMetaCentered"><Data ss:Type="String">INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp}</Data></Cell>
-      </Row>
-      <Row>
-        <Cell ss:Index="3" ss:MergeAcross="${MaxCol - 3}" ss:StyleID="TitleMetaCentered"><Data ss:Type="String">Reporte: RH_CONTROL_ASISTENCIA_CASC</Data></Cell>
-      </Row>
-      <Row><Cell ss:Index="1"><Data ss:Type="String"></Data></Cell></Row>
-      <Row>
-`;
+                    xmlContent += `
+        <Worksheet ss:Name="${nombrePestana}">
+            <Table>
+                <Row>
+                    <Cell ss:Index="1" ss:MergeAcross="1" ss:StyleID="LogoInifap"><Data ss:Type="String">inifap</Data></Cell>
+                    <Cell ss:Index="3" ss:MergeAcross="${MaxCol - 3}" ss:StyleID="TitleSub"><Data ss:Type="String">INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS</Data></Cell>
+                </Row>
+                <Row>
+                    <Cell ss:Index="1" ss:MergeDown="1" ss:MergeAcross="1" ss:StyleID="LogoSubtext"><Data ss:Type="String">Instituto Nacional de Forestales, Agrícolas y Pecuarias</Data></Cell>
+                    <Cell ss:Index="3" ss:MergeAcross="${MaxCol - 3}" ss:StyleID="TitleSub"><Data ss:Type="String">COORDINACIÓN DE ADMINISTRACIÓN Y SISTEMAS</Data></Cell>
+                </Row>
+                <Row>
+                    <Cell ss:Index="3" ss:MergeAcross="${MaxCol - 3}" ss:StyleID="TitleSub"><Data ss:Type="String">DIRECCIÓN DE DESARROLLO HUMANO Y PROFESIONALIZACIÓN</Data></Cell>
+                </Row>
+                <Row>
+                    <Cell ss:Index="3" ss:MergeAcross="${MaxCol - 3}" ss:StyleID="TitleMeta"><Data ss:Type="String">INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp}</Data></Cell>
+                </Row>
+                <Row>
+                    <Cell ss:Index="3" ss:MergeAcross="${MaxCol - 3}" ss:StyleID="TitleMeta"><Data ss:Type="String">Reporte: RH_CONTROL_ASISTENCIA_CASC</Data></Cell>
+                </Row>
+                <Row><Cell ss:Index="1"><Data ss:Type="String"></Data></Cell></Row>
+                <Row>
+            `;
 
-            RhAsisCasc.rawHeaderGlobal.forEach(h => {
-                xmlContent += `        <Cell ss:StyleID="HeaderTable"><Data ss:Type="String">${h}</Data></Cell>\n`;
-            });
-
-            xmlContent += `      </Row>\n`;
-
-            rowsMapeadas.forEach(dRow => {
-                let styleId = "CellNormal";
-                if (dRow[13]) {
-                    styleId = "CellFalta";
-                } else if (dRow[12]) {
-                    styleId = "CellRetardoMay";
-                } else if (dRow[11]) {
-                    styleId = "CellRetardoMed";
-                } else if (dRow[10]) {
-                    styleId = "CellRetardoMen";
-                }
-
-                xmlContent += `      <Row>\n`;
-                dRow.forEach(cellVal => {
-                    const safeVal = (cellVal !== null && cellVal !== undefined) ? String(cellVal) : '';
-                    xmlContent += `        <Cell ss:StyleID="${styleId}"><Data ss:Type="String">${safeVal}</Data></Cell>\n`;
+                RhAsisCasc.rawHeaderGlobal.forEach(h => {
+                    xmlContent += `        <Cell ss:StyleID="HeaderTable"><Data ss:Type="String">${h}</Data></Cell>\n`;
                 });
-                xmlContent += `      </Row>\n`;
-            });
 
-            xmlContent += `    </Table>
-  </Worksheet>\n`;
+                xmlContent += `      </Row>\n`;
+
+                rowsMapeadas.forEach(dRow => {
+                    let styleId = "CellNormal";
+                    if (dRow[13]) {
+                        styleId = "CellFalta";
+                    } else if (dRow[12]) {
+                        styleId = "CellRetardoMay";
+                    } else if (dRow[11]) {
+                        styleId = "CellRetardoMed";
+                    } else if (dRow[10]) {
+                        styleId = "CellRetardoMen";
+                    }
+
+                    xmlContent += `      <Row>\n`;
+                    dRow.forEach(cellVal => {
+                        const safeVal = (cellVal !== null && cellVal !== undefined) ? String(cellVal) : '';
+                        xmlContent += `        <Cell ss:StyleID="${styleId}"><Data ss:Type="String">${safeVal}</Data></Cell>\n`;
+                    });
+                    xmlContent += `      </Row>\n`;
+                });
+
+                xmlContent += `    </Table>
+    </Worksheet>\n`;
         });
 
         xmlContent += `</Workbook>`;
@@ -677,7 +677,7 @@ exportarExcelCasc: function () {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `Reporte_Biometrico_${centroActual}_${numEmpFiltro ? `Emp_${numEmpFiltro}` : "Todos_Empleados"}.xlsx`;
+        a.download = `Reporte_Biometrico_${centroActual}_${numEmpFiltro ? `Emp_${numEmpFiltro}` : "Todos_Empleados"}.xls`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);

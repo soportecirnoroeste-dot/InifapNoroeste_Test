@@ -502,12 +502,16 @@ window.RhAsisCasc = {
     },
 
     generateWorkbookCasc: function (groupedDataParam) {
-        // Si no se pasa por parámetro, intenta buscarlo en el objeto actual o define un respaldo
         const datos = groupedDataParam || this.groupedData;
-        
-        if (!datos || typeof datos !== 'object') {
-            console.error("groupedData no está definido o no es válido");
-            return XLSX.utils.book_new();
+
+        // Validación estricta por si los datos están vacíos
+        if (!datos || typeof datos !== 'object' || Object.keys(datos).length === 0) {
+            console.warn("No hay datos disponibles para exportar en este momento.");
+            const wb = XLSX.utils.book_new();
+            // Creamos una hoja vacía de respaldo para que la librería no colapse con el error de "Workbook is empty"
+            const wsVacio = XLSX.utils.aoa_to_sheet([["No hay datos para mostrar con los filtros actuales"]]);
+            XLSX.utils.book_append_sheet(wb, wsVacio, "Sin_Datos");
+            return wb;
         }
 
         const wb = XLSX.utils.book_new();
@@ -525,14 +529,13 @@ window.RhAsisCasc = {
                 ["", "", "Reporte: RH_CONTROL_ASISTENCIA_V2"],
                 [],
                 rawHeader,
-                ...emp.rows
+                ...(emp.rows || [])
             ];
 
             const ws = XLSX.utils.aoa_to_sheet(wsData);
             ws['!ref'] = `A1:${XLSX.utils.encode_col(MaxCol - 1)}${MaxFila}`;
-            ws['!view'] = { showGridLines: false }; // Oculta las líneas de cuadrícula nativas para un look profesional
+            ws['!view'] = { showGridLines: false };
 
-            // Fusiones limpias para la sección de cabecera institucional
             ws['!merges'] = [
                 { s: { r: 0, c: 0 }, e: { r: 0, c: 1 } },
                 { s: { r: 1, c: 0 }, e: { r: 1, c: 1 } },
@@ -544,7 +547,6 @@ window.RhAsisCasc = {
                 { s: { r: 4, c: 2 }, e: { r: 4, c: 5 } }
             ];
 
-            // Cálculo dinámico y inteligente de ancho de columnas basado en el contenido real
             const tableRows = wsData.slice(6);
             const colWidths = rawHeader.map((_, colIndex) => {
                 if (colIndex === 0) return { wch: 15 };
@@ -559,7 +561,6 @@ window.RhAsisCasc = {
             });
             ws['!cols'] = colWidths;
 
-            // Aplicación unificada de estilos a toda la matriz visible
             for (let r = 0; r < MaxFila; r++) {
                 for (let c = 0; c < MaxCol; c++) {
                     const cellRef = XLSX.utils.encode_cell({ r: r, c: c });
@@ -571,43 +572,37 @@ window.RhAsisCasc = {
                         alignment: { vertical: "center", horizontal: "center" }
                     };
 
-                    // Estilo del Logotipo "inifap"
                     if (r === 0 && c === 0) {
                         style.font = { bold: true, sz: 24, color: { rgb: "249444" }, name: "Arial Black" };
                         style.alignment.horizontal = "left";
                     }
 
-                    // Textos institucionales izquierdos
                     if (r >= 1 && r <= 2 && c >= 0 && c <= 1) {
                         style.font = { sz: 8, color: { rgb: "1A1A1B" }, bold: true };
                         style.alignment.horizontal = "left";
                         style.alignment.wrapText = true;
                     }
 
-                    // Metadatos institucionales derechos
                     if (r >= 0 && r <= 4 && c >= 2 && c <= 5) {
                         style.font = { sz: 9, bold: true };
                     }
 
-                    // Cabecera de la tabla de datos (Fila 6)
                     if (r === 6 && c < rawHeader.length) {
                         style.fill = { type: 'pattern', pattern: 'solid', fgColor: { rgb: "D9D9D9" } };
                         style.font.bold = true;
                         style.border = { top: { style: "thin", color: { rgb: "999999" } }, bottom: { style: "medium", color: { rgb: "333333" } }, left: { style: "thin", color: { rgb: "CCCCCC" } }, right: { style: "thin", color: { rgb: "CCCCCC" } } };
                     }
 
-                    // Filas de datos y alertas por gravedad de incidencia (A partir de la fila 7)
                     if (r >= 7) {
-                        const dRow = emp.rows[r - 7];
+                        const dRow = emp.rows ? emp.rows[r - 7] : null;
                         if (dRow && c < rawHeader.length) {
                             let bgColor = fondoHoja;
                             let fontColor = "000000";
 
-                            // Jerarquía de colores para incidencias
-                            if (dRow[13]) { bgColor = "FF0000"; fontColor = "FFFFFF"; } // Falta (Rojo)
-                            else if (dRow[12]) { bgColor = "E46C0A"; fontColor = "FFFFFF"; } // Retardo Mayor (Naranja)
-                            else if (dRow[11]) { bgColor = "FFC000"; } // Retardo Mediano (Amarillo oscuro)
-                            else if (dRow[10]) { bgColor = "FFFF00"; } // Retardo Menor (Amarillo claro)
+                            if (dRow[13]) { bgColor = "FF0000"; fontColor = "FFFFFF"; }
+                            else if (dRow[12]) { bgColor = "E46C0A"; fontColor = "FFFFFF"; }
+                            else if (dRow[11]) { bgColor = "FFC000"; }
+                            else if (dRow[10]) { bgColor = "FFFF00"; }
 
                             style.fill = { type: 'pattern', pattern: 'solid', fgColor: { rgb: bgColor } };
                             style.font.color = { rgb: fontColor };
@@ -623,23 +618,22 @@ window.RhAsisCasc = {
                 }
             }
 
-            // Limpieza de nombre de pestaña para evitar caracteres prohibidos en Excel
             const nombreHojaLimpio = String(id).replace(/[:\\\/?*\[\]]/g, "_").substring(0, 31);
             XLSX.utils.book_append_sheet(wb, ws, nombreHojaLimpio);
         });
         return wb;
     },
 
-exportarExcelCasc: function () {
+    exportarExcelCasc: function () {
         // Buscamos los datos de forma segura donde sea que estén guardados:
         // 1. Si existe una variable global o local llamada 'groupedData'
         // 2. Si están guardados dentro de este mismo objeto (this.groupedData)
         // 3. O un objeto vacío si no se encuentran
-        const datosAProcesar = (typeof groupedData !== 'undefined' ? groupedData : null) || 
-                               (this.groupedData) || 
-                               window.groupedData || {};
+        const datosAProcesar = (typeof groupedData !== 'undefined' ? groupedData : null) ||
+            (this.groupedData) ||
+            window.groupedData || {};
 
-        const wb = RhAsisCasc.generateWorkbookCasc(datosAProcesar); 
+        const wb = RhAsisCasc.generateWorkbookCasc(datosAProcesar);
         const centroActual = RhAsisCasc.obtenerClaveCentroActual() || "General";
         const numEmpFiltro = document.getElementById('filtroNumEmpBio')?.value.trim() || "";
         const sufijo = numEmpFiltro ? `Emp_${numEmpFiltro}` : "Todos_Empleados";

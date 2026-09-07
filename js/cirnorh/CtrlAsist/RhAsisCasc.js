@@ -501,87 +501,36 @@ window.RhAsisCasc = {
         });
     },
 
-generateWorkbookCasc: function () {
+    generateWorkbookCasc: function () {
         const wb = XLSX.utils.book_new();
         const fondoHoja = "E9F5E9";
-        const MaxFila = 500;
-        const MaxCol = RhAsisCasc.rawHeaderGlobal.length;
+        const MaxFila = 200;
+        const MaxCol = 26;
 
-        const registrosAExportar = RhAsisCasc.obtenerRegistrosFiltradosActuales();
-        const numEmpFiltro = document.getElementById('filtroNumEmpBio')?.value.trim() || "";
-
-        // Función auxiliar para mapear registros a filas limpias
-        const mapearRegistros = (lista) => {
-            return lista.map(r => {
-                const celdas = Array.isArray(r) ? [...r.slice(0, 12)] : RhAsisCasc.rawHeaderGlobal.map(h => r[h] || "");
-                return celdas.map((c, index) => {
-                    let val = c;
-                    if (index === 2 || index === 3) {
-                        val = RhAsisCasc.extraerHoraLegible(val, false);
-                    } else if (index === 4) {
-                        val = RhAsisCasc.extraerHoraLegible(val, true);
-                    } else if (val instanceof Date) {
-                        val = val.toLocaleDateString();
-                    } else if (typeof val === 'string' && val.includes('T') && val.length > 18 && !val.includes('1899-12-30')) {
-                        const d = new Date(val);
-                        if (!isNaN(d)) val = d.toLocaleDateString();
-                    }
-                    return val !== null && val !== undefined ? val : "";
-                });
-            });
-        };
-
-        // Preparar los grupos de datos según el filtro
-        let gruposAProcesar = {};
-
-        if (!numEmpFiltro) {
-            registrosAExportar.forEach(row => {
-                const empId = String(row[1] || "S_N").trim();
-                if (!gruposAProcesar[empId]) {
-                    gruposAProcesar[empId] = [];
-                }
-                gruposAProcesar[empId].push(row);
-            });
-        } else {
-            gruposAProcesar[`Emp_${numEmpFiltro}`] = registrosAExportar;
-        }
-
-        const chavesGrupos = Object.keys(gruposAProcesar);
-
-        if (chavesGrupos.length === 0) {
-            const wsDataVacia = [
-                ["inifap", "", "INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS"],
-                ["", "", "INCIDENCIAS GENERADAS DE ACUERDO AL REGISTRO ELECTRÓNICO V2"],
-                [],
-                RhAsisCasc.rawHeaderGlobal
-            ];
-            const wsVacio = XLSX.utils.aoa_to_sheet(wsDataVacia);
-            XLSX.utils.book_append_sheet(wb, wsVacio, "Sin_Datos");
-            return wb;
-        }
-
-        chavesGrupos.forEach(key => {
-            const rowsMapeadas = mapearRegistros(gruposAProcesar[key]);
-            const etiquetaEmp = numEmpFiltro ? numEmpFiltro : key;
-
+        Object.keys(groupedData).forEach(id => {
+            const emp = groupedData[id];
             const wsData = [
                 ["inifap", "", "INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS"],
                 ["Instituto Nacional de Investigaciones", "", "COORDINACIÓN DE ADMINISTRACIÓN Y SISTEMAS"],
                 ["Forestales, Agrícolas y Pecuarias", "", "DIRECCIÓN DE DESARROLLO HUMANO Y PROFESIONALIZACIÓN"],
-                ["", "", `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp}`],
-                ["", "", "Reporte: RH_CONTROL_ASISTENCIA_CASC"],
+                ["", "", "INCIDENCIAS GENERADAS DE ACUERDO AL REGISTRO ELECTRÓNICO V2"],
+                ["", "", "Reporte: RH_CONTROL_ASISTENCIA_V2"],
                 [],
-                RhAsisCasc.rawHeaderGlobal,
-                ...rowsMapeadas
+                rawHeader,
+                ...emp.rows
+            ];
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            ws['!ref'] = `A1:${XLSX.utils.encode_col(MaxCol - 1)}${MaxFila}`;
+            ws['!view'] = { showGridLines: false };
+            ws['!merges'] = [
+                { s: { r: 0, c: 0 }, e: { r: 0, c: 1 } }, { s: { r: 1, c: 0 }, e: { r: 1, c: 1 } },
+                { s: { r: 2, c: 0 }, e: { r: 2, c: 1 } }, { s: { r: 0, c: 2 }, e: { r: 0, c: 5 } },
+                { s: { r: 1, c: 2 }, e: { r: 1, c: 5 } }, { s: { r: 2, c: 2 }, e: { r: 2, c: 5 } },
+                { s: { r: 3, c: 2 }, e: { r: 3, c: 5 } }, { s: { r: 4, c: 2 }, e: { r: 4, c: 5 } }
             ];
 
-            const ws = XLSX.utils.aoa_to_sheet(wsData);
-            ws['!ref'] = `A1:${XLSX.utils.encode_col(MaxCol - 1)}${Math.max(MaxFila, wsData.length + 10)}`;
-            ws['!view'] = { showGridLines: false };
-
-            // Anchos de columna
             const tableRows = wsData.slice(6);
-            const colWidths = RhAsisCasc.rawHeaderGlobal.map((_, colIndex) => {
+            const colWidths = rawHeader.map((_, colIndex) => {
                 if (colIndex === 0) return { wch: 15 };
                 let maxWidth = 10;
                 tableRows.forEach(row => {
@@ -594,59 +543,28 @@ generateWorkbookCasc: function () {
             });
             ws['!cols'] = colWidths;
 
-            // Aplicación de estilos institucionales y colores de incidencias
-            const totalFilasHoja = wsData.length;
-            for (let r = 0; r < totalFilasHoja; r++) {
+            for (let r = 0; r < MaxFila; r++) {
                 for (let c = 0; c < MaxCol; c++) {
                     const cellRef = XLSX.utils.encode_cell({ r: r, c: c });
                     if (!ws[cellRef]) ws[cellRef] = { v: "" };
-                    let style = {
-                        fill: { type: 'pattern', pattern: 'solid', fgColor: { rgb: fondoHoja } },
-                        font: { sz: 9, name: "Arial" },
-                        alignment: { vertical: "center", horizontal: "center" }
-                    };
-
-                    if (r === 0 && c === 0) {
-                        style.font = { bold: true, sz: 24, color: { rgb: "249444" }, name: "Arial Black" };
-                        style.alignment.horizontal = "left";
-                    }
-                    if (r >= 1 && r <= 2 && c >= 0 && c <= 1) {
-                        style.font = { sz: 8, color: { rgb: "1A1A1B" }, bold: true };
-                        style.alignment.horizontal = "left";
-                        style.alignment.wrapText = true;
-                    }
-                    if (r === 6 && c < RhAsisCasc.rawHeaderGlobal.length) {
-                        style.fill = { type: 'pattern', pattern: 'solid', fgColor: { rgb: "D9D9D9" } };
-                        style.font.bold = true;
-                        style.border = { top: { style: "thin" }, bottom: { style: "thin" }, left: { style: "thin" }, right: { style: "thin" } };
-                    }
+                    let style = { fill: { type: 'pattern', pattern: 'solid', fgColor: { rgb: fondoHoja } }, font: { sz: 9, name: "Arial" }, alignment: { vertical: "center", horizontal: "center" } };
+                    if (r === 0 && c === 0) { style.font = { bold: true, sz: 24, color: { rgb: "249444" }, name: "Arial Black" }; style.alignment.horizontal = "left"; }
+                    if (r >= 1 && r <= 2 && c >= 0 && c <= 1) { style.font = { sz: 8, color: { rgb: "1A1A1B" }, bold: true }; style.alignment.horizontal = "left"; style.alignment.wrapText = true; }
+                    if (r >= 0 && r <= 4 && c >= 2 && c <= 5) { style.font = { sz: 9, bold: true }; }
+                    if (r === 6 && c < rawHeader.length) { style.fill = { type: 'pattern', pattern: 'solid', fgColor: { rgb: "D9D9D9" } }; style.font.bold = true; style.border = { top: { style: "thin" }, bottom: { style: "thin" }, left: { style: "thin" }, right: { style: "thin" } }; }
                     if (r >= 7) {
-                        const dRow = rowsMapeadas[r - 7];
-                        if (dRow && c < RhAsisCasc.rawHeaderGlobal.length) {
-                            let bgColor = fondoHoja;
-                            let fontColor = "000000";
-                            if (dRow[11]) { // Falta
-                                bgColor = "FF0000"; fontColor = "FFFFFF";
-                            } else if (dRow[10]) { // Retardo May.
-                                bgColor = "E46C0A"; fontColor = "FFFFFF";
-                            } else if (dRow[9]) { // Retardo Med.
-                                bgColor = "FFC000";
-                            } else if (dRow[8]) { // Retardo Men.
-                                bgColor = "FFFF00";
-                            }
-                            style.fill = { type: 'pattern', pattern: 'solid', fgColor: { rgb: bgColor } };
-                            style.font.color = { rgb: fontColor };
-                            style.border = { top: { style: "thin" }, bottom: { style: "thin" }, left: { style: "thin" }, right: { style: "thin" } };
+                        const dRow = emp.rows[r - 7];
+                        if (dRow && c < rawHeader.length) {
+                            let bgColor = fondoHoja; let fontColor = "000000";
+                            if (dRow[13]) { bgColor = "FF0000"; fontColor = "FFFFFF"; } else if (dRow[12]) { bgColor = "E46C0A"; fontColor = "FFFFFF"; } else if (dRow[11]) { bgColor = "FFC000"; } else if (dRow[10]) { bgColor = "FFFF00"; }
+                            style.fill = { type: 'pattern', pattern: 'solid', fgColor: { rgb: bgColor } }; style.font.color = { rgb: fontColor }; style.border = { top: { style: "thin" }, bottom: { style: "thin" }, left: { style: "thin" }, right: { style: "thin" } };
                         }
                     }
                     ws[cellRef].s = style;
                 }
             }
-
-            const nombreHojaLimpio = String(etiquetaEmp).replace(/[:\\\/?*\[\]]/g, "_").substring(0, 31);
-            XLSX.utils.book_append_sheet(wb, ws, nombreHojaLimpio);
+            XLSX.utils.book_append_sheet(wb, ws, id.substring(0, 31));
         });
-
         return wb;
     },
 

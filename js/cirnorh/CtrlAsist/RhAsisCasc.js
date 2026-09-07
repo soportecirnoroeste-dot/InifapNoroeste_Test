@@ -517,7 +517,7 @@ exportarExcelCasc: function () {
             return;
         }
 
-        let xmlContent = `\uFEFF<?xml version="1.0"?>
+        let xmlContent = `\uFEFF<xml version="1.0"?>
 <Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
           xmlns:o="urn:schemas-microsoft-com:office:office"
           xmlns:x="urn:schemas-microsoft-com:office:excel"
@@ -673,7 +673,7 @@ exportarExcelCasc: function () {
 
         xmlContent += `</Workbook>`;
 
-        const blob = new Blob([xmlContent], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+        /*const blob = new Blob([xmlContent], { type: 'application/vnd.ms-excel;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -681,6 +681,10 @@ exportarExcelCasc: function () {
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        URL.revokeObjectURL(url);*/
+
+        // Generar archivo con extensión real .xlsx
+        const nombreArchivo = `Reporte_Biometrico_${centroActual}_${numEmpFiltro ? `Emp_${numEmpFiltro}` : "Todos_Empleados"}.xlsx`;
+        XLSX.writeFile(wb, nombreArchivo);
     }
 };

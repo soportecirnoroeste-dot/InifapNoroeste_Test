@@ -474,7 +474,7 @@ window.RhAsisCasc = {
         });
     },
 
-exportarExcelCasc: async function () {
+    exportarExcelCasc: async function () {
         const registrosAExportar = RhAsisCasc.obtenerRegistrosFiltradosActuales();
         const numEmpFiltro = document.getElementById('filtroNumEmpBio')?.value.trim() || "";
         const centroActual = RhAsisCasc.obtenerClaveCentroActual() || "General";
@@ -536,7 +536,7 @@ exportarExcelCasc: async function () {
 
         // 🔍 Búsqueda infalible del nombre: Revisa el select, variables globales y textos visibles en pantalla que contengan el número
         let nombreEmpleadoEncontrado = "";
-        
+
         if (numEmpFiltro) {
             // 1. Intentar del select de empleados
             console.log(numEmpFiltro);
@@ -546,8 +546,8 @@ exportarExcelCasc: async function () {
                     if (opt.value && opt.value.trim() === numEmpFiltro) {
                         const texto = opt.textContent || opt.innerText || "";
                         nombreEmpleadoEncontrado = texto.replace(numEmpFiltro, "").replace(/^[\s\-–:]+/, "").trim();
-                        
-            console.log(nombreEmpleadoEncontrado);
+
+                        console.log(nombreEmpleadoEncontrado);
                         break;
                     }
                 }
@@ -574,12 +574,20 @@ exportarExcelCasc: async function () {
         const fondoHoja = "FFFFFF";
 
         for (const key of chavesGrupos) {
-            const rowsMapeadas = mapearRegistros(gruposAProcesar[key]);
+            const grupoActual = gruposAProcesar[key];
+            const rowsMapeadas = mapearRegistros(grupoActual);
             const etiquetaEmp = numEmpFiltro ? numEmpFiltro : key;
 
-            const textoIncidencias = nombreEmpleadoEncontrado
-                ? `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp} - ${nombreEmpleadoEncontrado}`
-                : `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp}  - ${nombreEmpleadoEncontrado}`;
+            // 🔍 Búsqueda dinámica dentro de los datos del sistema (sin valores fijos)
+            let nombreDinamico = "";
+            if (grupoActual && grupoActual.length > 0) {
+                // Intenta extraer el nombre si la estructura del registro lo incluye en alguna propiedad o columna
+                nombreDinamico = grupoActual[0].nombre || grupoActual[0].empleado || "";
+            }
+
+            const textoIncidencias = nombreDinamico
+                ? `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp} - ${nombreDinamico}`
+                : `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp}`;
 
             const nombrePestana = `${etiquetaEmp}`.replace(/[*?/\\[]]/g, '').substring(0, 31);
 

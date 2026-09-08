@@ -474,7 +474,7 @@ window.RhAsisCasc = {
         });
     },
 
-exportarExcelCasc: async function () {
+    exportarExcelCasc: async function () {
         const registrosAExportar = RhAsisCasc.obtenerRegistrosFiltradosActuales();
         const numEmpFiltro = document.getElementById('filtroNumEmpBio')?.value.trim() || "";
         const centroActual = RhAsisCasc.obtenerClaveCentroActual() || "General";
@@ -586,7 +586,7 @@ exportarExcelCasc: async function () {
             // Fila 7: Cabeceras de la tabla de registros
             const headerRowIndex = 7;
             ws.getRow(headerRowIndex).values = RhAsisCasc.rawHeaderGlobal;
-            
+
             ws.getRow(headerRowIndex).eachCell((cell) => {
                 cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'D9D9D9' } };
                 cell.font = { name: 'Arial', sz: 9, bold: true, color: { argb: '000000' } };
@@ -641,14 +641,19 @@ exportarExcelCasc: async function () {
             const buffer = await wb.xlsx.writeBuffer();
             const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
             const url = window.URL.createObjectURL(blob);
-            const anchor = document.createElement('anchor' in document.createElement('a') ? 'a' : 'div');
+
+            const anchor = document.createElement('a');
             anchor.href = url;
             anchor.download = `Reporte_Biometrico_${centroActual}_${numEmpFiltro ? `Emp_${numEmpFiltro}` : "Todos_Empleados"}.xlsx`;
+
+            document.body.appendChild(anchor);
             anchor.click();
+            document.body.removeChild(anchor);
+
             window.URL.revokeObjectURL(url);
         } catch (err) {
             console.error("❌ Error de escritura con ExcelJS:", err);
-            alert("Ocurrió un error al compilar el archivo .xlsx.");
+            alert("Ocurrió un error al compilar el archivo .xlsx: " + err.message);
         }
     }
 };

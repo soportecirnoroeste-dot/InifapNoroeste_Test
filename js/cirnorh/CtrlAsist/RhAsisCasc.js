@@ -541,34 +541,32 @@ exportarExcelCasc: async function () {
             const rowsMapeadas = mapearRegistros(gruposAProcesar[key]);
             let etiquetaEmp = numEmpFiltro ? numEmpFiltro : key.replace(/^Emp_/, '');
 
-          // 🔍 BÚSQUEDA DIRECTA Y SEGURA DEL NOMBRE
+            // 🔍 BÚSQUEDA DEL NOMBRE CON TESTIGOS EN CONSOLA
             let nombreEmpleadoEncontrado = "";
+            console.log("--- INICIO DE BÚSQUEDA DE NOMBRE ---");
+            console.log("Etiqueta de empleado actual:", etiquetaEmp);
+            console.log("Valor del input #filtroNumEmpBio:", document.getElementById('filtroNumEmpBio')?.value);
+            console.log("Registros a procesar para este grupo:", gruposAProcesar[key]);
 
-            // Opción: Buscar si el elemento de la interfaz es un input y tiene algún texto o si podemos sacarlo de los registros
-            const inputEmp = document.getElementById('filtroNumEmpBio');
-            if (inputEmp && inputEmp.value && gruposAProcesar[key] && gruposAProcesar[key].length > 0) {
-                // Buscamos en las celdas del primer registro si alguna contiene un texto que parezca un nombre (no numérico)
+            // Opción: Analizar las celdas del primer registro con testigos
+            if (gruposAProcesar[key] && gruposAProcesar[key].length > 0) {
                 const primerRegistro = gruposAProcesar[key][0];
-                for (let celda of primerRegistro) {
+                console.log("Primer registro celdas:", primerRegistro);
+                
+                for (let i = 0; i < primerRegistro.length; i++) {
+                    const celda = primerRegistro[i];
+                    console.log(`Celda [${i}]:`, celda, `(Tipo: ${typeof celda})`);
                     const valStr = String(celda || "").trim();
-                    if (valStr.length > 3 && isNaN(valStr) && !valStr.includes(':') && !valStr.includes('-')) {
+                    if (valStr.length > 3 && isNaN(valStr) && !valStr.includes(':') && !valStr.includes('-') && valStr !== String(etiquetaEmp)) {
                         nombreEmpleadoEncontrado = valStr;
+                        console.log(`¡Nombre encontrado en la celda [${i}]!:`, nombreEmpleadoEncontrado);
                         break;
                     }
                 }
             }
-            // Opción B: Si no está en el select, intentamos sacarlo de los mismos registros de la tabla (si traen el nombre en alguna columna, ej. índice 0 o similar)
-            if (!nombreEmpleadoEncontrado && rowsMapeadas.length > 0) {
-                // Buscamos si alguna celda cercana al número de empleado tiene texto largo que parezca nombre
-                for (let row of rowsMapeadas) {
-                    for (let cell of row) {
-                        if (typeof cell === 'string' && cell.length > 3 && !cell.includes(':') && !/^\d+$/.test(cell)) {
-                            // Si encontramos un texto que no es solo números ni horas, podría ser el nombre
-                            // (Opcional, pero ayuda muchísimo si el nombre viene en los datos)
-                        }
-                    }
-                }
-            }
+
+            console.log("Resultado final de nombreEmpleadoEncontrado:", nombreEmpleadoEncontrado);
+            console.log("--- FIN DE BÚSQUEDA DE NOMBRE ---");
 
             // Construcción limpia y dinámica del título de incidencias en C4
             const textoIncidencias = nombreEmpleadoEncontrado

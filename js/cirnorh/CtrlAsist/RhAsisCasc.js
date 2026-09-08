@@ -541,22 +541,22 @@ exportarExcelCasc: async function () {
             const rowsMapeadas = mapearRegistros(gruposAProcesar[key]);
             let etiquetaEmp = numEmpFiltro ? numEmpFiltro : key.replace(/^Emp_/, '');
 
-            // 🔍 BÚSQUEDA DIRECTA Y SEGURA DEL NOMBRE
+          // 🔍 BÚSQUEDA DIRECTA Y SEGURA DEL NOMBRE
             let nombreEmpleadoEncontrado = "";
 
-            // Opción A: Buscar en el menú desplegable (Select) de empleados de la interfaz
-            const selectEmp = document.getElementById('filtroNumEmpBio');
-            if (selectEmp) {
-                for (let opt of selectEmp.options) {
-                    if (opt.value && opt.value.trim() === String(etiquetaEmp).trim()) {
-                        const texto = opt.textContent || opt.innerText || "";
-                        // Limpiamos el número para quedarnos solo con el nombre
-                        nombreEmpleadoEncontrado = texto.replace(etiquetaEmp, "").replace(/^[\s\-–:]+/, "").trim();
+            // Opción: Buscar si el elemento de la interfaz es un input y tiene algún texto o si podemos sacarlo de los registros
+            const inputEmp = document.getElementById('filtroNumEmpBio');
+            if (inputEmp && inputEmp.value && gruposAProcesar[key] && gruposAProcesar[key].length > 0) {
+                // Buscamos en las celdas del primer registro si alguna contiene un texto que parezca un nombre (no numérico)
+                const primerRegistro = gruposAProcesar[key][0];
+                for (let celda of primerRegistro) {
+                    const valStr = String(celda || "").trim();
+                    if (valStr.length > 3 && isNaN(valStr) && !valStr.includes(':') && !valStr.includes('-')) {
+                        nombreEmpleadoEncontrado = valStr;
                         break;
                     }
                 }
             }
-
             // Opción B: Si no está en el select, intentamos sacarlo de los mismos registros de la tabla (si traen el nombre en alguna columna, ej. índice 0 o similar)
             if (!nombreEmpleadoEncontrado && rowsMapeadas.length > 0) {
                 // Buscamos si alguna celda cercana al número de empleado tiene texto largo que parezca nombre

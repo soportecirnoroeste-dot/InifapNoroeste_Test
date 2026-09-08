@@ -475,182 +475,167 @@ window.RhAsisCasc = {
     },
 
 exportarExcelCasc: function () {
-        const registrosAExportar = RhAsisCasc.obtenerRegistrosFiltradosActuales();
-        const numEmpFiltro = document.getElementById('filtroNumEmpBio')?.value.trim() || "";
-        const centroActual = RhAsisCasc.obtenerClaveCentroActual() || "General";
-        const rawHeaders = RhAsisCasc.rawHeaderGlobal;
+    const registrosAExportar = RhAsisCasc.obtenerRegistrosFiltradosActuales();
+    const numEmpFiltro = document.getElementById('filtroNumEmpBio')?.value.trim() || "";
+    const centroActual = RhAsisCasc.obtenerClaveCentroActual() || "General";
+    const rawHeaders = RhAsisCasc.rawHeaderGlobal;
 
-        const mapearRegistros = (lista) => {
-            return lista.map(r => {
-                const celdas = Array.isArray(r) ? [...r] : rawHeaders.map(h => r[h] || "");
-                return celdas.map((c, index) => {
-                    let val = c;
-                    if (index === 2 || index === 3) {
-                        val = RhAsisCasc.extraerHoraLegible(val, false);
-                    } else if (index === 4) {
-                        val = RhAsisCasc.extraerHoraLegible(val, true);
-                    } else if (val instanceof Date) {
-                        val = val.toLocaleDateString();
-                    } else if (typeof val === 'string' && val.includes('T') && val.length > 18 && !val.includes('1899-12-30')) {
-                        const d = new Date(val);
-                        if (!isNaN(d)) val = d.toLocaleDateString();
-                    }
-                    return val !== null && val !== undefined ? String(val).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : "";
-                });
+    const mapearRegistros = (lista) => {
+        return lista.map(r => {
+            const celdas = Array.isArray(r) ? [...r] : rawHeaders.map(h => r[h] || "");
+            return celdas.map((c, index) => {
+                let val = c;
+                if (index === 2 || index === 3) {
+                    val = RhAsisCasc.extraerHoraLegible(val, false);
+                } else if (index === 4) {
+                    val = RhAsisCasc.extraerHoraLegible(val, true);
+                } else if (val instanceof Date) {
+                    val = val.toLocaleDateString();
+                } else if (typeof val === 'string' && val.includes('T') && val.length > 18 && !val.includes('1899-12-30')) {
+                    const d = new Date(val);
+                    if (!isNaN(d)) val = d.toLocaleDateString();
+                }
+                return val !== null && val !== undefined ? String(val) : "";
             });
+        });
+    };
+
+    let gruposAProcesar = {};
+    if (!numEmpFiltro) {
+        registrosAExportar.forEach(row => {
+            const empId = String(row[1] || "S_N").trim();
+            if (!gruposAProcesar[empId]) gruposAProcesar[empId] = [];
+            gruposAProcesar[empId].push(row);
+        });
+    } else {
+        gruposAProcesar[`Emp_${numEmpFiltro}`] = registrosAExportar;
+    }
+
+    const chavesGrupos = Object.keys(gruposAProcesar);
+    if (chavesGrupos.length === 0) {
+        alert("No hay registros para exportar con los filtros actuales.");
+        return;
+    }
+
+    // Crear el libro de trabajo de Excel
+    const wb = XLSX.utils.book_new();
+
+    chavesGrupos.forEach(key => {
+        const rowsMapeadas = mapearRegistros(gruposAProcesar[key]);
+        const etiquetaEmp = numEmpFiltro ? numEmpFiltro : key;
+        const nombrePestana = `Emp_${etiquetaEmp}`.replace(/[\*\?\/\\\\[\]]/g, '').substring(0, 31);
+
+        // Estilos definidos para xlsx-js-style
+        const estiloLogo = {
+            font: { name: "Arial Black", sz: 24, bold: true, color: { rgb: "003366" } },
+            alignment: { horizontal: "center", vertical: "center" },
+            fill: { fgColor: { rgb: "F2F2F2" } },
+            border: {
+                top: { style: "thin", color: { rgb: "CCCCCC" } },
+                bottom: { style: "thin", color: { rgb: "CCCCCC" } },
+                left: { style: "thin", color: { rgb: "CCCCCC" } },
+                right: { style: "thin", color: { rgb: "CCCCCC" } }
+            }
         };
 
-        let gruposAProcesar = {};
-        if (!numEmpFiltro) {
-            registrosAExportar.forEach(row => {
-                const empId = String(row[1] || "S_N").trim();
-                if (!gruposAProcesar[empId]) gruposAProcesar[empId] = [];
-                gruposAProcesar[empId].push(row);
-            });
-        } else {
-            gruposAProcesar[`Emp_${numEmpFiltro}`] = registrosAExportar;
-        }
+        const estiloTitulo1 = { font: { name: "Arial", sz: 12, bold: true, color: { rgb: "003366" } }, alignment: { vertical: "center" } };
+        const estiloTitulo2 = { font: { name: "Arial", sz: 10, bold: true, color: { rgb: "333333" } }, alignment: { vertical: "center" } };
+        const estiloSubTitulo = { font: { name: "Arial", sz: 9, bold: false, color: { rgb: "555555" } }, alignment: { vertical: "center" } };
+        
+        const estiloHeaderHead = {
+            font: { name: "Arial", sz: 10, bold: true, color: { rgb: "FFFFFF" } },
+            fill: { fgColor: { rgb: "1F4E78" } },
+            alignment: { horizontal: "center", vertical: "center" },
+            border: {
+                top: { style: "thin", color: { rgb: "000000" } },
+                bottom: { style: "thin", color: { rgb: "000000" } }
+            }
+        };
 
-        const chavesGrupos = Object.keys(gruposAProcesar);
-        if (chavesGrupos.length === 0) {
-            alert("No hay registros para exportar con los filtros actuales.");
-            return;
-        }
+        const estilosCelda = {
+            CeldaNormal: {
+                font: { name: "Arial", sz: 9 },
+                alignment: { horizontal: "center", vertical: "center" },
+                border: { top: { style: "thin", color: { rgb: "E0E0E0" } }, bottom: { style: "thin", color: { rgb: "E0E0E0" } }, left: { style: "thin", color: { rgb: "E0E0E0" } }, right: { style: "thin", color: { rgb: "E0E0E0" } } }
+            },
+            FaltaRojo: {
+                font: { name: "Arial", sz: 9, bold: true, color: { rgb: "FFFFFF" } },
+                fill: { fgColor: { rgb: "FF0000" } },
+                alignment: { horizontal: "center", vertical: "center" }
+            },
+            RetardoMayor: {
+                font: { name: "Arial", sz: 9, bold: true, color: { rgb: "FFFFFF" } },
+                fill: { fgColor: { rgb: "E46C0A" } },
+                alignment: { horizontal: "center", vertical: "center" }
+            },
+            RetardoMediano: {
+                font: { name: "Arial", sz: 9, bold: true, color: { rgb: "000000" } },
+                fill: { fgColor: { rgb: "FFC000" } },
+                alignment: { horizontal: "center", vertical: "center" }
+            },
+            RetardoMenor: {
+                font: { name: "Arial", sz: 9, bold: false, color: { rgb: "000000" } },
+                fill: { fgColor: { rgb: "FFFF00" } },
+                alignment: { horizontal: "center", vertical: "center" }
+            }
+        };
 
-        // Construcción del XML con soporte completo de Estilos (Arial Black 24, Combinaciones y Semáforos)
-        let xmlWorksheets = "";
+        // Construir la matriz de datos de la hoja
+        let wsData = [
+            [{ v: "INIFAP", s: estiloLogo }, "", { v: "INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS", s: estiloTitulo1 }],
+            ["", "", { v: "COORDINACIÓN DE ADMINISTRACIÓN Y SISTEMAS", s: estiloTitulo2 }],
+            ["", "", { v: "DIRECCIÓN DE DESARROLLO HUMANO Y PROFESIONALIZACIÓN", s: estiloSubTitulo }],
+            ["", "", { v: `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp}`, s: estiloSubTitulo }],
+            ["", "", { v: "Reporte: RH_CONTROL_ASISTENCIA_CASC", s: estiloSubTitulo }],
+            [], // Fila en blanco
+            rawHeaders.map(h => ({ v: h, s: estiloHeaderHead })) // Cabeceras de tabla
+        ];
 
-        chavesGrupos.forEach(key => {
-            const rowsMapeadas = mapearRegistros(gruposAProcesar[key]);
-            const etiquetaEmp = numEmpFiltro ? numEmpFiltro : key;
-            const nombrePestana = `Emp_${etiquetaEmp}`.replace(/[\*\?\/\\\\[\]]/g, '').substring(0, 31);
+        // Agregar filas de registros con sus respectivos colores/estilos de semáforo
+        rowsMapeadas.forEach(dRow => {
+            let tipoEstilo = "CeldaNormal";
+            if (dRow[13]) tipoEstilo = "FaltaRojo";
+            else if (dRow[12]) tipoEstilo = "RetardoMayor";
+            else if (dRow[11]) tipoEstilo = "RetardoMediano";
+            else if (dRow[10]) tipoEstilo = "RetardoMenor";
 
-            let rowsXml = `
-                <Row ss:Height="40">
-                    <Cell ss:Index="1" ss:MergeAcross="1" ss:MergeDown="1" ss:StyleID="LogoInifap"><Data ss:Type="String">INIFAP</Data></Cell>
-                    <Cell ss:Index="3" ss:MergeAcross="${rawHeaders.length - 3}" ss:StyleID="Titulo1"><Data ss:Type="String">INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS</Data></Cell>
-                </Row>
-                <Row ss:Height="20">
-                    <Cell ss:Index="3" ss:MergeAcross="${rawHeaders.length - 3}" ss:StyleID="Titulo2"><Data ss:Type="String">COORDINACIÓN DE ADMINISTRACIÓN Y SISTEMAS</Data></Cell>
-                </Row>
-                <Row ss:Height="20">
-                    <Cell ss:Index="3" ss:MergeAcross="${rawHeaders.length - 3}" ss:StyleID="SubTitulo"><Data ss:Type="String">DIRECCIÓN DE DESARROLLO HUMANO Y PROFESIONALIZACIÓN</Data></Cell>
-                </Row>
-                <Row ss:Height="20">
-                    <Cell ss:Index="3" ss:MergeAcross="${rawHeaders.length - 3}" ss:StyleID="SubTitulo"><Data ss:Type="String">INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp}</Data></Cell>
-                </Row>
-                <Row ss:Height="20">
-                    <Cell ss:Index="3" ss:MergeAcross="${rawHeaders.length - 3}" ss:StyleID="SubTitulo"><Data ss:Type="String">Reporte: RH_CONTROL_ASISTENCIA_CASC</Data></Cell>
-                </Row>
-                <Row ss:Height="10"></Row>
-                <Row ss:Height="25">
-                    ${rawHeaders.map(h => `<Cell ss:StyleID="HeaderHead"><Data ss:Type="String">${h}</Data></Cell>`).join('')}
-                </Row>
-            `;
-
-            rowsMapeadas.forEach(dRow => {
-                let estiloFila = "CeldaNormal";
-                if (dRow[13]) estiloFila = "FaltaRojo";
-                else if (dRow[12]) estiloFila = "RetardoMayor";
-                else if (dRow[11]) estiloFila = "RetardoMediano";
-                else if (dRow[10]) estiloFila = "RetardoMenor";
-
-                rowsXml += `
-                <Row ss:Height="18">
-                    ${dRow.map(val => `<Cell ss:StyleID="${estiloFila}"><Data ss:Type="String">${val}</Data></Cell>`).join('')}
-                </Row>`;
-            });
-
-            xmlWorksheets += `
-            <Worksheet ss:Name="${nombrePestana}">
-                <Table>
-                    ${rowsXml}
-                </Table>
-            </Worksheet>`;
+            const rowFormatted = dRow.map(val => ({ v: val, s: estilosCelda[tipoEstilo] }));
+            wsData.push(rowFormatted);
         });
 
-        const xmlContent = `<?xml version="1.0" encoding="UTF-8"?>
-        <?mso-application progid="Excel.Sheet"?>
-        <Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
-                  xmlns:o="urn:schemas-microsoft-com:office:office"
-                  xmlns:x="urn:schemas-microsoft-com:office:excel"
-                  xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
-                  xmlns:html="http://www.w3.org/TR/REC-html40">
-            <Styles>
-                <Style ss:ID="LogoInifap">
-                    <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
-                    <Font ss:FontName="Arial Black" ss:Size="24" ss:Bold="1" ss:Color="#003366"/>
-                    <Interior ss:Color="#F2F2F2" ss:Pattern="Solid"/>
-                    <Borders>
-                        <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CCCCCC"/>
-                        <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CCCCCC"/>
-                        <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CCCCCC"/>
-                        <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CCCCCC"/>
-                    </Borders>
-                </Style>
-                <Style ss:ID="Titulo1">
-                    <Alignment ss:Horizontal="Left" ss:Vertical="Center"/>
-                    <Font ss:FontName="Arial" ss:Size="12" ss:Bold="1" ss:Color="#003366"/>
-                </Style>
-                <Style ss:ID="Titulo2">
-                    <Alignment ss:Horizontal="Left" ss:Vertical="Center"/>
-                    <Font ss:FontName="Arial" ss:Size="10" ss:Bold="1" ss:Color="#333333"/>
-                </Style>
-                <Style ss:ID="SubTitulo">
-                    <Alignment ss:Horizontal="Left" ss:Vertical="Center"/>
-                    <Font ss:FontName="Arial" ss:Size="9" ss:Bold="0" ss:Color="#555555"/>
-                </Style>
-                <Style ss:ID="HeaderHead">
-                    <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
-                    <Font ss:FontName="Arial" ss:Size="10" ss:Bold="1" ss:Color="#FFFFFF"/>
-                    <Interior ss:Color="#1F4E78" ss:Pattern="Solid"/>
-                    <Borders>
-                        <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
-                        <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
-                    </Borders>
-                </Style>
-                <Style ss:ID="CeldaNormal">
-                    <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
-                    <Font ss:FontName="Arial" ss:Size="9"/>
-                    <Borders>
-                        <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
-                        <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
-                        <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
-                        <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
-                    </Borders>
-                </Style>
-                <Style ss:ID="FaltaRojo">
-                    <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
-                    <Font ss:FontName="Arial" ss:Size="9" ss:Bold="1" ss:Color="#FFFFFF"/>
-                    <Interior ss:Color="#FF0000" ss:Pattern="Solid"/>
-                </Style>
-                <Style ss:ID="RetardoMayor">
-                    <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
-                    <Font ss:FontName="Arial" ss:Size="9" ss:Bold="1" ss:Color="#FFFFFF"/>
-                    <Interior ss:Color="#E46C0A" ss:Pattern="Solid"/>
-                </Style>
-                <Style ss:ID="RetardoMediano">
-                    <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
-                    <Font ss:FontName="Arial" ss:Size="9" ss:Bold="1"/>
-                    <Interior ss:Color="#FFC000" ss:Pattern="Solid"/>
-                </Style>
-                <Style ss:ID="RetardoMenor">
-                    <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
-                    <Font ss:FontName="Arial" ss:Size="9"/>
-                    <Interior ss:Color="#FFFF00" ss:Pattern="Solid"/>
-                </Style>
-            </Styles>
-            ${xmlWorksheets}
-        </Workbook>`;
+        const ws = XLSX.utils.aoa_to_sheet(wsData);
 
-        const blob = new Blob([xmlContent], { type: 'application/vnd.ms-excel;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `Reporte_Biometrico_${centroActual}_${numEmpFiltro ? `Emp_${numEmpFiltro}` : "Todos_Empleados"}.xls`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    }
+        // Definir combinaciones de celdas (Merges) idénticas a tu XML original
+        ws['!merges'] = [
+            { s: { r: 0, c: 0 }, e: { r: 1, c: 1 } }, // Logo INIFAP (A1:B2)
+            { s: { r: 0, c: 2 }, e: { r: 0, c: rawHeaders.length - 1 } }, // Titulo1
+            { s: { r: 1, c: 2 }, e: { r: 1, c: rawHeaders.length - 1 } }, // Titulo2
+            { s: { r: 2, c: 2 }, e: { r: 2, c: rawHeaders.length - 1 } }, // SubTitulo 1
+            { s: { r: 3, c: 2 }, e: { r: 3, c: rawHeaders.length - 1 } }, // SubTitulo 2
+            { s: { r: 4, c: 2 }, e: { r: 4, c: rawHeaders.length - 1 } }  // SubTitulo 3
+        ];
+
+        // Configurar alturas de fila personalizadas
+        ws['!rows'] = [
+            { hpt: 40 },
+            { hpt: 20 },
+            { hpt: 20 },
+            { hpt: 20 },
+            { hpt: 20 },
+            { hpt: 10 },
+            { hpt: 25 },
+        ];
+        // Asignar altura por defecto a las filas de datos
+        for (let i = 7; i < wsData.length; i++) {
+            if (!ws['!rows']) ws['!rows'] = [];
+            ws['!rows'][i] = { hpt: 18 };
+        }
+
+        XLSX.utils.book_append_sheet(wb, ws, nombrePestana);
+    });
+
+    // Generar archivo XLSX real y disparar descarga
+    const nombreArchivo = `Reporte_Biometrico_${centroActual}_${numEmpFiltro ? `Emp_${numEmpFiltro}` : "Todos_Empleados"}.xlsx`;
+    XLSX.writeFile(wb, nombreArchivo);
+}
 };

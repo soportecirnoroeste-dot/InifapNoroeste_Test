@@ -474,15 +474,31 @@ window.RhAsisCasc = {
         });
     },
 
-exportarExcelCasc: function () {
+    exportarExcelCasc: function () {
         const registrosAExportar = RhAsisCasc.obtenerRegistrosFiltradosActuales();
         const numEmpFiltro = document.getElementById('filtroNumEmpBio')?.value.trim() || "";
         const centroActual = RhAsisCasc.obtenerClaveCentroActual() || "General";
+        const MaxCol = RhAsisCasc.rawHeaderGlobal.length;
 
-        if (registrosAExportar.length === 0) {
-            alert("No hay registros para exportar con los filtros actuales.");
-            return;
-        }
+        const mapearRegistros = (lista) => {
+            return lista.map(r => {
+                const celdas = Array.isArray(r) ? [...r] : RhAsisCasc.rawHeaderGlobal.map(h => r[h] || "");
+                return celdas.map((c, index) => {
+                    let val = c;
+                    if (index === 2 || index === 3) {
+                        val = RhAsisCasc.extraerHoraLegible(val, false);
+                    } else if (index === 4) {
+                        val = RhAsisCasc.extraerHoraLegible(val, true);
+                    } else if (val instanceof Date) {
+                        val = val.toLocaleDateString();
+                    } else if (typeof val === 'string' && val.includes('T') && val.length > 18 && !val.includes('1899-12-30')) {
+                        const d = new Date(val);
+                        if (!isNaN(d)) val = d.toLocaleDateString();
+                    }
+                    return val !== null && val !== undefined ? val : "";
+                });
+            });
+        };
 
         let gruposAProcesar = {};
         if (!numEmpFiltro) {
@@ -495,96 +511,176 @@ exportarExcelCasc: function () {
             gruposAProcesar[`Emp_${numEmpFiltro}`] = registrosAExportar;
         }
 
-        let htmlContent = `
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <meta charset="utf-8">
-                <style>
-                    body { font-family: Arial, sans-serif; margin: 20px; }
-                    table { border-collapse: collapse; width: 100%; margin-bottom: 30px; }
-                    .logo { font-size: 24px; font-weight: bold; color: #249444; text-align: center; vertical-align: middle; }
-                    .subtext { font-size: 8px; font-weight: bold; text-align: center; vertical-align: middle; }
-                    .title-sub { font-size: 8.5px; font-weight: bold; text-align: center; vertical-align: middle; }
-                    .title-meta { font-size: 9px; font-weight: bold; text-align: center; vertical-align: middle; }
-                    .header-th { background-color: #D9D9D9; font-weight: bold; font-size: 9px; text-align: center; vertical-align: middle; border: 1px solid #B0B0B0; padding: 6px; }
-                    .cell-normal { font-size: 9px; text-align: center; vertical-align: middle; border: 1px solid #E0E0E0; background-color: #FFFFFF; padding: 5px; }
-                    .cell-falta { font-size: 9px; font-weight: bold; color: #FFFFFF; background-color: #FF0000; text-align: center; vertical-align: middle; border: 1px solid #E0E0E0; padding: 5px; }
-                    .cell-ret-may { font-size: 9px; font-weight: bold; color: #FFFFFF; background-color: #E46C0A; text-align: center; vertical-align: middle; border: 1px solid #E0E0E0; padding: 5px; }
-                    .cell-ret-med { font-size: 9px; font-weight: bold; color: #000000; background-color: #FFC000; text-align: center; vertical-align: middle; border: 1px solid #E0E0E0; padding: 5px; }
-                    .cell-ret-men { font-size: 9px; font-weight: bold; color: #000000; background-color: #FFFF00; text-align: center; vertical-align: middle; border: 1px solid #E0E0E0; padding: 5px; }
-                </style>
-            </head>
-            <body>
+        const chavesGrupos = Object.keys(gruposAProcesar);
+        if (chavesGrupos.length === 0) {
+            alert("No hay registros para exportar con los filtros actuales.");
+            return;
+        }
+
+        let xmlContent = `\uFEFF<?xml version="1.0"?>
+        <Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+                xmlns:o="urn:schemas-microsoft-com:office:office"
+                xmlns:x="urn:schemas-microsoft-com:office:excel"
+                xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+                xmlns:html="http://www.w3.org/TR/REC-html40">
+        <Styles>
+            <Style ss:ID="Default" ss:Name="Normal">
+            <Font ss:FontName="Arial" ss:Size="9"/>
+            </Style>
+            <Style ss:ID="LogoInifap">
+            <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+            <Font ss:FontName="Arial Black" ss:Size="24" ss:Bold="1" ss:Color="#249444"/>
+            </Style>
+            <Style ss:ID="LogoSubtext">
+            <Alignment ss:Horizontal="Center" ss:Vertical="Center" ss:WrapText="1"/>
+            <Font ss:FontName="Arial" ss:Size="7.5" ss:Bold="1" ss:Color="#000000"/>
+            </Style>
+            <Style ss:ID="TitleSub">
+            <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+            <Font ss:FontName="Arial" ss:Size="8.5" ss:Bold="1" ss:Color="#000000"/>
+            </Style>
+            <Style ss:ID="TitleMeta">
+            <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+            <Font ss:FontName="Arial" ss:Size="9" ss:Bold="1" ss:Color="#000000"/>
+            </Style>
+            <Style ss:ID="HeaderTable">
+            <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+            <Borders>
+                <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B0B0B0"/>
+                <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B0B0B0"/>
+                <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B0B0B0"/>
+                <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#B0B0B0"/>
+            </Borders>
+            <Interior ss:Color="#D9D9D9" ss:Pattern="Solid"/>
+            <Font ss:FontName="Arial" ss:Size="9" ss:Bold="1"/>
+            </Style>
+            <Style ss:ID="CellNormal">
+            <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+            <Borders>
+                <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+                <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+                <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+                <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+            </Borders>
+            <Interior ss:Color="#FFFFFF" ss:Pattern="Solid"/>
+            <Font ss:FontName="Arial" ss:Size="9"/>
+            </Style>
+            <Style ss:ID="CellRetardoMen">
+            <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+            <Borders>
+                <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+                <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+                <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+                <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+            </Borders>
+            <Interior ss:Color="#FFFF00" ss:Pattern="Solid"/>
+            <Font ss:FontName="Arial" ss:Size="9" ss:Bold="1"/>
+            </Style>
+            <Style ss:ID="CellRetardoMed">
+            <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+            <Borders>
+                <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+                <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+                <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+                <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+            </Borders>
+            <Interior ss:Color="#FFC000" ss:Pattern="Solid"/>
+            <Font ss:FontName="Arial" ss:Size="9" ss:Bold="1"/>
+            </Style>
+            <Style ss:ID="CellRetardoMay">
+            <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+            <Borders>
+                <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+                <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+                <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+                <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+            </Borders>
+            <Interior ss:Color="#E46C0A" ss:Pattern="Solid"/>
+            <Font ss:FontName="Arial" ss:Size="9" ss:Bold="1" ss:Color="#FFFFFF"/>
+            </Style>
+            <Style ss:ID="CellFalta">
+            <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+            <Borders>
+                <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+                <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+                <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+                <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+            </Borders>
+            <Interior ss:Color="#FF0000" ss:Pattern="Solid"/>
+            <Font ss:FontName="Arial" ss:Size="9" ss:Bold="1" ss:Color="#FFFFFF"/>
+            </Style>
+        </Styles>
         `;
 
-        Object.keys(gruposAProcesar).forEach(key => {
-            const registrosGrupo = gruposAProcesar[key];
+        chavesGrupos.forEach(key => {
+            const rowsMapeadas = mapearRegistros(gruposAProcesar[key]);
             const etiquetaEmp = numEmpFiltro ? numEmpFiltro : key;
-            const maxCol = RhAsisCasc.rawHeaderGlobal.length;
+            const nombrePestana = `Emp_${etiquetaEmp}`.replace(/[\*\?\/\\\\[\]]/g, '').substring(0, 31);
 
-            htmlContent += `
-                <table>
-                    <tr>
-                        <td rowspan="2" colspan="2" class="logo">inifap</td>
-                        <td colspan="${maxCol - 2}" class="title-sub">INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS</td>
-                    </tr>
-                    <tr>
-                        <td colspan="${maxCol - 2}" class="title-sub">COORDINACIÓN DE ADMINISTRACIÓN Y SISTEMAS</td>
-                    </tr>
-                    <tr>
-                        <td rowspan="2" colspan="2" class="subtext">Instituto Nacional de Forestales, Agrícolas y Pecuarias</td>
-                        <td colspan="${maxCol - 2}" class="title-sub">DIRECCIÓN DE DESARROLLO HUMANO Y PROFESIONALIZACIÓN</td>
-                    </tr>
-                    <tr>
-                        <td colspan="${maxCol - 2}" class="title-meta">INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp}</td>
-                    </tr>
-                    <tr>
-                        <td colspan="2"></td>
-                        <td colspan="${maxCol - 2}" class="title-meta">Reporte: RH_CONTROL_ASISTENCIA_CASC</td>
-                    </tr>
-                    <tr><td colspan="${maxCol}">&nbsp;</td></tr>
-                    <tr>
+            xmlContent += `
+        <Worksheet ss:Name="${nombrePestana}">
+            <Table>
+            <Row>
+                <Cell ss:Index="1" ss:MergeAcross="1" ss:StyleID="LogoInifap"><Data ss:Type="String">inifap</Data></Cell>
+                <Cell ss:Index="3" ss:MergeAcross="${MaxCol - 3}" ss:StyleID="TitleSub"><Data ss:Type="String">INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS</Data></Cell>
+            </Row>
+            <Row>
+                <Cell ss:Index="1" ss:MergeDown="1" ss:MergeAcross="1" ss:StyleID="LogoSubtext"><Data ss:Type="String">Instituto Nacional de Forestales, Agrícolas y Pecuarias</Data></Cell>
+                <Cell ss:Index="3" ss:MergeAcross="${MaxCol - 3}" ss:StyleID="TitleSub"><Data ss:Type="String">COORDINACIÓN DE ADMINISTRACIÓN Y SISTEMAS</Data></Cell>
+            </Row>
+            <Row>
+                <Cell ss:Index="3" ss:MergeAcross="${MaxCol - 3}" ss:StyleID="TitleSub"><Data ss:Type="String">DIRECCIÓN DE DESARROLLO HUMANO Y PROFESIONALIZACIÓN</Data></Cell>
+            </Row>
+            <Row>
+                <Cell ss:Index="3" ss:MergeAcross="${MaxCol - 3}" ss:StyleID="TitleMeta"><Data ss:Type="String">INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp}</Data></Cell>
+            </Row>
+            <Row>
+                <Cell ss:Index="3" ss:MergeAcross="${MaxCol - 3}" ss:StyleID="TitleMeta"><Data ss:Type="String">Reporte: RH_CONTROL_ASISTENCIA_CASC</Data></Cell>
+            </Row>
+            <Row><Cell ss:Index="1"><Data ss:Type="String"></Data></Cell></Row>
+            <Row>
             `;
 
             RhAsisCasc.rawHeaderGlobal.forEach(h => {
-                htmlContent += `<th class="header-th">${h}</th>`;
-            });
-            htmlContent += `</tr>`;
-
-            registrosGrupo.forEach(r => {
-                const celdas = Array.isArray(r) ? [...r] : RhAsisCasc.rawHeaderGlobal.map(h => r[h] || "");
-                const filaMapeada = celdas.map((c, index) => {
-                    let val = c;
-                    if (index === 2 || index === 3) val = RhAsisCasc.extraerHoraLegible(val, false);
-                    else if (index === 4) val = RhAsisCasc.extraerHoraLegible(val, true);
-                    else if (val instanceof Date) val = val.toLocaleDateString();
-                    return val !== null && val !== undefined ? val : "";
-                });
-
-                let claseCelda = "cell-normal";
-                if (filaMapeada[13]) claseCelda = "cell-falta";
-                else if (filaMapeada[12]) claseCelda = "cell-ret-may";
-                else if (filaMapeada[11]) claseCelda = "cell-ret-med";
-                else if (filaMapeada[10]) claseCelda = "cell-ret-men";
-
-                htmlContent += `<tr>`;
-                filaMapeada.forEach(val => {
-                    htmlContent += `<td class="${claseCelda}">${val}</td>`;
-                });
-                htmlContent += `</tr>`;
+                xmlContent += `        <Cell ss:StyleID="HeaderTable"><Data ss:Type="String">${h}</Data></Cell>\n`;
             });
 
-            htmlContent += `</table><br><hr><br>`;
+            xmlContent += `      </Row>\n`;
+
+            rowsMapeadas.forEach(dRow => {
+                let styleId = "CellNormal";
+                if (dRow[13]) {
+                    styleId = "CellFalta";
+                } else if (dRow[12]) {
+                    styleId = "CellRetardoMay";
+                } else if (dRow[11]) {
+                    styleId = "CellRetardoMed";
+                } else if (dRow[10]) {
+                    styleId = "CellRetardoMen";
+                }
+
+                xmlContent += `      <Row>\n`;
+                dRow.forEach(cellVal => {
+                    const safeVal = (cellVal !== null && cellVal !== undefined) ? String(cellVal) : '';
+                    xmlContent += `        <Cell ss:StyleID="${styleId}"><Data ss:Type="String">${safeVal}</Data></Cell>\n`;
+                });
+                xmlContent += `      </Row>\n`;
+            });
+
+            xmlContent += `    </Table>
+        </Worksheet>\n`;
         });
 
-        htmlContent += `</body></html>`;
+        xmlContent += `</Workbook>`;
 
-        const blob = new Blob(['\ufeff' + htmlContent], { type: 'text/html;charset=utf-8' });
+        // Usamos el tipo MIME correcto para XML de Excel para evitar cualquier advertencia de formato
+        const blob = new Blob([xmlContent], {
+            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `Reporte_Biometrico_${centroActual}_${numEmpFiltro ? `Emp_${numEmpFiltro}` : "Todos_Empleados"}.html`;
+        a.download = `Reporte_Biometrico_${centroActual}_${numEmpFiltro ? `Emp_${numEmpFiltro}` : "Todos_Empleados"}.xlsx`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);

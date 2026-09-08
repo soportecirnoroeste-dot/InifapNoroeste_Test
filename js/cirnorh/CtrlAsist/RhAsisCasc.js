@@ -517,7 +517,6 @@ window.RhAsisCasc = {
             return;
         }
 
-        // Crear el libro de trabajo de Excel
         const wb = XLSX.utils.book_new();
 
         chavesGrupos.forEach(key => {
@@ -525,7 +524,6 @@ window.RhAsisCasc = {
             const etiquetaEmp = numEmpFiltro ? numEmpFiltro : key;
             const nombrePestana = `Emp_${etiquetaEmp}`.replace(/[\*\?\/\\\\[\]]/g, '').substring(0, 31);
 
-            // Estilos definidos para xlsx-js-style
             const estiloLogo = {
                 font: { name: "Arial Black", sz: 24, bold: true, color: { rgb: "003366" } },
                 alignment: { horizontal: "center", vertical: "center" },
@@ -580,18 +578,16 @@ window.RhAsisCasc = {
                 }
             };
 
-            // Construir la matriz de datos de la hoja
             let wsData = [
                 [{ v: "INIFAP", s: estiloLogo }, "", { v: "INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS", s: estiloTitulo1 }],
                 ["", "", { v: "COORDINACIÓN DE ADMINISTRACIÓN Y SISTEMAS", s: estiloTitulo2 }],
                 ["", "", { v: "DIRECCIÓN DE DESARROLLO HUMANO Y PROFESIONALIZACIÓN", s: estiloSubTitulo }],
                 ["", "", { v: `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp}`, s: estiloSubTitulo }],
                 ["", "", { v: "Reporte: RH_CONTROL_ASISTENCIA_CASC", s: estiloSubTitulo }],
-                [], // Fila en blanco
-                rawHeaders.map(h => ({ v: h, s: estiloHeaderHead })) // Cabeceras de tabla
+                [],
+                rawHeaders.map(h => ({ v: h, s: estiloHeaderHead }))
             ];
 
-            // Agregar filas de registros con sus respectivos colores/estilos de semáforo
             rowsMapeadas.forEach(dRow => {
                 let tipoEstilo = "CeldaNormal";
                 if (dRow[13]) tipoEstilo = "FaltaRojo";
@@ -605,25 +601,17 @@ window.RhAsisCasc = {
 
             const ws = XLSX.utils.aoa_to_sheet(wsData);
 
-            // Definir combinaciones de celdas (Merges)
             ws['!merges'] = [
-                { s: { r: 0, c: 0 }, e: { r: 1, c: 1 } }, // Logo INIFAP (A1:B2)
-                { s: { r: 0, c: 2 }, e: { r: 0, c: rawHeaders.length - 1 } }, // Titulo1
-                { s: { r: 1, c: 2 }, e: { r: 1, c: rawHeaders.length - 1 } }, // Titulo2
-                { s: { r: 2, c: 2 }, e: { r: 2, c: rawHeaders.length - 1 } }, // SubTitulo 1
-                { s: { r: 3, c: 2 }, e: { r: 3, c: rawHeaders.length - 1 } }, // SubTitulo 2
-                { s: { r: 4, c: 2 }, e: { r: 4, c: rawHeaders.length - 1 } }  // SubTitulo 3
+                { s: { r: 0, c: 0 }, e: { r: 1, c: 1 } },
+                { s: { r: 0, c: 2 }, e: { r: 0, c: rawHeaders.length - 1 } },
+                { s: { r: 1, c: 2 }, e: { r: 1, c: rawHeaders.length - 1 } },
+                { s: { r: 2, c: 2 }, e: { r: 2, c: rawHeaders.length - 1 } },
+                { s: { r: 3, c: 2 }, e: { r: 3, c: rawHeaders.length - 1 } },
+                { s: { r: 4, c: 2 }, e: { r: 4, c: rawHeaders.length - 1 } }
             ];
 
-            // Configurar alturas de fila personalizadas
             ws['!rows'] = [
-                { hpt: 40 },
-                { hpt: 20 },
-                { hpt: 20 },
-                { hpt: 20 },
-                { hpt: 20 },
-                { hpt: 10 },
-                { hpt: 25 },
+                { hpt: 40 }, { hpt: 20 }, { hpt: 20 }, { hpt: 20 }, { hpt: 20 }, { hpt: 10 }, { hpt: 25 }
             ];
 
             for (let i = 7; i < wsData.length; i++) {
@@ -634,14 +622,12 @@ window.RhAsisCasc = {
             XLSX.utils.book_append_sheet(wb, ws, nombrePestana);
         });
 
-        // Definir nombre del archivo y forzar la generación binaria con soporte de estilos
-        // Generar archivo XLSX real con estilos usando ArrayBuffer
         const nombreArchivo = `Reporte_Biometrico_${centroActual}_${numEmpFiltro ? `Emp_${numEmpFiltro}` : "Todos_Empleados"}.xlsx`;
 
-        // Usamos type: 'array' para que XLSX devuelva un Uint8Array directamente sin corromper el binario
+        // Generación limpia usando array buffer compatible con xlsx-js-style
         const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-
         const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;

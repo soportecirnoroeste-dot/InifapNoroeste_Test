@@ -534,22 +534,34 @@ exportarExcelCasc: async function () {
             return;
         }
 
-        // 🔍 Extracción inteligente: Variables globales o respaldo leyendo directo del DOM (Select de empleados)
-        let catalogoPersonalGlobal = window._catPersonal || window.listaPersonal || window._personal || RhAsisCasc.listaPersonal || [];
+        // 🔍 Búsqueda infalible del nombre: Revisa el select, variables globales y textos visibles en pantalla que contengan el número
+        let nombreEmpleadoEncontrado = "";
         
-        if (!Array.isArray(catalogoPersonalGlobal) || catalogoPersonalGlobal.length === 0) {
-            catalogoPersonalGlobal = [];
+        if (numEmpFiltro) {
+            // 1. Intentar del select de empleados
             const selectEmp = document.getElementById('filtroNumEmpBio');
-            if (selectEmp && selectEmp.options) {
+            if (selectEmp) {
                 for (let opt of selectEmp.options) {
-                    if (opt.value && opt.value.trim() !== "") {
-                        const textoOpcion = opt.textContent || opt.innerText || "";
-                        // Limpia el número del texto para dejar solo el nombre (Ej: "1484 - Juan Perez" -> "Juan Perez")
-                        const nombreLimpio = textoOpcion.replace(opt.value, "").replace(/^[\s\-–:]+/, "").trim();
-                        catalogoPersonalGlobal.push({
-                            numEmp: opt.value.trim(),
-                            nombre: nombreLimpio || textoOpcion
-                        });
+                    if (opt.value && opt.value.trim() === numEmpFiltro) {
+                        const texto = opt.textContent || opt.innerText || "";
+                        nombreEmpleadoEncontrado = texto.replace(numEmpFiltro, "").replace(/^[\s\-–:]+/, "").trim();
+                        break;
+                    }
+                }
+            }
+
+            // 2. Si no está en el select, buscar en cualquier elemento de la pantalla que muestre el nombre del empleado seleccionado
+            if (!nombreEmpleadoEncontrado) {
+                const elementosTexto = document.querySelectorAll('span, div, label, h3, h4, option, td');
+                for (let el of elementosTexto) {
+                    const txt = el.textContent || "";
+                    if (txt.includes(numEmpFiltro) && txt.length > numEmpFiltro.length + 3 && txt.length < 80) {
+                        // Posible coincidencia de texto con el nombre
+                        const posibleNombre = txt.replace(numEmpFiltro, "").replace(/^[\s\-–:]+/, "").trim();
+                        if (posibleNombre.length > 3) {
+                            nombreEmpleadoEncontrado = posibleNombre;
+                            break;
+                        }
                     }
                 }
             }
@@ -562,21 +574,8 @@ exportarExcelCasc: async function () {
             const rowsMapeadas = mapearRegistros(gruposAProcesar[key]);
             const etiquetaEmp = numEmpFiltro ? numEmpFiltro : key;
 
-            // 🔍 Búsqueda del nombre del empleado
-            let nombreEmpleado = "";
-            if (Array.isArray(catalogoPersonalGlobal) && catalogoPersonalGlobal.length > 0) {
-                const empEncontrado = catalogoPersonalGlobal.find(p => {
-                    const idEmpleado = String(p.numEmp || p.numero || p.id || p.empleado || p.clave || p.ClaveEmp || "").trim();
-                    return idEmpleado === String(etiquetaEmp).trim();
-                });
-
-                if (empEncontrado) {
-                    nombreEmpleado = empEncontrado.nombre || empEncontrado.nombreCompleto || empEncontrado.nombres || empEncontrado.Nombre || "";
-                }
-            }
-
-            const textoIncidencias = nombreEmpleado
-                ? `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp} - ${nombreEmpleado}`
+            const textoIncidencias = nombreEmpleadoEncontrado
+                ? `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp} - ${nombreEmpleadoEncontrado}`
                 : `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp}`;
 
             const nombrePestana = `${etiquetaEmp}`.replace(/[*?/\\[]]/g, '').substring(0, 31);

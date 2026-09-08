@@ -474,7 +474,7 @@ window.RhAsisCasc = {
         });
     },
 
-    exportarExcelCasc: async function () {
+exportarExcelCasc: async function () {
         const registrosAExportar = RhAsisCasc.obtenerRegistrosFiltradosActuales();
         const numEmpFiltro = document.getElementById('filtroNumEmpBio')?.value.trim() || "";
         const centroActual = RhAsisCasc.obtenerClaveCentroActual() || "General";
@@ -534,49 +534,26 @@ window.RhAsisCasc = {
             return;
         }
 
-        // 🔍 Función auxiliar para obtener el catálogo de personal de forma segura (con respaldo síncrono/asíncrono)
-        const obtenerCatalogoSeguro = async () => {
-            let catalogoPersonal = window._catPersonal || window.listaPersonal || window._personal || RhAsisCasc.listaPersonal || [];
-            if ((!Array.isArray(catalogoPersonal) || catalogoPersonal.length === 0) && typeof google !== 'undefined' && google.script && google.script.run) {
-                try {
-                    catalogoPersonal = await new Promise((resolve) => {
-                        google.script.run
-                            .withSuccessHandler(res => {
-                                resolve(res?.personal || res?.listaPersonal || res || []);
-                            })
-                            .withFailureHandler(() => resolve([]))
-                            .obtenerDatosSistema();
-                    });
-                    // Guardarlo globalmente para futuras consultas
-                    if (Array.isArray(catalogoPersonal) && catalogoPersonal.length > 0) {
-                        window._catPersonal = catalogoPersonal;
+        // 🔍 Extracción inteligente: Variables globales o respaldo leyendo directo del DOM (Select de empleados)
+        let catalogoPersonalGlobal = window._catPersonal || window.listaPersonal || window._personal || RhAsisCasc.listaPersonal || [];
+        
+        if (!Array.isArray(catalogoPersonalGlobal) || catalogoPersonalGlobal.length === 0) {
+            catalogoPersonalGlobal = [];
+            const selectEmp = document.getElementById('filtroNumEmpBio');
+            if (selectEmp && selectEmp.options) {
+                for (let opt of selectEmp.options) {
+                    if (opt.value && opt.value.trim() !== "") {
+                        const textoOpcion = opt.textContent || opt.innerText || "";
+                        // Limpia el número del texto para dejar solo el nombre (Ej: "1484 - Juan Perez" -> "Juan Perez")
+                        const nombreLimpio = textoOpcion.replace(opt.value, "").replace(/^[\s\-–:]+/, "").trim();
+                        catalogoPersonalGlobal.push({
+                            numEmp: opt.value.trim(),
+                            nombre: nombreLimpio || textoOpcion
+                        });
                     }
-                } catch (e) {
-                    console.warn("No se pudo autoevaluar el catálogo desde el servidor:", e);
                 }
             }
-            return catalogoPersonal;
-        };
-
-        const catalogoPersonalGlobal = await obtenerCatalogoSeguro();
-
-        console.log("=== DIAGNÓSTICO DE PERSONAL ===");
-        console.log("Catálogo personal obtenido:", catalogoPersonalGlobal);
-        console.log("Tipo de catálogo:", typeof catalogoPersonalGlobal, "Es array:", Array.isArray(catalogoPersonalGlobal), "Longitud:", catalogoPersonalGlobal?.length);
-
-        if (Array.isArray(catalogoPersonalGlobal) && catalogoPersonalGlobal.length > 0) {
-            console.log("Ejemplo del primer empleado del catálogo:", catalogoPersonalGlobal[0]);
-
-            const testMatch = catalogoPersonalGlobal.find(p => {
-                const idEmpleado = String(p.numEmp || p.numero || p.id || p.empleado || p.clave || p.ClaveEmp || "").trim();
-                console.log(`Evaluando registro -> ID en objeto: '${idEmpleado}' vs Buscado: '${numEmpFiltro}'`);
-                return idEmpleado === String(numEmpFiltro).trim();
-            });
-            console.log("Resultado del match de prueba:", testMatch);
-        } else {
-            console.warn("⚠️ El catálogo llegó completamente vacío o no es un arreglo válido.");
         }
-        console.log("================================");
 
         const wb = new ExcelJS.Workbook();
         const fondoHoja = "FFFFFF";
@@ -585,7 +562,7 @@ window.RhAsisCasc = {
             const rowsMapeadas = mapearRegistros(gruposAProcesar[key]);
             const etiquetaEmp = numEmpFiltro ? numEmpFiltro : key;
 
-            // 🔍 Búsqueda robusta conectada al catálogo obtenido de forma segura
+            // 🔍 Búsqueda del nombre del empleado
             let nombreEmpleado = "";
             if (Array.isArray(catalogoPersonalGlobal) && catalogoPersonalGlobal.length > 0) {
                 const empEncontrado = catalogoPersonalGlobal.find(p => {

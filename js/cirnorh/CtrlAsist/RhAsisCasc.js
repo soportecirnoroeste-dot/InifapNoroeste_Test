@@ -474,7 +474,7 @@ window.RhAsisCasc = {
         });
     },
 
-exportarExcelCasc: async function () {
+    exportarExcelCasc: async function () {
         const registrosAExportar = RhAsisCasc.obtenerRegistrosFiltradosActuales();
         const numEmpFiltro = document.getElementById('filtroNumEmpBio')?.value.trim() || "";
         const centroActual = RhAsisCasc.obtenerClaveCentroActual() || "General";
@@ -541,32 +541,22 @@ exportarExcelCasc: async function () {
             const rowsMapeadas = mapearRegistros(gruposAProcesar[key]);
             let etiquetaEmp = numEmpFiltro ? numEmpFiltro : key.replace(/^Emp_/, '');
 
-            // 🔍 BÚSQUEDA DEL NOMBRE CON TESTIGOS EN CONSOLA
+            // 🔍 BÚSQUEDA DEL NOMBRE EN EL CATÁLOGO DE PERSONAL (Pestaña Personal: NumEmp en índice 3, Nombre en índice 5)
             let nombreEmpleadoEncontrado = "";
-            console.log("--- INICIO DE BÚSQUEDA DE NOMBRE ---");
-            console.log("Etiqueta de empleado actual:", etiquetaEmp);
-            console.log("Valor del input #filtroNumEmpBio:", document.getElementById('filtroNumEmpBio')?.value);
-            console.log("Registros a procesar para este grupo:", gruposAProcesar[key]);
+            const catalogoPersonal = (typeof RhAsisCasc.obtenerPersonalGlobal === 'function' ? RhAsisCasc.obtenerPersonalGlobal() : null) || RhAsisCasc.personalGlobal || window.personalGlobal || [];
 
-            // Opción: Analizar las celdas del primer registro con testigos
-            if (gruposAProcesar[key] && gruposAProcesar[key].length > 0) {
-                const primerRegistro = gruposAProcesar[key][0];
-                console.log("Primer registro celdas:", primerRegistro);
-                
-                for (let i = 0; i < primerRegistro.length; i++) {
-                    const celda = primerRegistro[i];
-                    console.log(`Celda [${i}]:`, celda, `(Tipo: ${typeof celda})`);
-                    const valStr = String(celda || "").trim();
-                    if (valStr.length > 3 && isNaN(valStr) && !valStr.includes(':') && !valStr.includes('-') && valStr !== String(etiquetaEmp)) {
-                        nombreEmpleadoEncontrado = valStr;
-                        console.log(`¡Nombre encontrado en la celda [${i}]!:`, nombreEmpleadoEncontrado);
-                        break;
-                    }
+            if (catalogoPersonal && catalogoPersonal.length > 0) {
+                const empleadoMatch = catalogoPersonal.find(row => {
+                    const numEmpFila = Array.isArray(row) ? String(row[3] || "").trim() : String(row.NumEmp || "").trim();
+                    return numEmpFila === String(etiquetaEmp).trim();
+                });
+
+                if (empleadoMatch) {
+                    nombreEmpleadoEncontrado = Array.isArray(empleadoMatch)
+                        ? String(empleadoMatch[5] || "").trim()
+                        : String(empleadoMatch.Nombre || "").trim();
                 }
             }
-
-            console.log("Resultado final de nombreEmpleadoEncontrado:", nombreEmpleadoEncontrado);
-            console.log("--- FIN DE BÚSQUEDA DE NOMBRE ---");
 
             // Construcción limpia y dinámica del título de incidencias en C4
             const textoIncidencias = nombreEmpleadoEncontrado

@@ -525,7 +525,7 @@ exportarExcelCasc: async function () {
                 gruposAProcesar[empId].push(row);
             });
         } else {
-            gruposAProcesar[`${numEmpFiltro}`] = registrosAExportar;
+            gruposAProcesar[`Emp_${numEmpFiltro}`] = registrosAExportar;
         }
 
         const chavesGrupos = Object.keys(gruposAProcesar);
@@ -538,24 +538,26 @@ exportarExcelCasc: async function () {
         const fondoHoja = "FFFFFF";
 
         for (const key of chavesGrupos) {
-            const rowsMapeadas = mapearRegistros(gruposAProcesar[key]);
+            const grupoRows = gruposAProcesar[key];
+            const rowsMapeadas = mapearRegistros(grupoRows);
             const etiquetaEmp = numEmpFiltro ? numEmpFiltro : key;
             
-            // 🔍 Búsqueda robusta e inteligente del nombre del empleado en el catálogo
+            // 🔍 Búsqueda inteligente: Revisa si el nombre viene oculto en alguna columna de los registros actuales
             let nombreEmpleado = "";
-            const catalogoPersonal = window.listaPersonal || RhAsisCasc.listaPersonal || window.personalSheets || [];
-            
-            if (catalogoPersonal.length > 0) {
-                const empEncontrado = catalogoPersonal.find(p => {
-                    // Comprobamos flexiblemente diferentes nombres posibles de propiedades en el objeto
-                    const idEmpleado = String(p.numEmp || p.numero || p.id || p.empleado || p.clave || "").trim();
-                    return idEmpleado === String(etiquetaEmp).trim();
-                });
-                
-                if (empEncontrado) {
-                    // Extraemos la propiedad del nombre adaptándonos a posibles variantes
-                    nombreEmpleado = empEncontrado.nombre || empEncontrado.nombreCompleto || empEncontrado.nombres || "";
+            for (const r of grupoRows) {
+                // Buscamos si algún elemento del renglón es un texto largo que parezca nombre y no sea fecha/hora/número de empleado
+                if (Array.isArray(r)) {
+                    for (const cellVal of r) {
+                        if (typeof cellVal === 'string' && cellVal.length > 5 &&isNaN(cellVal) && !cellVal.includes(':') && !cellVal.includes('/')) {
+                            // Omitimos textos institucionales fijos si los hubiera
+                            if (!cellVal.toUpperCase().includes('INIFAP') && !cellVal.toUpperCase().includes('ENTRADA')) {
+                                nombreEmpleado = cellVal;
+                                break;
+                            }
+                        }
+                    }
                 }
+                if (nombreEmpleado) break;
             }
 
             const textoIncidencias = nombreEmpleado 
@@ -667,7 +669,7 @@ exportarExcelCasc: async function () {
 
             const anchor = document.createElement('a');
             anchor.href = url;
-            anchor.download = `RepBiometrico${centroActual}${numEmpFiltro ? `_${numEmpFiltro}` : ""}.xlsx`;
+            anchor.download = `RepBiometrico_${centroActual}_${numEmpFiltro ? `${numEmpFiltro}` : ""}.xlsx`;
 
             document.body.appendChild(anchor);
             anchor.click();

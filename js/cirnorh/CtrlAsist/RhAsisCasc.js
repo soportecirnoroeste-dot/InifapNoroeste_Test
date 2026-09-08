@@ -531,9 +531,9 @@ exportarExcelCasc: function () {
             const etiquetaEmp = numEmpFiltro ? numEmpFiltro : key;
             const nombrePestana = `Emp_${etiquetaEmp}`.replace(/[*?/\\[]]/g, '').substring(0, 31);
 
-            // Simulando el logotipo en el bloque A1 con salto de línea
+            // Simulación exacta estructurada con salto de línea imitando tu .inifap-logo-wrapperIndex
             const wsData = [
-                ["inifap\nInstituto Nacional de Investigaciones Forestales, Agrícolas y Pecuarias", "", "INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS"],
+                ["INIFAP\nInstituto Nacional de Investigaciones Forestales, Agrícolas y Pecuarias", "", "INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS"],
                 ["", "", "COORDINACIÓN DE ADMINISTRACIÓN Y SISTEMAS"],
                 ["", "", "DIRECCIÓN DE DESARROLLO HUMANO Y PROFESIONALIZACIÓN"],
                 ["", "", `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp}`],
@@ -547,9 +547,9 @@ exportarExcelCasc: function () {
             ws['!ref'] = `A1:${XLSX.utils.encode_col(MaxCol - 1)}${MaxFila}`;
             ws['!view'] = { showGridLines: false };
             
-            // Fusión ajustada para acomodar el logo compacto en A1:B2 y mantener las líneas de la derecha limpias
+            // Fusión optimizada para alojar el bloque del logotipo a la izquierda (A1:B2)
             ws['!merges'] = [
-                { s: { r: 0, c: 0 }, e: { r: 1, c: 1 } }, // Bloque del Logo A1:B2
+                { s: { r: 0, c: 0 }, e: { r: 1, c: 1 } }, // Bloque del logo simulado A1:B2
                 { s: { r: 0, c: 2 }, e: { r: 0, c: 11 } },
                 { s: { r: 1, c: 2 }, e: { r: 1, c: 11 } },
                 { s: { r: 2, c: 2 }, e: { r: 2, c: 11 } },
@@ -559,7 +559,7 @@ exportarExcelCasc: function () {
 
             const tableRows = wsData.slice(6);
             const colWidths = RhAsisCasc.rawHeaderGlobal.map((_, colIndex) => {
-                if (colIndex === 0) return { wch: 18 }; // Ajustado para que quepa bien el texto del logo
+                if (colIndex === 0) return { wch: 22 }; // Ancho suficiente para la simulación del logo
                 if (colIndex === 1) return { wch: 15 };
                 let maxWidth = 10;
                 tableRows.forEach(row => {
@@ -583,17 +583,16 @@ exportarExcelCasc: function () {
                         alignment: { vertical: "center", horizontal: "center" } 
                     };
                     
-                    // Estilo del Logotipo simulado en A1 (A1:B2)
+                    // Estilo inspirado en tus clases .logo-mainIndex y .logo-legendIndex
                     if (r === 0 && c === 0) { 
-                        style.font = { bold: true, sz: 10, color: { rgb: "1E7E34" }, name: "Arial" }; // Verde institucional limpio
+                        style.font = { bold: true, sz: 10, color: { rgb: "249444" }, name: "Arial Black" }; // --inifap-green
                         style.alignment.horizontal = "left";
                         style.alignment.vertical = "center";
                         style.alignment.wrapText = true; 
-                    }
-                    // Celdas secundarias del bloque fusionado del logo para evitar errores visuales
-                    else if (r <= 1 && c <= 1) {
-                        style.font = { sz: 8, color: { rgb: "333333" }, name: "Arial" };
+                    } else if (r <= 1 && c <= 1) {
+                        style.font = { sz: 8, color: { rgb: "333333" }, name: "Arial", bold: true }; // --text-color
                         style.alignment.wrapText = true;
+                        style.alignment.horizontal = "left";
                     }
 
                     if (r >= 0 && r <= 4 && c >= 2 && c <= 11) { 

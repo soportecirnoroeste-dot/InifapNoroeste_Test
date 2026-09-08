@@ -474,7 +474,7 @@ window.RhAsisCasc = {
         });
     },
 
-exportarExcelCasc: async function () {
+    exportarExcelCasc: async function () {
         const registrosAExportar = RhAsisCasc.obtenerRegistrosFiltradosActuales();
         const numEmpFiltro = document.getElementById('filtroNumEmpBio')?.value.trim() || "";
         const centroActual = RhAsisCasc.obtenerClaveCentroActual() || "General";
@@ -538,29 +538,25 @@ exportarExcelCasc: async function () {
         const fondoHoja = "FFFFFF";
 
         for (const key of chavesGrupos) {
-            const grupoRows = gruposAProcesar[key];
-            const rowsMapeadas = mapearRegistros(grupoRows);
+            const rowsMapeadas = mapearRegistros(gruposAProcesar[key]);
             const etiquetaEmp = numEmpFiltro ? numEmpFiltro : key;
-            
-            // 🔍 Búsqueda inteligente: Revisa si el nombre viene oculto en alguna columna de los registros actuales
+
+            // 🔍 Búsqueda robusta conectada al esquema global de catálogos (_catPersonal o equivalentes)
             let nombreEmpleado = "";
-            for (const r of grupoRows) {
-                // Buscamos si algún elemento del renglón es un texto largo que parezca nombre y no sea fecha/hora/número de empleado
-                if (Array.isArray(r)) {
-                    for (const cellVal of r) {
-                        if (typeof cellVal === 'string' && cellVal.length > 5 &&isNaN(cellVal) && !cellVal.includes(':') && !cellVal.includes('/')) {
-                            // Omitimos textos institucionales fijos si los hubiera
-                            if (!cellVal.toUpperCase().includes('INIFAP') && !cellVal.toUpperCase().includes('ENTRADA')) {
-                                nombreEmpleado = cellVal;
-                                break;
-                            }
-                        }
-                    }
+            const catalogoPersonal = window._catPersonal || window.listaPersonal || window._personal || RhAsisCasc.listaPersonal || [];
+
+            if (Array.isArray(catalogoPersonal) && catalogoPersonal.length > 0) {
+                const empEncontrado = catalogoPersonal.find(p => {
+                    const idEmpleado = String(p.numEmp || p.numero || p.id || p.empleado || p.clave || p.ClaveEmp || "").trim();
+                    return idEmpleado === String(etiquetaEmp).trim();
+                });
+
+                if (empEncontrado) {
+                    nombreEmpleado = empEncontrado.nombre || empEncontrado.nombreCompleto || empEncontrado.nombres || empEncontrado.Nombre || "";
                 }
-                if (nombreEmpleado) break;
             }
 
-            const textoIncidencias = nombreEmpleado 
+            const textoIncidencias = nombreEmpleado
                 ? `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp} - ${nombreEmpleado}`
                 : `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp}`;
 
@@ -575,10 +571,10 @@ exportarExcelCasc: async function () {
                     buffer: imageBuffer,
                     extension: 'png',
                 });
-                
+
                 ws.addImage(imageId, {
-                    tl: { col: 0, row: 0 }, 
-                    br: { col: 2, row: 4 }  
+                    tl: { col: 0, row: 0 },
+                    br: { col: 2, row: 4 }
                 });
             }
 
@@ -611,7 +607,7 @@ exportarExcelCasc: async function () {
             // Fila 7: Cabeceras de la tabla de registros
             const headerRowIndex = 7;
             ws.getRow(headerRowIndex).values = RhAsisCasc.rawHeaderGlobal;
-            
+
             ws.getRow(headerRowIndex).eachCell((cell) => {
                 cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'D9D9D9' } };
                 cell.font = { name: 'Arial', sz: 9, bold: true, color: { argb: '000000' } };

@@ -525,7 +525,7 @@ exportarExcelCasc: async function () {
                 gruposAProcesar[empId].push(row);
             });
         } else {
-            gruposAProcesar[`Emp_${numEmpFiltro}`] = registrosAExportar;
+            gruposAProcesar[`${numEmpFiltro}`] = registrosAExportar;
         }
 
         const chavesGrupos = Object.keys(gruposAProcesar);
@@ -667,7 +667,7 @@ exportarExcelCasc: async function () {
 
             const anchor = document.createElement('a');
             anchor.href = url;
-            anchor.download = `RepBiometrico_${centroActual}_${numEmpFiltro ? `${numEmpFiltro}` : ""}.xlsx`;
+            anchor.download = `RepBiometrico${centroActual}${numEmpFiltro ? `_${numEmpFiltro}` : ""}.xlsx`;
 
             document.body.appendChild(anchor);
             anchor.click();

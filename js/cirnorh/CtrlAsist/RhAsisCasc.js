@@ -474,7 +474,7 @@ window.RhAsisCasc = {
         });
     },
 
-    exportarExcelCasc: async function () {
+exportarExcelCasc: async function () {
         const registrosAExportar = RhAsisCasc.obtenerRegistrosFiltradosActuales();
         const numEmpFiltro = document.getElementById('filtroNumEmpBio')?.value.trim() || "";
         const centroActual = RhAsisCasc.obtenerClaveCentroActual() || "General";
@@ -542,18 +542,13 @@ window.RhAsisCasc = {
             const rowsMapeadas = mapearRegistros(grupoRows);
             const etiquetaEmp = numEmpFiltro ? numEmpFiltro : key;
 
-            // Buscar el nombre del empleado de manera inteligente en los datos del grupo (ej. columna de nombre, asumiendo índice 0 o buscando donde esté el texto)
+            // 🔍 Búsqueda oficial del nombre en el catálogo de personal del frontend
             let nombreEmpleado = "";
-            if (grupoRows.length > 0) {
-                const primerRow = grupoRows[0];
-                // Comúnmente el nombre está en la columna 0 o 1, buscamos un campo que sea string largo y no sea el número de empleado ni fecha
-                for (let i = 0; i < primerRow.length; i++) {
-                    const valStr = String(primerRow[i] || "").trim();
-                    if (isNaN(valStr) && valStr.length > 3 && !valStr.includes(":") && !valStr.includes("-")) {
-                        nombreEmpleado = valStr;
-                        break;
-                    }
-                }
+            const catalogoPersonal = window.listaPersonal || RhAsisCasc.listaPersonal || [];
+            const empEncontrado = catalogoPersonal.find(p => String(p.numEmp).trim() === String(etiquetaEmp).trim());
+            
+            if (empEncontrado) {
+                nombreEmpleado = empEncontrado.nombre;
             }
 
             const textoIncidencias = nombreEmpleado
@@ -573,8 +568,8 @@ window.RhAsisCasc = {
                 });
 
                 ws.addImage(imageId, {
-                    tl: { col: 0, row: 0 }, // Esquina superior izquierda en A1
-                    br: { col: 2, row: 4 }  // Esquina inferior derecha en C4 (cubre A1:B4)
+                    tl: { col: 0, row: 0 }, 
+                    br: { col: 2, row: 4 }  
                 });
             }
 
@@ -665,7 +660,7 @@ window.RhAsisCasc = {
 
             const anchor = document.createElement('a');
             anchor.href = url;
-            anchor.download = `Reporte_Biometrico_${centroActual}_${numEmpFiltro ? `Emp_${numEmpFiltro}` : "Todos_Empleados"}.xlsx`;
+            anchor.download = `RepBiometrico_${centroActual}_${numEmpFiltro ? `${numEmpFiltro}` : ""}.xlsx`;
 
             document.body.appendChild(anchor);
             anchor.click();

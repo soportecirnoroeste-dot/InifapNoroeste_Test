@@ -570,33 +570,31 @@ window.RhAsisCasc = {
             }
         }
 
-const wb = new ExcelJS.Workbook();
+        const wb = new ExcelJS.Workbook();
         const fondoHoja = "FFFFFF";
+
+        // *Nota: Asegúrate de tener disponible la variable 'datosSistema' (o como guardes el resultado de obtenerDatosSistema)*
+        // Por ejemplo: const listaPersonal = datosSistema.personal || [];
 
         for (const key of chavesGrupos) {
             const rowsMapeadas = mapearRegistros(gruposAProcesar[key]);
             const etiquetaEmp = numEmpFiltro ? numEmpFiltro : key;
 
-            // 🔍 Lectura dinámica desde la interfaz o el selector activo de tu aplicación
-            let nombreDinamico = "";
-            
-            // 1. Intentar buscar si hay algún elemento en tu HTML que muestre el nombre del empleado actual (ej. un span, div o input de resultados)
-            const elNombreUI = document.querySelector('#nombreEmpleadoBio, .nombre-empleado-activo, #labelNombreEmp');
-            if (elNombreUI && elNombreUI.textContent) {
-                nombreDinamico = elNombreUI.textContent.trim();
-            }
-            
-            // 2. Si no está en un label fijo, buscamos en el objeto o catálogo global de empleados de tu app si existe (ej. listaEmpleados o catalogoPersonal)
-            if (!nombreDinamico && typeof listaEmpleados !== 'undefined' && Array.isArray(listaEmpleados)) {
-                const encontrado = listaEmpleados.find(emp => emp.id == etiquetaEmp || emp.numero == etiquetaEmp);
-                if (encontrado) {
-                    nombreDinamico = encontrado.nombre;
+            // 🔍 Buscamos el nombre de manera dinámica directamente en el catálogo de personal que nos mandó el servidor
+            let nombreEmpleadoEncontrado = "";
+            if (typeof listaPersonal !== 'undefined' && Array.isArray(listaPersonal)) {
+                // Buscamos coincidencia por número de empleado (ajusta la propiedad según cómo venga en tu función obtenerPersonalSheets)
+                const empleadoMatch = listaPersonal.find(p =>
+                    String(p.numeroEmp || p.numEmp || p.id || '').trim() === String(etiquetaEmp).trim()
+                );
+                if (empleadoMatch) {
+                    nombreEmpleadoEncontrado = empleadoMatch.nombre || empleadoMatch.nombreCompleto || "";
                 }
             }
 
-            // Construir el texto final de forma limpia y dinámica
-            const textoIncidencias = nombreDinamico
-                ? `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp} - ${nombreDinamico}`
+            // Construcción limpia y dinámica del título de incidencias
+            const textoIncidencias = nombreEmpleadoEncontrado
+                ? `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp} - ${nombreEmpleadoEncontrado}`
                 : `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp}`;
 
             const nombrePestana = `${etiquetaEmp}`.replace(/[*?/\\[]]/g, '').substring(0, 31);

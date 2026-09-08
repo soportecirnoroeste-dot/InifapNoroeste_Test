@@ -474,32 +474,11 @@ window.RhAsisCasc = {
         });
     },
 
-exportarExcelCasc: async function () {
-        // Protección anti-error: si el script no está cargado, lo inyectamos con respaldo
+exportarExcelCasc: function () {
+        // Validación directa ya que la librería se carga de forma estática en el HTML
         if (typeof XLSX === 'undefined') {
-            alert("Cargando motor de Excel, por favor intenta de nuevo en un segundo...");
-            const cargado = await new Promise((resolve) => {
-                const script = document.createElement('script');
-                // Intentamos primero con jsdelivr para estilos
-                script.src = "https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.full.min.js";
-                
-                script.onload = () => resolve(true);
-                script.onerror = () => {
-                    console.warn("Fallo el CDN principal de estilos, intentando con CDN alternativo de SheetJS...");
-                    // Fallback a CDN oficial de SheetJS estándar si el de estilos falla
-                    const scriptFallback = document.createElement('script');
-                    scriptFallback.src = "https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js";
-                    scriptFallback.onload = () => resolve(true);
-                    scriptFallback.onerror = () => resolve(false);
-                    document.head.appendChild(scriptFallback);
-                };
-                document.head.appendChild(script);
-            });
-
-            if (!cargado || typeof XLSX === 'undefined') {
-                alert("No se pudo cargar el motor de Excel. Verifica tu conexión a internet o restricciones de red.");
-                return;
-            }
+            alert("El motor de Excel (xlsx-js-style) no está disponible. Verifica que la etiqueta script cargue correctamente en el HTML.");
+            return;
         }
 
         try {
@@ -652,6 +631,7 @@ exportarExcelCasc: async function () {
 
             const nombreArchivo = `Reporte_Biometrico_${centroActual}_${numEmpFiltro ? `Emp_${numEmpFiltro}` : "Todos_Empleados"}.xlsx`;
 
+            // Generación limpia usando array buffer compatible con xlsx-js-style
             const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
             const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
 

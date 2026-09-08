@@ -576,7 +576,7 @@ exportarExcelCasc: async function () {
 
             const textoIncidencias = nombreEmpleadoEncontrado
                 ? `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp} - ${nombreEmpleadoEncontrado}`
-                : `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp}`;
+                : `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp}  - ${nombreEmpleadoEncontrado}`;
 
             const nombrePestana = `${etiquetaEmp}`.replace(/[*?/\\[]]/g, '').substring(0, 31);
 

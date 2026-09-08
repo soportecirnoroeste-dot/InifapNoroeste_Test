@@ -474,188 +474,165 @@ window.RhAsisCasc = {
         });
     },
 
-    exportarExcelCasc: async function () {
-    const registrosAExportar = RhAsisCasc.obtenerRegistrosFiltradosActuales();
-    const numEmpFiltro = document.getElementById('filtroNumEmpBio')?.value.trim() || "";
-    const centroActual = RhAsisCasc.obtenerClaveCentroActual() || "General";
+    exportarExcelCasc: function () {
+        const registrosAExportar = RhAsisCasc.obtenerRegistrosFiltradosActuales();
+        const numEmpFiltro = document.getElementById('filtroNumEmpBio')?.value.trim() || "";
+        const centroActual = RhAsisCasc.obtenerClaveCentroActual() || "General";
 
-    if (typeof ExcelJS === 'undefined' || typeof saveAs === 'undefined') {
-        alert("❌ Error: Se requieren las librerías ExcelJS y FileSaver.js cargadas en el HTML.");
-        return;
-    }
+        if (typeof XLSX === 'undefined' || typeof XLSX.writeFile === 'undefined') {
+            alert("❌ Error: La librería SheetJS (xlsx-js-style) no está cargada correctamente en el HTML.");
+            return;
+        }
 
-    const mapearRegistros = (lista) => {
-        return lista.map(r => {
-            const celdas = Array.isArray(r) ? [...r] : RhAsisCasc.rawHeaderGlobal.map(h => r[h] || "");
-            return celdas.map((c, index) => {
-                let val = c;
-                if (index === 2 || index === 3) {
-                    val = RhAsisCasc.extraerHoraLegible(val, false);
-                } else if (index === 4) {
-                    val = RhAsisCasc.extraerHoraLegible(val, true);
-                } else if (val instanceof Date) {
-                    val = val.toLocaleDateString();
-                } else if (typeof val === 'string' && val.includes('T') && val.length > 18 && !val.includes('1899-12-30')) {
-                    const d = new Date(val);
-                    if (!isNaN(d)) val = d.toLocaleDateString();
-                }
-                return val !== null && val !== undefined ? val : "";
+        const mapearRegistros = (lista) => {
+            return lista.map(r => {
+                const celdas = Array.isArray(r) ? [...r] : RhAsisCasc.rawHeaderGlobal.map(h => r[h] || "");
+                return celdas.map((c, index) => {
+                    let val = c;
+                    if (index === 2 || index === 3) {
+                        val = RhAsisCasc.extraerHoraLegible(val, false);
+                    } else if (index === 4) {
+                        val = RhAsisCasc.extraerHoraLegible(val, true);
+                    } else if (val instanceof Date) {
+                        val = val.toLocaleDateString();
+                    } else if (typeof val === 'string' && val.includes('T') && val.length > 18 && !val.includes('1899-12-30')) {
+                        const d = new Date(val);
+                        if (!isNaN(d)) val = d.toLocaleDateString();
+                    }
+                    return val !== null && val !== undefined ? val : "";
+                });
             });
-        });
-    };
+        };
 
-    let gruposAProcesar = {};
-    if (!numEmpFiltro) {
-        registrosAExportar.forEach(row => {
-            const empId = String(row[1] || "S_N").trim();
-            if (!gruposAProcesar[empId]) gruposAProcesar[empId] = [];
-            gruposAProcesar[empId].push(row);
-        });
-    } else {
-        gruposAProcesar[`Emp_${numEmpFiltro}`] = registrosAExportar;
-    }
+        let gruposAProcesar = {};
+        if (!numEmpFiltro) {
+            registrosAExportar.forEach(row => {
+                const empId = String(row[1] || "S_N").trim();
+                if (!gruposAProcesar[empId]) gruposAProcesar[empId] = [];
+                gruposAProcesar[empId].push(row);
+            });
+        } else {
+            gruposAProcesar[`Emp_${numEmpFiltro}`] = registrosAExportar;
+        }
 
-    const chavesGrupos = Object.keys(gruposAProcesar);
-    if (chavesGrupos.length === 0) {
-        alert("No hay registros para exportar con los filtros actuales.");
-        return;
-    }
+        const chavesGrupos = Object.keys(gruposAProcesar);
+        if (chavesGrupos.length === 0) {
+            alert("No hay registros para exportar con los filtros actuales.");
+            return;
+        }
 
-    const workbook = new ExcelJS.Workbook();
+        const wb = XLSX.utils.book_new();
+        const fondoHoja = "E9F5E9";
+        const MaxFila = 200;
+        const MaxCol = 26;
 
-    for (const key of chavesGrupos) {
-        const rowsMapeadas = mapearRegistros(gruposAProcesar[key]);
-        const etiquetaEmp = numEmpFiltro ? numEmpFiltro : key;
-        const nombrePestana = `Emp_${etiquetaEmp}`.replace(/[*?/\\[]]/g, '').substring(0, 31);
-        
-        const worksheet = workbook.addWorksheet(nombrePestana);
-        worksheet.views = [{ showGridLines: true }];
-        worksheet.columns = RhAsisCasc.rawHeaderGlobal.map(() => ({ width: 15 }));
+        for (const key of chavesGrupos) {
+            const rowsMapeadas = mapearRegistros(gruposAProcesar[key]);
+            const etiquetaEmp = numEmpFiltro ? numEmpFiltro : key;
+            const nombrePestana = `Emp_${etiquetaEmp}`.replace(/[*?/\\[]]/g, '').substring(0, 31);
 
-        // Fila 1: inifap + Título
-        worksheet.mergeCells(1, 1, 1, 2);
-        const cellInifap = worksheet.getCell(1, 1);
-        cellInifap.value = "inifap";
-        cellInifap.font = { name: 'Arial Black', size: 24, bold: true, color: { argb: 'FF249444' } };
-        cellInifap.alignment = { horizontal: 'center', vertical: 'middle' };
+            const wsData = [
+                ["inifap", "", "INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS"],
+                ["Instituto Nacional de Investigaciones", "", "COORDINACIÓN DE ADMINISTRACIÓN Y SISTEMAS"],
+                ["Forestales, Agrícolas y Pecuarias", "", "DIRECCIÓN DE DESARROLLO HUMANO Y PROFESIONALIZACIÓN"],
+                ["", "", `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp}`],
+                ["", "", "Reporte: RH_CONTROL_ASISTENCIA_CASC"],
+                [],
+                RhAsisCasc.rawHeaderGlobal,
+                ...rowsMapeadas
+            ];
 
-        worksheet.mergeCells(1, 3, 1, RhAsisCasc.rawHeaderGlobal.length);
-        const cellTitulo1 = worksheet.getCell(1, 3);
-        cellTitulo1.value = "INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS";
-        cellTitulo1.font = { name: 'Arial', size: 8.5, bold: true, color: { argb: 'FF000000' } };
-        cellTitulo1.alignment = { horizontal: 'center', vertical: 'middle' };
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            ws['!ref'] = `A1:${XLSX.utils.encode_col(MaxCol - 1)}${MaxFila}`;
+            ws['!view'] = { showGridLines: false };
+            ws['!merges'] = [
+                { s: { r: 0, c: 0 }, e: { r: 0, c: 1 } },
+                { s: { r: 1, c: 0 }, e: { r: 2, c: 1 } },
+                { s: { r: 0, c: 2 }, e: { r: 0, c: 11 } },
+                { s: { r: 1, c: 2 }, e: { r: 1, c: 11 } },
+                { s: { r: 2, c: 2 }, e: { r: 2, c: 11 } },
+                { s: { r: 3, c: 2 }, e: { r: 3, c: 11 } },
+                { s: { r: 4, c: 2 }, e: { r: 4, c: 11 } }
+            ];
 
-        // Fila 2 y 3: Subtítulo
-        worksheet.mergeCells(2, 1, 3, 2);
-        const cellSubtext = worksheet.getCell(2, 1);
-        cellSubtext.value = "Instituto Nacional de Forestales, Agrícolas y Pecuarias";
-        cellSubtext.font = { name: 'Arial', size: 7.5, bold: true, color: { argb: 'FF000000' } };
-        cellSubtext.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+            const tableRows = wsData.slice(6);
+            const colWidths = RhAsisCasc.rawHeaderGlobal.map((_, colIndex) => {
+                if (colIndex === 0) return { wch: 15 };
+                let maxWidth = 10;
+                tableRows.forEach(row => {
+                    const cellValue = row[colIndex];
+                    const text = cellValue ? String(cellValue) : "";
+                    const currentWidth = cellValue instanceof Date ? 12 : text.length + 2;
+                    if (currentWidth > maxWidth) maxWidth = currentWidth;
+                });
+                return { wch: maxWidth };
+            });
+            ws['!cols'] = colWidths;
 
-        worksheet.mergeCells(2, 3, 2, RhAsisCasc.rawHeaderGlobal.length);
-        const cellTitulo2 = worksheet.getCell(2, 3);
-        cellTitulo2.value = "COORDINACIÓN DE ADMINISTRACIÓN Y SISTEMAS";
-        cellTitulo2.font = { name: 'Arial', size: 8.5, bold: true, color: { argb: 'FF000000' } };
-        cellTitulo2.alignment = { horizontal: 'center', vertical: 'middle' };
+            // Aplicación de estilos celda por celda
+            for (let r = 0; r < MaxFila; r++) {
+                for (let c = 0; c < MaxCol; c++) {
+                    const cellRef = XLSX.utils.encode_cell({ r: r, c: c });
+                    if (!ws[cellRef]) ws[cellRef] = { v: "" };
+                    let style = { 
+                        fill: { type: 'pattern', pattern: 'solid', fgColor: { rgb: fondoHoja } }, 
+                        font: { sz: 9, name: "Arial" }, 
+                        alignment: { vertical: "center", horizontal: "center" } 
+                    };
+                    
+                    if (r === 0 && c === 0) { 
+                        style.font = { bold: true, sz: 24, color: { rgb: "249444" }, name: "Arial Black" }; 
+                        style.alignment.horizontal = "center"; 
+                    }
+                    if (r >= 1 && r <= 2 && c >= 0 && c <= 1){ 
+                        style.font = { sz: 7.5, color: { rgb: "000000" }, bold: true, name: "Arial" }; 
+                        style.alignment.horizontal = "center"; 
+                        style.alignment.wrapText = true; 
+                    }
+                    if (r >= 0 && r <= 4 && c >= 2 && c <= 11) { 
+                        style.font = { sz: 8.5, bold: true, name: "Arial", color: { rgb: "000000" } }; 
+                        style.alignment.horizontal = "center"; 
+                    }            
+                    if (r === 6 && c < RhAsisCasc.rawHeaderGlobal.length) { 
+                        style.fill = { type: 'pattern', pattern: 'solid', fgColor: { rgb: "D9D9D9" } }; 
+                        style.font = { bold: true, sz: 9, name: "Arial", color: { rgb: "000000" } }; 
+                        style.border = { top: {style:"thin", color: {rgb: "B0B0B0"}}, bottom: {style:"thin", color: {rgb: "B0B0B0"}}, left: {style:"thin", color: {rgb: "B0B0B0"}}, right: {style:"thin", color: {rgb: "B0B0B0"}} }; 
+                    }
+                    
+                    if (r >= 7) {
+                        const dRow = rowsMapeadas[r - 7];
+                        if (dRow && c < RhAsisCasc.rawHeaderGlobal.length) {
+                            let bgColor = fondoHoja; 
+                            let fontColor = "000000"; 
+                            let isBold = false;
 
-        worksheet.mergeCells(3, 3, 3, RhAsisCasc.rawHeaderGlobal.length);
-        const cellTitulo3 = worksheet.getCell(3, 3);
-        cellTitulo3.value = "DIRECCIÓN DE DESARROLLO HUMANO Y PROFESIONALIZACIÓN";
-        cellTitulo3.font = { name: 'Arial', size: 8.5, bold: true, color: { argb: 'FF000000' } };
-        cellTitulo3.alignment = { horizontal: 'center', vertical: 'middle' };
-
-        // Fila 4: Empleado Meta
-        worksheet.mergeCells(4, 3, 4, RhAsisCasc.rawHeaderGlobal.length);
-        const cellMeta1 = worksheet.getCell(4, 3);
-        cellMeta1.value = `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp}`;
-        cellMeta1.font = { name: 'Arial', size: 9, bold: true, color: { argb: 'FF000000' } };
-        cellMeta1.alignment = { horizontal: 'center', vertical: 'middle' };
-
-        // Fila 5: Reporte Código
-        worksheet.mergeCells(5, 3, 5, RhAsisCasc.rawHeaderGlobal.length);
-        const cellMeta2 = worksheet.getCell(5, 3);
-        cellMeta2.value = "Reporte: RH_CONTROL_ASISTENCIA_CASC";
-        cellMeta2.font = { name: 'Arial', size: 9, bold: true, color: { argb: 'FF000000' } };
-        cellMeta2.alignment = { horizontal: 'center', vertical: 'middle' };
-
-        worksheet.getRow(6).height = 15;
-
-        // Encabezado de la tabla (Fila 7)
-        const headerRow = worksheet.getRow(7);
-        headerRow.height = 22;
-        RhAsisCasc.rawHeaderGlobal.forEach((h, i) => {
-            const cell = headerRow.getCell(i + 1);
-            cell.value = h;
-            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9D9D9' } };
-            cell.font = { name: 'Arial', size: 9, bold: true, color: { argb: 'FF000000' } };
-            cell.alignment = { horizontal: 'center', vertical: 'middle' };
-            cell.border = {
-                top: { style: 'thin', color: { argb: 'FFB0B0B0' } },
-                left: { style: 'thin', color: { argb: 'FFB0B0B0' } },
-                bottom: { style: 'thin', color: { argb: 'FFB0B0B0' } },
-                right: { style: 'thin', color: { argb: 'FFB0B0B0' } }
-            };
-        });
-
-        // Filas de datos (Fila 8 en adelante)
-        rowsMapeadas.forEach((dRow) => {
-            let colorFondo = 'FFFFFFFF';
-            let colorTexto = 'FF000000';
-            let esNegrita = false;
-
-            // Evaluación de banderas de incidencias
-            if (dRow[11]) { // Falta
-                colorFondo = 'FFFF0000';
-                colorTexto = 'FFFFFFFF';
-                esNegrita = true;
-            } else if (dRow[10]) { // Retardo Mayor
-                colorFondo = 'FFE46C0A';
-                colorTexto = 'FFFFFFFF';
-                esNegrita = true;
-            } else if (dRow[9]) { // Retardo Medio
-                colorFondo = 'FFFFC000';
-                esNegrita = true;
-            } else if (dRow[8]) { // Retardo Menor
-                colorFondo = 'FFFFFF00';
-                esNegrita = true;
+                            if (dRow[11]) { // Falta
+                                bgColor = "FF0000"; fontColor = "FFFFFF"; isBold = true;
+                            } else if (dRow[10]) { // Retardo Mayor
+                                bgColor = "E46C0A"; fontColor = "FFFFFF"; isBold = true;
+                            } else if (dRow[9]) { // Retardo Medio
+                                bgColor = "FFC000"; isBold = true;
+                            } else if (dRow[8]) { // Retardo Menor
+                                bgColor = "FFFF00"; isBold = true;
+                            }
+                            
+                            style.fill = { type: 'pattern', pattern: 'solid', fgColor: { rgb: bgColor } }; 
+                            style.font = { sz: 9, name: "Arial", bold: isBold, color: { rgb: fontColor } }; 
+                            style.border = { top: {style:"thin", color: {rgb: "E0E0E0"}}, bottom: {style:"thin", color: {rgb: "E0E0E0"}}, left: {style:"thin", color: {rgb: "E0E0E0"}}, right: {style:"thin", color: {rgb: "E0E0E0"}} };
+                        }
+                    }
+                    ws[cellRef].s = style;
+                }
             }
+            XLSX.utils.book_append_sheet(wb, ws, nombrePestana);
+        }
 
-            const rowObj = worksheet.addRow(dRow.slice(0, RhAsisCasc.rawHeaderGlobal.length));
-            rowObj.height = 20;
-            rowObj.eachCell((cell) => {
-                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: colorFondo } };
-                cell.font = { name: 'Arial', size: 9, bold: esNegrita, color: { argb: colorTexto } };
-                cell.alignment = { horizontal: 'center', vertical: 'middle' };
-                cell.border = {
-                    top: { style: 'thin', color: { argb: 'FFE0E0E0' } },
-                    left: { style: 'thin', color: { argb: 'FFE0E0E0' } },
-                    bottom: { style: 'thin', color: { argb: 'FFE0E0E0' } },
-                    right: { style: 'thin', color: { argb: 'FFE0E0E0' } }
-                };
-            });
-        });
-
-        // Ajuste automático del ancho de las celdas
-        worksheet.columns.forEach(col => {
-            let maxLen = 12;
-            col.eachCell({ includeEmpty: false }, cell => {
-                if (cell.row > 6) {
-                    const valLen = cell.value ? String(cell.value).length : 0;
-                    if (valLen > maxLen) maxLen = valLen;
-                }
-            });
-            col.width = maxLen + 4;
-        });
+        try {
+            const nombreArchivo = `Reporte_Biometrico_${centroActual}_${numEmpFiltro ? `Emp_${numEmpFiltro}` : "Todos_Empleados"}.xlsx`;
+            XLSX.writeFile(wb, nombreArchivo);
+        } catch (err) {
+            console.error("❌ Error de escritura con SheetJS:", err);
+            alert("Ocurrió un error al compilar el archivo .xlsx.");
+        }
     }
-
-    try {
-        const buffer = await workbook.xlsx.writeBuffer();
-        const nombreArchivo = `Reporte_Biometrico_${centroActual}_${numEmpFiltro ? `Emp_${numEmpFiltro}` : "Todos_Empleados"}.xlsx`;
-        saveAs(new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), nombreArchivo);
-    } catch (err) {
-        console.error("❌ Error de escritura con ExcelJS:", err);
-        alert("Ocurrió un error al compilar el archivo .xlsx binario.");
-    }
-}
-
 };

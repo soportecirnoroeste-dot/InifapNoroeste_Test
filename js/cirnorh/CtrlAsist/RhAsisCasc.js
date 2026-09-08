@@ -474,7 +474,7 @@ window.RhAsisCasc = {
         });
     },
 
-    exportarExcelCasc: async function () {
+exportarExcelCasc: async function () {
         const registrosAExportar = RhAsisCasc.obtenerRegistrosFiltradosActuales();
         const numEmpFiltro = document.getElementById('filtroNumEmpBio')?.value.trim() || "";
         const centroActual = RhAsisCasc.obtenerClaveCentroActual() || "General";
@@ -540,18 +540,18 @@ window.RhAsisCasc = {
         for (const key of chavesGrupos) {
             const rowsMapeadas = mapearRegistros(gruposAProcesar[key]);
             const etiquetaEmp = numEmpFiltro ? numEmpFiltro : key;
-
+            
             // 🔍 Buscar el nombre oficial del empleado en tu catálogo de personal cargado en el frontend
             // (Asegúrate de que 'RhAsisCasc.listaPersonal' o tu variable global contenga el arreglo de personal con propiedades .numEmp y .nombre)
             let nombreEmpleado = "";
             const catalogoPersonal = window.listaPersonal || RhAsisCasc.listaPersonal || [];
             const empEncontrado = catalogoPersonal.find(p => String(p.numEmp).trim() === String(etiquetaEmp).trim());
-
+            
             if (empEncontrado) {
                 nombreEmpleado = empEncontrado.nombre;
             }
 
-            const textoIncidencias = nombreEmpleado
+            const textoIncidencias = nombreEmpleado 
                 ? `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp} - ${nombreEmpleado}`
                 : `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp}`;
 
@@ -566,10 +566,10 @@ window.RhAsisCasc = {
                     buffer: imageBuffer,
                     extension: 'png',
                 });
-
+                
                 ws.addImage(imageId, {
-                    tl: { col: 0, row: 0 },
-                    br: { col: 2, row: 4 }
+                    tl: { col: 0, row: 0 }, 
+                    br: { col: 2, row: 4 }  
                 });
             }
 
@@ -602,7 +602,7 @@ window.RhAsisCasc = {
             // Fila 7: Cabeceras de la tabla de registros
             const headerRowIndex = 7;
             ws.getRow(headerRowIndex).values = RhAsisCasc.rawHeaderGlobal;
-
+            
             ws.getRow(headerRowIndex).eachCell((cell) => {
                 cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'D9D9D9' } };
                 cell.font = { name: 'Arial', sz: 9, bold: true, color: { argb: '000000' } };
@@ -653,21 +653,21 @@ window.RhAsisCasc = {
             });
         }
 
-        try {
+       try {
             const buffer = await wb.xlsx.writeBuffer();
             const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
             const url = window.URL.createObjectURL(blob);
 
             const anchor = document.createElement('a');
             anchor.href = url;
-            anchor.download = `RepBiometrico${centroActual}_${numEmpFiltro ? `Emp${numEmpFiltro}` : ""}.xlsx`;
+            anchor.download = `RepBiometrico${centroActual}_${numEmpFiltro ? `${numEmpFiltro}` : ""}.xlsx`;
 
             document.body.appendChild(anchor);
             anchor.click();
             document.body.removeChild(anchor);
 
             window.URL.revokeObjectURL(url);
-        } (`err`) {
+        } catch (err) {
             console.error("❌ Error de escritura con ExcelJS:", err);
             alert("Ocurrió un error al compilar el archivo .xlsx: " + err.message);
         }

@@ -522,7 +522,7 @@ window.RhAsisCasc = {
         }
 
         const wb = XLSX.utils.book_new();
-        const fondoHoja = "E9F5E9";
+        const fondoHoja = "ffffff";
         const MaxFila = 200;
         const MaxCol = 26;
 

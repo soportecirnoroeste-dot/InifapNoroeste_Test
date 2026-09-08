@@ -712,7 +712,7 @@ function generateWorkbook() {
                         
                         let style = { 
                             fill: { type: 'pattern', pattern: 'solid', fgColor: { rgb: fondoHoja } }, 
-                            font: { sz: 9, name: "Arial" }, 
+                            font: { sz: 24, name: "Arial" }, 
                             alignment: { vertical: "center", horizontal: "center" } 
                         };
 

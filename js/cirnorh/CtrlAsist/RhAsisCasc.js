@@ -474,7 +474,7 @@ window.RhAsisCasc = {
         });
     },
 
-exportarExcelCasc: async function () {
+    exportarExcelCasc: async function () {
         const registrosAExportar = RhAsisCasc.obtenerRegistrosFiltradosActuales();
         const numEmpFiltro = document.getElementById('filtroNumEmpBio')?.value.trim() || "";
         const centroActual = RhAsisCasc.obtenerClaveCentroActual() || "General";
@@ -538,15 +538,15 @@ exportarExcelCasc: async function () {
         const fondoHoja = "FFFFFF";
 
         for (const key of chavesGrupos) {
-            const grupoRows = gruposAProcesar[key];
-            const rowsMapeadas = mapearRegistros(grupoRows);
+            const rowsMapeadas = mapearRegistros(gruposAProcesar[key]);
             const etiquetaEmp = numEmpFiltro ? numEmpFiltro : key;
 
-            // 🔍 Búsqueda oficial del nombre en el catálogo de personal del frontend
+            // 🔍 Buscar el nombre oficial del empleado en tu catálogo de personal cargado en el frontend
+            // (Asegúrate de que 'RhAsisCasc.listaPersonal' o tu variable global contenga el arreglo de personal con propiedades .numEmp y .nombre)
             let nombreEmpleado = "";
             const catalogoPersonal = window.listaPersonal || RhAsisCasc.listaPersonal || [];
             const empEncontrado = catalogoPersonal.find(p => String(p.numEmp).trim() === String(etiquetaEmp).trim());
-            
+
             if (empEncontrado) {
                 nombreEmpleado = empEncontrado.nombre;
             }
@@ -555,7 +555,7 @@ exportarExcelCasc: async function () {
                 ? `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp} - ${nombreEmpleado}`
                 : `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp}`;
 
-            const nombrePestana = `Emp_${etiquetaEmp}`.replace(/[*?/\\[]]/g, '').substring(0, 31);
+            const nombrePestana = `${etiquetaEmp}`.replace(/[*?/\\[]]/g, '').substring(0, 31);
 
             const ws = wb.addWorksheet(nombrePestana);
             ws.views = [{ showGridLines: false }];
@@ -568,8 +568,8 @@ exportarExcelCasc: async function () {
                 });
 
                 ws.addImage(imageId, {
-                    tl: { col: 0, row: 0 }, 
-                    br: { col: 2, row: 4 }  
+                    tl: { col: 0, row: 0 },
+                    br: { col: 2, row: 4 }
                 });
             }
 
@@ -660,14 +660,14 @@ exportarExcelCasc: async function () {
 
             const anchor = document.createElement('a');
             anchor.href = url;
-            anchor.download = `RepBiometrico_${centroActual}_${numEmpFiltro ? `${numEmpFiltro}` : ""}.xlsx`;
+            anchor.download = `RepBiometrico${centroActual}_${numEmpFiltro ? `Emp${numEmpFiltro}` : ""}.xlsx`;
 
             document.body.appendChild(anchor);
             anchor.click();
             document.body.removeChild(anchor);
 
             window.URL.revokeObjectURL(url);
-        } catch (err) {
+        } (`err`) {
             console.error("❌ Error de escritura con ExcelJS:", err);
             alert("Ocurrió un error al compilar el archivo .xlsx: " + err.message);
         }

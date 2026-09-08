@@ -539,12 +539,15 @@ exportarExcelCasc: async function () {
         
         if (numEmpFiltro) {
             // 1. Intentar del select de empleados
+            console.log(numEmpFiltro);
             const selectEmp = document.getElementById('filtroNumEmpBio');
             if (selectEmp) {
                 for (let opt of selectEmp.options) {
                     if (opt.value && opt.value.trim() === numEmpFiltro) {
                         const texto = opt.textContent || opt.innerText || "";
                         nombreEmpleadoEncontrado = texto.replace(numEmpFiltro, "").replace(/^[\s\-–:]+/, "").trim();
+                        
+            console.log(nombreEmpleadoEncontrado);
                         break;
                     }
                 }

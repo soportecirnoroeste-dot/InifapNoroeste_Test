@@ -474,7 +474,7 @@ window.RhAsisCasc = {
         });
     },
 
-    exportarExcelCasc: async function () {
+exportarExcelCasc: async function () {
         const registrosAExportar = RhAsisCasc.obtenerRegistrosFiltradosActuales();
         const numEmpFiltro = document.getElementById('filtroNumEmpBio')?.value.trim() || "";
         const centroActual = RhAsisCasc.obtenerClaveCentroActual() || "General";
@@ -534,6 +534,32 @@ window.RhAsisCasc = {
             return;
         }
 
+        // 🔍 Función auxiliar para obtener el catálogo de personal de forma segura (con respaldo síncrono/asíncrono)
+        const obtenerCatalogoSeguro = async () => {
+            let catalogoPersonal = window._catPersonal || window.listaPersonal || window._personal || RhAsisCasc.listaPersonal || [];
+            if ((!Array.isArray(catalogoPersonal) || catalogoPersonal.length === 0) && typeof google !== 'undefined' && google.script && google.script.run) {
+                try {
+                    catalogoPersonal = await new Promise((resolve) => {
+                        google.script.run
+                            .withSuccessHandler(res => {
+                                resolve(res?.personal || res?.listaPersonal || res || []);
+                            })
+                            .withFailureHandler(() => resolve([]))
+                            .obtenerDatosSistema();
+                    });
+                    // Guardarlo globalmente para futuras consultas
+                    if (Array.isArray(catalogoPersonal) && catalogoPersonal.length > 0) {
+                        window._catPersonal = catalogoPersonal;
+                    }
+                } catch (e) {
+                    console.warn("No se pudo autoevaluar el catálogo desde el servidor:", e);
+                }
+            }
+            return catalogoPersonal;
+        };
+
+        const catalogoPersonalGlobal = await obtenerCatalogoSeguro();
+
         const wb = new ExcelJS.Workbook();
         const fondoHoja = "FFFFFF";
 
@@ -541,12 +567,10 @@ window.RhAsisCasc = {
             const rowsMapeadas = mapearRegistros(gruposAProcesar[key]);
             const etiquetaEmp = numEmpFiltro ? numEmpFiltro : key;
 
-            // 🔍 Búsqueda robusta conectada al esquema global de catálogos (_catPersonal o equivalentes)
+            // 🔍 Búsqueda robusta conectada al catálogo obtenido de forma segura
             let nombreEmpleado = "";
-            const catalogoPersonal = window._catPersonal || window.listaPersonal || window._personal || RhAsisCasc.listaPersonal || [];
-
-            if (Array.isArray(catalogoPersonal) && catalogoPersonal.length > 0) {
-                const empEncontrado = catalogoPersonal.find(p => {
+            if (Array.isArray(catalogoPersonalGlobal) && catalogoPersonalGlobal.length > 0) {
+                const empEncontrado = catalogoPersonalGlobal.find(p => {
                     const idEmpleado = String(p.numEmp || p.numero || p.id || p.empleado || p.clave || p.ClaveEmp || "").trim();
                     return idEmpleado === String(etiquetaEmp).trim();
                 });

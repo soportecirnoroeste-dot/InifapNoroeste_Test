@@ -639,7 +639,7 @@ exportarExcelCasc: function () {
             </Row>
             <Row><Cell ss:Index="1"><Data ss:Type="String"></Data></Cell></Row>
             <Row>
-        `;
+            `;
 
             RhAsisCasc.rawHeaderGlobal.forEach(h => {
                 xmlContent += `        <Cell ss:StyleID="HeaderTable"><Data ss:Type="String">${h}</Data></Cell>\n`;
@@ -673,7 +673,8 @@ exportarExcelCasc: function () {
 
         xmlContent += `</Workbook>`;
 
-        const blob = new Blob([xmlContent], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+        // Usamos el tipo MIME correcto para XML de Excel para evitar cualquier advertencia de formato
+        const blob = new Blob([xmlContent], { type: 'application/vnd.ms-excel' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;

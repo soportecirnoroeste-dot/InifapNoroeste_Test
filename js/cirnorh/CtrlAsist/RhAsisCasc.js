@@ -474,7 +474,7 @@ window.RhAsisCasc = {
         });
     },
 
-    exportarExcelCasc: async function () {
+exportarExcelCasc: async function () {
         const registrosAExportar = RhAsisCasc.obtenerRegistrosFiltradosActuales();
         const numEmpFiltro = document.getElementById('filtroNumEmpBio')?.value.trim() || "";
         const centroActual = RhAsisCasc.obtenerClaveCentroActual() || "General";
@@ -541,20 +541,26 @@ window.RhAsisCasc = {
             const rowsMapeadas = mapearRegistros(gruposAProcesar[key]);
             let etiquetaEmp = numEmpFiltro ? numEmpFiltro : key.replace(/^Emp_/, '');
 
-            // 🔍 BÚSQUEDA DEL NOMBRE CON TESTIGOS DETALLADOS
+            // 🔍 BÚSQUEDA DEL NOMBRE CON TESTIGOS DETALLADOS Y RUTA CORREGIDA (Basado en Apps Script)
             let nombreEmpleadoEncontrado = "";
             console.log("========================================");
             console.log("🔍 [TESTIGO] Buscando nombre para empleado ID:", etiquetaEmp);
 
-            const catalogoPersonal = (typeof RhAsisCasc.obtenerPersonalGlobal === 'function' ? RhAsisCasc.obtenerPersonalGlobal() : null) || RhAsisCasc.personalGlobal || window.personalGlobal || [];
+            // Apuntamos correctamente a donde se almacenan los datos traídos por obtenerDatosSistema()
+            const catalogoPersonal = (typeof RhAsisCasc.obtenerPersonalGlobal === 'function' ? RhAsisCasc.obtenerPersonalGlobal() : null) 
+                || (RhAsisCasc.datosSistema && RhAsisCasc.datosSistema.personal) 
+                || RhAsisCasc.personalGlobal 
+                || window.personalGlobal 
+                || [];
+                
             console.log("🔍 [TESTIGO] Catálogo de personal obtenido. Total de registros:", catalogoPersonal.length);
 
             if (catalogoPersonal && catalogoPersonal.length > 0) {
-                // Imprimimos el primer registro del catálogo para revisar su estructura real
                 console.log("🔍 [TESTIGO] Ejemplo de la primera fila del catálogo:", catalogoPersonal[0]);
 
-                const empleadoMatch = catalogoPersonal.find(row => {
-                    const numEmpFila = Array.isArray(row) ? String(row[3] || "").trim() : String(row.NumEmp || "").trim();
+                const empleadoMatch = catalogoPersonal.find(emp => {
+                    // Como tu Apps Script devuelve un objeto con la propiedad numEmp (y no un arreglo plano)
+                    const numEmpFila = Array.isArray(emp) ? String(emp[3] || "").trim() : String(emp.numEmp || "").trim();
                     return numEmpFila === String(etiquetaEmp).trim();
                 });
 
@@ -562,7 +568,7 @@ window.RhAsisCasc = {
                     console.log("✅ [TESTIGO] ¡Empleado encontrado en el catálogo!", empleadoMatch);
                     nombreEmpleadoEncontrado = Array.isArray(empleadoMatch)
                         ? String(empleadoMatch[5] || "").trim()
-                        : String(empleadoMatch.Nombre || "").trim();
+                        : String(empleadoMatch.nombre || "").trim(); // Propiedad en minúscula según tu Apps Script
                     console.log("✅ [TESTIGO] Nombre extraído:", nombreEmpleadoEncontrado);
                 } else {
                     console.warn("⚠️ [TESTIGO] No se encontró ninguna coincidencia para el NumEmp:", etiquetaEmp);

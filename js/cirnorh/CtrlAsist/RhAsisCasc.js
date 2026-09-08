@@ -474,7 +474,7 @@ window.RhAsisCasc = {
         });
     },
 
-    exportarExcelCasc: async function () {
+exportarExcelCasc: async function () {
         const registrosAExportar = RhAsisCasc.obtenerRegistrosFiltradosActuales();
         const numEmpFiltro = document.getElementById('filtroNumEmpBio')?.value.trim() || "";
         const centroActual = RhAsisCasc.obtenerClaveCentroActual() || "General";
@@ -545,19 +545,21 @@ window.RhAsisCasc = {
             const ws = wb.addWorksheet(nombrePestana);
             ws.views = [{ showGridLines: false }];
 
-            // Si se cargó el logo con éxito, lo incrustamos en la esquina superior izquierda (A1)
+            // Si se cargó el logo, lo colocamos cubriendo el bloque A1 hasta B2 de manera fluida
             if (imageBuffer) {
                 const imageId = wb.addImage({
                     buffer: imageBuffer,
                     extension: 'png',
                 });
+                
+                // Usamos la propiedad 'br' (bottom-right) apuntando a la celda C2 para que cubra exactamente A1:B2
                 ws.addImage(imageId, {
-                    tl: { col: 0, row: 0 }, // Celda A1
-                    ext: { width: 140, height: 45 } // Dimensiones ajustadas para el encabezado
+                    tl: { col: 0, row: 0 }, // Esquina superior izquierda en A1
+                    br: { col: 2, row: 2 }  // Esquina inferior derecha en C2 (lo que expande la imagen cubriendo A1, B1, A2 y B2)
                 });
             }
 
-            // Textos institucionales al lado derecho del logo (a partir de la columna C)
+            // Textos institucionales al lado derecho del logo grande (a partir de la columna C)
             ws.mergeCells('C1:L1');
             ws.getCell('C1').value = "INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS";
             ws.getCell('C1').font = { name: 'Arial', sz: 9, bold: true, color: { argb: '000000' } };
@@ -586,7 +588,7 @@ window.RhAsisCasc = {
             // Fila 7: Cabeceras de la tabla de registros
             const headerRowIndex = 7;
             ws.getRow(headerRowIndex).values = RhAsisCasc.rawHeaderGlobal;
-
+            
             ws.getRow(headerRowIndex).eachCell((cell) => {
                 cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'D9D9D9' } };
                 cell.font = { name: 'Arial', sz: 9, bold: true, color: { argb: '000000' } };
@@ -624,8 +626,8 @@ window.RhAsisCasc = {
 
             // Autoajustar anchos de columnas basado en contenido
             ws.columns.forEach((column, colIndex) => {
-                if (colIndex === 0) { column.width = 20; return; }
-                if (colIndex === 1) { column.width = 15; return; }
+                if (colIndex === 0) { column.width = 18; return; }
+                if (colIndex === 1) { column.width = 18; return; }
                 let maxLength = 10;
                 column.eachCell({ includeEmpty: false }, (cell, rowNum) => {
                     if (rowNum >= 7) {
@@ -641,15 +643,15 @@ window.RhAsisCasc = {
             const buffer = await wb.xlsx.writeBuffer();
             const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
             const url = window.URL.createObjectURL(blob);
-
+            
             const anchor = document.createElement('a');
             anchor.href = url;
             anchor.download = `Reporte_Biometrico_${centroActual}_${numEmpFiltro ? `Emp_${numEmpFiltro}` : "Todos_Empleados"}.xlsx`;
-
+            
             document.body.appendChild(anchor);
             anchor.click();
             document.body.removeChild(anchor);
-
+            
             window.URL.revokeObjectURL(url);
         } catch (err) {
             console.error("❌ Error de escritura con ExcelJS:", err);

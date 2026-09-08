@@ -474,7 +474,7 @@ window.RhAsisCasc = {
         });
     },
 
-exportarExcelCasc: async function () {
+    exportarExcelCasc: async function () {
         const registrosAExportar = RhAsisCasc.obtenerRegistrosFiltradosActuales();
         const numEmpFiltro = document.getElementById('filtroNumEmpBio')?.value.trim() || "";
         const centroActual = RhAsisCasc.obtenerClaveCentroActual() || "General";
@@ -538,8 +538,28 @@ exportarExcelCasc: async function () {
         const fondoHoja = "FFFFFF";
 
         for (const key of chavesGrupos) {
-            const rowsMapeadas = mapearRegistros(gruposAProcesar[key]);
+            const grupoRows = gruposAProcesar[key];
+            const rowsMapeadas = mapearRegistros(grupoRows);
             const etiquetaEmp = numEmpFiltro ? numEmpFiltro : key;
+
+            // Buscar el nombre del empleado de manera inteligente en los datos del grupo (ej. columna de nombre, asumiendo índice 0 o buscando donde esté el texto)
+            let nombreEmpleado = "";
+            if (grupoRows.length > 0) {
+                const primerRow = grupoRows[0];
+                // Comúnmente el nombre está en la columna 0 o 1, buscamos un campo que sea string largo y no sea el número de empleado ni fecha
+                for (let i = 0; i < primerRow.length; i++) {
+                    const valStr = String(primerRow[i] || "").trim();
+                    if (isNaN(valStr) && valStr.length > 3 && !valStr.includes(":") && !valStr.includes("-")) {
+                        nombreEmpleado = valStr;
+                        break;
+                    }
+                }
+            }
+
+            const textoIncidencias = nombreEmpleado
+                ? `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp} - ${nombreEmpleado}`
+                : `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp}`;
+
             const nombrePestana = `Emp_${etiquetaEmp}`.replace(/[*?/\\[]]/g, '').substring(0, 31);
 
             const ws = wb.addWorksheet(nombrePestana);
@@ -551,7 +571,7 @@ exportarExcelCasc: async function () {
                     buffer: imageBuffer,
                     extension: 'png',
                 });
-                
+
                 ws.addImage(imageId, {
                     tl: { col: 0, row: 0 }, // Esquina superior izquierda en A1
                     br: { col: 2, row: 4 }  // Esquina inferior derecha en C4 (cubre A1:B4)
@@ -575,7 +595,7 @@ exportarExcelCasc: async function () {
             ws.getCell('C3').alignment = { vertical: 'middle', horizontal: 'center' };
 
             ws.mergeCells('C4:J4');
-            ws.getCell('C4').value = `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp}`;
+            ws.getCell('C4').value = textoIncidencias;
             ws.getCell('C4').font = { name: 'Arial', sz: 8.5, bold: true, color: { argb: '000000' } };
             ws.getCell('C4').alignment = { vertical: 'middle', horizontal: 'center' };
 
@@ -587,7 +607,7 @@ exportarExcelCasc: async function () {
             // Fila 7: Cabeceras de la tabla de registros
             const headerRowIndex = 7;
             ws.getRow(headerRowIndex).values = RhAsisCasc.rawHeaderGlobal;
-            
+
             ws.getRow(headerRowIndex).eachCell((cell) => {
                 cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'D9D9D9' } };
                 cell.font = { name: 'Arial', sz: 9, bold: true, color: { argb: '000000' } };
@@ -642,15 +662,15 @@ exportarExcelCasc: async function () {
             const buffer = await wb.xlsx.writeBuffer();
             const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
             const url = window.URL.createObjectURL(blob);
-            
+
             const anchor = document.createElement('a');
             anchor.href = url;
             anchor.download = `Reporte_Biometrico_${centroActual}_${numEmpFiltro ? `Emp_${numEmpFiltro}` : "Todos_Empleados"}.xlsx`;
-            
+
             document.body.appendChild(anchor);
             anchor.click();
             document.body.removeChild(anchor);
-            
+
             window.URL.revokeObjectURL(url);
         } catch (err) {
             console.error("❌ Error de escritura con ExcelJS:", err);

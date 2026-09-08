@@ -474,14 +474,27 @@ window.RhAsisCasc = {
         });
     },
 
-exportarExcelCasc: function () {
+exportarExcelCasc: async function () {
         const registrosAExportar = RhAsisCasc.obtenerRegistrosFiltradosActuales();
         const numEmpFiltro = document.getElementById('filtroNumEmpBio')?.value.trim() || "";
         const centroActual = RhAsisCasc.obtenerClaveCentroActual() || "General";
 
-        if (typeof XLSX === 'undefined' || typeof XLSX.writeFile === 'undefined') {
-            alert("❌ Error: La librería SheetJS (xlsx-js-style) no está cargada correctamente en el HTML.");
+        if (typeof ExcelJS === 'undefined') {
+            alert("❌ Error: La librería ExcelJS no está cargada en el HTML. Asegúrate de incluirla.");
             return;
+        }
+
+        // 1. Intentar cargar el Logo.png desde la carpeta principal del proyecto
+        let imageBuffer = null;
+        try {
+            const response = await fetch('Logo.png');
+            if (response.ok) {
+                imageBuffer = await response.arrayBuffer();
+            } else {
+                console.warn("No se pudo cargar Logo.png, se continuará con el reporte sin la imagen.");
+            }
+        } catch (err) {
+            console.warn("Error al hacer fetch de Logo.png:", err);
         }
 
         const mapearRegistros = (lista) => {
@@ -521,124 +534,120 @@ exportarExcelCasc: function () {
             return;
         }
 
-        const wb = XLSX.utils.book_new();
-        const fondoHoja = "ffffff";
-        const MaxFila = 200;
-        const MaxCol = 26;
+        const wb = new ExcelJS.Workbook();
+        const fondoHoja = "FFFFFF";
 
         for (const key of chavesGrupos) {
             const rowsMapeadas = mapearRegistros(gruposAProcesar[key]);
             const etiquetaEmp = numEmpFiltro ? numEmpFiltro : key;
             const nombrePestana = `Emp_${etiquetaEmp}`.replace(/[*?/\\[]]/g, '').substring(0, 31);
 
-            // Simulación exacta estructurada con salto de línea imitando tu .inifap-logo-wrapperIndex
-            const wsData = [
-                ["INIFAP\nInstituto Nacional de Investigaciones Forestales, Agrícolas y Pecuarias", "", "INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS"],
-                ["", "", "COORDINACIÓN DE ADMINISTRACIÓN Y SISTEMAS"],
-                ["", "", "DIRECCIÓN DE DESARROLLO HUMANO Y PROFESIONALIZACIÓN"],
-                ["", "", `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp}`],
-                ["", "", "Reporte: RH_CONTROL_ASISTENCIA_CASC"],
-                [],
-                RhAsisCasc.rawHeaderGlobal,
-                ...rowsMapeadas
-            ];
+            const ws = wb.addWorksheet(nombrePestana);
+            ws.views = [{ showGridLines: false }];
 
-            const ws = XLSX.utils.aoa_to_sheet(wsData);
-            ws['!ref'] = `A1:${XLSX.utils.encode_col(MaxCol - 1)}${MaxFila}`;
-            ws['!view'] = { showGridLines: false };
-            
-            // Fusión optimizada para alojar el bloque del logotipo a la izquierda (A1:B2)
-            ws['!merges'] = [
-                { s: { r: 0, c: 0 }, e: { r: 1, c: 1 } }, // Bloque del logo simulado A1:B2
-                { s: { r: 0, c: 2 }, e: { r: 0, c: 11 } },
-                { s: { r: 1, c: 2 }, e: { r: 1, c: 11 } },
-                { s: { r: 2, c: 2 }, e: { r: 2, c: 11 } },
-                { s: { r: 3, c: 2 }, e: { r: 3, c: 11 } },
-                { s: { r: 4, c: 2 }, e: { r: 4, c: 11 } }
-            ];
-
-            const tableRows = wsData.slice(6);
-            const colWidths = RhAsisCasc.rawHeaderGlobal.map((_, colIndex) => {
-                if (colIndex === 0) return { wch: 22 }; // Ancho suficiente para la simulación del logo
-                if (colIndex === 1) return { wch: 15 };
-                let maxWidth = 10;
-                tableRows.forEach(row => {
-                    const cellValue = row[colIndex];
-                    const text = cellValue ? String(cellValue) : "";
-                    const currentWidth = cellValue instanceof Date ? 12 : text.length + 2;
-                    if (currentWidth > maxWidth) maxWidth = currentWidth;
+            // Si se cargó el logo con éxito, lo incrustamos en la esquina superior izquierda (A1)
+            if (imageBuffer) {
+                const imageId = wb.addImage({
+                    buffer: imageBuffer,
+                    extension: 'png',
                 });
-                return { wch: maxWidth };
-            });
-            ws['!cols'] = colWidths;
-
-            // Aplicación de estilos celda por celda
-            for (let r = 0; r < MaxFila; r++) {
-                for (let c = 0; c < MaxCol; c++) {
-                    const cellRef = XLSX.utils.encode_cell({ r: r, c: c });
-                    if (!ws[cellRef]) ws[cellRef] = { v: "" };
-                    let style = { 
-                        fill: { type: 'pattern', pattern: 'solid', fgColor: { rgb: fondoHoja } }, 
-                        font: { sz: 9, name: "Arial" }, 
-                        alignment: { vertical: "center", horizontal: "center" } 
-                    };
-                    
-                    // Estilo inspirado en tus clases .logo-mainIndex y .logo-legendIndex
-                    if (r === 0 && c === 0) { 
-                        style.font = { bold: true, sz: 10, color: { rgb: "249444" }, name: "Arial Black" }; // --inifap-green
-                        style.alignment.horizontal = "left";
-                        style.alignment.vertical = "center";
-                        style.alignment.wrapText = true; 
-                    } else if (r <= 1 && c <= 1) {
-                        style.font = { sz: 8, color: { rgb: "333333" }, name: "Arial", bold: true }; // --text-color
-                        style.alignment.wrapText = true;
-                        style.alignment.horizontal = "left";
-                    }
-
-                    if (r >= 0 && r <= 4 && c >= 2 && c <= 11) { 
-                        style.font = { sz: 8.5, bold: true, name: "Arial", color: { rgb: "000000" } }; 
-                        style.alignment.horizontal = "center"; 
-                    }         
-                    
-                    if (r === 6 && c < RhAsisCasc.rawHeaderGlobal.length) { 
-                        style.fill = { type: 'pattern', pattern: 'solid', fgColor: { rgb: "D9D9D9" } }; 
-                        style.font = { bold: true, sz: 9, name: "Arial", color: { rgb: "000000" } }; 
-                        style.border = { top: {style:"thin", color: {rgb: "B0B0B0"}}, bottom: {style:"thin", color: {rgb: "B0B0B0"}}, left: {style:"thin", color: {rgb: "B0B0B0"}}, right: {style:"thin", color: {rgb: "B0B0B0"}} }; 
-                    }
-                    
-                    if (r >= 7) {
-                        const dRow = rowsMapeadas[r - 7];
-                        if (dRow && c < RhAsisCasc.rawHeaderGlobal.length) {
-                            let bgColor = fondoHoja; 
-                            let fontColor = "000000"; 
-                            let isBold = false;
-
-                            if (dRow[11]) { // Falta
-                                bgColor = "FF0000"; fontColor = "FFFFFF"; isBold = true;
-                            } else if (dRow[10]) { // Retardo Mayor
-                                bgColor = "E46C0A"; fontColor = "FFFFFF"; isBold = true;
-                            } else if (dRow[9]) { // Retardo Medio
-                                bgColor = "FFC000"; isBold = true;
-                            } else if (dRow[8]) { // Retardo Menor
-                                bgColor = "FFFF00"; isBold = true;
-                            }
-                            
-                            style.fill = { type: 'pattern', pattern: 'solid', fgColor: { rgb: bgColor } }; 
-                            style.font = { sz: 9, name: "Arial", bold: isBold, color: { rgb: fontColor } }; 
-                            style.border = { top: {style:"thin", color: {rgb: "E0E0E0"}}, bottom: {style:"thin", color: {rgb: "E0E0E0"}}, left: {style:"thin", color: {rgb: "E0E0E0"}}, right: {style:"thin", color: {rgb: "E0E0E0"}} };
-                        }
-                    }
-                    ws[cellRef].s = style;
-                }
+                ws.addImage(imageId, {
+                    tl: { col: 0, row: 0 }, // Celda A1
+                    ext: { width: 140, height: 45 } // Dimensiones ajustadas para el encabezado
+                });
             }
-            XLSX.utils.book_append_sheet(wb, ws, nombrePestana);
+
+            // Textos institucionales al lado derecho del logo (a partir de la columna C)
+            ws.mergeCells('C1:L1');
+            ws.getCell('C1').value = "INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS";
+            ws.getCell('C1').font = { name: 'Arial', sz: 9, bold: true, color: { argb: '000000' } };
+            ws.getCell('C1').alignment = { vertical: 'middle', horizontal: 'center' };
+
+            ws.mergeCells('C2:L2');
+            ws.getCell('C2').value = "COORDINACIÓN DE ADMINISTRACIÓN Y SISTEMAS";
+            ws.getCell('C2').font = { name: 'Arial', sz: 8.5, bold: true, color: { argb: '000000' } };
+            ws.getCell('C2').alignment = { vertical: 'middle', horizontal: 'center' };
+
+            ws.mergeCells('C3:L3');
+            ws.getCell('C3').value = "DIRECCIÓN DE DESARROLLO HUMANO Y PROFESIONALIZACIÓN";
+            ws.getCell('C3').font = { name: 'Arial', sz: 8.5, bold: true, color: { argb: '000000' } };
+            ws.getCell('C3').alignment = { vertical: 'middle', horizontal: 'center' };
+
+            ws.mergeCells('C4:L4');
+            ws.getCell('C4').value = `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp}`;
+            ws.getCell('C4').font = { name: 'Arial', sz: 8.5, bold: true, color: { argb: '000000' } };
+            ws.getCell('C4').alignment = { vertical: 'middle', horizontal: 'center' };
+
+            ws.mergeCells('C5:L5');
+            ws.getCell('C5').value = "Reporte: RH_CONTROL_ASISTENCIA_CASC";
+            ws.getCell('C5').font = { name: 'Arial', sz: 8.5, bold: true, color: { argb: '000000' } };
+            ws.getCell('C5').alignment = { vertical: 'middle', horizontal: 'center' };
+
+            // Fila 7: Cabeceras de la tabla de registros
+            const headerRowIndex = 7;
+            ws.getRow(headerRowIndex).values = RhAsisCasc.rawHeaderGlobal;
+            
+            ws.getRow(headerRowIndex).eachCell((cell) => {
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'D9D9D9' } };
+                cell.font = { name: 'Arial', sz: 9, bold: true, color: { argb: '000000' } };
+                cell.alignment = { vertical: 'middle', horizontal: 'center' };
+                cell.border = { top: { style: 'thin', color: { argb: 'B0B0B0' } }, bottom: { style: 'thin', color: { argb: 'B0B0B0' } }, left: { style: 'thin', color: { argb: 'B0B0B0' } }, right: { style: 'thin', color: { argb: 'B0B0B0' } } };
+            });
+
+            // Insertar registros de datos
+            rowsMapeadas.forEach((dRow, idx) => {
+                const rowIndex = headerRowIndex + 1 + idx;
+                const row = ws.getRow(rowIndex);
+                row.values = dRow;
+
+                let bgColor = fondoHoja;
+                let fontColor = "000000";
+                let isBold = false;
+
+                if (dRow[11]) { // Falta
+                    bgColor = "FF0000"; fontColor = "FFFFFF"; isBold = true;
+                } else if (dRow[10]) { // Retardo Mayor
+                    bgColor = "E46C0A"; fontColor = "FFFFFF"; isBold = true;
+                } else if (dRow[9]) { // Retardo Medio
+                    bgColor = "FFC000"; isBold = true;
+                } else if (dRow[8]) { // Retardo Menor
+                    bgColor = "FFFF00"; isBold = true;
+                }
+
+                row.eachCell((cell, colNumber) => {
+                    cell.font = { name: 'Arial', sz: 9, bold: isBold, color: { argb: fontColor } };
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgColor } };
+                    cell.alignment = { vertical: 'middle', horizontal: 'center' };
+                    cell.border = { top: { style: 'thin', color: { argb: 'E0E0E0' } }, bottom: { style: 'thin', color: { argb: 'E0E0E0' } }, left: { style: 'thin', color: { argb: 'E0E0E0' } }, right: { style: 'thin', color: { argb: 'E0E0E0' } } };
+                });
+            });
+
+            // Autoajustar anchos de columnas basado en contenido
+            ws.columns.forEach((column, colIndex) => {
+                if (colIndex === 0) { column.width = 20; return; }
+                if (colIndex === 1) { column.width = 15; return; }
+                let maxLength = 10;
+                column.eachCell({ includeEmpty: false }, (cell, rowNum) => {
+                    if (rowNum >= 7) {
+                        const columnLength = cell.value ? String(cell.value).length : 10;
+                        if (columnLength > maxLength) maxLength = columnLength;
+                    }
+                });
+                column.width = maxLength + 3;
+            });
         }
 
         try {
-            const nombreArchivo = `Reporte_Biometrico_${centroActual}_${numEmpFiltro ? `Emp_${numEmpFiltro}` : "Todos_Empleados"}.xlsx`;
-            XLSX.writeFile(wb, nombreArchivo);
+            const buffer = await wb.xlsx.writeBuffer();
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = window.URL.createObjectURL(blob);
+            const anchor = document.createElement('anchor' in document.createElement('a') ? 'a' : 'div');
+            anchor.href = url;
+            anchor.download = `Reporte_Biometrico_${centroActual}_${numEmpFiltro ? `Emp_${numEmpFiltro}` : "Todos_Empleados"}.xlsx`;
+            anchor.click();
+            window.URL.revokeObjectURL(url);
         } catch (err) {
-            console.error("❌ Error de escritura con SheetJS:", err);
+            console.error("❌ Error de escritura con ExcelJS:", err);
             alert("Ocurrió un error al compilar el archivo .xlsx.");
         }
     }

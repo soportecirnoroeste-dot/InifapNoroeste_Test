@@ -762,7 +762,7 @@ function generateWorkbook() {
                                 }
 
                                 style.fill = { type: 'pattern', pattern: 'solid', fgColor: { rgb: bgColor } }; 
-                                style.font = { sz: 9, bold: isBold, color: { rgb: fontColor }, name: "Arial" }; 
+                                style.font = { sz: 24, bold: isBold, color: { rgb: fontColor }, name: "Arial Black" }; 
                                 style.border = { top: {style:"thin", color:{rgb:"E0E0E0"}}, bottom: {style:"thin", color:{rgb:"E0E0E0"}}, left: {style:"thin", color:{rgb:"E0E0E0"}}, right: {style:"thin", color:{rgb:"E0E0E0"}} };
                             }
                         }

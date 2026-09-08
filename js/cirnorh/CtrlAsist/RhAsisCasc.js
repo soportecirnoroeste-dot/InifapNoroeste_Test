@@ -475,9 +475,9 @@ window.RhAsisCasc = {
     },
 
 exportarExcelCasc: function () {
-        // Validación directa ya que la librería se carga de forma estática en el HTML
+        // Validación directa de la librería oficial estándar de SheetJS
         if (typeof XLSX === 'undefined') {
-            alert("El motor de Excel (xlsx-js-style) no está disponible. Verifica que la etiqueta script cargue correctamente en el HTML.");
+            alert("El motor de Excel no está disponible. Verifica tu conexión a internet o la etiqueta script.");
             return;
         }
 
@@ -531,83 +531,24 @@ exportarExcelCasc: function () {
                 const etiquetaEmp = numEmpFiltro ? numEmpFiltro : key;
                 const nombrePestana = `Emp_${etiquetaEmp}`.replace(/[\*\?\/\\\\[\]]/g, '').substring(0, 31);
 
-                const estiloLogo = {
-                    font: { name: "Arial Black", sz: 24, bold: true, color: { rgb: "003366" } },
-                    alignment: { horizontal: "center", vertical: "center" },
-                    fill: { fgColor: { rgb: "F2F2F2" } },
-                    border: {
-                        top: { style: "thin", color: { rgb: "CCCCCC" } },
-                        bottom: { style: "thin", color: { rgb: "CCCCCC" } },
-                        left: { style: "thin", color: { rgb: "CCCCCC" } },
-                        right: { style: "thin", color: { rgb: "CCCCCC" } }
-                    }
-                };
-
-                const estiloTitulo1 = { font: { name: "Arial", sz: 12, bold: true, color: { rgb: "003366" } }, alignment: { vertical: "center" } };
-                const estiloTitulo2 = { font: { name: "Arial", sz: 10, bold: true, color: { rgb: "333333" } }, alignment: { vertical: "center" } };
-                const estiloSubTitulo = { font: { name: "Arial", sz: 9, bold: false, color: { rgb: "555555" } }, alignment: { vertical: "center" } };
-
-                const estiloHeaderHead = {
-                    font: { name: "Arial", sz: 10, bold: true, color: { rgb: "FFFFFF" } },
-                    fill: { fgColor: { rgb: "1F4E78" } },
-                    alignment: { horizontal: "center", vertical: "center" },
-                    border: {
-                        top: { style: "thin", color: { rgb: "000000" } },
-                        bottom: { style: "thin", color: { rgb: "000000" } }
-                    }
-                };
-
-                const estilosCelda = {
-                    CeldaNormal: {
-                        font: { name: "Arial", sz: 9 },
-                        alignment: { horizontal: "center", vertical: "center" },
-                        border: { top: { style: "thin", color: { rgb: "E0E0E0" } }, bottom: { style: "thin", color: { rgb: "E0E0E0" } }, left: { style: "thin", color: { rgb: "E0E0E0" } }, right: { style: "thin", color: { rgb: "E0E0E0" } } }
-                    },
-                    FaltaRojo: {
-                        font: { name: "Arial", sz: 9, bold: true, color: { rgb: "FFFFFF" } },
-                        fill: { fgColor: { rgb: "FF0000" } },
-                        alignment: { horizontal: "center", vertical: "center" }
-                    },
-                    RetardoMayor: {
-                        font: { name: "Arial", sz: 9, bold: true, color: { rgb: "FFFFFF" } },
-                        fill: { fgColor: { rgb: "E46C0A" } },
-                        alignment: { horizontal: "center", vertical: "center" }
-                    },
-                    RetardoMediano: {
-                        font: { name: "Arial", sz: 9, bold: true, color: { rgb: "000000" } },
-                        fill: { fgColor: { rgb: "FFC000" } },
-                        alignment: { horizontal: "center", vertical: "center" }
-                    },
-                    RetardoMenor: {
-                        font: { name: "Arial", sz: 9, bold: false, color: { rgb: "000000" } },
-                        fill: { fgColor: { rgb: "FFFF00" } },
-                        alignment: { horizontal: "center", vertical: "center" }
-                    }
-                };
-
+                // Construcción de filas institucionales limpias
                 let wsData = [
-                    [{ v: "INIFAP", s: estiloLogo }, "", { v: "INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS", s: estiloTitulo1 }],
-                    ["", "", { v: "COORDINACIÓN DE ADMINISTRACIÓN Y SISTEMAS", s: estiloTitulo2 }],
-                    ["", "", { v: "DIRECCIÓN DE DESARROLLO HUMANO Y PROFESIONALIZACIÓN", s: estiloSubTitulo }],
-                    ["", "", { v: `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp}`, s: estiloSubTitulo }],
-                    ["", "", { v: "Reporte: RH_CONTROL_ASISTENCIA_CASC", s: estiloSubTitulo }],
+                    ["INIFAP", "", "INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS"],
+                    ["", "", "COORDINACIÓN DE ADMINISTRACIÓN Y SISTEMAS"],
+                    ["", "", "DIRECCIÓN DE DESARROLLO HUMANO Y PROFESIONALIZACIÓN"],
+                    ["", "", `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp}`],
+                    ["", "", "Reporte: RH_CONTROL_ASISTENCIA_CASC"],
                     [],
-                    rawHeaders.map(h => ({ v: h, s: estiloHeaderHead }))
+                    rawHeaders
                 ];
 
                 rowsMapeadas.forEach(dRow => {
-                    let tipoEstilo = "CeldaNormal";
-                    if (dRow[13]) tipoEstilo = "FaltaRojo";
-                    else if (dRow[12]) tipoEstilo = "RetardoMayor";
-                    else if (dRow[11]) tipoEstilo = "RetardoMediano";
-                    else if (dRow[10]) tipoEstilo = "RetardoMenor";
-
-                    const rowFormatted = dRow.map(val => ({ v: val, s: estilosCelda[tipoEstilo] }));
-                    wsData.push(rowFormatted);
+                    wsData.push(dRow);
                 });
 
                 const ws = XLSX.utils.aoa_to_sheet(wsData);
 
+                // Combinaciones institucionales (Merges)
                 ws['!merges'] = [
                     { s: { r: 0, c: 0 }, e: { r: 1, c: 1 } },
                     { s: { r: 0, c: 2 }, e: { r: 0, c: rawHeaders.length - 1 } },
@@ -617,6 +558,7 @@ exportarExcelCasc: function () {
                     { s: { r: 4, c: 2 }, e: { r: 4, c: rawHeaders.length - 1 } }
                 ];
 
+                // Tamaños de filas personalizados
                 ws['!rows'] = [
                     { hpt: 40 }, { hpt: 20 }, { hpt: 20 }, { hpt: 20 }, { hpt: 20 }, { hpt: 10 }, { hpt: 25 }
                 ];
@@ -631,18 +573,8 @@ exportarExcelCasc: function () {
 
             const nombreArchivo = `Reporte_Biometrico_${centroActual}_${numEmpFiltro ? `Emp_${numEmpFiltro}` : "Todos_Empleados"}.xlsx`;
 
-            // Generación limpia usando array buffer compatible con xlsx-js-style
-            const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-            const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = nombreArchivo;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+            // Descarga directa y fluida del archivo Excel
+            XLSX.writeFile(wb, nombreArchivo);
 
         } catch (error) {
             console.error("Error al exportar el archivo Excel:", error);

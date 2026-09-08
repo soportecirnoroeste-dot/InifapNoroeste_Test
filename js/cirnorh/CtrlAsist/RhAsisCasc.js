@@ -474,7 +474,7 @@ window.RhAsisCasc = {
         });
     },
 
-    exportarExcelCasc: async function () {
+exportarExcelCasc: async function () {
         const registrosAExportar = RhAsisCasc.obtenerRegistrosFiltradosActuales();
         const numEmpFiltro = document.getElementById('filtroNumEmpBio')?.value.trim() || "";
         const centroActual = RhAsisCasc.obtenerClaveCentroActual() || "General";
@@ -534,65 +534,45 @@ window.RhAsisCasc = {
             return;
         }
 
-        // 🔍 Búsqueda infalible del nombre: Revisa el select, variables globales y textos visibles en pantalla que contengan el número
-        let nombreEmpleadoEncontrado = "";
+        // 🔍 OBTENEMOS EL CATÁLOGO DE PERSONAL DE TU VARIABLE GLOBAL (ej. datosSistema o appData)
+        // Asegúrate de que 'datosSistema' sea el objeto donde guardaste el resultado de obtenerDatosSistema()
+        const listaPersonal = (typeof datosSistema !== 'undefined' && datosSistema.personal) ? datosSistema.personal : [];
 
-        if (numEmpFiltro) {
-            // 1. Intentar del select de empleados
-            console.log(numEmpFiltro);
-            const selectEmp = document.getElementById('filtroNumEmpBio');
-            if (selectEmp) {
-                for (let opt of selectEmp.options) {
-                    if (opt.value && opt.value.trim() === numEmpFiltro) {
-                        const texto = opt.textContent || opt.innerText || "";
-                        nombreEmpleadoEncontrado = texto.replace(numEmpFiltro, "").replace(/^[\s\-–:]+/, "").trim();
+        const wb = new ExcelJS.Workbook();
+        const fondoHoja = "FFFFFF";
 
-                        console.log(nombreEmpleadoEncontrado);
-                        break;
-                    }
+        for (const key of chavesGrupos) {
+            const rowsMapeadas = mapearRegistros(gruposAProcesar[key]);
+            
+            // Limpiamos la etiqueta del empleado para que no arrastre prefijos raros
+            let etiquetaEmp = numEmpFiltro ? numEmpFiltro : key.replace(/^Emp_/, '');
+
+            // 🔍 BÚSQUEDA DEL NOMBRE EN EL CATÁLOGO DE PERSONAL DEL SERVIDOR
+            let nombreEmpleadoEncontrado = "";
+            if (Array.isArray(listaPersonal) && listaPersonal.length > 0) {
+                const empleadoMatch = listaPersonal.find(p => 
+                    String(p.numeroEmp || p.numEmp || p.id || p.clave || '').trim() === String(etiquetaEmp).trim()
+                );
+                if (empleadoMatch) {
+                    nombreEmpleadoEncontrado = empleadoMatch.nombre || empleadoMatch.nombreCompleto || empleadoMatch.nombres || "";
                 }
             }
 
-            // 2. Si no está en el select, buscar en cualquier elemento de la pantalla que muestre el nombre del empleado seleccionado
-            if (!nombreEmpleadoEncontrado) {
-                const elementosTexto = document.querySelectorAll('span, div, label, h3, h4, option, td');
-                for (let el of elementosTexto) {
-                    const txt = el.textContent || "";
-                    if (txt.includes(numEmpFiltro) && txt.length > numEmpFiltro.length + 3 && txt.length < 80) {
-                        // Posible coincidencia de texto con el nombre
-                        const posibleNombre = txt.replace(numEmpFiltro, "").replace(/^[\s\-–:]+/, "").trim();
-                        if (posibleNombre.length > 3) {
-                            nombreEmpleadoEncontrado = posibleNombre;
+            // Fallback: si no está en el array del servidor, lo buscamos en el select de la pantalla
+            if (!nombreEmpleadoEncontrado && numEmpFiltro) {
+                const selectEmp = document.getElementById('filtroNumEmpBio');
+                if (selectEmp) {
+                    for (let opt of selectEmp.options) {
+                        if (opt.value && opt.value.trim() === numEmpFiltro) {
+                            const texto = opt.textContent || opt.innerText || "";
+                            nombreEmpleadoEncontrado = texto.replace(numEmpFiltro, "").replace(/^[\s\-–:]+/, "").trim();
                             break;
                         }
                     }
                 }
             }
-        }
 
-        const wb = new ExcelJS.Workbook();
-        const fondoHoja = "FFFFFF";
-
-        // *Nota: Asegúrate de tener disponible la variable 'datosSistema' (o como guardes el resultado de obtenerDatosSistema)*
-        // Por ejemplo: const listaPersonal = datosSistema.personal || [];
-
-        for (const key of chavesGrupos) {
-            const rowsMapeadas = mapearRegistros(gruposAProcesar[key]);
-            const etiquetaEmp = numEmpFiltro ? numEmpFiltro : key;
-
-            // 🔍 Buscamos el nombre de manera dinámica directamente en el catálogo de personal que nos mandó el servidor
-            let nombreEmpleadoEncontrado = "";
-            if (typeof listaPersonal !== 'undefined' && Array.isArray(listaPersonal)) {
-                // Buscamos coincidencia por número de empleado (ajusta la propiedad según cómo venga en tu función obtenerPersonalSheets)
-                const empleadoMatch = listaPersonal.find(p =>
-                    String(p.numeroEmp || p.numEmp || p.id || '').trim() === String(etiquetaEmp).trim()
-                );
-                if (empleadoMatch) {
-                    nombreEmpleadoEncontrado = empleadoMatch.nombre || empleadoMatch.nombreCompleto || "";
-                }
-            }
-
-            // Construcción limpia y dinámica del título de incidencias
+            // Construcción limpia y dinámica del título de incidencias en C4
             const textoIncidencias = nombreEmpleadoEncontrado
                 ? `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp} - ${nombreEmpleadoEncontrado}`
                 : `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp}`;
@@ -702,7 +682,7 @@ window.RhAsisCasc = {
 
             const anchor = document.createElement('a');
             anchor.href = url;
-            anchor.download = `RepBiometrico_${centroActual}_${numEmpFiltro ? `${numEmpFiltro}` : ""}.xlsx`;
+            anchor.download = `RepBiometrico_${centroActual}_${numEmpFiltro ? `${numEmpFiltro}` : "General"}.xlsx`;
 
             document.body.appendChild(anchor);
             anchor.click();

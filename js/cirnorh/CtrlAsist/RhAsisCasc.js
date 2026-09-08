@@ -475,7 +475,6 @@ window.RhAsisCasc = {
     },
 
 exportarExcelCasc: function () {
-        // Validación directa de la librería oficial estándar de SheetJS
         if (typeof XLSX === 'undefined') {
             alert("El motor de Excel no está disponible. Verifica tu conexión a internet o la etiqueta script.");
             return;
@@ -531,7 +530,6 @@ exportarExcelCasc: function () {
                 const etiquetaEmp = numEmpFiltro ? numEmpFiltro : key;
                 const nombrePestana = `Emp_${etiquetaEmp}`.replace(/[\*\?\/\\\\[\]]/g, '').substring(0, 31);
 
-                // Construcción de filas institucionales limpias
                 let wsData = [
                     ["INIFAP", "", "INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS"],
                     ["", "", "COORDINACIÓN DE ADMINISTRACIÓN Y SISTEMAS"],
@@ -548,7 +546,14 @@ exportarExcelCasc: function () {
 
                 const ws = XLSX.utils.aoa_to_sheet(wsData);
 
-                // Combinaciones institucionales (Merges)
+                // Aplicar formato directo a la celda A1 (Arial Black, Tamaño 24, Color Verde INIFAP #249444)
+                if (ws['A1']) {
+                    ws['A1'].s = {
+                        font: { name: "Arial Black", sz: 24, color: { rgb: "249444" } },
+                        alignment: { horizontal: "center", vertical: "center" }
+                    };
+                }
+
                 ws['!merges'] = [
                     { s: { r: 0, c: 0 }, e: { r: 1, c: 1 } },
                     { s: { r: 0, c: 2 }, e: { r: 0, c: rawHeaders.length - 1 } },
@@ -558,7 +563,6 @@ exportarExcelCasc: function () {
                     { s: { r: 4, c: 2 }, e: { r: 4, c: rawHeaders.length - 1 } }
                 ];
 
-                // Tamaños de filas personalizados
                 ws['!rows'] = [
                     { hpt: 40 }, { hpt: 20 }, { hpt: 20 }, { hpt: 20 }, { hpt: 20 }, { hpt: 10 }, { hpt: 25 }
                 ];
@@ -573,7 +577,6 @@ exportarExcelCasc: function () {
 
             const nombreArchivo = `Reporte_Biometrico_${centroActual}_${numEmpFiltro ? `Emp_${numEmpFiltro}` : "Todos_Empleados"}.xlsx`;
 
-            // Descarga directa y fluida del archivo Excel
             XLSX.writeFile(wb, nombreArchivo);
 
         } catch (error) {

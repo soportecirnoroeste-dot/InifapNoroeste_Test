@@ -474,7 +474,19 @@ window.RhAsisCasc = {
         });
     },
 
-    exportarExcelCasc: function () {
+exportarExcelCasc: async function () {
+        // Protección anti-error: si el script no cargó en el HTML, lo inyectamos al instante
+        if (typeof XLSX === 'undefined') {
+            alert("Cargando motor de Excel, por favor intenta de nuevo en un segundo...");
+            await new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = "https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.full.min.js";
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        }
+
         const registrosAExportar = RhAsisCasc.obtenerRegistrosFiltradosActuales();
         const numEmpFiltro = document.getElementById('filtroNumEmpBio')?.value.trim() || "";
         const centroActual = RhAsisCasc.obtenerClaveCentroActual() || "General";

@@ -475,75 +475,14 @@ window.RhAsisCasc = {
     },
 
 exportarExcelCasc: function () {
-        if (typeof XLSX === 'undefined') {
-            alert("El motor de Excel (xlsx-js-style) no está cargado.");
-            return;
-        }
-
         const registrosAExportar = RhAsisCasc.obtenerRegistrosFiltradosActuales();
         const numEmpFiltro = document.getElementById('filtroNumEmpBio')?.value.trim() || "";
         const centroActual = RhAsisCasc.obtenerClaveCentroActual() || "General";
-        const MaxCol = RhAsisCasc.rawHeaderGlobal.length;
 
         if (registrosAExportar.length === 0) {
             alert("No hay registros para exportar con los filtros actuales.");
             return;
         }
-
-        const wb = XLSX.utils.book_new();
-
-        // Definición de estilos reutilizables
-        const estiloHeader = {
-            font: { name: "Arial", sz: 9, bold: true },
-            alignment: { horizontal: "center", vertical: "center" },
-            fill: { fgColor: { rgb: "D9D9D9" } },
-            border: {
-                top: { style: "thin", color: { rgb: "B0B0B0" } },
-                bottom: { style: "thin", color: { rgb: "B0B0B0" } },
-                left: { style: "thin", color: { rgb: "B0B0B0" } },
-                right: { style: "thin", color: { rgb: "B0B0B0" } }
-            }
-        };
-
-        const estiloNormal = {
-            font: { name: "Arial", sz: 9 },
-            alignment: { horizontal: "center", vertical: "center" },
-            fill: { fgColor: { rgb: "FFFFFF" } },
-            border: {
-                top: { style: "thin", color: { rgb: "E0E0E0" } },
-                bottom: { style: "thin", color: { rgb: "E0E0E0" } },
-                left: { style: "thin", color: { rgb: "E0E0E0" } },
-                right: { style: "thin", color: { rgb: "E0E0E0" } }
-            }
-        };
-
-        // Mapeo de estilos de alertas según tus colores originales
-        const estilosAlertas = {
-            CellFalta: { 
-                font: { name: "Arial", sz: 9, bold: true, color: { rgb: "FFFFFF" } }, 
-                fill: { fgColor: { rgb: "FF0000" } },
-                alignment: { horizontal: "center", vertical: "center" },
-                border: estiloNormal.border
-            },
-            CellRetardoMay: { 
-                font: { name: "Arial", sz: 9, bold: true, color: { rgb: "FFFFFF" } }, 
-                fill: { fgColor: { rgb: "E46C0A" } },
-                alignment: { horizontal: "center", vertical: "center" },
-                border: estiloNormal.border
-            },
-            CellRetardoMed: { 
-                font: { name: "Arial", sz: 9, bold: true, color: { rgb: "000000" } }, 
-                fill: { fgColor: { rgb: "FFC000" } },
-                alignment: { horizontal: "center", vertical: "center" },
-                border: estiloNormal.border
-            },
-            CellRetardoMen: { 
-                font: { name: "Arial", sz: 9, bold: true, color: { rgb: "000000" } }, 
-                fill: { fgColor: { rgb: "FFFF00" } },
-                alignment: { horizontal: "center", vertical: "center" },
-                border: estiloNormal.border
-            }
-        };
 
         let gruposAProcesar = {};
         if (!numEmpFiltro) {
@@ -556,36 +495,63 @@ exportarExcelCasc: function () {
             gruposAProcesar[`Emp_${numEmpFiltro}`] = registrosAExportar;
         }
 
+        let htmlContent = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="utf-8">
+                <style>
+                    body { font-family: Arial, sans-serif; margin: 20px; }
+                    table { border-collapse: collapse; width: 100%; margin-bottom: 30px; }
+                    .logo { font-size: 24px; font-weight: bold; color: #249444; text-align: center; vertical-align: middle; }
+                    .subtext { font-size: 8px; font-weight: bold; text-align: center; vertical-align: middle; }
+                    .title-sub { font-size: 8.5px; font-weight: bold; text-align: center; vertical-align: middle; }
+                    .title-meta { font-size: 9px; font-weight: bold; text-align: center; vertical-align: middle; }
+                    .header-th { background-color: #D9D9D9; font-weight: bold; font-size: 9px; text-align: center; vertical-align: middle; border: 1px solid #B0B0B0; padding: 6px; }
+                    .cell-normal { font-size: 9px; text-align: center; vertical-align: middle; border: 1px solid #E0E0E0; background-color: #FFFFFF; padding: 5px; }
+                    .cell-falta { font-size: 9px; font-weight: bold; color: #FFFFFF; background-color: #FF0000; text-align: center; vertical-align: middle; border: 1px solid #E0E0E0; padding: 5px; }
+                    .cell-ret-may { font-size: 9px; font-weight: bold; color: #FFFFFF; background-color: #E46C0A; text-align: center; vertical-align: middle; border: 1px solid #E0E0E0; padding: 5px; }
+                    .cell-ret-med { font-size: 9px; font-weight: bold; color: #000000; background-color: #FFC000; text-align: center; vertical-align: middle; border: 1px solid #E0E0E0; padding: 5px; }
+                    .cell-ret-men { font-size: 9px; font-weight: bold; color: #000000; background-color: #FFFF00; text-align: center; vertical-align: middle; border: 1px solid #E0E0E0; padding: 5px; }
+                </style>
+            </head>
+            <body>
+        `;
+
         Object.keys(gruposAProcesar).forEach(key => {
             const registrosGrupo = gruposAProcesar[key];
             const etiquetaEmp = numEmpFiltro ? numEmpFiltro : key;
-            const nombrePestana = `Emp_${etiquetaEmp}`.replace(/[\*\?\/\\\\[\]]/g, '').substring(0, 31);
+            const maxCol = RhAsisCasc.rawHeaderGlobal.length;
 
-            let wsData = [];
+            htmlContent += `
+                <table>
+                    <tr>
+                        <td rowspan="2" colspan="2" class="logo">inifap</td>
+                        <td colspan="${maxCol - 2}" class="title-sub">INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS</td>
+                    </tr>
+                    <tr>
+                        <td colspan="${maxCol - 2}" class="title-sub">COORDINACIÓN DE ADMINISTRACIÓN Y SISTEMAS</td>
+                    </tr>
+                    <tr>
+                        <td rowspan="2" colspan="2" class="subtext">Instituto Nacional de Forestales, Agrícolas y Pecuarias</td>
+                        <td colspan="${maxCol - 2}" class="title-sub">DIRECCIÓN DE DESARROLLO HUMANO Y PROFESIONALIZACIÓN</td>
+                    </tr>
+                    <tr>
+                        <td colspan="${maxCol - 2}" class="title-meta">INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"></td>
+                        <td colspan="${maxCol - 2}" class="title-meta">Reporte: RH_CONTROL_ASISTENCIA_CASC</td>
+                    </tr>
+                    <tr><td colspan="${maxCol}">&nbsp;</td></tr>
+                    <tr>
+            `;
 
-            // 1. Fila de Logo e Institución
-            wsData.push([
-                { v: "inifap", s: { font: { name: "Arial Black", sz: 24, bold: true, color: { rgb: "249444" } }, alignment: { horizontal: "center", vertical: "center" } } },
-                { v: "", s: {} },
-                { v: "INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS", s: { font: { name: "Arial", sz: 8.5, bold: true }, alignment: { horizontal: "center", vertical: "center" } } }
-            ]);
+            RhAsisCasc.rawHeaderGlobal.forEach(h => {
+                htmlContent += `<th class="header-th">${h}</th>`;
+            });
+            htmlContent += `</tr>`;
 
-            // 2. Subtítulos
-            wsData.push([
-                { v: "Instituto Nacional de Forestales, Agrícolas y Pecuarias", s: { font: { name: "Arial", sz: 7.5, bold: true }, alignment: { horizontal: "center", vertical: "center", wrapText: true } } },
-                { v: "", s: {} },
-                { v: "COORDINACIÓN DE ADMINISTRACIÓN Y SISTEMAS", s: { font: { name: "Arial", sz: 8.5, bold: true }, alignment: { horizontal: "center", vertical: "center" } } }
-            ]);
-
-            wsData.push(["", "", { v: "DIRECCIÓN DE DESARROLLO HUMANO Y PROFESIONALIZACIÓN", s: { font: { name: "Arial", sz: 8.5, bold: true }, alignment: { horizontal: "center", vertical: "center" } } }]);
-            wsData.push(["", "", { v: `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp}`, s: { font: { name: "Arial", sz: 9, bold: true }, alignment: { horizontal: "center", vertical: "center" } } }]);
-            wsData.push(["", "", { v: "Reporte: RH_CONTROL_ASISTENCIA_CASC", s: { font: { name: "Arial", sz: 9, bold: true }, alignment: { horizontal: "center", vertical: "center" } } }]);
-            wsData.push([]);
-
-            // 3. Cabecera de la tabla
-            wsData.push(RhAsisCasc.rawHeaderGlobal.map(h => ({ v: h, s: estiloHeader })));
-
-            // 4. Filas de registros con sus colores condicionales
             registrosGrupo.forEach(r => {
                 const celdas = Array.isArray(r) ? [...r] : RhAsisCasc.rawHeaderGlobal.map(h => r[h] || "");
                 const filaMapeada = celdas.map((c, index) => {
@@ -596,35 +562,33 @@ exportarExcelCasc: function () {
                     return val !== null && val !== undefined ? val : "";
                 });
 
-                // Determinar el estilo de alerta de la fila
-                let estiloFila = estiloNormal;
-                if (filaMapeada[13]) estiloFila = estilosAlertas.CellFalta;
-                else if (filaMapeada[12]) estiloFila = estilosAlertas.CellRetardoMay;
-                else if (filaMapeada[11]) estiloFila = estilosAlertas.CellRetardoMed;
-                else if (filaMapeada[10]) estiloFila = estilosAlertas.CellRetardoMen;
+                let claseCelda = "cell-normal";
+                if (filaMapeada[13]) claseCelda = "cell-falta";
+                else if (filaMoped[12]) claseCelda = "cell-ret-may";
+                else if (filaMapeada[11]) claseCelda = "cell-ret-med";
+                else if (filaMapeada[10]) claseCelda = "cell-ret-men";
 
-                wsData.push(filaMapeada.map(val => ({ v: val, s: estiloFila })));
+                htmlContent += `<tr>`;
+                filaMapeada.forEach(val => {
+                    htmlContent += `<td class="${claseCelda}">${val}</td>`;
+                });
+                htmlContent += `</tr>`;
             });
 
-            const ws = XLSX.utils.aoa_to_sheet(wsData);
-
-            // Combinaciones (merges) idénticas a las tuyas
-            ws['!merges'] = [
-                { s: { r: 0, c: 0 }, e: { r: 0, c: 1 } },
-                { s: { r: 1, c: 0 }, e: { r: 2, c: 1 } },
-                { s: { r: 0, c: 2 }, e: { r: 0, c: MaxCol - 1 } },
-                { s: { r: 1, c: 2 }, e: { r: 1, c: MaxCol - 1 } },
-                { s: { r: 2, c: 2 }, e: { r: 2, c: MaxCol - 1 } },
-                { s: { r: 3, c: 2 }, e: { r: 3, c: MaxCol - 1 } },
-                { s: { r: 4, c: 2 }, e: { r: 4, c: MaxCol - 1 } }
-            ];
-
-            XLSX.utils.book_append_sheet(wb, ws, nombrePestana);
+            htmlContent += `</table><br><hr><br>`;
         });
 
-        const nombreArchivo = `Reporte_Biometrico_${centroActual}_${numEmpFiltro ? `Emp_${numEmpFiltro}` : "Todos_Empleados"}.xlsx`;
-        
-        // Exportación asegurando soporte de estilos
-        XLSX.writeFile(wb, nombreArchivo);
+        htmlContent += `</body></html>`;
+
+        // Se usa tipo MIME text/html y extensión .html para evitar bloqueos del sistema
+        const blob = new Blob(['\ufeff' + htmlContent], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Reporte_Biometrico_${centroActual}_${numEmpFiltro ? `Emp_${numEmpFiltro}` : "Todos_Empleados"}.html`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     }
 };

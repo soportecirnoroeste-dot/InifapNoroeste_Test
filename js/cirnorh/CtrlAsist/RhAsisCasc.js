@@ -570,21 +570,31 @@ window.RhAsisCasc = {
             }
         }
 
-        const wb = new ExcelJS.Workbook();
+const wb = new ExcelJS.Workbook();
         const fondoHoja = "FFFFFF";
 
         for (const key of chavesGrupos) {
-            const grupoActual = gruposAProcesar[key];
-            const rowsMapeadas = mapearRegistros(grupoActual);
+            const rowsMapeadas = mapearRegistros(gruposAProcesar[key]);
             const etiquetaEmp = numEmpFiltro ? numEmpFiltro : key;
 
-            // 🔍 Búsqueda dinámica dentro de los datos del sistema (sin valores fijos)
+            // 🔍 Lectura dinámica desde la interfaz o el selector activo de tu aplicación
             let nombreDinamico = "";
-            if (grupoActual && grupoActual.length > 0) {
-                // Intenta extraer el nombre si la estructura del registro lo incluye en alguna propiedad o columna
-                nombreDinamico = grupoActual[0].nombre || grupoActual[0].empleado || "";
+            
+            // 1. Intentar buscar si hay algún elemento en tu HTML que muestre el nombre del empleado actual (ej. un span, div o input de resultados)
+            const elNombreUI = document.querySelector('#nombreEmpleadoBio, .nombre-empleado-activo, #labelNombreEmp');
+            if (elNombreUI && elNombreUI.textContent) {
+                nombreDinamico = elNombreUI.textContent.trim();
+            }
+            
+            // 2. Si no está en un label fijo, buscamos en el objeto o catálogo global de empleados de tu app si existe (ej. listaEmpleados o catalogoPersonal)
+            if (!nombreDinamico && typeof listaEmpleados !== 'undefined' && Array.isArray(listaEmpleados)) {
+                const encontrado = listaEmpleados.find(emp => emp.id == etiquetaEmp || emp.numero == etiquetaEmp);
+                if (encontrado) {
+                    nombreDinamico = encontrado.nombre;
+                }
             }
 
+            // Construir el texto final de forma limpia y dinámica
             const textoIncidencias = nombreDinamico
                 ? `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp} - ${nombreDinamico}`
                 : `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp}`;

@@ -474,7 +474,7 @@ window.RhAsisCasc = {
         });
     },
 
-exportarExcelCasc: async function () {
+    exportarExcelCasc: async function () {
         const registrosAExportar = RhAsisCasc.obtenerRegistrosFiltradosActuales();
         const numEmpFiltro = document.getElementById('filtroNumEmpBio')?.value.trim() || "";
         const centroActual = RhAsisCasc.obtenerClaveCentroActual() || "General";
@@ -537,20 +537,21 @@ exportarExcelCasc: async function () {
         // 🔍 OBTENEMOS EL CATÁLOGO DE PERSONAL DE TU VARIABLE GLOBAL (ej. datosSistema o appData)
         // Asegúrate de que 'datosSistema' sea el objeto donde guardaste el resultado de obtenerDatosSistema()
         const listaPersonal = (typeof datosSistema !== 'undefined' && datosSistema.personal) ? datosSistema.personal : [];
-
+        console.log("🔍 CONTENIDO DE DATOS SISTEMA:", typeof datosSistema !== 'undefined' ? datosSistema : "datosSistema NO existe");
+        console.log("🔍 LISTA DE PERSONAL:", listaPersonal);
         const wb = new ExcelJS.Workbook();
         const fondoHoja = "FFFFFF";
 
         for (const key of chavesGrupos) {
             const rowsMapeadas = mapearRegistros(gruposAProcesar[key]);
-            
+
             // Limpiamos la etiqueta del empleado para que no arrastre prefijos raros
             let etiquetaEmp = numEmpFiltro ? numEmpFiltro : key.replace(/^Emp_/, '');
 
             // 🔍 BÚSQUEDA DEL NOMBRE EN EL CATÁLOGO DE PERSONAL DEL SERVIDOR
             let nombreEmpleadoEncontrado = "";
             if (Array.isArray(listaPersonal) && listaPersonal.length > 0) {
-                const empleadoMatch = listaPersonal.find(p => 
+                const empleadoMatch = listaPersonal.find(p =>
                     String(p.numeroEmp || p.numEmp || p.id || p.clave || '').trim() === String(etiquetaEmp).trim()
                 );
                 if (empleadoMatch) {

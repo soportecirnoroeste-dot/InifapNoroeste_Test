@@ -474,7 +474,7 @@ window.RhAsisCasc = {
         });
     },
 
-exportarExcelCasc: function () {
+    exportarExcelCasc: function () {
         const registrosAExportar = RhAsisCasc.obtenerRegistrosFiltradosActuales();
         const numEmpFiltro = document.getElementById('filtroNumEmpBio')?.value.trim() || "";
         const centroActual = RhAsisCasc.obtenerClaveCentroActual() || "General";
@@ -517,7 +517,6 @@ exportarExcelCasc: function () {
             return;
         }
 
-        // Construcción del XML con soporte completo de Estilos (Arial Black 24, Combinaciones y Semáforos)
         let xmlWorksheets = "";
 
         chavesGrupos.forEach(key => {
@@ -643,14 +642,14 @@ exportarExcelCasc: function () {
             ${xmlWorksheets}
         </Workbook>`;
 
-        const blob = new Blob([xmlContent], { type: 'application/vnd.ms-excel;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `Reporte_Biometrico_${centroActual}_${numEmpFiltro ? `Emp_${numEmpFiltro}` : "Todos_Empleados"}.xls`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        // === CONVERSIÓN AL VUELO A .XLSX REAL ===
+        // 1. Leemos el contenido XML recién generado usando SheetJS en memoria
+        const workbook = XLSX.read(xmlContent, { type: 'string' });
+
+        // 2. Definimos el nombre del archivo con extensión .xlsx oficial
+        const nombreArchivo = `Reporte_Biometrico_${centroActual}_${numEmpFiltro ? `Emp_${numEmpFiltro}` : "Todos_Empleados"}.xlsx`;
+
+        // 3. Forzamos la escritura y descarga directa empaquetada en .xlsx moderno
+        XLSX.writeFile(workbook, nombreArchivo);
     }
 };

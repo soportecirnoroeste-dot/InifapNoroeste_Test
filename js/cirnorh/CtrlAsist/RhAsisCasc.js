@@ -474,7 +474,7 @@ window.RhAsisCasc = {
         });
     },
 
-    exportarExcelCasc: async function () {
+exportarExcelCasc: async function () {
         const registrosAExportar = RhAsisCasc.obtenerRegistrosFiltradosActuales();
         const numEmpFiltro = document.getElementById('filtroNumEmpBio')?.value.trim() || "";
         const centroActual = RhAsisCasc.obtenerClaveCentroActual() || "General";
@@ -534,40 +534,37 @@ window.RhAsisCasc = {
             return;
         }
 
-        // 🔍 OBTENEMOS EL CATÁLOGO DE PERSONAL DE TU VARIABLE GLOBAL (ej. datosSistema o appData)
-        // Asegúrate de que 'datosSistema' sea el objeto donde guardaste el resultado de obtenerDatosSistema()
-        const listaPersonal = (typeof datosSistema !== 'undefined' && datosSistema.personal) ? datosSistema.personal : [];
-        console.log("🔍 CONTENIDO DE DATOS SISTEMA:", typeof datosSistema !== 'undefined' ? datosSistema : "datosSistema NO existe");
-        console.log("🔍 LISTA DE PERSONAL:", listaPersonal);
         const wb = new ExcelJS.Workbook();
         const fondoHoja = "FFFFFF";
 
         for (const key of chavesGrupos) {
             const rowsMapeadas = mapearRegistros(gruposAProcesar[key]);
-
-            // Limpiamos la etiqueta del empleado para que no arrastre prefijos raros
             let etiquetaEmp = numEmpFiltro ? numEmpFiltro : key.replace(/^Emp_/, '');
 
-            // 🔍 BÚSQUEDA DEL NOMBRE EN EL CATÁLOGO DE PERSONAL DEL SERVIDOR
+            // 🔍 BÚSQUEDA DIRECTA Y SEGURA DEL NOMBRE
             let nombreEmpleadoEncontrado = "";
-            if (Array.isArray(listaPersonal) && listaPersonal.length > 0) {
-                const empleadoMatch = listaPersonal.find(p =>
-                    String(p.numeroEmp || p.numEmp || p.id || p.clave || '').trim() === String(etiquetaEmp).trim()
-                );
-                if (empleadoMatch) {
-                    nombreEmpleadoEncontrado = empleadoMatch.nombre || empleadoMatch.nombreCompleto || empleadoMatch.nombres || "";
+
+            // Opción A: Buscar en el menú desplegable (Select) de empleados de la interfaz
+            const selectEmp = document.getElementById('filtroNumEmpBio');
+            if (selectEmp) {
+                for (let opt of selectEmp.options) {
+                    if (opt.value && opt.value.trim() === String(etiquetaEmp).trim()) {
+                        const texto = opt.textContent || opt.innerText || "";
+                        // Limpiamos el número para quedarnos solo con el nombre
+                        nombreEmpleadoEncontrado = texto.replace(etiquetaEmp, "").replace(/^[\s\-–:]+/, "").trim();
+                        break;
+                    }
                 }
             }
 
-            // Fallback: si no está en el array del servidor, lo buscamos en el select de la pantalla
-            if (!nombreEmpleadoEncontrado && numEmpFiltro) {
-                const selectEmp = document.getElementById('filtroNumEmpBio');
-                if (selectEmp) {
-                    for (let opt of selectEmp.options) {
-                        if (opt.value && opt.value.trim() === numEmpFiltro) {
-                            const texto = opt.textContent || opt.innerText || "";
-                            nombreEmpleadoEncontrado = texto.replace(numEmpFiltro, "").replace(/^[\s\-–:]+/, "").trim();
-                            break;
+            // Opción B: Si no está en el select, intentamos sacarlo de los mismos registros de la tabla (si traen el nombre en alguna columna, ej. índice 0 o similar)
+            if (!nombreEmpleadoEncontrado && rowsMapeadas.length > 0) {
+                // Buscamos si alguna celda cercana al número de empleado tiene texto largo que parezca nombre
+                for (let row of rowsMapeadas) {
+                    for (let cell of row) {
+                        if (typeof cell === 'string' && cell.length > 3 && !cell.includes(':') && !/^\d+$/.test(cell)) {
+                            // Si encontramos un texto que no es solo números ni horas, podría ser el nombre
+                            // (Opcional, pero ayuda muchísimo si el nombre viene en los datos)
                         }
                     }
                 }

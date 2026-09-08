@@ -474,7 +474,7 @@ window.RhAsisCasc = {
         });
     },
 
-    exportarExcelCasc: function () {
+exportarExcelCasc: function () {
         const registrosAExportar = RhAsisCasc.obtenerRegistrosFiltradosActuales();
         const numEmpFiltro = document.getElementById('filtroNumEmpBio')?.value.trim() || "";
         const centroActual = RhAsisCasc.obtenerClaveCentroActual() || "General";
@@ -531,10 +531,11 @@ window.RhAsisCasc = {
             const etiquetaEmp = numEmpFiltro ? numEmpFiltro : key;
             const nombrePestana = `Emp_${etiquetaEmp}`.replace(/[*?/\\[]]/g, '').substring(0, 31);
 
+            // Simulando el logotipo en el bloque A1 con salto de línea
             const wsData = [
-                ["inifap", "", "INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS"],
-                ["Instituto Nacional de Investigaciones", "", "COORDINACIÓN DE ADMINISTRACIÓN Y SISTEMAS"],
-                ["Forestales, Agrícolas y Pecuarias", "", "DIRECCIÓN DE DESARROLLO HUMANO Y PROFESIONALIZACIÓN"],
+                ["inifap\nInstituto Nacional de Investigaciones Forestales, Agrícolas y Pecuarias", "", "INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS"],
+                ["", "", "COORDINACIÓN DE ADMINISTRACIÓN Y SISTEMAS"],
+                ["", "", "DIRECCIÓN DE DESARROLLO HUMANO Y PROFESIONALIZACIÓN"],
                 ["", "", `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp}`],
                 ["", "", "Reporte: RH_CONTROL_ASISTENCIA_CASC"],
                 [],
@@ -545,9 +546,10 @@ window.RhAsisCasc = {
             const ws = XLSX.utils.aoa_to_sheet(wsData);
             ws['!ref'] = `A1:${XLSX.utils.encode_col(MaxCol - 1)}${MaxFila}`;
             ws['!view'] = { showGridLines: false };
+            
+            // Fusión ajustada para acomodar el logo compacto en A1:B2 y mantener las líneas de la derecha limpias
             ws['!merges'] = [
-                { s: { r: 0, c: 0 }, e: { r: 0, c: 1 } },
-                { s: { r: 1, c: 0 }, e: { r: 2, c: 1 } },
+                { s: { r: 0, c: 0 }, e: { r: 1, c: 1 } }, // Bloque del Logo A1:B2
                 { s: { r: 0, c: 2 }, e: { r: 0, c: 11 } },
                 { s: { r: 1, c: 2 }, e: { r: 1, c: 11 } },
                 { s: { r: 2, c: 2 }, e: { r: 2, c: 11 } },
@@ -557,7 +559,8 @@ window.RhAsisCasc = {
 
             const tableRows = wsData.slice(6);
             const colWidths = RhAsisCasc.rawHeaderGlobal.map((_, colIndex) => {
-                if (colIndex === 0) return { wch: 15 };
+                if (colIndex === 0) return { wch: 18 }; // Ajustado para que quepa bien el texto del logo
+                if (colIndex === 1) return { wch: 15 };
                 let maxWidth = 10;
                 tableRows.forEach(row => {
                     const cellValue = row[colIndex];
@@ -580,19 +583,24 @@ window.RhAsisCasc = {
                         alignment: { vertical: "center", horizontal: "center" } 
                     };
                     
+                    // Estilo del Logotipo simulado en A1 (A1:B2)
                     if (r === 0 && c === 0) { 
-                        style.font = { bold: true, sz: 24, color: { rgb: "249444" }, name: "Arial Black" }; 
-                        style.alignment.horizontal = "center"; 
-                    }
-                    if (r >= 1 && r <= 2 && c >= 0 && c <= 1){ 
-                        style.font = { sz: 7.5, color: { rgb: "000000" }, bold: true, name: "Arial" }; 
-                        style.alignment.horizontal = "center"; 
+                        style.font = { bold: true, sz: 10, color: { rgb: "1E7E34" }, name: "Arial" }; // Verde institucional limpio
+                        style.alignment.horizontal = "left";
+                        style.alignment.vertical = "center";
                         style.alignment.wrapText = true; 
                     }
+                    // Celdas secundarias del bloque fusionado del logo para evitar errores visuales
+                    else if (r <= 1 && c <= 1) {
+                        style.font = { sz: 8, color: { rgb: "333333" }, name: "Arial" };
+                        style.alignment.wrapText = true;
+                    }
+
                     if (r >= 0 && r <= 4 && c >= 2 && c <= 11) { 
                         style.font = { sz: 8.5, bold: true, name: "Arial", color: { rgb: "000000" } }; 
                         style.alignment.horizontal = "center"; 
-                    }            
+                    }         
+                    
                     if (r === 6 && c < RhAsisCasc.rawHeaderGlobal.length) { 
                         style.fill = { type: 'pattern', pattern: 'solid', fgColor: { rgb: "D9D9D9" } }; 
                         style.font = { bold: true, sz: 9, name: "Arial", color: { rgb: "000000" } }; 

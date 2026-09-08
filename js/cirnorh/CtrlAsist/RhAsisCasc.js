@@ -495,7 +495,7 @@ exportarExcelCasc: function () {
                         const d = new Date(val);
                         if (!isNaN(d)) val = d.toLocaleDateString();
                     }
-                    return val !== null && val !== undefined ? val : "";
+                    return val !== null && val !== undefined ? String(val).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : "";
                 });
             });
         };
@@ -517,97 +517,140 @@ exportarExcelCasc: function () {
             return;
         }
 
-        const wb = XLSX.utils.book_new();
+        // Construcción del XML con soporte completo de Estilos (Arial Black 24, Combinaciones y Semáforos)
+        let xmlWorksheets = "";
 
         chavesGrupos.forEach(key => {
             const rowsMapeadas = mapearRegistros(gruposAProcesar[key]);
             const etiquetaEmp = numEmpFiltro ? numEmpFiltro : key;
             const nombrePestana = `Emp_${etiquetaEmp}`.replace(/[\*\?\/\\\\[\]]/g, '').substring(0, 31);
 
-            // 1. Construir matriz de datos inicial
-            let wsData = [
-                ["INIFAP", "", "INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS"],
-                ["", "", "COORDINACIÓN DE ADMINISTRACIÓN Y SISTEMAS"],
-                ["", "", "DIRECCIÓN DE DESARROLLO HUMANO Y PROFESIONALIZACIÓN"],
-                ["", "", `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp}`],
-                ["", "", `Reporte: RH_CONTROL_ASISTENCIA_CASC`],
-                [],
-                rawHeaders,
-                ...rowsMapeadas
-            ];
+            let rowsXml = `
+                <Row ss:Height="40">
+                    <Cell ss:Index="1" ss:MergeAcross="1" ss:MergeDown="1" ss:StyleID="LogoInifap"><Data ss:Type="String">INIFAP</Data></Cell>
+                    <Cell ss:Index="3" ss:MergeAcross="${rawHeaders.length - 3}" ss:StyleID="Titulo1"><Data ss:Type="String">INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS</Data></Cell>
+                </Row>
+                <Row ss:Height="20">
+                    <Cell ss:Index="3" ss:MergeAcross="${rawHeaders.length - 3}" ss:StyleID="Titulo2"><Data ss:Type="String">COORDINACIÓN DE ADMINISTRACIÓN Y SISTEMAS</Data></Cell>
+                </Row>
+                <Row ss:Height="20">
+                    <Cell ss:Index="3" ss:MergeAcross="${rawHeaders.length - 3}" ss:StyleID="SubTitulo"><Data ss:Type="String">DIRECCIÓN DE DESARROLLO HUMANO Y PROFESIONALIZACIÓN</Data></Cell>
+                </Row>
+                <Row ss:Height="20">
+                    <Cell ss:Index="3" ss:MergeAcross="${rawHeaders.length - 3}" ss:StyleID="SubTitulo"><Data ss:Type="String">INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp}</Data></Cell>
+                </Row>
+                <Row ss:Height="20">
+                    <Cell ss:Index="3" ss:MergeAcross="${rawHeaders.length - 3}" ss:StyleID="SubTitulo"><Data ss:Type="String">Reporte: RH_CONTROL_ASISTENCIA_CASC</Data></Cell>
+                </Row>
+                <Row ss:Height="10"></Row>
+                <Row ss:Height="25">
+                    ${rawHeaders.map(h => `<Cell ss:StyleID="HeaderHead"><Data ss:Type="String">${h}</Data></Cell>`).join('')}
+                </Row>
+            `;
 
-            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            rowsMapeadas.forEach(dRow => {
+                let estiloFila = "CeldaNormal";
+                if (dRow[13]) estiloFila = "FaltaRojo";
+                else if (dRow[12]) estiloFila = "RetardoMayor";
+                else if (dRow[11]) estiloFila = "RetardoMediano";
+                else if (dRow[10]) estiloFila = "RetardoMenor";
 
-            // 2. Definir Celdas Combinadas (Merges)
-            if (!ws['!merges']) ws['!merges'] = [];
-            ws['!merges'].push(
-                { s: { r: 0, c: 0 }, e: { r: 1, c: 1 } }, // Bloque 2x2 para INIFAP (A1:B2)
-                { s: { r: 0, c: 2 }, e: { r: 0, c: rawHeaders.length - 1 } }, // Título principal
-                { s: { r: 1, c: 2 }, e: { r: 1, c: rawHeaders.length - 1 } }, // Subtítulo área
-                { s: { r: 2, c: 2 }, e: { r: 2, c: rawHeaders.length - 1 } }, // Dirección
-                { s: { r: 3, c: 2 }, e: { r: 3, c: rawHeaders.length - 1 } }, // Meta emp
-                { s: { r: 4, c: 2 }, e: { r: 4, c: rawHeaders.length - 1 } }  // Meta reporte
-            );
-
-            // 3. Aplicar estilo específico para "INIFAP" en el bloque A1:B2
-            const cellA1 = XLSX.utils.encode_cell({ r: 0, c: 0 });
-            if (!ws[cellA1]) ws[cellA1] = { v: "INIFAP", t: "s" };
-            ws[cellA1].s = {
-                font: { name: "Arial Black", sz: 24, bold: true, color: { rgb: "003366" } }, // Azul institucional opcional
-                alignment: { horizontal: "center", vertical: "center" },
-                border: {
-                    top: { style: "thin", color: { rgb: "CCCCCC" } },
-                    bottom: { style: "thin", color: { rgb: "CCCCCC" } },
-                    left: { style: "thin", color: { rgb: "CCCCCC" } },
-                    right: { style: "thin", color: { rgb: "CCCCCC" } }
-                }
-            };
-
-            // 4. Aplicar formato y colores condicionales (Semáforos por fila de incidencia)
-            const rangoDatosInicio = 7; 
-            rowsMapeadas.forEach((dRow, idx) => {
-                const rowIndex = rangoDatosInicio + idx;
-                
-                let colorFondo = "FFFFFF"; 
-                if (dRow[13]) {
-                    colorFondo = "FF0000"; // Falta (Rojo)
-                } else if (dRow[12]) {
-                    colorFondo = "E46C0A"; // Retardo Mayor (Naranja oscuro)
-                } else if (dRow[11]) {
-                    colorFondo = "FFC000"; // Retardo Mediano (Ámbar)
-                } else if (dRow[10]) {
-                    colorFondo = "FFFF00"; // Retardo Menor (Amarillo)
-                }
-
-                for (let c = 0; c < dRow.length; c++) {
-                    const cellRef = XLSX.utils.encode_cell({ r: rowIndex, c: c });
-                    if (!ws[cellRef]) ws[cellRef] = {};
-                    
-                    ws[cellRef].s = {
-                        font: { name: "Arial", sz: 9, bold: (colorFondo !== "FFFFFF") },
-                        alignment: { horizontal: "center", vertical: "center" },
-                        fill: { fgColor: { rgb: colorFondo } },
-                        border: {
-                            top: { style: "thin", color: { rgb: "E0E0E0" } },
-                            bottom: { style: "thin", color: { rgb: "E0E0E0" } },
-                            left: { style: "thin", color: { rgb: "E0E0E0" } },
-                            right: { style: "thin", color: { rgb: "E0E0E0" } }
-                        }
-                    };
-                }
+                rowsXml += `
+                <Row ss:Height="18">
+                    ${dRow.map(val => `<Cell ss:StyleID="${estiloFila}"><Data ss:Type="String">${val}</Data></Cell>`).join('')}
+                </Row>`;
             });
 
-            let colWidths = rawHeaders.map(h => ({ wch: Math.max(h.length + 4, 12) }));
-            // Asegurar un buen ancho inicial para las columnas A y B del logo
-            if (colWidths[0]) colWidths[0].wch = 15;
-            if (colWidths[1]) colWidths[1].wch = 15;
-            
-            ws['!cols'] = colWidths;
-
-            XLSX.utils.book_append_sheet(wb, ws, nombrePestana);
+            xmlWorksheets += `
+            <Worksheet ss:Name="${nombrePestana}">
+                <Table>
+                    ${rowsXml}
+                </Table>
+            </Worksheet>`;
         });
 
-        const nombreArchivo = `Reporte_Biometrico_${centroActual}_${numEmpFiltro ? `Emp_${numEmpFiltro}` : "Todos_Empleados"}.xlsx`;
-        XLSX.writeFile(wb, nombreArchivo);
+        const xmlContent = `<?xml version="1.0" encoding="UTF-8"?>
+        <?mso-application progid="Excel.Sheet"?>
+        <Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+                  xmlns:o="urn:schemas-microsoft-com:office:office"
+                  xmlns:x="urn:schemas-microsoft-com:office:excel"
+                  xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+                  xmlns:html="http://www.w3.org/TR/REC-html40">
+            <Styles>
+                <Style ss:ID="LogoInifap">
+                    <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+                    <Font ss:FontName="Arial Black" ss:Size="24" ss:Bold="1" ss:Color="#003366"/>
+                    <Interior ss:Color="#F2F2F2" ss:Pattern="Solid"/>
+                    <Borders>
+                        <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CCCCCC"/>
+                        <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CCCCCC"/>
+                        <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CCCCCC"/>
+                        <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CCCCCC"/>
+                    </Borders>
+                </Style>
+                <Style ss:ID="Titulo1">
+                    <Alignment ss:Horizontal="Left" ss:Vertical="Center"/>
+                    <Font ss:FontName="Arial" ss:Size="12" ss:Bold="1" ss:Color="#003366"/>
+                </Style>
+                <Style ss:ID="Titulo2">
+                    <Alignment ss:Horizontal="Left" ss:Vertical="Center"/>
+                    <Font ss:FontName="Arial" ss:Size="10" ss:Bold="1" ss:Color="#333333"/>
+                </Style>
+                <Style ss:ID="SubTitulo">
+                    <Alignment ss:Horizontal="Left" ss:Vertical="Center"/>
+                    <Font ss:FontName="Arial" ss:Size="9" ss:Bold="0" ss:Color="#555555"/>
+                </Style>
+                <Style ss:ID="HeaderHead">
+                    <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+                    <Font ss:FontName="Arial" ss:Size="10" ss:Bold="1" ss:Color="#FFFFFF"/>
+                    <Interior ss:Color="#1F4E78" ss:Pattern="Solid"/>
+                    <Borders>
+                        <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+                        <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+                    </Borders>
+                </Style>
+                <Style ss:ID="CeldaNormal">
+                    <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+                    <Font ss:FontName="Arial" ss:Size="9"/>
+                    <Borders>
+                        <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+                        <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+                        <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+                        <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0E0E0"/>
+                    </Borders>
+                </Style>
+                <Style ss:ID="FaltaRojo">
+                    <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+                    <Font ss:FontName="Arial" ss:Size="9" ss:Bold="1" ss:Color="#FFFFFF"/>
+                    <Interior ss:Color="#FF0000" ss:Pattern="Solid"/>
+                </Style>
+                <Style ss:ID="RetardoMayor">
+                    <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+                    <Font ss:FontName="Arial" ss:Size="9" ss:Bold="1" ss:Color="#FFFFFF"/>
+                    <Interior ss:Color="#E46C0A" ss:Pattern="Solid"/>
+                </Style>
+                <Style ss:ID="RetardoMediano">
+                    <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+                    <Font ss:FontName="Arial" ss:Size="9" ss:Bold="1"/>
+                    <Interior ss:Color="#FFC000" ss:Pattern="Solid"/>
+                </Style>
+                <Style ss:ID="RetardoMenor">
+                    <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+                    <Font ss:FontName="Arial" ss:Size="9"/>
+                    <Interior ss:Color="#FFFF00" ss:Pattern="Solid"/>
+                </Style>
+            </Styles>
+            ${xmlWorksheets}
+        </Workbook>`;
+
+        const blob = new Blob([xmlContent], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Reporte_Biometrico_${centroActual}_${numEmpFiltro ? `Emp_${numEmpFiltro}` : "Todos_Empleados"}.xls`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     }
 };

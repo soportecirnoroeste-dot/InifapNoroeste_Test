@@ -474,12 +474,11 @@ window.RhAsisCasc = {
         });
     },
 
-    exportarExcelCasc: function () {
+exportarExcelCasc: function () {
         const registrosAExportar = RhAsisCasc.obtenerRegistrosFiltradosActuales();
         const numEmpFiltro = document.getElementById('filtroNumEmpBio')?.value.trim() || "";
         const centroActual = RhAsisCasc.obtenerClaveCentroActual() || "General";
         const rawHeaders = RhAsisCasc.rawHeaderGlobal;
-        const MaxCol = rawHeaders.length; // Número total de columnas reales de la tabla
 
         const mapearRegistros = (lista) => {
             return lista.map(r => {
@@ -525,99 +524,15 @@ window.RhAsisCasc = {
             const etiquetaEmp = numEmpFiltro ? numEmpFiltro : key;
             const nombrePestana = `Emp_${etiquetaEmp}`.replace(/[\*\?\/\\\\[\]]/g, '').substring(0, 31);
 
-            let wsData = [];
-
-            // Fila 1: Logo INIFAP y Título principal
-            let row1 = [];
-            row1[0] = { v: "inifap", s: { font: { name: "Arial Black", sz: 24, bold: true, color: { rgb: "249444" } }, alignment: { horizontal: "center", vertical: "center" } } };
-            row1[2] = { v: "INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS", s: { font: { name: "Arial", sz: 8.5, bold: true }, alignment: { horizontal: "center", vertical: "center" } } };
-            wsData.push(row1);
-
-            // Fila 2: Subtexto logo y Subtítulo 1
-            let row2 = [];
-            row2[0] = { v: "Instituto Nacional de Forestales, Agrícolas y Pecuarias", s: { font: { name: "Arial", sz: 7.5, bold: true }, alignment: { horizontal: "center", vertical: "center", wrapText: true } } };
-            row2[2] = { v: "COORDINACIÓN DE ADMINISTRACIÓN Y SISTEMAS", s: { font: { name: "Arial", sz: 8.5, bold: true }, alignment: { horizontal: "center", vertical: "center" } } };
-            wsData.push(row2);
-
-            // Fila 3: Subtítulo 2
-            let row3 = [];
-            row3[2] = { v: "DIRECCIÓN DE DESARROLLO HUMANO Y PROFESIONALIZACIÓN", s: { font: { name: "Arial", sz: 8.5, bold: true }, alignment: { horizontal: "center", vertical: "center" } } };
-            wsData.push(row3);
-
-            // Fila 4: Empleado
-            let row4 = [];
-            row4[2] = { v: `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp}`, s: { font: { name: "Arial", sz: 9, bold: true }, alignment: { horizontal: "center", vertical: "center" } } };
-            wsData.push(row4);
-
-            // Fila 5: Reporte
-            let row5 = [];
-            row5[2] = { v: `Reporte: RH_CONTROL_ASISTENCIA_CASC`, s: { font: { name: "Arial", sz: 9, bold: true }, alignment: { horizontal: "center", vertical: "center" } } };
-            wsData.push(row5);
-
-            // Fila 6: Vacía
-            wsData.push([]);
-
-            // Fila 7: Cabeceras de la tabla
-            let headerRow = rawHeaders.map(h => ({
-                v: h,
-                s: {
-                    font: { name: "Arial", sz: 9, bold: true },
-                    fill: { fgColor: { rgb: "D9D9D9" } },
-                    alignment: { horizontal: "center", vertical: "center" },
-                    border: {
-                        top: { style: "thin", color: { rgb: "B0B0B0" } },
-                        bottom: { style: "thin", color: { rgb: "B0B0B0" } },
-                        left: { style: "thin", color: { rgb: "B0B0B0" } },
-                        right: { style: "thin", color: { rgb: "B0B0B0" } }
-                    }
-                }
-            }));
-            wsData.push(headerRow);
-
-            // Filas de datos con colores institucionales y semáforos de incidencias
-            rowsMapeadas.forEach(dRow => {
-                let fillColor = "FFFFFF";
-                let fontColor = "000000";
-                let isBold = false;
-
-                if (dRow[13]) {
-                    fillColor = "FF0000"; fontColor = "FFFFFF"; isBold = true; // Falta (Rojo)
-                } else if (dRow[12]) {
-                    fillColor = "E46C0A"; fontColor = "FFFFFF"; isBold = true; // Retardo Mayor (Naranja oscuro)
-                } else if (dRow[11]) {
-                    fillColor = "FFC000"; isBold = true; // Retardo Mediano (Ámbar)
-                } else if (dRow[10]) {
-                    fillColor = "FFFF00"; isBold = true; // Retardo Menor (Amarillo)
-                }
-
-                let rowCells = dRow.map(cellVal => ({
-                    v: (cellVal !== null && cellVal !== undefined) ? cellVal : "",
-                    s: {
-                        font: { name: "Arial", sz: 9, bold: isBold, color: { rgb: fontColor } },
-                        fill: { fgColor: { rgb: fillColor } },
-                        alignment: { horizontal: "center", vertical: "center" },
-                        border: {
-                            top: { style: "thin", color: { rgb: "E0E0E0" } },
-                            bottom: { style: "thin", color: { rgb: "E0E0E0" } },
-                            left: { style: "thin", color: { rgb: "E0E0E0" } },
-                            right: { style: "thin", color: { rgb: "E0E0E0" } }
-                        }
-                    }
-                }));
-                wsData.push(rowCells);
-            });
-
-            
-
-            // Celdas combinadas dinámicas abarcando todo el ancho real de la tabla (`MaxCol - 1`)
-            ws['!merges'] = [
-                { s: { r: 0, c: 0 }, e: { r: 0, c: 1 } }, // Logo inifap (A1:B1)
-                { s: { r: 1, c: 0 }, e: { r: 2, c: 1 } }, // Subtexto izquierda (A2:B3)
-                { s: { r: 0, c: 2 }, e: { r: 0, c: MaxCol - 1 } }, // Título 1 centrado
-                { s: { r: 1, c: 2 }, e: { r: 1, c: MaxCol - 1 } }, // Título 2 centrado
-                { s: { r: 2, c: 2 }, e: { r: 2, c: MaxCol - 1 } }, // Título 3 centrado
-                { s: { r: 3, c: 2 }, e: { r: 3, c: MaxCol - 1 } }, // Empleado centrado
-                { s: { r: 4, c: 2 }, e: { r: 4, c: MaxCol - 1 } }  // Reporte centrado
+            let wsData = [
+                ["INIFAP", "", "INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS"],
+                ["Instituto Nacional de Forestales, Agrícolas y Pecuarias", "", "COORDINACIÓN DE ADMINISTRACIÓN Y SISTEMAS"],
+                ["", "", "DIRECCIÓN DE DESARROLLO HUMANO Y PROFESIONALIZACIÓN"],
+                ["", "", `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp}`],
+                ["", "", `Reporte: RH_CONTROL_ASISTENCIA_CASC`],
+                [],
+                rawHeaders,
+                ...rowsMapeadas
             ];
 
             const ws = XLSX.utils.aoa_to_sheet(wsData);

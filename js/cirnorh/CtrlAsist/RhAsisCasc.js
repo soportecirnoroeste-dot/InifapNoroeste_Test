@@ -564,7 +564,7 @@ exportarExcelCasc: function () {
 
                 let claseCelda = "cell-normal";
                 if (filaMapeada[13]) claseCelda = "cell-falta";
-                else if (filaMoped[12]) claseCelda = "cell-ret-may";
+                else if (filaMapeada[12]) claseCelda = "cell-ret-may";
                 else if (filaMapeada[11]) claseCelda = "cell-ret-med";
                 else if (filaMapeada[10]) claseCelda = "cell-ret-men";
 
@@ -580,7 +580,6 @@ exportarExcelCasc: function () {
 
         htmlContent += `</body></html>`;
 
-        // Se usa tipo MIME text/html y extensión .html para evitar bloqueos del sistema
         const blob = new Blob(['\ufeff' + htmlContent], { type: 'text/html;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');

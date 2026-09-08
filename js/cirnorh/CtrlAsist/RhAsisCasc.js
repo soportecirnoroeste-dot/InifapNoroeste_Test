@@ -605,7 +605,7 @@ exportarExcelCasc: function () {
 
         const ws = XLSX.utils.aoa_to_sheet(wsData);
 
-        // Definir combinaciones de celdas (Merges) idénticas a tu XML original
+        // Definir combinaciones de celdas (Merges)
         ws['!merges'] = [
             { s: { r: 0, c: 0 }, e: { r: 1, c: 1 } }, // Logo INIFAP (A1:B2)
             { s: { r: 0, c: 2 }, e: { r: 0, c: rawHeaders.length - 1 } }, // Titulo1
@@ -625,7 +625,7 @@ exportarExcelCasc: function () {
             { hpt: 10 },
             { hpt: 25 },
         ];
-        // Asignar altura por defecto a las filas de datos
+        
         for (let i = 7; i < wsData.length; i++) {
             if (!ws['!rows']) ws['!rows'] = [];
             ws['!rows'][i] = { hpt: 18 };
@@ -634,8 +634,26 @@ exportarExcelCasc: function () {
         XLSX.utils.book_append_sheet(wb, ws, nombrePestana);
     });
 
-    // Generar archivo XLSX real y disparar descarga
+    // Definir nombre del archivo y forzar la generación binaria con soporte de estilos
     const nombreArchivo = `Reporte_Biometrico_${centroActual}_${numEmpFiltro ? `Emp_${numEmpFiltro}` : "Todos_Empleados"}.xlsx`;
-    XLSX.writeFile(wb, nombreArchivo);
+    
+    const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'binary' });
+
+    function s2ab(s) {
+        const buf = new ArrayBuffer(s.length);
+        const view = new Uint8Array(buf);
+        for (let i = 0; i < s.length; i++) view[i] = s.charCodeAt(0) & 0xFF;
+        return buf;
+    }
+
+    const blob = new Blob([s2ab(wbout)], { type: 'application/octet-stream' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = nombreArchivo;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 }
 };

@@ -674,16 +674,19 @@ window.RhAsisCasc = {
         xmlContent += `</Workbook>`;
 
         // Usamos el tipo MIME correcto para XML de Excel para evitar cualquier advertencia de formato
-        const blob = new Blob([xmlContent], {
-            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `Reporte_Biometrico_${centroActual}_${numEmpFiltro ? `Emp_${numEmpFiltro}` : "Todos_Empleados"}.xlsx`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        // Agregamos la firma de orden de bytes (\ufeff) para indicarle a Excel que es UTF-8 real
+const blob = new Blob(['\ufeff', xmlContent], { 
+    type: 'application/vnd.ms-excel;charset=utf-8' 
+});
+
+const url = URL.createObjectURL(blob);
+const a = document.createElement('a');
+a.href = url;
+a.download = `Reporte_Biometrico_${centroActual}_${numEmpFiltro ? `Emp_${numEmpFiltro}` : "Todos_Empleados"}.xls`;
+document.body.appendChild(a);
+a.click();
+document.body.removeChild(a);
+URL.revokeObjectURL(url);
+
     }
 };

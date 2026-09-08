@@ -474,7 +474,7 @@ window.RhAsisCasc = {
         });
     },
 
-exportarExcelCasc: async function () {
+    exportarExcelCasc: async function () {
         const registrosAExportar = RhAsisCasc.obtenerRegistrosFiltradosActuales();
         const numEmpFiltro = document.getElementById('filtroNumEmpBio')?.value.trim() || "";
         const centroActual = RhAsisCasc.obtenerClaveCentroActual() || "General";
@@ -559,6 +559,24 @@ exportarExcelCasc: async function () {
         };
 
         const catalogoPersonalGlobal = await obtenerCatalogoSeguro();
+
+        console.log("=== DIAGNÓSTICO DE PERSONAL ===");
+        console.log("Catálogo personal obtenido:", catalogoPersonalGlobal);
+        console.log("Tipo de catálogo:", typeof catalogoPersonalGlobal, "Es array:", Array.isArray(catalogoPersonalGlobal), "Longitud:", catalogoPersonalGlobal?.length);
+
+        if (Array.isArray(catalogoPersonalGlobal) && catalogoPersonalGlobal.length > 0) {
+            console.log("Ejemplo del primer empleado del catálogo:", catalogoPersonalGlobal[0]);
+
+            const testMatch = catalogoPersonalGlobal.find(p => {
+                const idEmpleado = String(p.numEmp || p.numero || p.id || p.empleado || p.clave || p.ClaveEmp || "").trim();
+                console.log(`Evaluando registro -> ID en objeto: '${idEmpleado}' vs Buscado: '${numEmpFiltro}'`);
+                return idEmpleado === String(numEmpFiltro).trim();
+            });
+            console.log("Resultado del match de prueba:", testMatch);
+        } else {
+            console.warn("⚠️ El catálogo llegó completamente vacío o no es un arreglo válido.");
+        }
+        console.log("================================");
 
         const wb = new ExcelJS.Workbook();
         const fondoHoja = "FFFFFF";

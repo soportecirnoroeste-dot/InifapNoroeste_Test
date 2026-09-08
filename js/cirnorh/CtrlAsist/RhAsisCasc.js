@@ -484,7 +484,7 @@ exportarExcelCasc: async function () {
             return;
         }
 
-        // 1. Intentar cargar el Logo.png desde la carpeta principal del proyecto
+        // 1. Cargar el Logo.png desde la carpeta principal del proyecto
         let imageBuffer = null;
         try {
             const response = await fetch('Logo.png');
@@ -545,42 +545,41 @@ exportarExcelCasc: async function () {
             const ws = wb.addWorksheet(nombrePestana);
             ws.views = [{ showGridLines: false }];
 
-            // Si se cargó el logo, lo colocamos cubriendo el bloque A1 hasta B2 de manera fluida
+            // 2. Colocar el logo abarcando desde A1 hasta B4
             if (imageBuffer) {
                 const imageId = wb.addImage({
                     buffer: imageBuffer,
                     extension: 'png',
                 });
                 
-                // Usamos la propiedad 'br' (bottom-right) apuntando a la celda C2 para que cubra exactamente A1:B2
                 ws.addImage(imageId, {
                     tl: { col: 0, row: 0 }, // Esquina superior izquierda en A1
-                    br: { col: 2, row: 2 }  // Esquina inferior derecha en C2 (lo que expande la imagen cubriendo A1, B1, A2 y B2)
+                    br: { col: 2, row: 4 }  // Esquina inferior derecha en C4 (cubre A1:B4)
                 });
             }
 
-            // Textos institucionales al lado derecho del logo grande (a partir de la columna C)
-            ws.mergeCells('C1:L1');
+            // 3. Textos institucionales combinados de la columna C a la J por renglón
+            ws.mergeCells('C1:J1');
             ws.getCell('C1').value = "INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS";
             ws.getCell('C1').font = { name: 'Arial', sz: 9, bold: true, color: { argb: '000000' } };
             ws.getCell('C1').alignment = { vertical: 'middle', horizontal: 'center' };
 
-            ws.mergeCells('C2:L2');
+            ws.mergeCells('C2:J2');
             ws.getCell('C2').value = "COORDINACIÓN DE ADMINISTRACIÓN Y SISTEMAS";
             ws.getCell('C2').font = { name: 'Arial', sz: 8.5, bold: true, color: { argb: '000000' } };
             ws.getCell('C2').alignment = { vertical: 'middle', horizontal: 'center' };
 
-            ws.mergeCells('C3:L3');
+            ws.mergeCells('C3:J3');
             ws.getCell('C3').value = "DIRECCIÓN DE DESARROLLO HUMANO Y PROFESIONALIZACIÓN";
             ws.getCell('C3').font = { name: 'Arial', sz: 8.5, bold: true, color: { argb: '000000' } };
             ws.getCell('C3').alignment = { vertical: 'middle', horizontal: 'center' };
 
-            ws.mergeCells('C4:L4');
+            ws.mergeCells('C4:J4');
             ws.getCell('C4').value = `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp}`;
             ws.getCell('C4').font = { name: 'Arial', sz: 8.5, bold: true, color: { argb: '000000' } };
             ws.getCell('C4').alignment = { vertical: 'middle', horizontal: 'center' };
 
-            ws.mergeCells('C5:L5');
+            ws.mergeCells('C5:J5');
             ws.getCell('C5').value = "Reporte: RH_CONTROL_ASISTENCIA_CASC";
             ws.getCell('C5').font = { name: 'Arial', sz: 8.5, bold: true, color: { argb: '000000' } };
             ws.getCell('C5').alignment = { vertical: 'middle', horizontal: 'center' };
@@ -626,8 +625,8 @@ exportarExcelCasc: async function () {
 
             // Autoajustar anchos de columnas basado en contenido
             ws.columns.forEach((column, colIndex) => {
-                if (colIndex === 0) { column.width = 18; return; }
-                if (colIndex === 1) { column.width = 18; return; }
+                if (colIndex === 0) { column.width = 16; return; }
+                if (colIndex === 1) { column.width = 16; return; }
                 let maxLength = 10;
                 column.eachCell({ includeEmpty: false }, (cell, rowNum) => {
                     if (rowNum >= 7) {

@@ -541,22 +541,36 @@ window.RhAsisCasc = {
             const rowsMapeadas = mapearRegistros(gruposAProcesar[key]);
             let etiquetaEmp = numEmpFiltro ? numEmpFiltro : key.replace(/^Emp_/, '');
 
-            // 🔍 BÚSQUEDA DEL NOMBRE EN EL CATÁLOGO DE PERSONAL (Pestaña Personal: NumEmp en índice 3, Nombre en índice 5)
+            // 🔍 BÚSQUEDA DEL NOMBRE CON TESTIGOS DETALLADOS
             let nombreEmpleadoEncontrado = "";
+            console.log("========================================");
+            console.log("🔍 [TESTIGO] Buscando nombre para empleado ID:", etiquetaEmp);
+
             const catalogoPersonal = (typeof RhAsisCasc.obtenerPersonalGlobal === 'function' ? RhAsisCasc.obtenerPersonalGlobal() : null) || RhAsisCasc.personalGlobal || window.personalGlobal || [];
+            console.log("🔍 [TESTIGO] Catálogo de personal obtenido. Total de registros:", catalogoPersonal.length);
 
             if (catalogoPersonal && catalogoPersonal.length > 0) {
+                // Imprimimos el primer registro del catálogo para revisar su estructura real
+                console.log("🔍 [TESTIGO] Ejemplo de la primera fila del catálogo:", catalogoPersonal[0]);
+
                 const empleadoMatch = catalogoPersonal.find(row => {
                     const numEmpFila = Array.isArray(row) ? String(row[3] || "").trim() : String(row.NumEmp || "").trim();
                     return numEmpFila === String(etiquetaEmp).trim();
                 });
 
                 if (empleadoMatch) {
+                    console.log("✅ [TESTIGO] ¡Empleado encontrado en el catálogo!", empleadoMatch);
                     nombreEmpleadoEncontrado = Array.isArray(empleadoMatch)
                         ? String(empleadoMatch[5] || "").trim()
                         : String(empleadoMatch.Nombre || "").trim();
+                    console.log("✅ [TESTIGO] Nombre extraído:", nombreEmpleadoEncontrado);
+                } else {
+                    console.warn("⚠️ [TESTIGO] No se encontró ninguna coincidencia para el NumEmp:", etiquetaEmp);
                 }
+            } else {
+                console.error("❌ [TESTIGO] El catálogo de personal está vacío o no se pudo acceder a él.");
             }
+            console.log("========================================");
 
             // Construcción limpia y dinámica del título de incidencias en C4
             const textoIncidencias = nombreEmpleadoEncontrado

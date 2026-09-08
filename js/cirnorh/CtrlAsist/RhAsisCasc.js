@@ -476,7 +476,7 @@ window.RhAsisCasc = {
 
 exportarExcelCasc: function () {
         if (typeof XLSX === 'undefined') {
-            alert("El motor de Excel no está disponible. Verifica tu conexión a internet o la etiqueta script.");
+            alert("El motor de Excel no está disponible. Verifica tu conexión a internet.");
             return;
         }
 
@@ -546,14 +546,6 @@ exportarExcelCasc: function () {
 
                 const ws = XLSX.utils.aoa_to_sheet(wsData);
 
-                // Aplicar formato directo a la celda A1 (Arial Black, Tamaño 24, Color Verde INIFAP #249444)
-                if (ws['A1']) {
-                    ws['A1'].s = {
-                        font: { name: "Arial Black", sz: 24, color: { rgb: "249444" } },
-                        alignment: { horizontal: "center", vertical: "center" }
-                    };
-                }
-
                 ws['!merges'] = [
                     { s: { r: 0, c: 0 }, e: { r: 1, c: 1 } },
                     { s: { r: 0, c: 2 }, e: { r: 0, c: rawHeaders.length - 1 } },
@@ -576,12 +568,11 @@ exportarExcelCasc: function () {
             });
 
             const nombreArchivo = `Reporte_Biometrico_${centroActual}_${numEmpFiltro ? `Emp_${numEmpFiltro}` : "Todos_Empleados"}.xlsx`;
-
             XLSX.writeFile(wb, nombreArchivo);
 
         } catch (error) {
             console.error("Error al exportar el archivo Excel:", error);
-            alert("Ocurrió un error al generar el archivo Excel. Revisa la consola para más detalles.");
+            alert("Ocurrió un error al generar el archivo Excel.");
         }
     }
 };

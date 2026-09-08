@@ -541,14 +541,21 @@ exportarExcelCasc: async function () {
             const rowsMapeadas = mapearRegistros(gruposAProcesar[key]);
             const etiquetaEmp = numEmpFiltro ? numEmpFiltro : key;
             
-            // 🔍 Buscar el nombre oficial del empleado en tu catálogo de personal cargado en el frontend
-            // (Asegúrate de que 'RhAsisCasc.listaPersonal' o tu variable global contenga el arreglo de personal con propiedades .numEmp y .nombre)
+            // 🔍 Búsqueda robusta e inteligente del nombre del empleado en el catálogo
             let nombreEmpleado = "";
-            const catalogoPersonal = window.listaPersonal || RhAsisCasc.listaPersonal || [];
-            const empEncontrado = catalogoPersonal.find(p => String(p.numEmp).trim() === String(etiquetaEmp).trim());
+            const catalogoPersonal = window.listaPersonal || RhAsisCasc.listaPersonal || window.personalSheets || [];
             
-            if (empEncontrado) {
-                nombreEmpleado = empEncontrado.nombre;
+            if (catalogoPersonal.length > 0) {
+                const empEncontrado = catalogoPersonal.find(p => {
+                    // Comprobamos flexiblemente diferentes nombres posibles de propiedades en el objeto
+                    const idEmpleado = String(p.numEmp || p.numero || p.id || p.empleado || p.clave || "").trim();
+                    return idEmpleado === String(etiquetaEmp).trim();
+                });
+                
+                if (empEncontrado) {
+                    // Extraemos la propiedad del nombre adaptándonos a posibles variantes
+                    nombreEmpleado = empEncontrado.nombre || empEncontrado.nombreCompleto || empEncontrado.nombres || "";
+                }
             }
 
             const textoIncidencias = nombreEmpleado 
@@ -653,14 +660,14 @@ exportarExcelCasc: async function () {
             });
         }
 
-       try {
+        try {
             const buffer = await wb.xlsx.writeBuffer();
             const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
             const url = window.URL.createObjectURL(blob);
 
             const anchor = document.createElement('a');
             anchor.href = url;
-            anchor.download = `RepBiometrico${centroActual}_${numEmpFiltro ? `${numEmpFiltro}` : ""}.xlsx`;
+            anchor.download = `RepBiometrico_${centroActual}_${numEmpFiltro ? `${numEmpFiltro}` : ""}.xlsx`;
 
             document.body.appendChild(anchor);
             anchor.click();

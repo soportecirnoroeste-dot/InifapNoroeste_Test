@@ -527,7 +527,7 @@ exportarExcelCasc: function () {
             // 1. Construir matriz de datos inicial
             let wsData = [
                 ["INIFAP", "", "INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS"],
-                ["Instituto Nacional de Forestales, Agrícolas y Pecuarias", "", "COORDINACIÓN DE ADMINISTRACIÓN Y SISTEMAS"],
+                ["", "", "COORDINACIÓN DE ADMINISTRACIÓN Y SISTEMAS"],
                 ["", "", "DIRECCIÓN DE DESARROLLO HUMANO Y PROFESIONALIZACIÓN"],
                 ["", "", `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp}`],
                 ["", "", `Reporte: RH_CONTROL_ASISTENCIA_CASC`],
@@ -538,10 +538,10 @@ exportarExcelCasc: function () {
 
             const ws = XLSX.utils.aoa_to_sheet(wsData);
 
-            // 2. Definir Celdas Combinadas (Merges) para los títulos institucionales
+            // 2. Definir Celdas Combinadas (Merges)
             if (!ws['!merges']) ws['!merges'] = [];
             ws['!merges'].push(
-                { s: { r: 0, c: 0 }, e: { r: 1, c: 1 } }, // Logo INIFAP bloque 2x2
+                { s: { r: 0, c: 0 }, e: { r: 1, c: 1 } }, // Bloque 2x2 para INIFAP (A1:B2)
                 { s: { r: 0, c: 2 }, e: { r: 0, c: rawHeaders.length - 1 } }, // Título principal
                 { s: { r: 1, c: 2 }, e: { r: 1, c: rawHeaders.length - 1 } }, // Subtítulo área
                 { s: { r: 2, c: 2 }, e: { r: 2, c: rawHeaders.length - 1 } }, // Dirección
@@ -549,13 +549,26 @@ exportarExcelCasc: function () {
                 { s: { r: 4, c: 2 }, e: { r: 4, c: rawHeaders.length - 1 } }  // Meta reporte
             );
 
-            // 3. Aplicar formato y colores condicionales (Semáforos por fila de incidencia)
-            const rangoDatosInicio = 7; // Fila de los encabezados de tabla (0-indexed es 6, datos empiezan en 7)
+            // 3. Aplicar estilo específico para "INIFAP" en el bloque A1:B2
+            const cellA1 = XLSX.utils.encode_cell({ r: 0, c: 0 });
+            if (!ws[cellA1]) ws[cellA1] = { v: "INIFAP", t: "s" };
+            ws[cellA1].s = {
+                font: { name: "Arial Black", sz: 24, bold: true, color: { rgb: "003366" } }, // Azul institucional opcional
+                alignment: { horizontal: "center", vertical: "center" },
+                border: {
+                    top: { style: "thin", color: { rgb: "CCCCCC" } },
+                    bottom: { style: "thin", color: { rgb: "CCCCCC" } },
+                    left: { style: "thin", color: { rgb: "CCCCCC" } },
+                    right: { style: "thin", color: { rgb: "CCCCCC" } }
+                }
+            };
+
+            // 4. Aplicar formato y colores condicionales (Semáforos por fila de incidencia)
+            const rangoDatosInicio = 7; 
             rowsMapeadas.forEach((dRow, idx) => {
                 const rowIndex = rangoDatosInicio + idx;
                 
-                // Determinar el color de fondo según las banderas de incidencias (índices 10, 11, 12, 13)
-                let colorFondo = "FFFFFF"; // Normal
+                let colorFondo = "FFFFFF"; 
                 if (dRow[13]) {
                     colorFondo = "FF0000"; // Falta (Rojo)
                 } else if (dRow[12]) {
@@ -566,7 +579,6 @@ exportarExcelCasc: function () {
                     colorFondo = "FFFF00"; // Retardo Menor (Amarillo)
                 }
 
-                // Aplicar estilos celda por celda en la fila de datos
                 for (let c = 0; c < dRow.length; c++) {
                     const cellRef = XLSX.utils.encode_cell({ r: rowIndex, c: c });
                     if (!ws[cellRef]) ws[cellRef] = {};
@@ -585,14 +597,16 @@ exportarExcelCasc: function () {
                 }
             });
 
-            // Ajuste automático aproximado de anchos de columna
             let colWidths = rawHeaders.map(h => ({ wch: Math.max(h.length + 4, 12) }));
+            // Asegurar un buen ancho inicial para las columnas A y B del logo
+            if (colWidths[0]) colWidths[0].wch = 15;
+            if (colWidths[1]) colWidths[1].wch = 15;
+            
             ws['!cols'] = colWidths;
 
             XLSX.utils.book_append_sheet(wb, ws, nombrePestana);
         });
 
-        // Generar archivo .xlsx real con la extensión correcta
         const nombreArchivo = `Reporte_Biometrico_${centroActual}_${numEmpFiltro ? `Emp_${numEmpFiltro}` : "Todos_Empleados"}.xlsx`;
         XLSX.writeFile(wb, nombreArchivo);
     }

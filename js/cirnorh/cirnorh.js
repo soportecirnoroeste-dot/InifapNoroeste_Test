@@ -109,23 +109,28 @@ function cargarAsistenciaRh() {
 
 function cargarVacacionesRh() {
     renderizarVistaModulo('vacaciones', "Calendario de descansos y control de días económicos disponibles.", [
-        { titulo: "Solicitud de Vacaciones", desc: "Formulario para periodos vacacionales del trabajador." },
+        { titulo: "EN CONTRUCCION", desc: "MODULO EN CONSTRUCCION." }
+        /*{ titulo: "Solicitud de Vacaciones", desc: "Formulario para periodos vacacionales del trabajador." },
         { titulo: "Días Económicos", desc: "Consulta de saldos y días disfrutados en el año en curso." },
-        { titulo: "Calendario General", desc: "Vista general de ausencias programadas por área." }
+        { titulo: "Calendario General", desc: "Vista general de ausencias programadas por área." }*/
     ]);
 }
 
 function cargarCapacitacionRh() {
     renderizarVistaModulo('capacitacion', "Cursos, talleres y constancias de desarrollo profesional para el personal.", [
-        { titulo: "Catálogo de Cursos", desc: "Inscripciones a talleres internos y externos." },
-        { titulo: "Historial de Constancias", desc: "Registro de acreditaciones y diplomas obtenidos." }
+                { titulo: "EN CONTRUCCION", desc: "MODULO EN CONSTRUCCION." }
+
+        /*{ titulo: "Catálogo de Cursos", desc: "Inscripciones a talleres internos y externos." },
+        { titulo: "Historial de Constancias", desc: "Registro de acreditaciones y diplomas obtenidos." }*/
     ]);
 }
 
 function cargarExpedientesRh() {
     renderizarVistaModulo('expedientes', "Documentación oficial, contratos y resguardos de los trabajadores.", [
-        { titulo: "Documentos Digitales", desc: "Actas de nacimiento, CURP, INE y comprobantes." },
-        { titulo: "Contratos y Nombramientos", desc: "Historial laboral y vigencia de contratos." }
+                { titulo: "EN CONTRUCCION", desc: "MODULO EN CONSTRUCCION." }
+
+        /*{ titulo: "Documentos Digitales", desc: "Actas de nacimiento, CURP, INE y comprobantes." },
+        { titulo: "Contratos y Nombramientos", desc: "Historial laboral y vigencia de contratos." }*/
     ]);
 }
 

@@ -146,7 +146,6 @@ function renderizarVistaModulo(idOpt, descripcion, itemsIndice = []) {
         let htmlTarjetasIndice = '';
         if (itemsIndice && itemsIndice.length > 0) {
             
-        console.log(descripcion, "2");
             htmlTarjetasIndice = itemsIndice.map(item => {
                 return `
                     <div class="p-5 rounded-2xl border border-stone-200 bg-stone-50/70 opacity-90 cursor-not-allowed shadow-xs flex flex-col justify-between">
@@ -167,6 +166,12 @@ function renderizarVistaModulo(idOpt, descripcion, itemsIndice = []) {
                 `;
             }).join('');
         }
+
+        contenedor.innerHTML = `
+            <section class="bg-white rounded-2xl p-6 md:p-8 soft-shadow border border-[#249444]/10 mb-8 animate-fade-in">
+
+            </section>
+        `;
 /*
         contenedor.innerHTML = `
             <section class="bg-white rounded-2xl p-6 md:p-8 soft-shadow border border-[#249444]/10 mb-8 animate-fade-in">

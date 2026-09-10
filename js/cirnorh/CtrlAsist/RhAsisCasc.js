@@ -640,7 +640,7 @@ window.RhAsisCasc = {
             ws.getCell('C4').alignment = { vertical: 'middle', horizontal: 'center' };
 
             ws.mergeCells('C5:J5');
-            ws.getCell('C5').value = "Reporte: RH_CONTROL_ASISTENCIA_CASC";
+            ws.getCell('C5').value = "REPORTE DE INCIDENCIAS";
             ws.getCell('C5').font = { name: 'Arial', sz: 8.5, bold: true, color: { argb: '000000' } };
             ws.getCell('C5').alignment = { vertical: 'middle', horizontal: 'center' };
 

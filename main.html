@@ -34,9 +34,7 @@
     <header class="bg-white shadow-md sticky top-0 z-50 border-b-4 border-[#249444]">
         <div class="container mx-auto px-6 py-3 flex items-center justify-between">
 
-            <!-- Contenedor izquierdo: Flecha y Logo alineados horizontalmente -->
             <div class="flex items-center gap-3">
-                <!-- Flecha de Regresar -->
                 <a id="btn-regresar" href="index.html"
                     class="flex items-center justify-center p-2.5 rounded-xl bg-stone-100 text-stone-600 hover:bg-[#249444] hover:text-white transition-all shadow-xs shrink-0"
                     title="Regresar">
@@ -46,7 +44,6 @@
                     </svg>
                 </a>
 
-                <!-- Bloque del Logotipo INIFAP y su leyenda -->
                 <div class="inifap-logo-wrapperIndex flex flex-col justify-center">
                     <div class="logo-mainIndex flex items-baseline">
                         <span class="letterIndex">i</span>
@@ -72,15 +69,12 @@
                     INTERNO</span>
             </div>
 
-            <!-- Menú de Opciones del Departamento (Área superior derecha / centro) -->
             <nav id="dept-options-nav" class="class=hidden lg:flex items-center gap-1 mt-15 p-1.5">
-                <!-- Se inyectará dinámicamente según la clave o nombre corto del depto -->
             </nav>
 
-            <!-- Usuario y Salida -->
             <div class="flex items-center gap-4 mt-15">
-                <div class="text-right hidden sm:block whitespace-nowrap">
-                    <p class="text-left text-[10px] text-stone-400 font-semibold tracking-wider block mr-auto">Sesión Activa: </p>
+                <div class="text-left hidden sm:block whitespace-nowrap">
+                    <p class="text-[10px] text-stone-400 font-semibold tracking-wider block">Sesión Activa:</p>
                     <p id="user-display-name" class="text-xs font-bold text-stone-700 uppercase">Cargando usuario...</p>
                 </div>
                 <button onclick="logout()"

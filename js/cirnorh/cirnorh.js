@@ -325,35 +325,34 @@ document.addEventListener('click', function (e) {
     const tarjeta = e.target.closest('.tarjeta-accion');
     if (!tarjeta) return;
 
-    const accion = tarjeta.getAttribute('data-accion');
+    const accion = tarjeta.getAttribute('data-accion') || '';
 
-    // 🛑 Bloquear módulos en construcción aquí:
-    // Puedes agregar los nombres de las acciones que quieras bloquear separadas por ||
-    if (accion === 'vacaciones' || accion === 'capacitacion' || accion === 'expedientes' || accion === 'oficios') {
+    // 🛑 Si la acción NO es la del biométrico, bloqueamos todo aquí mismo:
+    if (!accion.includes("cargarVistaBiometrico") && !accion.includes("mostrarVistaBiometrico")) {
         e.preventDefault();
         e.stopPropagation();
+        e.stopImmediatePropagation(); // Detiene cualquier otro listener
         alert('Módulo en Construcción. Este apartado se encuentra en desarrollo y no cuenta con navegación.');
-        return; // <--- Esto frena todo y te deja exactamente en la misma pantalla
+        return; // <--- Frena la ejecución por completo y te deja en la misma pantalla
     }
 
-    if (accion && (accion.includes("cargarVistaBiometrico") || accion.includes("mostrarVistaBiometrico"))) {
-        e.preventDefault();
-        const urlParams = new URLSearchParams(window.location.search);
-        const deptoActual = urlParams.get('depto') || 'cirnorh';
+    // Código normal solo para el biométrico:
+    e.preventDefault();
+    const urlParams = new URLSearchParams(window.location.search);
+    const deptoActual = urlParams.get('depto') || 'cirnorh';
 
-        window.history.pushState(
-            { seccion: 'asistencia', vista: 'biometrico' },
-            '',
-            `main.html?depto=${deptoActual}&seccion=asistencia&vista=biometrico`
-        );
+    window.history.pushState(
+        { seccion: 'asistencia', vista: 'biometrico' },
+        '',
+        `main.html?depto=${deptoActual}&seccion=asistencia&vista=biometrico`
+    );
 
-        sessionStorage.setItem('submodulo_activo_cirnorh', 'asistencia');
+    sessionStorage.setItem('submodulo_activo_cirnorh', 'asistencia');
 
-        if (window.RhAsisCasc && typeof window.RhAsisCasc.mostrarVistaBiometrico === 'function') {
-            window.RhAsisCasc.mostrarVistaBiometrico();
-        } else if (typeof cargarVistaBiometrico === 'function') {
-            cargarVistaBiometrico();
-        }
+    if (window.RhAsisCasc && typeof window.RhAsisCasc.mostrarVistaBiometrico === 'function') {
+        window.RhAsisCasc.mostrarVistaBiometrico();
+    } else if (typeof cargarVistaBiometrico === 'function') {
+        cargarVistaBiometrico();
     }
 });
 

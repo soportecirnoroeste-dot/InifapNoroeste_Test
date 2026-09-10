@@ -541,42 +541,23 @@ exportarExcelCasc: async function () {
             const rowsMapeadas = mapearRegistros(gruposAProcesar[key]);
             let etiquetaEmp = numEmpFiltro ? numEmpFiltro : key.replace(/^Emp_/, '');
 
-            // 🔍 BÚSQUEDA DEL NOMBRE CON TESTIGOS DETALLADOS Y RUTA CORREGIDA (Basado en Apps Script)
+            // 🔍 BÚSQUEDA DEL NOMBRE EN EL CATÁLOGO GLOBAL
             let nombreEmpleadoEncontrado = "";
-            console.log("========================================");
-            console.log("🔍 [TESTIGO] Buscando nombre para empleado ID:", etiquetaEmp);
-
-            // Apuntamos correctamente a donde se almacenan los datos traídos por obtenerDatosSistema()
-            const catalogoPersonal = (typeof RhAsisCasc.obtenerPersonalGlobal === 'function' ? RhAsisCasc.obtenerPersonalGlobal() : null) 
-                || (RhAsisCasc.datosSistema && RhAsisCasc.datosSistema.personal) 
-                || RhAsisCasc.personalGlobal 
-                || window.personalGlobal 
-                || [];
-                
-            console.log("🔍 [TESTIGO] Catálogo de personal obtenido. Total de registros:", catalogoPersonal.length);
+            const catalogoPersonal = RhAsisCasc.personalGlobal || [];
 
             if (catalogoPersonal && catalogoPersonal.length > 0) {
-                console.log("🔍 [TESTIGO] Ejemplo de la primera fila del catálogo:", catalogoPersonal[0]);
-
                 const empleadoMatch = catalogoPersonal.find(emp => {
-                    // Como tu Apps Script devuelve un objeto con la propiedad numEmp (y no un arreglo plano)
-                    const numEmpFila = Array.isArray(emp) ? String(emp[3] || "").trim() : String(emp.numEmp || "").trim();
+                    const numEmpFila = emp.numEmp ? String(emp.numEmp).trim() : "";
                     return numEmpFila === String(etiquetaEmp).trim();
                 });
 
                 if (empleadoMatch) {
-                    console.log("✅ [TESTIGO] ¡Empleado encontrado en el catálogo!", empleadoMatch);
-                    nombreEmpleadoEncontrado = Array.isArray(empleadoMatch)
-                        ? String(empleadoMatch[5] || "").trim()
-                        : String(empleadoMatch.nombre || "").trim(); // Propiedad en minúscula según tu Apps Script
-                    console.log("✅ [TESTIGO] Nombre extraído:", nombreEmpleadoEncontrado);
-                } else {
-                    console.warn("⚠️ [TESTIGO] No se encontró ninguna coincidencia para el NumEmp:", etiquetaEmp);
+                    nombreEmpleadoEncontrado = empleadoMatch.nombre ? String(empleadoMatch.nombre).trim() : "";
                 }
-            } else {
-                console.error("❌ [TESTIGO] El catálogo de personal está vacío o no se pudo acceder a él.");
             }
-            console.log("========================================");
+
+            // 🎯 IMPRESIÓN EN CONSOLA ANTES DE GENERAR EL ARCHIVO EXCEL
+            console.log(`🎯 [EXCEL] Número de Empleado: "${etiquetaEmp}" | Nombre Encontrado: "${nombreEmpleadoEncontrado || 'NO ENCONTRADO'}"`);
 
             // Construcción limpia y dinámica del título de incidencias en C4
             const textoIncidencias = nombreEmpleadoEncontrado

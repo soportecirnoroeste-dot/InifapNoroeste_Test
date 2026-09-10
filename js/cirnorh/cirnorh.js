@@ -108,28 +108,23 @@ function cargarAsistenciaRh() {
 }
 
 function cargarVacacionesRh() {
-    renderizarVistaModulo('vacaciones', "Calendario de descansos y control de días económicos disponibles.", [
-        { titulo: "EN CONTRUCCION", desc: "MODULO EN CONSTRUCCION." }
-        /*{ titulo: "Solicitud de Vacaciones", desc: "Formulario para periodos vacacionales del trabajador." },
+    renderizarVistaModulo('vacaciones', "EN CONTRUCCION", [
+        /*"Calendario de descansos y control de días económicos disponibles."{ titulo: "Solicitud de Vacaciones", desc: "Formulario para periodos vacacionales del trabajador." },
         { titulo: "Días Económicos", desc: "Consulta de saldos y días disfrutados en el año en curso." },
         { titulo: "Calendario General", desc: "Vista general de ausencias programadas por área." }*/
     ]);
 }
 
 function cargarCapacitacionRh() {
-    renderizarVistaModulo('capacitacion', "Cursos, talleres y constancias de desarrollo profesional para el personal.", [
-                { titulo: "EN CONTRUCCION", desc: "MODULO EN CONSTRUCCION." }
-
-        /*{ titulo: "Catálogo de Cursos", desc: "Inscripciones a talleres internos y externos." },
+    renderizarVistaModulo('capacitacion', "EN CONTRUCCION", [
+        /*"Cursos, talleres y constancias de desarrollo profesional para el personal."{ titulo: "Catálogo de Cursos", desc: "Inscripciones a talleres internos y externos." },
         { titulo: "Historial de Constancias", desc: "Registro de acreditaciones y diplomas obtenidos." }*/
     ]);
 }
 
 function cargarExpedientesRh() {
-    renderizarVistaModulo('expedientes', "Documentación oficial, contratos y resguardos de los trabajadores.", [
-                { titulo: "EN CONTRUCCION", desc: "MODULO EN CONSTRUCCION." }
-
-        /*{ titulo: "Documentos Digitales", desc: "Actas de nacimiento, CURP, INE y comprobantes." },
+    renderizarVistaModulo('expedientes', "EN CONTRUCCION", [
+        /*"Documentación oficial, contratos y resguardos de los trabajadores."{ titulo: "Documentos Digitales", desc: "Actas de nacimiento, CURP, INE y comprobantes." },
         { titulo: "Contratos y Nombramientos", desc: "Historial laboral y vigencia de contratos." }*/
     ]);
 }
@@ -146,26 +141,54 @@ function renderizarVistaModulo(idOpt, descripcion, itemsIndice = []) {
     const configActual = window[nombreCortoActual + 'Config'];
     const opt = configActual ? configActual.options.find(o => o.id === idOpt) : null;
     const contenedor = obtenerContenedor();
+    if (descripcion === "EN CONSTRUCCION") {
+        let htmlTarjetasIndice = `
+                <div class="col-span-full py-12 px-4 text-center bg-stone-50/80 rounded-2xl border border-dashed border-stone-300">
+                    <div class="inline-flex p-3 bg-amber-50 text-amber-600 rounded-2xl mb-3 border border-amber-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-cone"><path d="m20.5 19-4.5-11-4.5 11Z"/><path d="m3 19 9-22 9 22"/><path d="M7.5 13.5h9"/></svg>
+                    </div>
+                    <h4 class="font-bold text-stone-800 text-sm uppercase tracking-wide mb-1">Módulo en Construcción</h4>
+                    <p class="text-xs text-stone-500 max-w-sm mx-auto">Este módulo se encuentra actualmente en desarrollo y pronto estará disponible.</p>
+                </div>
+            `;
 
-    if (contenedor && opt) {
-        if (typeof window.actualizarBotonRegresar === 'function') {
-            window.actualizarBotonRegresar('submodulo', nombreCortoActual);
-        }
+        contenedor.innerHTML = `
+            <section class="bg-white rounded-2xl p-6 md:p-8 soft-shadow border border-[#249444]/10 mb-8 animate-fade-in">
+                <div class="flex items-center gap-3 mb-6 pb-4 border-b border-stone-100">
+                    <div class="p-2.5 bg-[#f0fdf4] border border-[#c6f6d5] text-[#059669] rounded-xl flex items-center justify-center">
+                        ${opt.icon}
+                    </div>
+                    <div>
+                        <h3 class="font-black text-stone-800 text-lg uppercase tracking-wide">${opt.title}</h3>
+                        <p class="text-xs text-stone-500">${descripcion}</p>
+                    </div>
+                </div>
 
-        let htmlTarjetasIndice = '';
-        if (itemsIndice && itemsIndice.length > 0) {
-            htmlTarjetasIndice = itemsIndice.map(item => {
-                const laAccion = item.action || item.accion || '';
-                return `
+                <div id="contenido-submodulo-dinamico" class="w-full">
+                    ${htmlTarjetasIndice}
+                </div>
+            </section>
+        `;
+    } else {
+        if (contenedor && opt) {
+            if (typeof window.actualizarBotonRegresar === 'function') {
+                window.actualizarBotonRegresar('submodulo', nombreCortoActual);
+            }
+
+            let htmlTarjetasIndice = '';
+            if (itemsIndice && itemsIndice.length > 0) {
+                htmlTarjetasIndice = itemsIndice.map(item => {
+                    const laAccion = item.action || item.accion || '';
+                    return `
                     <div data-accion="${laAccion}" class="tarjeta-accion p-4 rounded-xl border border-stone-200 bg-stone-50/50 hover:border-[#249444] hover:bg-emerald-50/30 transition-all cursor-pointer group shadow-xs">
                         <h4 class="font-bold text-xs text-stone-800 uppercase group-hover:text-[#249444] mb-1">${item.titulo}</h4>
                         <p class="text-[11px] text-stone-500 leading-relaxed">${item.desc}</p>
                     </div>
                 `;
-            }).join('');
-        }
+                }).join('');
+            }
 
-        contenedor.innerHTML = `
+            contenedor.innerHTML = `
             <section class="bg-white rounded-2xl p-6 md:p-8 soft-shadow border border-[#249444]/10 mb-8 animate-fade-in">
                 <div class="flex items-center gap-3 mb-6 pb-4 border-b border-stone-100">
                     <div class="p-2.5 bg-[#f0fdf4] border border-[#c6f6d5] text-[#059669] rounded-xl flex items-center justify-center">
@@ -182,6 +205,7 @@ function renderizarVistaModulo(idOpt, descripcion, itemsIndice = []) {
                 </div>
             </section>
         `;
+        }
     }
 }
 
@@ -194,14 +218,14 @@ function obtenerContenedor() {
 
 function procesarCargaInicialSeccion(event) {
     const urlParams = new URLSearchParams(window.location.search);
-    
-    const seccion = event && event.state && 'seccion' in event.state 
-                    ? event.state.seccion 
-                    : urlParams.get('seccion');
-                    
-    const vista = event && event.state && 'vista' in event.state 
-                  ? event.state.vista 
-                  : urlParams.get('vista');
+
+    const seccion = event && event.state && 'seccion' in event.state
+        ? event.state.seccion
+        : urlParams.get('seccion');
+
+    const vista = event && event.state && 'vista' in event.state
+        ? event.state.vista
+        : urlParams.get('vista');
 
     const depto = urlParams.get('depto') || 'cirnorh';
     const contenedor = obtenerContenedor();
@@ -209,7 +233,7 @@ function procesarCargaInicialSeccion(event) {
     // CASO 1: Vista interna del Biométrico
     if (seccion === 'asistencia' && vista === 'biometrico') {
         sessionStorage.setItem('submodulo_activo_cirnorh', 'asistencia');
-        
+
         if (typeof window.actualizarBotonRegresar === 'function') {
             window.actualizarBotonRegresar('vista-interna', depto, 'seccion=asistencia');
         }
@@ -219,37 +243,37 @@ function procesarCargaInicialSeccion(event) {
         } else if (typeof cargarVistaBiometrico === 'function') {
             cargarVistaBiometrico();
         }
-    } 
+    }
     // CASO 2: Submódulo de Asistencia general
     else if (seccion === 'asistencia') {
         sessionStorage.setItem('submodulo_activo_cirnorh', 'asistencia');
-        
+
         if (typeof window.actualizarBotonRegresar === 'function') {
             window.actualizarBotonRegresar('submodulo', depto);
         }
 
-        cargarAsistenciaRh(); 
-    } 
+        cargarAsistenciaRh();
+    }
     // CASO 3: Cualquier otra sección
     else if (seccion) {
         sessionStorage.setItem('submodulo_activo_cirnorh', seccion);
-        
+
         if (typeof window.actualizarBotonRegresar === 'function') {
             window.actualizarBotonRegresar('submodulo', depto);
         }
 
         ejecutarCargaSeccion(seccion);
-    } 
+    }
     // CASO 4: Menú Principal del departamento
     else {
         sessionStorage.removeItem('submodulo_activo_cirnorh');
-        
+
         if (typeof window.actualizarBotonRegresar === 'function') {
             window.actualizarBotonRegresar('principal', depto);
         }
 
         if (contenedor) {
-            contenedor.innerHTML = ''; 
+            contenedor.innerHTML = '';
         }
         if (typeof window.cargarMenuDepartamento === 'function') {
             window.cargarMenuDepartamento();
@@ -268,7 +292,7 @@ function procesarCargaInicialSeccion(event) {
 // ==========================================
 // GESTIÓN GLOBAL DE CLICS Y TARJETAS
 // ==========================================
-document.addEventListener('click', function(e) {
+document.addEventListener('click', function (e) {
     const tarjeta = e.target.closest('.tarjeta-accion');
     if (!tarjeta) return;
 
@@ -277,15 +301,15 @@ document.addEventListener('click', function(e) {
         e.preventDefault();
         const urlParams = new URLSearchParams(window.location.search);
         const deptoActual = urlParams.get('depto') || 'cirnorh';
-        
+
         window.history.pushState(
-            { seccion: 'asistencia', vista: 'biometrico' }, 
-            '', 
+            { seccion: 'asistencia', vista: 'biometrico' },
+            '',
             `main.html?depto=${deptoActual}&seccion=asistencia&vista=biometrico`
         );
-        
+
         sessionStorage.setItem('submodulo_activo_cirnorh', 'asistencia');
-        
+
         if (window.RhAsisCasc && typeof window.RhAsisCasc.mostrarVistaBiometrico === 'function') {
             window.RhAsisCasc.mostrarVistaBiometrico();
         } else if (typeof cargarVistaBiometrico === 'function') {

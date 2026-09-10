@@ -142,7 +142,6 @@ function renderizarVistaModulo(idOpt, descripcion, itemsIndice = []) {
     const opt = configActual ? configActual.options.find(o => o.id === idOpt) : null;
     const contenedor = obtenerContenedor();
     if (descripcion === "EN CONSTRUCCION") {
-        console.log(descripcion, "1");
         let htmlTarjetasIndice = `
                 <div class="col-span-full py-12 px-4 text-center bg-stone-50/80 rounded-2xl border border-dashed border-stone-300">
                     <div class="inline-flex p-3 bg-amber-50 text-amber-600 rounded-2xl mb-3 border border-amber-200">

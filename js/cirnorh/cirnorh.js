@@ -146,19 +146,19 @@ function renderizarVistaModulo(idOpt, descripcion, itemsIndice = []) {
         if (itemsIndice && itemsIndice.length > 0) {
             htmlTarjetasIndice = itemsIndice.map(item => {
                 return `
-                    <div class="p-5 rounded-2xl border border-stone-200 bg-stone-50/60 opacity-80 cursor-not-allowed shadow-xs flex flex-col justify-between">
+                    <div class="p-5 rounded-2xl border border-stone-200 bg-stone-50/70 opacity-90 cursor-not-allowed shadow-xs flex flex-col justify-between">
                         <div>
                             <div class="flex items-center gap-3 mb-3">
-                                <div class="p-2 bg-stone-100 text-stone-400 rounded-xl">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
+                                <div class="p-2 bg-emerald-50 text-[#249444] rounded-xl">
+                                    ${opt.icon}
                                 </div>
-                                <h4 class="font-bold text-xs text-stone-700 uppercase">${item.titulo}</h4>
+                                <h4 class="font-bold text-xs text-stone-800 uppercase">${item.titulo}</h4>
                             </div>
-                            <p class="text-[11px] text-stone-500 leading-relaxed mb-4">${item.desc || 'Módulo de gestión.'}</p>
+                            <p class="text-[11px] text-stone-500 leading-relaxed mb-4">${item.desc}</p>
                         </div>
-                        <div class="flex items-center gap-1.5 text-[10px] font-bold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-lg w-fit border border-amber-200/60">
+                        <div class="inline-flex items-center gap-1.5 text-[10px] font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg w-fit border border-amber-200">
                             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                            En construcción
+                            Módulo en construcción
                         </div>
                     </div>
                 `;

@@ -2,7 +2,7 @@
 
 window.RhAsisCasc = {
     registrosBiometrico: [],
-    personalGlobal: [], // 👈 Aseguramos la propiedad global para el catálogo
+    personalGlobal: [],
     rawHeaderGlobal: [
         "Centro", "Núm. Emp", "Hra.Entrada", "Hra. Salida",
         "Hra.Registro", "Registro", "Fecha Reg.", "Día Reg.",
@@ -475,38 +475,28 @@ window.RhAsisCasc = {
         });
     },
 
-    // 🔄 FUNCIÓN AUXILIAR: Conexión segura con Google Apps Script por Promesa
-obtenerPersonalAsync: function () {
+    obtenerPersonalAsync: function () {
         return new Promise(async (resolve) => {
-            console.log("🔍 [TESTIGO] Iniciando 'obtenerPersonalAsync'...");
-            
             if (typeof FetchAPI !== 'function') {
-                console.warn("⚠️ [TESTIGO] FetchAPI no está disponible.");
                 resolve([]);
                 return;
             }
 
-            // Probamos posibles nombres de acción comunes en tu backend de Apps Script
             const posiblesAcciones = ["obtenerPersonalSheets", "obtenerPersonal", "obtenerEmpleados", "catalogoPersonal"];
 
             for (const accion of posiblesAcciones) {
                 try {
-                    console.log(`🔍 [TESTIGO] Probando FetchAPI con la acción: "${accion}"...`);
                     const res = await FetchAPI(accion, {});
-                    console.log(`🔍 [TESTIGO] Respuesta para "${accion}":`, res);
-
                     if (res && (res.success === true || Array.isArray(res))) {
                         const lista = Array.isArray(res) ? res : (res.personal || res.registros || res.data || res.empleados || []);
-                        console.log(`✅ [TESTIGO] ¡Éxito con la acción "${accion}"! Registros encontrados:`, lista.length);
                         resolve(lista);
                         return;
                     }
                 } catch (e) {
-                    console.warn(`⚠️ [TESTIGO] Falló la acción "${accion}":`, e);
+                    // Silencioso
                 }
             }
 
-            console.warn("❌ [TESTIGO] Ninguna acción probada funcionó en el backend.");
             resolve([]);
         });
     },
@@ -521,28 +511,22 @@ obtenerPersonalAsync: function () {
             return;
         }
 
-        // 🔄 AUTOCARGA DIRECTA: Si el catálogo no está cargado, va por él a Google Apps Script automáticamente
         if (!RhAsisCasc.personalGlobal || RhAsisCasc.personalGlobal.length === 0) {
-            console.log("⏳ 'personalGlobal' está vacío. Consultando 'obtenerPersonalSheets()' en el servidor...");
             try {
                 RhAsisCasc.personalGlobal = await RhAsisCasc.obtenerPersonalAsync();
-                console.log("✅ Catálogo de personal cargado correctamente:", RhAsisCasc.personalGlobal);
             } catch (err) {
-                console.error("❌ Error al consultar 'obtenerPersonalSheets()':", err);
+                console.error("Error al consultar el catálogo de personal:", err);
             }
         }
 
-        // 1. Cargar el Logo.png desde la carpeta principal del proyecto
         let imageBuffer = null;
         try {
             const response = await fetch('Logo.png');
             if (response.ok) {
                 imageBuffer = await response.arrayBuffer();
-            } else {
-                console.warn("No se pudo cargar Logo.png, se continuará con el reporte sin la imagen.");
             }
         } catch (err) {
-            console.warn("Error al hacer fetch de Logo.png:", err);
+            // Sin imagen si falla
         }
 
         const mapearRegistros = (lista) => {
@@ -589,7 +573,6 @@ obtenerPersonalAsync: function () {
             const rowsMapeadas = mapearRegistros(gruposAProcesar[key]);
             let etiquetaEmp = numEmpFiltro ? numEmpFiltro : key.replace(/^Emp_/, '');
 
-            // 🔍 BÚSQUEDA ROBUSTA (Soporta objetos o matrices del servidor)
             let nombreEmpleadoEncontrado = "";
             const catalogoPersonal = RhAsisCasc.personalGlobal || [];
 
@@ -614,10 +597,6 @@ obtenerPersonalAsync: function () {
                 }
             }
 
-            // 🎯 IMPRESIÓN EN CONSOLA PARA VERIFICAR
-            console.log(`🎯 [EXCEL] Número de Empleado: "${etiquetaEmp}" | Nombre Encontrado: "${nombreEmpleadoEncontrado || 'NO ENCONTRADO'}"`);
-
-            // Construcción limpia y dinámica del título de incidencias en C4
             const textoIncidencias = nombreEmpleadoEncontrado
                 ? `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp} - ${nombreEmpleadoEncontrado}`
                 : `INCIDENCIAS DEL EMPLEADO: ${etiquetaEmp}`;
@@ -627,7 +606,6 @@ obtenerPersonalAsync: function () {
             const ws = wb.addWorksheet(nombrePestana);
             ws.views = [{ showGridLines: false }];
 
-            // 2. Colocar el logo abarcando desde A1 hasta B4
             if (imageBuffer) {
                 const imageId = wb.addImage({
                     buffer: imageBuffer,
@@ -640,7 +618,6 @@ obtenerPersonalAsync: function () {
                 });
             }
 
-            // 3. Textos institucionales combinados de la columna C a la J por renglón
             ws.mergeCells('C1:J1');
             ws.getCell('C1').value = "INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES AGRÍCOLAS Y PECUARIAS";
             ws.getCell('C1').font = { name: 'Arial', sz: 9, bold: true, color: { argb: '000000' } };
@@ -666,7 +643,6 @@ obtenerPersonalAsync: function () {
             ws.getCell('C5').font = { name: 'Arial', sz: 8.5, bold: true, color: { argb: '000000' } };
             ws.getCell('C5').alignment = { vertical: 'middle', horizontal: 'center' };
 
-            // Fila 7: Cabeceras de la tabla de registros
             const headerRowIndex = 7;
             ws.getRow(headerRowIndex).values = RhAsisCasc.rawHeaderGlobal;
 
@@ -677,7 +653,6 @@ obtenerPersonalAsync: function () {
                 cell.border = { top: { style: 'thin', color: { argb: 'B0B0B0' } }, bottom: { style: 'thin', color: { argb: 'B0B0B0' } }, left: { style: 'thin', color: { argb: 'B0B0B0' } }, right: { style: 'thin', color: { argb: 'B0B0B0' } } };
             });
 
-            // Insertar registros de datos
             rowsMapeadas.forEach((dRow, idx) => {
                 const rowIndex = headerRowIndex + 1 + idx;
                 const row = ws.getRow(rowIndex);
@@ -687,17 +662,17 @@ obtenerPersonalAsync: function () {
                 let fontColor = "000000";
                 let isBold = false;
 
-                if (dRow[11]) { // Falta
+                if (dRow[11]) {
                     bgColor = "FF0000"; fontColor = "FFFFFF"; isBold = true;
-                } else if (dRow[10]) { // Retardo Mayor
+                } else if (dRow[10]) {
                     bgColor = "E46C0A"; fontColor = "FFFFFF"; isBold = true;
-                } else if (dRow[9]) { // Retardo Medio
+                } else if (dRow[9]) {
                     bgColor = "FFC000"; isBold = true;
-                } else if (dRow[8]) { // Retardo Menor
+                } else if (dRow[8]) {
                     bgColor = "FFFF00"; isBold = true;
                 }
 
-                row.eachCell((cell, colNumber) => {
+                row.eachCell((cell) => {
                     cell.font = { name: 'Arial', sz: 9, bold: isBold, color: { argb: fontColor } };
                     cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgColor } };
                     cell.alignment = { vertical: 'middle', horizontal: 'center' };
@@ -705,7 +680,6 @@ obtenerPersonalAsync: function () {
                 });
             });
 
-            // Autoajustar anchos de columnas basado en contenido
             ws.columns.forEach((column, colIndex) => {
                 if (colIndex === 0) { column.width = 16; return; }
                 if (colIndex === 1) { column.width = 16; return; }

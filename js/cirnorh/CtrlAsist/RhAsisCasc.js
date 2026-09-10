@@ -2,6 +2,7 @@
 
 window.RhAsisCasc = {
     registrosBiometrico: [],
+    personalGlobal: [], // 👈 Aseguramos la propiedad global para el catálogo
     rawHeaderGlobal: [
         "Centro", "Núm. Emp", "Hra.Entrada", "Hra. Salida",
         "Hra.Registro", "Registro", "Fecha Reg.", "Día Reg.",
@@ -474,7 +475,22 @@ window.RhAsisCasc = {
         });
     },
 
-exportarExcelCasc: async function () {
+    // 🔄 FUNCIÓN AUXILIAR: Conexión segura con Google Apps Script por Promesa
+    obtenerPersonalAsync: function () {
+        return new Promise((resolve, reject) => {
+            if (typeof google === 'undefined' || !google.script || !google.script.run) {
+                console.warn("⚠️ 'google.script.run' no está disponible en este entorno.");
+                resolve([]);
+                return;
+            }
+            google.script.run
+                .withSuccessHandler((data) => resolve(data || []))
+                .withFailureHandler((err) => reject(err))
+                .obtenerPersonalSheets();
+        });
+    },
+
+    exportarExcelCasc: async function () {
         const registrosAExportar = RhAsisCasc.obtenerRegistrosFiltradosActuales();
         const numEmpFiltro = document.getElementById('filtroNumEmpBio')?.value.trim() || "";
         const centroActual = RhAsisCasc.obtenerClaveCentroActual() || "General";
@@ -482,6 +498,17 @@ exportarExcelCasc: async function () {
         if (typeof ExcelJS === 'undefined') {
             alert("❌ Error: La librería ExcelJS no está cargada en el HTML. Asegúrate de incluirla.");
             return;
+        }
+
+        // 🔄 AUTOCARGA DIRECTA: Si el catálogo no está cargado, va por él a Google Apps Script automáticamente
+        if (!RhAsisCasc.personalGlobal || RhAsisCasc.personalGlobal.length === 0) {
+            console.log("⏳ 'personalGlobal' está vacío. Consultando 'obtenerPersonalSheets()' en el servidor...");
+            try {
+                RhAsisCasc.personalGlobal = await RhAsisCasc.obtenerPersonalAsync();
+                console.log("✅ Catálogo de personal cargado correctamente:", RhAsisCasc.personalGlobal);
+            } catch (err) {
+                console.error("❌ Error al consultar 'obtenerPersonalSheets()':", err);
+            }
         }
 
         // 1. Cargar el Logo.png desde la carpeta principal del proyecto
@@ -541,19 +568,28 @@ exportarExcelCasc: async function () {
             const rowsMapeadas = mapearRegistros(gruposAProcesar[key]);
             let etiquetaEmp = numEmpFiltro ? numEmpFiltro : key.replace(/^Emp_/, '');
 
-            // 🔍 BÚSQUEDA DEL NOMBRE EN EL CATÁLOGO GLOBAL (BLINDADA)
+            // 🔍 BÚSQUEDA ROBUSTA (Soporta objetos o matrices del servidor)
             let nombreEmpleadoEncontrado = "";
             const catalogoPersonal = RhAsisCasc.personalGlobal || [];
 
             if (catalogoPersonal && catalogoPersonal.length > 0) {
                 const empleadoMatch = catalogoPersonal.find(emp => {
-                    const numEmpFila = emp.numEmp !== undefined && emp.numEmp !== null ? String(emp.numEmp).trim() : "";
+                    let numEmpFila = "";
+                    if (Array.isArray(emp)) {
+                        numEmpFila = String(emp[0] || emp[1] || "").trim();
+                    } else if (emp && typeof emp === 'object') {
+                        numEmpFila = String(emp.numEmp || emp.claveReg || emp.num_emp || "").trim();
+                    }
                     const numEmpBuscado = etiquetaEmp !== undefined && etiquetaEmp !== null ? String(etiquetaEmp).trim() : "";
                     return numEmpFila === numEmpBuscado;
                 });
 
                 if (empleadoMatch) {
-                    nombreEmpleadoEncontrado = empleadoMatch.nombre ? String(empleadoMatch.nombre).trim() : "";
+                    if (Array.isArray(empleadoMatch)) {
+                        nombreEmpleadoEncontrado = String(empleadoMatch[1] || empleadoMatch[2] || "").trim();
+                    } else {
+                        nombreEmpleadoEncontrado = String(empleadoMatch.nombre || empleadoMatch.nombreEmpleado || "").trim();
+                    }
                 }
             }
 

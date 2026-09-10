@@ -480,59 +480,34 @@ obtenerPersonalAsync: function () {
         return new Promise(async (resolve) => {
             console.log("🔍 [TESTIGO] Iniciando 'obtenerPersonalAsync'...");
             
-            try {
-                // 1. Intentar primero con tu FetchAPI global si está disponible
-                if (typeof FetchAPI === 'function') {
-                    console.log("🔍 [TESTIGO] 'FetchAPI' detectado. Ejecutando FetchAPI('obtenerPersonalSheets')...");
-                    
-                    const res = await FetchAPI("obtenerPersonalSheets", {});
-                    console.log("🔍 [TESTIGO] Respuesta cruda de FetchAPI:", res);
-
-                    if (res && (res.success || Array.isArray(res))) {
-                        const lista = Array.isArray(res) ? res : (res.personal || res.registros || res.data || []);
-                        console.log("🔍 [TESTIGO] Lista extraída de FetchAPI, longitud:", lista.length);
-                        
-                        if (lista.length > 0) {
-                            console.log("✅ [TESTIGO] ¡Catálogo obtenido exitosamente mediante FetchAPI!");
-                            resolve(lista);
-                            return;
-                        } else {
-                            console.warn("⚠️ [TESTIGO] FetchAPI respondió con éxito pero la lista de personal vino vacía.");
-                        }
-                    } else {
-                        console.warn("⚠️ [TESTIGO] FetchAPI no devolvió una estructura válida o falló (res.success es falso/undefined).");
-                    }
-                } else {
-                    console.log("ℹ️ [TESTIGO] 'FetchAPI' NO está disponible en este entorno.");
-                }
-
-                // 2. Intentar con google.script.run si está en entorno de Google
-                if (typeof google !== 'undefined' && google.script && google.script.run) {
-                    console.log("🔍 [TESTIGO] 'google.script.run' detectado. Invocando .obtenerPersonalSheets()...");
-                    
-                    google.script.run
-                        .withSuccessHandler((data) => {
-                            console.log("✅ [TESTIGO] google.script.run exitoso. Datos recibidos:", data);
-                            resolve(data || []);
-                        })
-                        .withFailureHandler((err) => {
-                            console.error("❌ [TESTIGO] google.script.run falló con error:", err);
-                            resolve([]);
-                        })
-                        .obtenerPersonalSheets();
-                    return;
-                } else {
-                    console.log("ℹ️ [TESTIGO] 'google.script.run' NO está disponible en este entorno.");
-                }
-
-                // 3. Si nada responde, devolvemos vacío
-                console.warn("⚠️ [TESTIGO] Ningún método de conexión estuvo disponible. Devolviendo arreglo vacío.");
+            if (typeof FetchAPI !== 'function') {
+                console.warn("⚠️ [TESTIGO] FetchAPI no está disponible.");
                 resolve([]);
-                
-            } catch (e) {
-                console.error("❌ [TESTIGO] Error crítico atrapado en el try/catch de 'obtenerPersonalAsync':", e);
-                resolve([]);
+                return;
             }
+
+            // Probamos posibles nombres de acción comunes en tu backend de Apps Script
+            const posiblesAcciones = ["obtenerPersonalSheets", "obtenerPersonal", "obtenerEmpleados", "catalogoPersonal"];
+
+            for (const accion of posiblesAcciones) {
+                try {
+                    console.log(`🔍 [TESTIGO] Probando FetchAPI con la acción: "${accion}"...`);
+                    const res = await FetchAPI(accion, {});
+                    console.log(`🔍 [TESTIGO] Respuesta para "${accion}":`, res);
+
+                    if (res && (res.success === true || Array.isArray(res))) {
+                        const lista = Array.isArray(res) ? res : (res.personal || res.registros || res.data || res.empleados || []);
+                        console.log(`✅ [TESTIGO] ¡Éxito con la acción "${accion}"! Registros encontrados:`, lista.length);
+                        resolve(lista);
+                        return;
+                    }
+                } catch (e) {
+                    console.warn(`⚠️ [TESTIGO] Falló la acción "${accion}":`, e);
+                }
+            }
+
+            console.warn("❌ [TESTIGO] Ninguna acción probada funcionó en el backend.");
+            resolve([]);
         });
     },
 

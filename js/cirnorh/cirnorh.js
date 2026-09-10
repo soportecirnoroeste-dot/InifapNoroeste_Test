@@ -142,7 +142,7 @@ function renderizarVistaModulo(idOpt, descripcion, itemsIndice = []) {
     const opt = configActual ? configActual.options.find(o => o.id === idOpt) : null;
     const contenedor = obtenerContenedor();
     if (descripcion === "EN CONSTRUCCION") {
-        console.log(descripcion);
+        console.log(descripcion, "1");
         let htmlTarjetasIndice = '';
         if (itemsIndice && itemsIndice.length > 0) {
             htmlTarjetasIndice = itemsIndice.map(item => {
@@ -188,7 +188,7 @@ function renderizarVistaModulo(idOpt, descripcion, itemsIndice = []) {
             if (typeof window.actualizarBotonRegresar === 'function') {
                 window.actualizarBotonRegresar('submodulo', nombreCortoActual);
             }
-
+            console.log(descripcion, "2");
             let htmlTarjetasIndice = '';
             if (itemsIndice && itemsIndice.length > 0) {
                 htmlTarjetasIndice = itemsIndice.map(item => {

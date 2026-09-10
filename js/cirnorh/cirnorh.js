@@ -153,11 +153,11 @@ function renderizarVistaModulo(idOpt, descripcion, itemsIndice = []) {
                 </div>
             `;
 
-       contenedor.innerHTML = `
-                <div class="bg-amber-50 border border-amber-200 rounded-2xl p-6 flex items-start gap-4 mb-8 animate-fade-in shadow-xs" onclick="alert('Módulo en Construcción. No hay navegación disponible.')" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs uppercase rounded-xl shadow-xs transition-all cursor-pointer">
-                   
-                </div>
-            `;
+       // Muestra la alerta emergente del navegador
+            alert('Módulo en Construcción. Este apartado se encuentra en desarrollo y no cuenta con navegación.');
+
+            // Limpia el contenedor para que no se muestre ningún contenido previo
+            contenedor.innerHTML = '';
         /*
                 if (itemsIndice && itemsIndice.length > 0) {
                     

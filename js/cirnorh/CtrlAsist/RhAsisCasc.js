@@ -493,7 +493,8 @@ window.RhAsisCasc = {
                         return;
                     }
                 } catch (e) {
-                    // Silencioso
+                    // Si ocurre un error de red (ERR_CONNECTION_CLOSED o similar), 
+                    // lo atrapamos discretamente para que el ciclo continúe o termine sin crashear.
                 }
             }
 

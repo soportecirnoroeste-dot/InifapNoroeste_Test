@@ -146,7 +146,7 @@ function renderizarVistaModulo(idOpt, descripcion, itemsIndice = []) {
         if (itemsIndice && itemsIndice.length > 0) {
             
             htmlTarjetasIndice = itemsIndice.map(item => {
-                return `
+                /*return `
                     <div class="p-5 rounded-2xl border border-stone-200 bg-stone-50/70 opacity-90 cursor-not-allowed shadow-xs flex flex-col justify-between">
                         <div>
                             <div class="flex items-center gap-3 mb-3">
@@ -163,7 +163,7 @@ function renderizarVistaModulo(idOpt, descripcion, itemsIndice = []) {
                         </div>
                     </div>
                 `;
-            }).join('');
+            }).join('');*/
         }
 /*
         if (itemsIndice && itemsIndice.length > 0) {
@@ -218,7 +218,7 @@ function renderizarVistaModulo(idOpt, descripcion, itemsIndice = []) {
                     return `
                     <div data-accion="${laAccion}" class="tarjeta-accion p-4 rounded-xl border border-stone-200 bg-stone-50/50 hover:border-[#249444] hover:bg-emerald-50/30 transition-all cursor-pointer group shadow-xs">
                         <h4 class="font-bold text-xs text-stone-800 uppercase group-hover:text-[#249444] mb-1">${item.titulo}</h4>
-                        <p class="text-[11px] text-stone-500 leading-relaxed"></p>
+                        <p class="text-[11px] text-stone-500 leading-relaxed">${item.desc}</p>
                     </div>
                 `;
                 }).join('');

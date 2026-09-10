@@ -541,14 +541,15 @@ exportarExcelCasc: async function () {
             const rowsMapeadas = mapearRegistros(gruposAProcesar[key]);
             let etiquetaEmp = numEmpFiltro ? numEmpFiltro : key.replace(/^Emp_/, '');
 
-            // 🔍 BÚSQUEDA DEL NOMBRE EN EL CATÁLOGO GLOBAL
+            // 🔍 BÚSQUEDA DEL NOMBRE EN EL CATÁLOGO GLOBAL (BLINDADA)
             let nombreEmpleadoEncontrado = "";
             const catalogoPersonal = RhAsisCasc.personalGlobal || [];
 
             if (catalogoPersonal && catalogoPersonal.length > 0) {
                 const empleadoMatch = catalogoPersonal.find(emp => {
-                    const numEmpFila = emp.numEmp ? String(emp.numEmp).trim() : "";
-                    return numEmpFila === String(etiquetaEmp).trim();
+                    const numEmpFila = emp.numEmp !== undefined && emp.numEmp !== null ? String(emp.numEmp).trim() : "";
+                    const numEmpBuscado = etiquetaEmp !== undefined && etiquetaEmp !== null ? String(etiquetaEmp).trim() : "";
+                    return numEmpFila === numEmpBuscado;
                 });
 
                 if (empleadoMatch) {
@@ -556,7 +557,7 @@ exportarExcelCasc: async function () {
                 }
             }
 
-            // 🎯 IMPRESIÓN EN CONSOLA ANTES DE GENERAR EL ARCHIVO EXCEL
+            // 🎯 IMPRESIÓN EN CONSOLA PARA VERIFICAR
             console.log(`🎯 [EXCEL] Número de Empleado: "${etiquetaEmp}" | Nombre Encontrado: "${nombreEmpleadoEncontrado || 'NO ENCONTRADO'}"`);
 
             // Construcción limpia y dinámica del título de incidencias en C4

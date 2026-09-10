@@ -153,51 +153,12 @@ function renderizarVistaModulo(idOpt, descripcion, itemsIndice = []) {
                 </div>
             `;
 
-       // Muestra la alerta emergente del navegador
-            alert('Módulo en Construcción. Este apartado se encuentra en desarrollo y no cuenta con navegación.');
+        // Muestra la alerta emergente del navegador
+        alert('Módulo en Construcción. Este apartado se encuentra en desarrollo y no cuenta con navegación.');
 
-            // Limpia el contenedor para que no se muestre ningún contenido previo
-            contenedor.innerHTML = '';
-        /*
-                if (itemsIndice && itemsIndice.length > 0) {
-                    
-                    htmlTarjetasIndice = itemsIndice.map(item => {
-                        return `
-                            <div class="p-5 rounded-2xl border border-stone-200 bg-stone-50/70 opacity-90 cursor-not-allowed shadow-xs flex flex-col justify-between">
-                                <div>
-                                    <div class="flex items-center gap-3 mb-3">
-                                        <div class="p-2 bg-emerald-50 text-[#249444] rounded-xl">
-                                            ${opt.icon}
-                                        </div>
-                                        <h4 class="font-bold text-xs text-stone-800 uppercase">${item.titulo}</h4>
-                                    </div>
-                                    <p class="text-[11px] text-stone-500 leading-relaxed mb-4">${item.desc}</p>
-                                </div>
-                                <div class="inline-flex items-center gap-1.5 text-[10px] font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg w-fit border border-amber-200">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                                    Módulo en construcción
-                                </div>
-                            </div>
-                        `;
-                    }).join('');
-                }
-                contenedor.innerHTML = `
-                    <section class="bg-white rounded-2xl p-6 md:p-8 soft-shadow border border-[#249444]/10 mb-8 animate-fade-in">
-                        <div class="flex items-center gap-3 mb-6 pb-4 border-b border-stone-100">
-                            <div class="p-2.5 bg-[#f0fdf4] border border-[#c6f6d5] text-[#059669] rounded-xl flex items-center justify-center">
-                                ${opt.icon}
-                            </div>
-                            <div>
-                                <h3 class="font-black text-stone-800 text-lg uppercase tracking-wide">${opt.title}</h3>
-                                <p class="text-xs text-stone-500">${descripcion}</p>
-                            </div>
-                        </div>
-        
-                        <div id="contenido-submodulo-dinamico" class="${idOpt === 'personal' ? 'w-full space-y-6' : 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4'}">
-                            ${htmlTarjetasIndice}
-                        </div>
-                    </section>
-                `;*/
+        // Limpia el contenedor para que no se muestre ningún contenido previo
+        //contenedor.innerHTML = '';
+
     } else {
         if (contenedor && opt) {
             if (typeof window.actualizarBotonRegresar === 'function') {
@@ -336,9 +297,9 @@ document.addEventListener('click', function (e) {
         // En lugar de alert() (que te bota de la pantalla al cerrar), 
         // puedes usar un aviso en consola o un mensaje visual amigable si lo deseas:
         console.log("Módulo en construcción, navegación bloqueada.");
-        
+
         // AQUÍ HACEMOS UN RETURN DIRECTO PARA QUE NO HAGA NADA MÁS
-        return false; 
+        return false;
     }
 
     // Código exclusivo para el biométrico:

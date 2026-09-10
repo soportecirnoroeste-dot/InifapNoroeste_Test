@@ -142,15 +142,28 @@ function renderizarVistaModulo(idOpt, descripcion, itemsIndice = []) {
     const opt = configActual ? configActual.options.find(o => o.id === idOpt) : null;
     const contenedor = obtenerContenedor();
     if (descripcion === "EN CONSTRUCCION") {
-        let htmlTarjetasIndice = `
-                <div class="col-span-full py-12 px-4 text-center bg-stone-50/80 rounded-2xl border border-dashed border-stone-300">
-                    <div class="inline-flex p-3 bg-amber-50 text-amber-600 rounded-2xl mb-3 border border-amber-200">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-cone"><path d="m20.5 19-4.5-11-4.5 11Z"/><path d="m3 19 9-22 9 22"/><path d="M7.5 13.5h9"/></svg>
+        let htmlTarjetasIndice = '';
+        if (itemsIndice && itemsIndice.length > 0) {
+            htmlTarjetasIndice = itemsIndice.map(item => {
+                return `
+                    <div class="p-5 rounded-2xl border border-stone-200 bg-stone-50/60 opacity-80 cursor-not-allowed shadow-xs flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="p-2 bg-stone-100 text-stone-400 rounded-xl">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
+                                </div>
+                                <h4 class="font-bold text-xs text-stone-700 uppercase">${item.titulo}</h4>
+                            </div>
+                            <p class="text-[11px] text-stone-500 leading-relaxed mb-4">${item.desc || 'Módulo de gestión.'}</p>
+                        </div>
+                        <div class="flex items-center gap-1.5 text-[10px] font-bold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-lg w-fit border border-amber-200/60">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                            En construcción
+                        </div>
                     </div>
-                    <h4 class="font-bold text-stone-800 text-sm uppercase tracking-wide mb-1">Módulo en Construcción</h4>
-                    <p class="text-xs text-stone-500 max-w-sm mx-auto">Este módulo se encuentra actualmente en desarrollo y pronto estará disponible.</p>
-                </div>
-            `;
+                `;
+            }).join('');
+        }
 
         contenedor.innerHTML = `
             <section class="bg-white rounded-2xl p-6 md:p-8 soft-shadow border border-[#249444]/10 mb-8 animate-fade-in">
@@ -164,7 +177,7 @@ function renderizarVistaModulo(idOpt, descripcion, itemsIndice = []) {
                     </div>
                 </div>
 
-                <div id="contenido-submodulo-dinamico" class="w-full">
+                <div id="contenido-submodulo-dinamico" class="${idOpt === 'personal' ? 'w-full space-y-6' : 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4'}">
                     ${htmlTarjetasIndice}
                 </div>
             </section>

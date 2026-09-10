@@ -142,11 +142,12 @@ function renderizarVistaModulo(idOpt, descripcion, itemsIndice = []) {
     const opt = configActual ? configActual.options.find(o => o.id === idOpt) : null;
     const contenedor = obtenerContenedor();
     if (descripcion === "EN CONSTRUCCION") {
+        console.log(descripcion, "1");
         let htmlTarjetasIndice = '';
         if (itemsIndice && itemsIndice.length > 0) {
             
             htmlTarjetasIndice = itemsIndice.map(item => {
-                /*return `
+                return `
                     <div class="p-5 rounded-2xl border border-stone-200 bg-stone-50/70 opacity-90 cursor-not-allowed shadow-xs flex flex-col justify-between">
                         <div>
                             <div class="flex items-center gap-3 mb-3">
@@ -155,7 +156,7 @@ function renderizarVistaModulo(idOpt, descripcion, itemsIndice = []) {
                                 </div>
                                 <h4 class="font-bold text-xs text-stone-800 uppercase">${item.titulo}</h4>
                             </div>
-                            <p class="text-[11px] text-stone-500 leading-relaxed mb-4">MODULO EN CONSTRUCCIÓN</p>
+                            <p class="text-[11px] text-stone-500 leading-relaxed mb-4">${item.desc}</p>
                         </div>
                         <div class="inline-flex items-center gap-1.5 text-[10px] font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg w-fit border border-amber-200">
                             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
@@ -163,7 +164,7 @@ function renderizarVistaModulo(idOpt, descripcion, itemsIndice = []) {
                         </div>
                     </div>
                 `;
-            }).join('');*/
+            }).join('');
         }
 /*
         if (itemsIndice && itemsIndice.length > 0) {

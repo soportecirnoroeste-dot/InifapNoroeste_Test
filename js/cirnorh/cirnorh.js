@@ -142,7 +142,6 @@ function renderizarVistaModulo(idOpt, descripcion, itemsIndice = []) {
     const opt = configActual ? configActual.options.find(o => o.id === idOpt) : null;
     const contenedor = obtenerContenedor();
     if (descripcion === "EN CONSTRUCCION") {
-        console.log(descripcion, "1");
         let htmlTarjetasIndice = '';
         if (itemsIndice && itemsIndice.length > 0) {
             
@@ -219,7 +218,7 @@ function renderizarVistaModulo(idOpt, descripcion, itemsIndice = []) {
                     return `
                     <div data-accion="${laAccion}" class="tarjeta-accion p-4 rounded-xl border border-stone-200 bg-stone-50/50 hover:border-[#249444] hover:bg-emerald-50/30 transition-all cursor-pointer group shadow-xs">
                         <h4 class="font-bold text-xs text-stone-800 uppercase group-hover:text-[#249444] mb-1">${item.titulo}</h4>
-                        <p class="text-[11px] text-stone-500 leading-relaxed">${item.desc}</p>
+                        <p class="text-[11px] text-stone-500 leading-relaxed"></p>
                     </div>
                 `;
                 }).join('');

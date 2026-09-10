@@ -326,6 +326,16 @@ document.addEventListener('click', function (e) {
     if (!tarjeta) return;
 
     const accion = tarjeta.getAttribute('data-accion');
+
+    // 🛑 Bloquear módulos en construcción aquí:
+    // Puedes agregar los nombres de las acciones que quieras bloquear separadas por ||
+    if (accion === 'vacaciones' || accion === 'capacitacion' || accion === 'expedientes' || accion === 'oficios') {
+        e.preventDefault();
+        e.stopPropagation();
+        alert('Módulo en Construcción. Este apartado se encuentra en desarrollo y no cuenta con navegación.');
+        return; // <--- Esto frena todo y te deja exactamente en la misma pantalla
+    }
+
     if (accion && (accion.includes("cargarVistaBiometrico") || accion.includes("mostrarVistaBiometrico"))) {
         e.preventDefault();
         const urlParams = new URLSearchParams(window.location.search);

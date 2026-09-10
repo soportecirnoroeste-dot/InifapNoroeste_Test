@@ -327,16 +327,21 @@ document.addEventListener('click', function (e) {
 
     const accion = tarjeta.getAttribute('data-accion') || '';
 
-    // 🛑 Si la acción NO es la del biométrico, bloqueamos todo aquí mismo:
+    // 🛑 Si la acción NO es la del biométrico, bloqueamos por completo la navegación:
     if (!accion.includes("cargarVistaBiometrico") && !accion.includes("mostrarVistaBiometrico")) {
         e.preventDefault();
         e.stopPropagation();
-        e.stopImmediatePropagation(); // Detiene cualquier otro listener
-        alert('Módulo en Construcción. Este apartado se encuentra en desarrollo y no cuenta con navegación.');
-        return; // <--- Frena la ejecución por completo y te deja en la misma pantalla
+        e.stopImmediatePropagation();
+
+        // En lugar de alert() (que te bota de la pantalla al cerrar), 
+        // puedes usar un aviso en consola o un mensaje visual amigable si lo deseas:
+        console.log("Módulo en construcción, navegación bloqueada.");
+        
+        // AQUÍ HACEMOS UN RETURN DIRECTO PARA QUE NO HAGA NADA MÁS
+        return false; 
     }
 
-    // Código normal solo para el biométrico:
+    // Código exclusivo para el biométrico:
     e.preventDefault();
     const urlParams = new URLSearchParams(window.location.search);
     const deptoActual = urlParams.get('depto') || 'cirnorh';

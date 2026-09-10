@@ -145,6 +145,8 @@ function renderizarVistaModulo(idOpt, descripcion, itemsIndice = []) {
         console.log(descripcion, "1");
         let htmlTarjetasIndice = '';
         if (itemsIndice && itemsIndice.length > 0) {
+            
+        console.log(descripcion, "2");
             htmlTarjetasIndice = itemsIndice.map(item => {
                 return `
                     <div class="p-5 rounded-2xl border border-stone-200 bg-stone-50/70 opacity-90 cursor-not-allowed shadow-xs flex flex-col justify-between">
@@ -165,7 +167,7 @@ function renderizarVistaModulo(idOpt, descripcion, itemsIndice = []) {
                 `;
             }).join('');
         }
-
+/*
         contenedor.innerHTML = `
             <section class="bg-white rounded-2xl p-6 md:p-8 soft-shadow border border-[#249444]/10 mb-8 animate-fade-in">
                 <div class="flex items-center gap-3 mb-6 pb-4 border-b border-stone-100">
@@ -182,13 +184,13 @@ function renderizarVistaModulo(idOpt, descripcion, itemsIndice = []) {
                     ${htmlTarjetasIndice}
                 </div>
             </section>
-        `;
+        `;*/
     } else {
         if (contenedor && opt) {
             if (typeof window.actualizarBotonRegresar === 'function') {
                 window.actualizarBotonRegresar('submodulo', nombreCortoActual);
             }
-            console.log(descripcion, "2");
+            
             let htmlTarjetasIndice = '';
             if (itemsIndice && itemsIndice.length > 0) {
                 htmlTarjetasIndice = itemsIndice.map(item => {

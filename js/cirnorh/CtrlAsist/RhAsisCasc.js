@@ -70,31 +70,7 @@ window.RhAsisCasc = {
                             <input type="file" id="uploadBiometrico" class="hidden" accept=".xlsx, .xlsm, .csv" onchange="RhAsisCasc.manejarCargaYGuardadoAutomatico(this)">
 
                             <div class="flex flex-wrap items-end justify-between gap-3 w-full">
-                                <div class="flex flex-wrap items-end gap-3">
-                                    <div class="flex flex-col gap-1">
-                                        <label for="filtroFechaDesde" class="text-[10px] font-bold text-stone-500 uppercase tracking-wider">De</label>
-                                        <input type="date" id="filtroFechaDesde" onchange="RhAsisCasc.aplicarFiltrosCombinados()"
-                                            class="px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] text-stone-700 shadow-xs cursor-pointer">
-                                    </div>
-
-                                    <div class="flex flex-col gap-1">
-                                        <label for="filtroFechaHasta" class="text-[10px] font-bold text-stone-500 uppercase tracking-wider">Hasta</label>
-                                        <input type="date" id="filtroFechaHasta" onchange="RhAsisCasc.aplicarFiltrosCombinados()"
-                                            class="px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] text-stone-700 shadow-xs cursor-pointer">
-                                    </div>
-
-                                    <div class="flex flex-col gap-1">
-                                        <label for="filtroCentroBio" class="text-[10px] font-bold text-stone-500 uppercase tracking-wider">Centro</label>
-                                        <input type="text" id="filtroCentroBio" oninput="RhAsisCasc.aplicarFiltrosCombinados()" placeholder="Centro..."
-                                            class="w-32 px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] transition-all shadow-xs text-stone-700">
-                                    </div>
-
-                                    <div class="flex flex-col gap-1">
-                                        <label for="filtroNumEmpBio" class="text-[10px] font-bold text-stone-500 uppercase tracking-wider">N° Empleado</label>
-                                        <input type="text" id="filtroNumEmpBio" oninput="RhAsisCasc.aplicarFiltrosCombinados()" placeholder="Núm..."
-                                            class="w-32 px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] transition-all shadow-xs text-stone-700">
-                                    </div>
-                                </div>
+                                
 
                                 <div class="flex flex-wrap items-end gap-2">
                                     <div class="flex flex-col gap-1">
@@ -134,6 +110,32 @@ window.RhAsisCasc = {
                         <div class="px-6 py-4 border-b border-stone-100 flex justify-between items-center bg-white">
                             <h4 class="font-bold text-stone-800 text-xs uppercase tracking-wider">LISTADO GENERAL DE BIOMÉTRICO</h4>
                             <span id="contadorRegistrosBio" class="text-xs font-bold text-stone-500"></span>
+
+                            <div class="flex flex-wrap items-end gap-3">
+                                    <div class="flex flex-col gap-1">
+                                        <label for="filtroFechaDesde" class="text-[10px] font-bold text-stone-500 uppercase tracking-wider">De</label>
+                                        <input type="date" id="filtroFechaDesde" onchange="RhAsisCasc.aplicarFiltrosCombinados()"
+                                            class="px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] text-stone-700 shadow-xs cursor-pointer">
+                                    </div>
+
+                                    <div class="flex flex-col gap-1">
+                                        <label for="filtroFechaHasta" class="text-[10px] font-bold text-stone-500 uppercase tracking-wider">Hasta</label>
+                                        <input type="date" id="filtroFechaHasta" onchange="RhAsisCasc.aplicarFiltrosCombinados()"
+                                            class="px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] text-stone-700 shadow-xs cursor-pointer">
+                                    </div>
+
+                                    <div class="flex flex-col gap-1">
+                                        <label for="filtroCentroBio" class="text-[10px] font-bold text-stone-500 uppercase tracking-wider">Centro</label>
+                                        <input type="text" id="filtroCentroBio" oninput="RhAsisCasc.aplicarFiltrosCombinados()" placeholder="Centro..."
+                                            class="w-32 px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] transition-all shadow-xs text-stone-700">
+                                    </div>
+
+                                    <div class="flex flex-col gap-1">
+                                        <label for="filtroNumEmpBio" class="text-[10px] font-bold text-stone-500 uppercase tracking-wider">N° Empleado</label>
+                                        <input type="text" id="filtroNumEmpBio" oninput="RhAsisCasc.aplicarFiltrosCombinados()" placeholder="Núm..."
+                                            class="w-32 px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs uppercase outline-none focus:ring-2 focus:ring-[#249444] transition-all shadow-xs text-stone-700">
+                                    </div>
+                                </div>
                         </div>
 
                         <div id="gridContentBio" class="max-h-[500px] overflow-y-auto overflow-x-auto custom-scrollbar">

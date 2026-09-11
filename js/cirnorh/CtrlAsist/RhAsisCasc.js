@@ -100,7 +100,13 @@ window.RhAsisCasc = {
                                 <button id="exportBtn" disabled onclick="if(window.RhAsisCasc && typeof RhAsisCasc.exportarExcelCasc === 'function') RhAsisCasc.exportarExcelCasc()" class="px-4 py-2 bg-[#249444] text-white rounded-xl text-xs font-bold hover:bg-[#1e7a37] transition flex items-center gap-2 shadow-xs opacity-60 cursor-not-allowed h-[34px]">
                                     <svg id="exportIcon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-down"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>
                                     <span id="exportText">Exportar Información</span>
-                                </button>
+                                </nav>
+                                
+                                <!-- Botón de Login Biometricos -->
+                                <a href="http://biometrico.inifap.gob.mx/LoginBio.aspx?ReturnUrl=%2f" target="_blank" rel="noopener noreferrer" class="px-4 py-2 bg-stone-800 hover:bg-stone-900 text-white rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-xs cursor-pointer h-[34px] no-underline">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                                    <span>Login Biometricos</span>
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -145,15 +151,14 @@ window.RhAsisCasc = {
             const claveCentroActivo = RhAsisCasc.obtenerClaveCentroActual ? String(RhAsisCasc.obtenerClaveCentroActual()).trim() : "";
             const cacheKey = `biometrico_registros_${claveCentroActivo || 'general'}`;
 
-            // 1. Verificar si existen datos guardados en la memoria de la sesión
             const datosEnCache = sessionStorage.getItem(cacheKey);
             if (datosEnCache) {
+                console.log("⚡ Cargando datos del biométrico desde la caché en memoria...");
                 RhAsisCasc.registrosBiometrico = JSON.parse(datosEnCache);
                 RhAsisCasc.renderGrid(RhAsisCasc.registrosBiometrico);
                 return;
             }
 
-            // 2. Si no están en caché, hacer petición normal al servidor/Sheets
             const res = await FetchAPI("obtenerTodosLosRegistrosPlano", {
                 claveCentro: claveCentroActivo,
                 centro: claveCentroActivo
@@ -161,10 +166,7 @@ window.RhAsisCasc = {
 
             if (res && res.success && Array.isArray(res.registros)) {
                 RhAsisCasc.registrosBiometrico = res.registros;
-                
-                // Guardar en sessionStorage para futuras consultas rápidas
                 sessionStorage.setItem(cacheKey, JSON.stringify(res.registros));
-                
                 RhAsisCasc.renderGrid(RhAsisCasc.registrosBiometrico);
             } else {
                 RhAsisCasc.registrosBiometrico = [];
@@ -282,7 +284,6 @@ window.RhAsisCasc = {
                     });
 
                     if (resultado && resultado.success) {
-                        // Limpiar la caché de este centro para forzar actualización con los nuevos datos
                         sessionStorage.removeItem(`biometrico_registros_${claveCentroSeleccionado}`);
                         sessionStorage.removeItem(`biometrico_registros_general`);
 
@@ -509,7 +510,7 @@ window.RhAsisCasc = {
                         return;
                     }
                 } catch (e) {
-                    // Silencioso ante intermitencias de red
+                    // Silencioso
                 }
             }
 
@@ -523,7 +524,6 @@ window.RhAsisCasc = {
         const exportIcon = document.getElementById('exportIcon');
 
         try {
-            // 🔄 Activar Estado de Carga (Spinner)
             if (exportBtn) {
                 exportBtn.disabled = true;
                 exportBtn.classList.add('bg-stone-400', 'cursor-wait', 'opacity-80');
@@ -533,7 +533,6 @@ window.RhAsisCasc = {
                 exportText.innerText = "Generando archivo...";
             }
             if (exportIcon) {
-                // Reemplazamos el icono por un SVG giratorio (Spinner)
                 exportIcon.outerHTML = `
                     <svg id="exportIcon" class="animate-spin" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
@@ -546,16 +545,14 @@ window.RhAsisCasc = {
             const centroActual = RhAsisCasc.obtenerClaveCentroActual() || "General";
 
             if (typeof ExcelJS === 'undefined') {
-                alert("❌ Error: La librería ExcelJS no está cargada en el HTML. Asegúrate de incluirla.");
+                alert("❌ Error: La librería ExcelJS no está cargada en el HTML.");
                 return;
             }
 
             if (!RhAsisCasc.personalGlobal || RhAsisCasc.personalGlobal.length === 0) {
                 try {
                     RhAsisCasc.personalGlobal = await RhAsisCasc.obtenerPersonalAsync();
-                } catch (err) {
-                    // Continúa sin catálogo si falla
-                }
+                } catch (err) {}
             }
 
             let imageBuffer = null;
@@ -564,9 +561,7 @@ window.RhAsisCasc = {
                 if (response.ok) {
                     imageBuffer = await response.arrayBuffer();
                 }
-            } catch (err) {
-                // Sin imagen si falla
-            }
+            } catch (err) {}
 
             const mapearRegistros = (lista) => {
                 return lista.map(r => {
@@ -749,7 +744,6 @@ window.RhAsisCasc = {
         } catch (err) {
             alert("Ocurrió un error al compilar el archivo .xlsx: " + err.message);
         } finally {
-            // 🔄 Restaurar el botón a su estado original al terminar o fallar
             if (exportBtn) {
                 exportBtn.disabled = false;
                 exportBtn.classList.remove('bg-stone-400', 'cursor-wait', 'opacity-80');

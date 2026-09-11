@@ -87,7 +87,19 @@ function cargarPersonalRh(cargarLista = true) {
         </div>
 
         <div id="contenedor-listado-personal" class="bg-white rounded-xl border border-stone-200 overflow-hidden shadow-sm">
-            <div class="p-4 border-b border-stone-100 font-bold text-xs text-stone-700 uppercase tracking-wider">Listado General de Empleados</div>
+            <div class="p-4 border-b border-stone-100 flex flex-wrap justify-between items-center gap-4 bg-white">
+                <div class="font-bold text-xs text-stone-700 uppercase tracking-wider">Listado General de Empleados</div>
+                
+                <!-- Buscador dinámico integrado -->
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-stone-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                    </span>
+                    <input type="text" id="buscador-personal-input" oninput="filtrarTablaPersonal(this.value)" placeholder="Buscar por nombre, puesto, centro..." 
+                        class="w-64 sm:w-72 pl-9 pr-4 py-1.5 bg-stone-50 border border-stone-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-[#249444] text-stone-700 transition-all shadow-xs">
+                </div>
+            </div>
+            
             <div class="rounded-xl bg-white">
                 <div class="max-h-[500px] overflow-y-auto overflow-x-auto custom-scrollbar">
                     <table class="w-full text-left border-collapse text-xs min-w-[950px]">
@@ -317,6 +329,33 @@ async function cargarDatosPersonalSheets(forzar = false) {
     } catch (error) {
         tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-red-500 italic">Error al conectar con Sheets.</td></tr>`;
     }
+}
+
+function filtrarTablaPersonal(textoBusqueda) {
+    const query = textoBusqueda.toLowerCase().trim();
+    
+    if (!query) {
+        renderizarTablaPersonal(window._empleadosCache);
+        return;
+    }
+
+    const empleadosFiltrados = window._empleadosCache.filter(row => {
+        const reg = String(row.claveReg || row.textoReg || "").toLowerCase();
+        const centro = String(row.claveCentro || row.textoCentro || "").toLowerCase();
+        const numEmp = String(row.numEmp || "").toLowerCase();
+        const nombre = String(row.nombre || "").toLowerCase();
+        const puesto = String(row.puesto || "").toLowerCase();
+        const depto = String(row.departamento || "").toLowerCase();
+
+        return reg.includes(query) || 
+               centro.includes(query) || 
+               numEmp.includes(query) || 
+               nombre.includes(query) || 
+               puesto.includes(query) || 
+               depto.includes(query);
+    });
+
+    renderizarTablaPersonal(empleadosFiltrados);
 }
 
 function renderizarTablaPersonal(registros) {

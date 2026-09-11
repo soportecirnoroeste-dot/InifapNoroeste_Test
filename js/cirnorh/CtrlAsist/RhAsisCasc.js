@@ -143,7 +143,18 @@ window.RhAsisCasc = {
             if (typeof FetchAPI !== 'function') return;
 
             const claveCentroActivo = RhAsisCasc.obtenerClaveCentroActual ? String(RhAsisCasc.obtenerClaveCentroActual()).trim() : "";
+            const cacheKey = `biometrico_registros_${claveCentroActivo || 'general'}`;
 
+            // 1. Verificar si existen datos guardados en la memoria de la sesión
+            const datosEnCache = sessionStorage.getItem(cacheKey);
+            if (datosEnCache) {
+                console.log("⚡ Cargando datos del biométrico desde la caché en memoria...");
+                RhAsisCasc.registrosBiometrico = JSON.parse(datosEnCache);
+                RhAsisCasc.renderGrid(RhAsisCasc.registrosBiometrico);
+                return;
+            }
+
+            // 2. Si no están en caché, hacer petición normal al servidor/Sheets
             const res = await FetchAPI("obtenerTodosLosRegistrosPlano", {
                 claveCentro: claveCentroActivo,
                 centro: claveCentroActivo
@@ -151,6 +162,10 @@ window.RhAsisCasc = {
 
             if (res && res.success && Array.isArray(res.registros)) {
                 RhAsisCasc.registrosBiometrico = res.registros;
+                
+                // Guardar en sessionStorage para futuras consultas rápidas
+                sessionStorage.setItem(cacheKey, JSON.stringify(res.registros));
+                
                 RhAsisCasc.renderGrid(RhAsisCasc.registrosBiometrico);
             } else {
                 RhAsisCasc.registrosBiometrico = [];
@@ -268,6 +283,10 @@ window.RhAsisCasc = {
                     });
 
                     if (resultado && resultado.success) {
+                        // Limpiar la caché de este centro para forzar actualización con los nuevos datos
+                        sessionStorage.removeItem(`biometrico_registros_${claveCentroSeleccionado}`);
+                        sessionStorage.removeItem(`biometrico_registros_general`);
+
                         alert(`✅ ¡Datos cargados y guardados exitosamente para el centro ${claveCentroSeleccionado} (${rowsParaSheets.length} registros)!`);
                         await RhAsisCasc.cargarDatosDesdeSheets();
                     } else {

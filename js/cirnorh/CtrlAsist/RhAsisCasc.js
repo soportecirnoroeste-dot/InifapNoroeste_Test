@@ -148,7 +148,6 @@ window.RhAsisCasc = {
             // 1. Verificar si existen datos guardados en la memoria de la sesión
             const datosEnCache = sessionStorage.getItem(cacheKey);
             if (datosEnCache) {
-                console.log("⚡ Cargando datos del biométrico desde la caché en memoria...");
                 RhAsisCasc.registrosBiometrico = JSON.parse(datosEnCache);
                 RhAsisCasc.renderGrid(RhAsisCasc.registrosBiometrico);
                 return;

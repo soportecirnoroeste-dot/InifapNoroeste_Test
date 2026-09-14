@@ -1,6 +1,5 @@
 // js/cirnorh/RhPersonal.js
 
-// Variables globales de caché (protegidas para máxima velocidad)
 window._catRegsCache = window._catRegsCache || null;
 window._catCentrosCache = window._catCentrosCache || null;
 window._catSitiosCache = window._catSitiosCache || null;
@@ -23,11 +22,9 @@ function cargarPersonalRh(cargarLista = true) {
             </div>
             <div class="flex gap-2">
                 <button onclick="mostrarFormularioNuevoPersonal()" class="px-4 py-2 bg-[#249444] text-white rounded-xl text-xs font-bold hover:bg-[#1e7a37] transition flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
                     Nuevo Registro
                 </button>
                 <button onclick="cargarDatosGenerales(true)" class="px-4 py-2 bg-stone-200 text-stone-700 rounded-xl text-xs font-bold hover:bg-stone-300 transition flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
                     Actualizar Datos
                 </button>
             </div>
@@ -89,14 +86,9 @@ function cargarPersonalRh(cargarLista = true) {
         <div id="contenedor-listado-personal" class="bg-white rounded-xl border border-stone-200 overflow-hidden shadow-sm">
             <div class="p-4 border-b border-stone-100 flex flex-wrap justify-between items-center gap-4 bg-white">
                 <div class="font-bold text-xs text-stone-700 uppercase tracking-wider">Listado General de Empleados</div>
-                
-                <!-- Buscador dinámico integrado -->
                 <div class="relative">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-stone-400">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                    </span>
                     <input type="text" id="buscador-personal-input" oninput="filtrarTablaPersonal(this.value)" placeholder="Buscar por nombre, puesto, centro..." 
-                        class="w-64 sm:w-72 pl-9 pr-4 py-1.5 bg-stone-50 border border-stone-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-[#249444] text-stone-700 transition-all shadow-xs">
+                        class="w-64 sm:w-72 pl-4 pr-4 py-1.5 bg-stone-50 border border-stone-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-[#249444] text-stone-700 transition-all shadow-xs">
                 </div>
             </div>
             
@@ -179,18 +171,12 @@ async function cargarCatalogosSheets(forzar = false) {
 
     try {
         const data = await FetchAPI('obtenerDatosSistema', {});
-
         window._catRegs = data.regionales || [];
         window._catCentros = data.campos || [];
         window._catSitios = data.sitios || [];
         window._catDepartamentos = data.departamentos || data.deptos || []; 
-
-        const selCentro = document.getElementById('select-claveCentro');
-        if (selCentro && selCentro.value && typeof filtrarSitiosPorCentro === 'function') {
-            filtrarSitiosPorCentro(selCentro.value);
-        }
     } catch (e) {
-        console.error("Error al cargar catálogos desde servidor...", e);
+        console.error("Error al cargar catálogos...", e);
     }
 }
 
@@ -204,18 +190,15 @@ async function mostrarFormularioNuevoPersonal() {
 
     if (formContainer && form) {
         form.reset();
-
         if (!window._catRegs || window._catRegs.length === 0) {
             await cargarCatalogosSheets(true);
         }
-
         poblarSelectoresCascada('', '', '');
         inputNumEmp.removeAttribute('readonly');
         titulo.innerHTML = `Capturar Nuevo Empleado`;
         formContainer.classList.remove('hidden');
         if (gestionContainer) gestionContainer.classList.add('hidden');
         if (listadoContainer) listadoContainer.classList.add('hidden');
-        formContainer.scrollIntoView({ behavior: 'smooth' });
     }
 }
 
@@ -233,38 +216,29 @@ function poblarSelectoresCascada(regSeleccionada = '', centroSeleccionado = '', 
         selectReg.value = regSeleccionada;
         filtrarCentrosPorRegion(centroSeleccionado, sitioSeleccionado);
     }
-
-    selectReg.onchange = () => filtrarCentrosPorRegion();
-    selectCentro.onchange = () => filtrarSitiosPorCentro();
 }
 
 window.filtrarCentrosPorRegion = function (centroActual = '', sitActual = '') {
-    const selReg = document.getElementById('select-claveReg') || document.querySelector('select[name="claveReg"]');
-    const selCentro = document.getElementById('select-claveCentro') || document.querySelector('select[name="claveCentro"]');
-    const selSit = document.getElementById('select-claveSit') || document.querySelector('select[name="claveSit"]');
-
+    const selReg = document.getElementById('select-claveReg');
+    const selCentro = document.getElementById('select-claveCentro');
+    const selSit = document.getElementById('select-claveSit');
     if (!selReg || !selCentro || !selSit) return;
 
     const regionSeleccionada = selReg.value;
-
     selCentro.innerHTML = `<option value="" disabled selected>Seleccione un centro...</option>`;
     selSit.innerHTML = `<option value="" disabled selected>Seleccione un sitio...</option>`;
 
     const centrosArray = Array.isArray(window._catCentros) ? window._catCentros : [];
-    const centrosFiltrados = regionSeleccionada ? centrosArray.filter(c => {
-        const regEnFila = String(c.ClaveReg || c.claveReg || c.CLAVEREG || '').trim();
-        return regEnFila === String(regionSeleccionada).trim();
-    }) : [];
+    const centrosFiltrados = regionSeleccionada ? centrosArray.filter(c => String(c.ClaveReg || c.claveReg || '').trim() === String(regionSeleccionada).trim()) : [];
 
     if (centrosFiltrados.length > 0) {
         selCentro.innerHTML += centrosFiltrados.map(c => {
-            const claveC = c.ClaveCentro || c.claveCentro || c.CLAVECENTRO || c.clave || '';
-            const nombreC = c.Centro || c.centro || c.nombre || '';
+            const claveC = c.ClaveCentro || c.claveCentro || '';
+            const nombreC = c.Centro || c.centro || '';
             const selected = (String(claveC) === String(centroActual)) ? 'selected' : '';
             return `<option value="${claveC}" ${selected}>${claveC} - ${nombreC}</option>`;
         }).join('');
     }
-
     if (centroActual || selCentro.value) {
         filtrarSitiosPorCentro(centroActual || selCentro.value, sitActual);
     }
@@ -273,47 +247,23 @@ window.filtrarCentrosPorRegion = function (centroActual = '', sitActual = '') {
 window.filtrarSitiosPorCentro = function (claveCentro = '', sitActual = '') {
     const selSit = document.getElementById('select-claveSit');
     if (!selSit) return;
-
     selSit.innerHTML = `<option value="" disabled selected>Seleccione un sitio...</option>`;
 
     const centroId = claveCentro || document.getElementById('select-claveCentro').value;
-
     const sitiosArray = Array.isArray(window._catSitios) ? window._catSitios : [];
-    const sitiosFiltrados = sitiosArray.filter(s => {
-        const cAsociado = String(s.claveCentro || s.ClaveCentro || '').trim();
-        return cAsociado === String(centroId).trim();
-    });
+    const sitiosFiltrados = sitiosArray.filter(s => String(s.claveCentro || s.ClaveCentro || '').trim() === String(centroId).trim());
 
     if (sitiosFiltrados.length > 0) {
         selSit.innerHTML += sitiosFiltrados.map(s => {
-            const claveS = s.clave || s.ClaveSitio || s.claveSit || '';
-            const nombreS = s.nombre || s.Sitio || s.sitio || '';
+            const claveS = s.clave || s.ClaveSitio || '';
+            const nombreS = s.nombre || s.Sitio || '';
             return `<option value="${claveS}">${claveS} - ${nombreS}</option>`;
         }).join('');
     } else {
         selSit.innerHTML += `<option value="N/A" selected>N/A - No aplica</option>`;
     }
-
-    if (sitActual) {
-        selSit.value = sitActual;
-    }
+    if (sitActual) selSit.value = sitActual;
 };
-
-document.addEventListener("DOMContentLoaded", () => {
-    const selReg = document.getElementById('select-claveReg') || document.querySelector('select[name="claveReg"]');
-    if (selReg) {
-        selReg.addEventListener('change', () => {
-            window.filtrarCentrosPorRegion();
-        });
-    }
-
-    const selCentro = document.getElementById('select-claveCentro');
-    if (selCentro) {
-        selCentro.addEventListener('change', function(e) {
-            window.filtrarSitiosPorCentro(e.target.value);
-        });
-    }
-});
 
 async function cargarDatosPersonalSheets(forzar = false) {
     const tbody = document.getElementById('tabla-personal-body');
@@ -335,7 +285,6 @@ async function cargarDatosPersonalSheets(forzar = false) {
 
 function filtrarTablaPersonal(textoBusqueda) {
     const query = textoBusqueda.toLowerCase().trim();
-    
     if (!query) {
         renderizarTablaPersonal(window._empleadosCache);
         return;
@@ -349,12 +298,7 @@ function filtrarTablaPersonal(textoBusqueda) {
         const puesto = String(row.puesto || "").toLowerCase();
         const depto = String(row.departamento || "").toLowerCase();
 
-        return reg.includes(query) || 
-               centro.includes(query) || 
-               numEmp.includes(query) || 
-               nombre.includes(query) || 
-               puesto.includes(query) || 
-               depto.includes(query);
+        return reg.includes(query) || centro.includes(query) || numEmp.includes(query) || nombre.includes(query) || puesto.includes(query) || depto.includes(query);
     });
 
     renderizarTablaPersonal(empleadosFiltrados);
@@ -369,108 +313,44 @@ function renderizarTablaPersonal(registros) {
         return;
     }
 
-    if (!window._mapRegsCache && window._catRegs) {
-        window._mapRegsCache = {};
-        window._catRegs.forEach(r => {
-            const k = String(r.claveReg || r.clave || '').trim();
-            if (k) window._mapRegsCache[k] = r.NomCorto || r.nomCorto || r.regional || r.nombre || '';
-        });
-    }
-
-    if (!window._mapCentrosCache && window._catCentros) {
-        window._mapCentrosCache = {};
-        window._catCentros.forEach(c => {
-            const k = String(c.ClaveCentro || c.claveCentro || c.clave || '').trim();
-            if (k) window._mapCentrosCache[k] = c.NomCorto || c.nomCorto || c.Centro || c.centro || '';
-        });
-    }
-
-    let catDeptosDisponible = false;
-    if (window._catDepartamentos && Array.isArray(window._catDepartamentos) && window._catDepartamentos.length > 0) {
-        catDeptosDisponible = true;
-        window._mapDeptosCache = {};
-        window._catDepartamentos.forEach(d => {
-            const nomCor = String(d.nomCorDep || '').trim();
-            const cDep = String(d.claveDep || '').trim();
-            const nomLargo = d.nomDep || d.nombre || '';
-
-            if (nomCor) window._mapDeptosCache[nomCor] = nomLargo;
-            if (cDep) window._mapDeptosCache[cDep] = nomLargo;
-        });
-    } else {
-        if (!window._esperandoCatDepartamentos) {
-            window._esperandoCatDepartamentos = true;
-            const intervaloCheck = setInterval(() => {
-                if (window._catDepartamentos && Array.isArray(window._catDepartamentos) && window._catDepartamentos.length > 0) {
-                    clearInterval(intervaloCheck);
-                    window._esperandoCatDepartamentos = false;
-                    renderizarTablaPersonal(registros);
-                }
-            }, 150);
-        }
-    }
-
     tbody.innerHTML = registros.map((row) => {
-        const cReg = String(row.claveReg || '').trim();
-        const cCentro = String(row.claveCentro || '').trim();
-        const cDepto = String(row.departamento || '').trim();
-
-        const nomCortoReg = (window._mapRegsCache && window._mapRegsCache[cReg]) || '';
-        const reg = nomCortoReg ? `${cReg} - ${nomCortoReg}` : (row.textoReg || cReg);
-
-        const nomCortoCentro = (window._mapCentrosCache && window._mapCentrosCache[cCentro]) || '';
-        const centro = nomCortoCentro ? `${cCentro} - ${nomCortoCentro}` : (row.textoCentro || cCentro);
-
-        let deptoVisual = cDepto;
-        if (cDepto) {
-            if (window._mapDeptosCache && window._mapDeptosCache[cDepto]) {
-                deptoVisual = window._mapDeptosCache[cDepto];
-            } else if (Array.isArray(window._catDepartamentos)) {
-                const encontrado = window._catDepartamentos.find(d => 
-                    String(d.nomCorDep || '').trim().toUpperCase() === cDepto.toUpperCase() ||
-                    String(d.claveDep || '').trim() === cDepto ||
-                    String(d.nomDep || '').trim().toUpperCase() === cDepto.toUpperCase()
-                );
-                if (encontrado) {
-                    deptoVisual = encontrado.nomDep || encontrado.nombre || cDepto;
-                }
-            }
-        }
-
-        const noEmp = String(row.numEmp || row.noEmp || row.numeroEmpleado || '').trim();
-        const nombre = row.nombre || row.NOMBRE || '';
-        const puesto = row.puesto || row.PUESTO || '';
-
-        const valNa = (v) => (!v || v === 0 || v === '0' || String(v).trim() === '') ? 'N/A' : v;
+        const noEmp = String(row.numEmp || row.noEmp || '').trim();
+        const nombre = row.nombre || row.NOMBRE || 'Sin nombre';
+        const puesto = row.puesto || row.PUESTO || 'N/A';
+        const reg = row.claveReg || row.textoReg || 'N/A';
+        const centro = row.claveCentro || row.textoCentro || 'N/A';
+        const depto = row.departamento || 'N/A';
 
         return `
             <tr class="border-b border-stone-100 hover:bg-stone-50 transition">
-                <td class="p-3 font-mono text-stone-600">${valNa(reg)}</td>
-                <td class="p-3 font-mono text-stone-600">${valNa(centro)}</td>
-                <td class="p-3 font-mono text-stone-600">${valNa(noEmp)}</td>
-                <td class="p-3"><button type="button" onclick="seleccionarEmpleadoParaEditar('${noEmp}')" class="font-semibold text-[#249444] hover:underline text-left">${valNa(nombre)}</button></td>
-                <td class="p-3 text-stone-600">${valNa(puesto)}</td>
-                <td class="p-3 text-stone-600">${valNa(deptoVisual)}</td>
+                <td class="p-3 font-mono text-stone-600">${reg}</td>
+                <td class="p-3 font-mono text-stone-600">${centro}</td>
+                <td class="p-3 font-mono text-stone-600">${noEmp}</td>
+                <td class="p-3"><button type="button" onclick="seleccionarEmpleadoParaEditar('${noEmp}')" class="font-semibold text-[#249444] hover:underline text-left">${nombre}</button></td>
+                <td class="p-3 text-stone-600">${puesto}</td>
+                <td class="p-3 text-stone-600">${depto}</td>
             </tr>
         `;
     }).join('');
 }
 
 async function seleccionarEmpleadoParaEditar(numEmpParam) {
+    // TESTIGO: Muestra el número de empleado exacto seleccionado[cite: 4]
+    alert("TESTIGO - Número de empleado seleccionado: [" + numEmpParam + "]");
+
     if (!window._empleadosCache || window._empleadosCache.length === 0) {
         try {
             const data = await FetchAPI('obtenerPersonal');
             window._empleadosCache = data || [];
         } catch (error) {
-            console.error("❌ Error al recuperar empleados:", error);
+            console.error("Error al recuperar empleados:", error);
         }
     }
 
     const numBuscado = String(numEmpParam || '').trim();
-    const emp = window._empleadosCache.find(e => String(e.numEmp || e.noEmp || e.numeroEmpleado || '').trim() === numBuscado);
+    const emp = window._empleadosCache.find(e => String(e.numEmp || e.noEmp || '').trim() === numBuscado);
 
     if (!emp) {
-        console.log(numEmpParam);
         alert("No se pudieron cargar los datos del empleado.");
         return;
     }
@@ -489,14 +369,13 @@ async function seleccionarEmpleadoParaEditar(numEmpParam) {
         const regVal = extraerClave(emp.claveReg || emp.textoReg);
         const centroVal = extraerClave(emp.claveCentro || emp.textoCentro);
         let rawSit = extraerClave(emp.claveSit || emp.textoSit);
-        const sitVal = (!rawSit || rawSit === 0 || rawSit === '0' || String(rawSit).trim().toUpperCase() === 'N/A') ? 'N/A' : rawSit;
+        const sitVal = (!rawSit || rawSit === '0' || String(rawSit).trim().toUpperCase() === 'N/A') ? 'N/A' : rawSit;
 
         poblarSelectoresCascada(regVal, centroVal, sitVal);
 
-        const realNumEmp = limpiarValor(emp.numEmp || emp.noEmp || numBuscado);
-        form.elements['numEmp'].value = realNumEmp;
+        form.elements['numEmp'].value = limpiarValor(emp.numEmp || emp.noEmp);
         inputNumEmp.setAttribute('readonly', true);
-        form.elements['nombre'].value = limpiarValor(emp.nombre || emp.NOMBRE);
+        form.elements['nombre'].value = limpiarValor(emp.nombre);
         form.elements['ext'].value = limpiarValor(emp.ext);
         form.elements['numPers'].value = limpiarValor(emp.numPers);
         form.elements['escolaridad'].value = limpiarValor(emp.escolaridad);
@@ -504,12 +383,12 @@ async function seleccionarEmpleadoParaEditar(numEmpParam) {
         form.elements['cp'].value = limpiarValor(emp.cp);
         form.elements['email'].value = limpiarValor(emp.email);
         form.elements['rfc'].value = limpiarValor(emp.rfc);
-        form.elements['puesto'].value = limpiarValor(emp.puesto || emp.PUESTO);
+        form.elements['puesto'].value = limpiarValor(emp.puesto);
         form.elements['departamento'].value = limpiarValor(emp.departamento);
         form.elements['ciudad'].value = limpiarValor(emp.ciudad);
         form.elements['estado'].value = limpiarValor(emp.estado);
 
-        titulo.innerHTML = `Editando: <span class="text-[#249444]">${limpiarValor(emp.nombre || emp.NOMBRE)}</span>`;
+        titulo.innerHTML = `Editando: <span class="text-[#249444]">${limpiarValor(emp.nombre)}</span>`;
 
         formContainer.classList.remove('hidden');
         if (gestionContainer) gestionContainer.classList.add('hidden');

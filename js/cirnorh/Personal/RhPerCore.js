@@ -422,12 +422,13 @@ function renderizarTablaPersonal(registros) {
 
         let puestoVisual = cNumPto;
         if (cNumPto) {
+            // Intentamos buscar primero en el mapa de puestos precargado
             if (window._mapPuestosCache && window._mapPuestosCache[cNumPto]) {
                 puestoVisual = window._mapPuestosCache[cNumPto];
-            } else if (Array.isArray(window._catPuestos)) {
+            } else if (Array.isArray(window._catPuestos) && window._catPuestos.length > 0) {
+                // Búsqueda directa en el arreglo de catálogos
                 const encontrado = window._catPuestos.find(p =>
-                    String(p.NumPto || p.numPto || '').trim() === cNumPto ||
-                    String(p.NomPto || '').trim().toUpperCase() === cNumPto.toUpperCase()
+                    String(p.NumPto || p.numPto || '').trim() === cNumPto
                 );
                 if (encontrado) {
                     puestoVisual = encontrado.NomPto || encontrado.nomPto || encontrado.nombre || cNumPto;

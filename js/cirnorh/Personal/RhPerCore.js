@@ -464,7 +464,10 @@ async function seleccionarEmpleadoParaEditar(numEmpParam) {
         }
     }
 
-    const emp = window._empleadosCache.find(e => String(e.numEmp).trim() === String(numEmpParam).trim());
+    // Búsqueda segura normalizando ambos valores a texto y quitando espacios
+    const numBuscado = String(numEmpParam || '').trim();
+    const emp = window._empleadosCache.find(e => String(e.numEmp || '').trim() === numBuscado);
+
     if (!emp) {
         alert("No se pudieron cargar los datos del empleado.");
         return;

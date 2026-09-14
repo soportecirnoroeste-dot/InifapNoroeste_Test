@@ -169,6 +169,8 @@ function ocultarFormularioPersonal() {
 
     if (window._empleadosCache && window._empleadosCache.length > 0) {
         renderizarTablaPersonal(window._empleadosCache);
+    } else {
+        cargarDatosGenerales(false);
     }
 }
 
@@ -181,7 +183,7 @@ async function cargarCatalogosSheets(forzar = false) {
         window._catRegs = data.regionales || [];
         window._catCentros = data.campos || [];
         window._catSitios = data.sitios || [];
-        window._catDepartamentos = data.departamentos || data.deptos || [];
+        window._catDepartamentos = data.departamentos || data.deptos || []; 
 
         const selCentro = document.getElementById('select-claveCentro');
         if (selCentro && selCentro.value && typeof filtrarSitiosPorCentro === 'function') {
@@ -307,7 +309,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const selCentro = document.getElementById('select-claveCentro');
     if (selCentro) {
-        selCentro.addEventListener('change', function (e) {
+        selCentro.addEventListener('change', function(e) {
             window.filtrarSitiosPorCentro(e.target.value);
         });
     }
@@ -333,7 +335,7 @@ async function cargarDatosPersonalSheets(forzar = false) {
 
 function filtrarTablaPersonal(textoBusqueda) {
     const query = textoBusqueda.toLowerCase().trim();
-
+    
     if (!query) {
         renderizarTablaPersonal(window._empleadosCache);
         return;
@@ -342,17 +344,17 @@ function filtrarTablaPersonal(textoBusqueda) {
     const empleadosFiltrados = window._empleadosCache.filter(row => {
         const reg = String(row.claveReg || row.textoReg || "").toLowerCase();
         const centro = String(row.claveCentro || row.textoCentro || "").toLowerCase();
-        const numEmp = String(row.numEmp || "").toLowerCase();
+        const numEmp = String(row.numEmp || row.noEmp || "").toLowerCase();
         const nombre = String(row.nombre || "").toLowerCase();
         const puesto = String(row.puesto || "").toLowerCase();
         const depto = String(row.departamento || "").toLowerCase();
 
-        return reg.includes(query) ||
-            centro.includes(query) ||
-            numEmp.includes(query) ||
-            nombre.includes(query) ||
-            puesto.includes(query) ||
-            depto.includes(query);
+        return reg.includes(query) || 
+               centro.includes(query) || 
+               numEmp.includes(query) || 
+               nombre.includes(query) || 
+               puesto.includes(query) || 
+               depto.includes(query);
     });
 
     renderizarTablaPersonal(empleadosFiltrados);
@@ -424,7 +426,7 @@ function renderizarTablaPersonal(registros) {
             if (window._mapDeptosCache && window._mapDeptosCache[cDepto]) {
                 deptoVisual = window._mapDeptosCache[cDepto];
             } else if (Array.isArray(window._catDepartamentos)) {
-                const encontrado = window._catDepartamentos.find(d =>
+                const encontrado = window._catDepartamentos.find(d => 
                     String(d.nomCorDep || '').trim().toUpperCase() === cDepto.toUpperCase() ||
                     String(d.claveDep || '').trim() === cDepto ||
                     String(d.nomDep || '').trim().toUpperCase() === cDepto.toUpperCase()
@@ -435,12 +437,12 @@ function renderizarTablaPersonal(registros) {
             }
         }
 
-        const noEmp = row.numEmp;
-        const nombre = row.nombre;
-        const puesto = row.puesto;
+        const noEmp = String(row.numEmp || row.noEmp || row.numeroEmpleado || '').trim();
+        const nombre = row.nombre || row.NOMBRE || '';
+        const puesto = row.puesto || row.PUESTO || '';
 
         const valNa = (v) => (!v || v === 0 || v === '0' || String(v).trim() === '') ? 'N/A' : v;
-        console.log(noEmp);
+
         return `
             <tr class="border-b border-stone-100 hover:bg-stone-50 transition">
                 <td class="p-3 font-mono text-stone-600">${valNa(reg)}</td>
@@ -455,9 +457,6 @@ function renderizarTablaPersonal(registros) {
 }
 
 async function seleccionarEmpleadoParaEditar(numEmpParam) {
-    console.log("🚀 Abriendo edición para el empleado con No. Emp:", numEmpParam);
-
-    // 1. Asegurar que el caché tenga los datos
     if (!window._empleadosCache || window._empleadosCache.length === 0) {
         try {
             const data = await FetchAPI('obtenerPersonal');
@@ -468,21 +467,13 @@ async function seleccionarEmpleadoParaEditar(numEmpParam) {
     }
 
     const numBuscado = String(numEmpParam || '').trim();
-
-    // 2. Buscar exactamente al empleado que corresponde a ese número en el caché general
-    let emp = window._empleadosCache.find(e => {
-        const actual = String(e.numEmp || e.noEmp || e.numeroEmpleado || '').trim();
-        return actual === numBuscado;
-    });
+    const emp = window._empleadosCache.find(e => String(e.numEmp || e.noEmp || e.numeroEmpleado || '').trim() === numBuscado);
 
     if (!emp) {
-        alert("No se pudieron cargar los datos del empleado seleccionado." + numEmpParam);
+        alert("No se pudieron cargar los datos del empleado.");
         return;
     }
 
-    console.log("✅ Empleado encontrado correctamente:", emp);
-
-    // 3. Preparar la interfaz del formulario
     cargarPersonalRh(false);
     await cargarCatalogosSheets();
 
@@ -501,25 +492,23 @@ async function seleccionarEmpleadoParaEditar(numEmpParam) {
 
         poblarSelectoresCascada(regVal, centroVal, sitVal);
 
-        // Rellenar cada campo con los datos exactos del empleado encontrado
-        if (form.elements['numEmp']) {
-            form.elements['numEmp'].value = limpiarValor(emp.numEmp || numBuscado);
-            form.elements['numEmp'].setAttribute('readonly', true);
-            form.elements['numEmp'].classList.add('bg-stone-100', 'cursor-not-allowed');
-        }
+        const realNumEmp = limpiarValor(emp.numEmp || emp.noEmp || numBuscado);
+        form.elements['numEmp'].value = realNumEmp;
+        inputNumEmp.setAttribute('readonly', true);
+        form.elements['nombre'].value = limpiarValor(emp.nombre || emp.NOMBRE);
+        form.elements['ext'].value = limpiarValor(emp.ext);
+        form.elements['numPers'].value = limpiarValor(emp.numPers);
+        form.elements['escolaridad'].value = limpiarValor(emp.escolaridad);
+        form.elements['direccion'].value = limpiarValor(emp.direccion);
+        form.elements['cp'].value = limpiarValor(emp.cp);
+        form.elements['email'].value = limpiarValor(emp.email);
+        form.elements['rfc'].value = limpiarValor(emp.rfc);
+        form.elements['puesto'].value = limpiarValor(emp.puesto || emp.PUESTO);
+        form.elements['departamento'].value = limpiarValor(emp.departamento);
+        form.elements['ciudad'].value = limpiarValor(emp.ciudad);
+        form.elements['estado'].value = limpiarValor(emp.estado);
 
-        const camposEditables = ['nombre', 'ext', 'numPers', 'escolaridad', 'direccion', 'cp', 'email', 'rfc', 'puesto', 'departamento', 'ciudad', 'estado'];
-        camposEditables.forEach(campo => {
-            if (form.elements[campo]) {
-                form.elements[campo].value = limpiarValor(emp[campo]);
-                form.elements[campo].removeAttribute('readonly');
-                form.elements[campo].removeAttribute('disabled');
-            }
-        });
-
-        if (titulo) {
-            titulo.innerHTML = `Editando: <span class="text-[#249444]">${limpiarValor(emp.nombre)}</span>`;
-        }
+        titulo.innerHTML = `Editando: <span class="text-[#249444]">${limpiarValor(emp.nombre || emp.NOMBRE)}</span>`;
 
         formContainer.classList.remove('hidden');
         if (gestionContainer) gestionContainer.classList.add('hidden');
@@ -541,7 +530,7 @@ function extraerClave(val) {
 async function guardarOActualizarPersonal(event) {
     event.preventDefault();
     const datosEmpleado = Object.fromEntries(new FormData(event.target).entries());
-    const actionName = window._empleadosCache.some(e => String(e.numEmp).trim() === String(datosEmpleado.numEmp).trim()) ? 'actualizarPersonal' : 'guardarPersonal';
+    const actionName = window._empleadosCache.some(e => String(e.numEmp || e.noEmp).trim() === String(datosEmpleado.numEmp).trim()) ? 'actualizarPersonal' : 'guardarPersonal';
 
     try {
         const res = await FetchAPI(actionName, datosEmpleado);

@@ -137,20 +137,25 @@ async function cargarDatosGenerales(forzarRecarga = false) {
         window._empleadosCache = [];
     }
 
-    // Si el caché está vacío, obligamos a consultar los datos de inmediato
-    if (!window._empleadosCache || window._empleadosCache.length === 0) {
-        forzarRecarga = true;
+    if (!forzarRecarga && window._empleadosCache.length > 0) {
+        renderizarTablaPersonal(window._empleadosCache);
+        cargarCatalogosSheets();
+        return;
     }
 
     const tbody = document.getElementById('tabla-personal-body');
-    if (tbody && (!window._empleadosCache || window._empleadosCache.length === 0)) {
-        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-stone-400 italic">Sincronizando datos con Sheets...</td></tr>`;
+    if (tbody && window._empleadosCache.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-stone-400 italic">Sincronizando datos...</td></tr>`;
     }
 
     await Promise.all([
         cargarCatalogosSheets(forzarRecarga),
         cargarDatosPersonalSheets(forzarRecarga)
     ]);
+}
+
+function cancelarEdicionPersonal() {
+    ocultarFormularioPersonal();
 }
 
 function ocultarFormularioPersonal() {
@@ -162,16 +167,9 @@ function ocultarFormularioPersonal() {
     if (gestionContainer) gestionContainer.classList.remove('hidden');
     if (listadoContainer) listadoContainer.classList.remove('hidden');
 
-    // Si hay caché los muestra; si por algo se vació, los recarga automáticamente
     if (window._empleadosCache && window._empleadosCache.length > 0) {
         renderizarTablaPersonal(window._empleadosCache);
-    } else {
-        cargarDatosGenerales(false);
     }
-}
-
-function cancelarEdicionPersonal() {
-    ocultarFormularioPersonal();
 }
 
 async function cargarCatalogosSheets(forzar = false) {
@@ -410,7 +408,7 @@ function renderizarTablaPersonal(registros) {
         }
     }
 
-    tbody.innerHTML = registros.map((row) => {
+    tbody.innerHTML = registros.map((row, index) => {
         const cReg = String(row.claveReg || '').trim();
         const cCentro = String(row.claveCentro || '').trim();
         const cDepto = String(row.departamento || '').trim();
@@ -448,7 +446,7 @@ function renderizarTablaPersonal(registros) {
                 <td class="p-3 font-mono text-stone-600">${valNa(reg)}</td>
                 <td class="p-3 font-mono text-stone-600">${valNa(centro)}</td>
                 <td class="p-3 font-mono text-stone-600">${valNa(noEmp)}</td>
-                <td class="p-3"><button type="button" onclick="seleccionarEmpleadoParaEditar('${noEmp}')" class="font-semibold text-[#249444] hover:underline">${valNa(nombre)}</button></td>
+                <td class="p-3"><button onclick="seleccionarEmpleadoParaEditar(${index})" class="font-semibold text-[#249444] hover:underline">${valNa(nombre)}</button></td>
                 <td class="p-3 text-stone-600">${valNa(puesto)}</td>
                 <td class="p-3 text-stone-600">${valNa(deptoVisual)}</td>
             </tr>
@@ -456,10 +454,7 @@ function renderizarTablaPersonal(registros) {
     }).join('');
 }
 
-async function seleccionarEmpleadoParaEditar(numEmpParam) {
-    console.log("🚀 EJECUTANDO seleccionarEmpleadoParaEditar con ID:", numEmpParam);
-
-    // 1. Asegurar caché
+async function seleccionarEmpleadoParaEditar(index) {
     if (!window._empleadosCache || window._empleadosCache.length === 0) {
         try {
             const data = await FetchAPI('obtenerPersonal');
@@ -469,33 +464,15 @@ async function seleccionarEmpleadoParaEditar(numEmpParam) {
         }
     }
 
-    const numBuscado = String(numEmpParam || '').trim();
-    
-    // 2. Búsqueda flexible en el caché
-    let emp = window._empleadosCache.find(e => {
-        if (!e) return false;
-        const posibleNum = String(e.numEmp || e.noEmp || e.numeroEmpleado || e.id || e.idEmpleado || '').trim();
-        return posibleNum === numBuscado;
-    });
-
+    const emp = window._empleadosCache[index];
     if (!emp) {
-        emp = window._empleadosCache.find(e => {
-            return Object.values(e).some(val => String(val || '').trim() === numBuscado);
-        });
+        alert("No se pudieron cargar los datos del empleado.");
+        return;
     }
 
-    if (!emp) {
-        emp = {
-            numEmp: numBuscado,
-            nombre: document.getElementById('buscador-personal-input')?.value || ''
-        };
-    }
-
-    // 3. Renderizar vista del formulario limpia
     cargarPersonalRh(false);
     await cargarCatalogosSheets();
 
-    // 4. Rellenar formulario y habilitar edición
     const form = document.getElementById('form-nuevo-personal');
     const formContainer = document.getElementById('contenedor-formulario-personal');
     const gestionContainer = document.getElementById('contenedor-gestion-personal');
@@ -504,31 +481,29 @@ async function seleccionarEmpleadoParaEditar(numEmpParam) {
     const inputNumEmp = document.getElementById('input-numEmp');
 
     if (formContainer && form) {
-        const regVal = extraerClave(emp.claveReg || emp.textoReg || emp.REG);
-        const centroVal = extraerClave(emp.claveCentro || emp.textoCentro || emp.CENTRO);
+        const regVal = extraerClave(emp.claveReg || emp.textoReg);
+        const centroVal = extraerClave(emp.claveCentro || emp.textoCentro);
         let rawSit = extraerClave(emp.claveSit || emp.textoSit);
         const sitVal = (!rawSit || rawSit === 0 || rawSit === '0' || String(rawSit).trim().toUpperCase() === 'N/A') ? 'N/A' : rawSit;
 
         poblarSelectoresCascada(regVal, centroVal, sitVal);
 
-        // Asignar valores
-        if (form.elements['numEmp']) {
-            form.elements['numEmp'].value = limpiarValor(emp.numEmp || emp.noEmp || numBuscado);
-            form.elements['numEmp'].setAttribute('readonly', true); // Único campo bloqueado por seguridad
-            form.elements['numEmp'].classList.add('bg-stone-100', 'cursor-not-allowed');
-        }
+        form.elements['numEmp'].value = limpiarValor(emp.numEmp);
+        inputNumEmp.setAttribute('readonly', true);
+        form.elements['nombre'].value = limpiarValor(emp.nombre);
+        form.elements['ext'].value = limpiarValor(emp.ext);
+        form.elements['numPers'].value = limpiarValor(emp.numPers);
+        form.elements['escolaridad'].value = limpiarValor(emp.escolaridad);
+        form.elements['direccion'].value = limpiarValor(emp.direccion);
+        form.elements['cp'].value = limpiarValor(emp.cp);
+        form.elements['email'].value = limpiarValor(emp.email);
+        form.elements['rfc'].value = limpiarValor(emp.rfc);
+        form.elements['puesto'].value = limpiarValor(emp.puesto);
+        form.elements['departamento'].value = limpiarValor(emp.departamento);
+        form.elements['ciudad'].value = limpiarValor(emp.ciudad);
+        form.elements['estado'].value = limpiarValor(emp.estado);
 
-        // Asegurarnos de que el resto de campos SÍ estén habilitados para escribir
-        const camposEditables = ['nombre', 'ext', 'numPers', 'escolaridad', 'direccion', 'cp', 'email', 'rfc', 'puesto', 'departamento', 'ciudad', 'estado'];
-        camposEditables.forEach(nombreCampo => {
-            if (form.elements[nombreCampo]) {
-                form.elements[nombreCampo].value = limpiarValor(emp[nombreCampo] || emp[nombreCampo.toUpperCase()] || '');
-                form.elements[nombreCampo].removeAttribute('readonly');
-                form.elements[nombreCampo].removeAttribute('disabled');
-            }
-        });
-
-        if (titulo) titulo.innerHTML = `Editando: <span class="text-[#249444]">${limpiarValor(emp.nombre || emp.NOMBRE || 'Empleado')}</span>`;
+        titulo.innerHTML = `Editando: <span class="text-[#249444]">${limpiarValor(emp.nombre)}</span>`;
 
         formContainer.classList.remove('hidden');
         if (gestionContainer) gestionContainer.classList.add('hidden');

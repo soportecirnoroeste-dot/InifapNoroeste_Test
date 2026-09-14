@@ -187,7 +187,7 @@ async function cargarCatalogosSheets(forzar = false) {
         window._catRegs = data.regionales || [];
         window._catCentros = data.campos || [];
         window._catSitios = data.sitios || [];
-        window._catDepartamentos = data.departamentos || data.deptos || []; 
+        window._catDepartamentos = data.departamentos || data.deptos || [];
         window._catPuestos = data.puestos || data.catPuestos || [];
 
         // Poblar select de puestos
@@ -311,7 +311,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const selCentro = document.getElementById('select-claveCentro');
     if (selCentro) {
-        selCentro.addEventListener('change', function(e) {
+        selCentro.addEventListener('change', function (e) {
             window.filtrarSitiosPorCentro(e.target.value);
         });
     }
@@ -337,7 +337,7 @@ async function cargarDatosPersonalSheets(forzar = false) {
 
 function filtrarTablaPersonal(textoBusqueda) {
     const query = textoBusqueda.toLowerCase().trim();
-    
+
     if (!query) {
         renderizarTablaPersonal(window._empleadosCache);
         return;
@@ -351,12 +351,12 @@ function filtrarTablaPersonal(textoBusqueda) {
         const puesto = String(row.NumPto || row.puesto || "").toLowerCase();
         const depto = String(row.NomCorDep || row.departamento || "").toLowerCase();
 
-        return reg.includes(query) || 
-               centro.includes(query) || 
-               numEmp.includes(query) || 
-               nombre.includes(query) || 
-               puesto.includes(query) || 
-               depto.includes(query);
+        return reg.includes(query) ||
+            centro.includes(query) ||
+            numEmp.includes(query) ||
+            nombre.includes(query) ||
+            puesto.includes(query) ||
+            depto.includes(query);
     });
 
     renderizarTablaPersonal(empleadosFiltrados);
@@ -411,8 +411,8 @@ function renderizarTablaPersonal(registros) {
     tbody.innerHTML = registros.map((row) => {
         const cReg = String(row.claveReg || '').trim();
         const cCentro = String(row.claveCentro || '').trim();
-        const cNumPto = String(row.NumPto || row.puesto || '').trim();
-        const cNomCorDep = String(row.NomCorDep || row.departamento || '').trim();
+        const cNumPto = String(row.NumPto || row.numPto || row.puesto || '').trim();
+        const cNomCorDep = String(row.NomCorDep || row.nomCorDep || row.departamento || '').trim();
 
         const nomCortoReg = (window._mapRegsCache && window._mapRegsCache[cReg]) || '';
         const reg = nomCortoReg ? `${cReg} - ${nomCortoReg}` : (row.textoReg || cReg);
@@ -425,7 +425,7 @@ function renderizarTablaPersonal(registros) {
             if (window._mapPuestosCache && window._mapPuestosCache[cNumPto]) {
                 puestoVisual = window._mapPuestosCache[cNumPto];
             } else if (Array.isArray(window._catPuestos)) {
-                const encontrado = window._catPuestos.find(p => 
+                const encontrado = window._catPuestos.find(p =>
                     String(p.NumPto || p.numPto || '').trim() === cNumPto ||
                     String(p.NomPto || '').trim().toUpperCase() === cNumPto.toUpperCase()
                 );
@@ -440,7 +440,7 @@ function renderizarTablaPersonal(registros) {
             if (window._mapDeptosCache && window._mapDeptosCache[cNomCorDep]) {
                 deptoVisual = window._mapDeptosCache[cNomCorDep];
             } else if (Array.isArray(window._catDepartamentos)) {
-                const encontrado = window._catDepartamentos.find(d => 
+                const encontrado = window._catDepartamentos.find(d =>
                     String(d.nomCorDep || '').trim().toUpperCase() === cNomCorDep.toUpperCase() ||
                     String(d.claveDep || '').trim() === cNomCorDep ||
                     String(d.nomDep || '').trim().toUpperCase() === cNomCorDep.toUpperCase()

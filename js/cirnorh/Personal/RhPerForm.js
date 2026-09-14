@@ -36,7 +36,6 @@ function ocultarFormularioPersonal() {
     if (gestionContainer) gestionContainer.classList.remove('hidden');
     if (listadoContainer) listadoContainer.classList.remove('hidden');
 
-    // 👉 ¡AQUÍ ESTABA EL DETALLE! Forzamos a que pinte la tabla al regresar
     if (window._empleadosCache && window._empleadosCache.length > 0) {
         renderizarTablaPersonal(window._empleadosCache);
     }
@@ -51,13 +50,12 @@ function cancelarEdicionPersonal() {
     if (gestionContainer) gestionContainer.classList.remove('hidden');
     if (listadoContainer) listadoContainer.classList.remove('hidden');
 
-    // 👉 Y aseguramos lo mismo para la cancelación de edición
     if (window._empleadosCache && window._empleadosCache.length > 0) {
         renderizarTablaPersonal(window._empleadosCache);
     }
 }
 
-async function seleccionarEmpleadoParaEditar(index) {
+async function seleccionarEmpleadoParaEditar(numEmpParam) {
     if (!window._empleadosCache || window._empleadosCache.length === 0) {
         try {
             const data = await FetchAPI('obtenerPersonal');
@@ -67,13 +65,17 @@ async function seleccionarEmpleadoParaEditar(index) {
         }
     }
 
-    const emp = window._empleadosCache[index];
+    const busqueda = String(numEmpParam || '').trim();
+    
+    // Buscamos de forma segura por número de empleado (independientemente del orden de la tabla o filtros)
+    let emp = window._empleadosCache.find(e => String(e.numEmp || e.noEmp || '').trim() === busqueda);
+
     if (!emp) {
         alert("No se pudieron cargar los datos del empleado.");
         return;
     }
 
-    cargarPersonalRh(false);
+    // Ya no llamamos a cargarPersonalRh(false) para evitar resetear la vista
     await cargarCatalogosSheets();
 
     const form = document.getElementById('form-nuevo-personal');
@@ -89,13 +91,11 @@ async function seleccionarEmpleadoParaEditar(index) {
         let rawSit = extraerClave(emp.claveSit || emp.textoSit);
         const sitVal = (!rawSit || rawSit === 0 || rawSit === '0' || String(rawSit).trim().toUpperCase() === 'N/A') ? 'N/A' : rawSit;
 
-        // Poblamos selectores en cascada con los valores del empleado
         if (typeof poblarSelectoresCascada === 'function') {
             poblarSelectoresCascada(regVal, centroVal, sitVal);
         }
 
-        // Llenamos inputs del formulario
-        form.elements['numEmp'].value = limpiarValor(emp.numEmp);
+        form.elements['numEmp'].value = limpiarValor(emp.numEmp || emp.noEmp);
         inputNumEmp.setAttribute('readonly', true);
         form.elements['nombre'].value = limpiarValor(emp.nombre);
         form.elements['ext'].value = limpiarValor(emp.ext);
@@ -122,13 +122,11 @@ async function guardarOActualizarPersonal(event) {
     event.preventDefault();
     const form = event.target;
     
-    // 1. Activamos el spinner de carga inmediatamente
     if (typeof mostrarCarga === 'function') mostrarCarga();
 
     const formData = new FormData(form);
     let datosEmpleado = Object.fromEntries(formData.entries());
 
-    // 2. RECUPERAR LOS TEXTOS COMPLETOS DE LOS SELECTS (REGIONAL Y CENTRO)
     const selectReg = form.querySelector('#select-claveReg');
     if (selectReg && selectReg.selectedIndex >= 0) {
         const optionText = selectReg.options[selectReg.selectedIndex].text;
@@ -141,29 +139,25 @@ async function guardarOActualizarPersonal(event) {
         datosEmpleado.textoCentro = optionText !== 'Seleccione un centro...' ? optionText : datosEmpleado.claveCentro;
     }
 
-    // 3. DECLARAR Y ASEGURAR EL CAMPO DE DEPARTAMENTO (Nombre Corto)
     const selectDepto = form.querySelector('#select-departamento');
     if (selectDepto) {
         datosEmpleado.departamento = selectDepto.value || '';
     }
 
-    // 4. Aseguramos el campo de sitio
     if (!datosEmpleado.claveSit || String(datosEmpleado.claveSit).trim() === '') {
         datosEmpleado.claveSit = 'N/A';
     }
 
-    // 5. Convertimos todos los textos a mayúsculas usando tu función global
     if (typeof convertirObjetoAMayusculas === 'function') {
         datosEmpleado = convertirObjetoAMayusculas(datosEmpleado);
     }
 
-    // 6. Armamos el FormData final con todas las propiedades necesarias para la tabla
     const formDataFinal = new FormData();
     for (const key in datosEmpleado) {
         formDataFinal.append(key, datosEmpleado[key]);
     }
 
-    const actionName = window._empleadosCache.some(e => String(e.numEmp).trim() === String(datosEmpleado.numEmp).trim()) ? 'actualizarPersonal' : 'guardarPersonal';
+    const actionName = window._empleadosCache.some(e => String(e.numEmp || e.noEmp).trim() === String(datosEmpleado.numEmp).trim()) ? 'actualizarPersonal' : 'guardarPersonal';
 
     const btnSubmit = form.querySelector('button[type="submit"]');
     if (btnSubmit) btnSubmit.disabled = true;
@@ -178,7 +172,6 @@ async function guardarOActualizarPersonal(event) {
         alert("Error de conexión al guardar.");
     } finally {
         if (btnSubmit) btnSubmit.disabled = false;
-        // 7. Ocultamos el spinner pase lo que pase
         if (typeof ocultarCarga === 'function') ocultarCarga();
     }
 }

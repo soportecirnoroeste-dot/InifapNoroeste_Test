@@ -440,7 +440,7 @@ function renderizarTablaPersonal(registros) {
         const puesto = row.puesto;
 
         const valNa = (v) => (!v || v === 0 || v === '0' || String(v).trim() === '') ? 'N/A' : v;
-        console.log('${noEmp}');
+        console.log(noEmp);
         return `
             <tr class="border-b border-stone-100 hover:bg-stone-50 transition">
                 <td class="p-3 font-mono text-stone-600">${valNa(reg)}</td>

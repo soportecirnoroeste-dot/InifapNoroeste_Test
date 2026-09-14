@@ -64,13 +64,10 @@ window.RhAsisCasc = {
 
                     <div class="bg-stone-50/60 rounded-2xl border border-stone-200 p-5 space-y-4">
                         <div class="flex flex-col gap-4">
-                            <div class="flex items-center justify-between border-b border-stone-200/60 pb-3">
-                                <h4 class="font-bold text-stone-800 text-sm">Gestión de Asistencias</h4>
-                            </div>
                             <input type="file" id="uploadBiometrico" class="hidden" accept=".xlsx, .xlsm, .csv" onchange="RhAsisCasc.manejarCargaYGuardadoAutomatico(this)">
 
-                            <div class="flex flex-wrap items-end justify-between gap-3 w-full">
-                                
+                            <div class="flex flex-wrap items-center justify-between gap-3 w-full">
+                                <h4 class="font-bold text-stone-800 text-sm">Gestión de Asistencias</h4>
 
                                 <div class="flex flex-wrap items-end gap-2">
                                     <div class="flex flex-col gap-1">

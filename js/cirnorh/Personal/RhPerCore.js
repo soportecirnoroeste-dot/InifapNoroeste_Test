@@ -169,8 +169,6 @@ function ocultarFormularioPersonal() {
 
     if (window._empleadosCache && window._empleadosCache.length > 0) {
         renderizarTablaPersonal(window._empleadosCache);
-    } else {
-        cargarDatosGenerales(false);
     }
 }
 
@@ -344,7 +342,7 @@ function filtrarTablaPersonal(textoBusqueda) {
     const empleadosFiltrados = window._empleadosCache.filter(row => {
         const reg = String(row.claveReg || row.textoReg || "").toLowerCase();
         const centro = String(row.claveCentro || row.textoCentro || "").toLowerCase();
-        const numEmp = String(row.numEmp || row.noEmp || "").toLowerCase();
+        const numEmp = String(row.numEmp || "").toLowerCase();
         const nombre = String(row.nombre || "").toLowerCase();
         const puesto = String(row.puesto || "").toLowerCase();
         const depto = String(row.departamento || "").toLowerCase();
@@ -410,7 +408,7 @@ function renderizarTablaPersonal(registros) {
         }
     }
 
-    tbody.innerHTML = registros.map((row) => {
+    tbody.innerHTML = registros.map((row, index) => {
         const cReg = String(row.claveReg || '').trim();
         const cCentro = String(row.claveCentro || '').trim();
         const cDepto = String(row.departamento || '').trim();
@@ -437,9 +435,9 @@ function renderizarTablaPersonal(registros) {
             }
         }
 
-        const noEmp = String(row.numEmp || row.noEmp || row.numeroEmpleado || '').trim();
-        const nombre = row.nombre || row.NOMBRE || '';
-        const puesto = row.puesto || row.PUESTO || '';
+        const noEmp = row.numEmp;
+        const nombre = row.nombre;
+        const puesto = row.puesto;
 
         const valNa = (v) => (!v || v === 0 || v === '0' || String(v).trim() === '') ? 'N/A' : v;
 
@@ -448,7 +446,7 @@ function renderizarTablaPersonal(registros) {
                 <td class="p-3 font-mono text-stone-600">${valNa(reg)}</td>
                 <td class="p-3 font-mono text-stone-600">${valNa(centro)}</td>
                 <td class="p-3 font-mono text-stone-600">${valNa(noEmp)}</td>
-                <td class="p-3"><button type="button" onclick="seleccionarEmpleadoParaEditar('${noEmp}')" class="font-semibold text-[#249444] hover:underline text-left">${valNa(nombre)}</button></td>
+                <td class="p-3"><button onclick="seleccionarEmpleadoParaEditar(${index})" class="font-semibold text-[#249444] hover:underline">${valNa(nombre)}</button></td>
                 <td class="p-3 text-stone-600">${valNa(puesto)}</td>
                 <td class="p-3 text-stone-600">${valNa(deptoVisual)}</td>
             </tr>
@@ -456,7 +454,7 @@ function renderizarTablaPersonal(registros) {
     }).join('');
 }
 
-async function seleccionarEmpleadoParaEditar(numEmpParam) {
+async function seleccionarEmpleadoParaEditar(index) {
     if (!window._empleadosCache || window._empleadosCache.length === 0) {
         try {
             const data = await FetchAPI('obtenerPersonal');
@@ -466,11 +464,8 @@ async function seleccionarEmpleadoParaEditar(numEmpParam) {
         }
     }
 
-    const numBuscado = String(numEmpParam || '').trim();
-    const emp = window._empleadosCache.find(e => String(e.numEmp || e.noEmp || e.numeroEmpleado || '').trim() === numBuscado);
-
+    const emp = window._empleadosCache[index];
     if (!emp) {
-        console.log(numEmpParam);
         alert("No se pudieron cargar los datos del empleado.");
         return;
     }
@@ -493,10 +488,9 @@ async function seleccionarEmpleadoParaEditar(numEmpParam) {
 
         poblarSelectoresCascada(regVal, centroVal, sitVal);
 
-        const realNumEmp = limpiarValor(emp.numEmp || emp.noEmp || numBuscado);
-        form.elements['numEmp'].value = realNumEmp;
+        form.elements['numEmp'].value = limpiarValor(emp.numEmp);
         inputNumEmp.setAttribute('readonly', true);
-        form.elements['nombre'].value = limpiarValor(emp.nombre || emp.NOMBRE);
+        form.elements['nombre'].value = limpiarValor(emp.nombre);
         form.elements['ext'].value = limpiarValor(emp.ext);
         form.elements['numPers'].value = limpiarValor(emp.numPers);
         form.elements['escolaridad'].value = limpiarValor(emp.escolaridad);
@@ -504,12 +498,12 @@ async function seleccionarEmpleadoParaEditar(numEmpParam) {
         form.elements['cp'].value = limpiarValor(emp.cp);
         form.elements['email'].value = limpiarValor(emp.email);
         form.elements['rfc'].value = limpiarValor(emp.rfc);
-        form.elements['puesto'].value = limpiarValor(emp.puesto || emp.PUESTO);
+        form.elements['puesto'].value = limpiarValor(emp.puesto);
         form.elements['departamento'].value = limpiarValor(emp.departamento);
         form.elements['ciudad'].value = limpiarValor(emp.ciudad);
         form.elements['estado'].value = limpiarValor(emp.estado);
 
-        titulo.innerHTML = `Editando: <span class="text-[#249444]">${limpiarValor(emp.nombre || emp.NOMBRE)}</span>`;
+        titulo.innerHTML = `Editando: <span class="text-[#249444]">${limpiarValor(emp.nombre)}</span>`;
 
         formContainer.classList.remove('hidden');
         if (gestionContainer) gestionContainer.classList.add('hidden');
@@ -531,7 +525,7 @@ function extraerClave(val) {
 async function guardarOActualizarPersonal(event) {
     event.preventDefault();
     const datosEmpleado = Object.fromEntries(new FormData(event.target).entries());
-    const actionName = window._empleadosCache.some(e => String(e.numEmp || e.noEmp).trim() === String(datosEmpleado.numEmp).trim()) ? 'actualizarPersonal' : 'guardarPersonal';
+    const actionName = window._empleadosCache.some(e => String(e.numEmp).trim() === String(datosEmpleado.numEmp).trim()) ? 'actualizarPersonal' : 'guardarPersonal';
 
     try {
         const res = await FetchAPI(actionName, datosEmpleado);

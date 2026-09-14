@@ -408,7 +408,7 @@ function renderizarTablaPersonal(registros) {
         }
     }
 
-    tbody.innerHTML = registros.map((row, index) => {
+    tbody.innerHTML = registros.map((row) => {
         const cReg = String(row.claveReg || '').trim();
         const cCentro = String(row.claveCentro || '').trim();
         const cDepto = String(row.departamento || '').trim();
@@ -446,7 +446,7 @@ function renderizarTablaPersonal(registros) {
                 <td class="p-3 font-mono text-stone-600">${valNa(reg)}</td>
                 <td class="p-3 font-mono text-stone-600">${valNa(centro)}</td>
                 <td class="p-3 font-mono text-stone-600">${valNa(noEmp)}</td>
-                <td class="p-3"><button onclick="seleccionarEmpleadoParaEditar(${index})" class="font-semibold text-[#249444] hover:underline">${valNa(nombre)}</button></td>
+                <td class="p-3"><button type="button" onclick="seleccionarEmpleadoParaEditar('${noEmp}')" class="font-semibold text-[#249444] hover:underline text-left">${valNa(nombre)}</button></td>
                 <td class="p-3 text-stone-600">${valNa(puesto)}</td>
                 <td class="p-3 text-stone-600">${valNa(deptoVisual)}</td>
             </tr>
@@ -454,8 +454,7 @@ function renderizarTablaPersonal(registros) {
     }).join('');
 }
 
-async function seleccionarEmpleadoParaEditar(index) {
-    consola.alert(index);
+async function seleccionarEmpleadoParaEditar(numEmpParam) {
     if (!window._empleadosCache || window._empleadosCache.length === 0) {
         try {
             const data = await FetchAPI('obtenerPersonal');
@@ -465,7 +464,9 @@ async function seleccionarEmpleadoParaEditar(index) {
         }
     }
 
-    const emp = window._empleadosCache[index];
+    const numBuscado = String(numEmpParam || '').trim();
+    const emp = window._empleadosCache.find(e => String(e.numEmp || e.noEmp || '').trim() === numBuscado);
+
     if (!emp) {
         alert("No se pudieron cargar los datos del empleado.");
         return;

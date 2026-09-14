@@ -304,6 +304,86 @@ function filtrarTablaPersonal(textoBusqueda) {
     renderizarTablaPersonal(empleadosFiltrados);
 }
 
+// ==========================================
+// SECCIÓN DE TESTIGOS PASO A PASO
+// ==========================================
+function testigoClick(numEmpParam) {
+    alert("TESTIGO 1: Clic interceptado para el empleado con ID: " + numEmpParam);
+    console.log("TESTIGO 1: Caché actual en window._empleadosCache:", window._empleadosCache);
+    
+    // Pasamos a la función principal de selección
+    seleccionarEmpleadoParaEditar(numEmpParam);
+}
+
+// ==========================================
+// SELECCIÓN Y EDICIÓN DE EMPLEADO
+// ==========================================
+async function seleccionarEmpleadoParaEditar(numEmpParam) {
+    if (!window._empleadosCache || window._empleadosCache.length === 0) {
+        try {
+            const data = await FetchAPI('obtenerPersonal');
+            window._empleadosCache = data || [];
+        } catch (error) {
+            console.error("Error al recuperar empleados:", error);
+            return;
+        }
+    }
+
+    const numBuscado = String(numEmpParam || '').trim();
+    let emp = window._empleadosCache.find(e => String(e.numEmp || e.noEmp || '').trim() === numBuscado);
+
+    if (!emp) {
+        console.warn("No se encontró el empleado con ID [" + numBuscado + "] en la caché.");
+        return;
+    }
+
+    // Asegurar que los catálogos estén listos antes de poblar los selectores en cascada
+    if (!window._catRegs || window._catRegs.length === 0) {
+        await cargarCatalogosSheets(true);
+    }
+
+    const form = document.getElementById('form-nuevo-personal');
+    const formContainer = document.getElementById('contenedor-formulario-personal');
+    const gestionContainer = document.getElementById('contenedor-gestion-personal');
+    const listadoContainer = document.getElementById('contenedor-listado-personal');
+    const titulo = document.getElementById('titulo-formulario');
+    const inputNumEmp = document.getElementById('input-numEmp');
+
+    if (formContainer && form) {
+        const regVal = extraerClave(emp.claveReg || emp.textoReg);
+        const centroVal = extraerClave(emp.claveCentro || emp.textoCentro);
+        let rawSit = extraerClave(emp.claveSit || emp.textoSit);
+        const sitVal = (!rawSit || rawSit === '0' || String(rawSit).trim().toUpperCase() === 'N/A') ? 'N/A' : rawSit;
+
+        // Poblar selectores en cascada con los valores del empleado
+        poblarSelectoresCascada(regVal, centroVal, sitVal);
+
+        // Llenar campos del formulario
+        form.elements['numEmp'].value = limpiarValor(emp.numEmp || emp.noEmp);
+        inputNumEmp.setAttribute('readonly', true);
+        form.elements['nombre'].value = limpiarValor(emp.nombre);
+        form.elements['ext'].value = limpiarValor(emp.ext);
+        form.elements['numPers'].value = limpiarValor(emp.numPers);
+        form.elements['escolaridad'].value = limpiarValor(emp.escolaridad);
+        form.elements['direccion'].value = limpiarValor(emp.direccion);
+        form.elements['cp'].value = limpiarValor(emp.cp);
+        form.elements['email'].value = limpiarValor(emp.email);
+        form.elements['rfc'].value = limpiarValor(emp.rfc);
+        form.elements['puesto'].value = limpiarValor(emp.puesto);
+        form.elements['departamento'].value = limpiarValor(emp.departamento);
+        form.elements['ciudad'].value = limpiarValor(emp.ciudad);
+        form.elements['estado'].value = limpiarValor(emp.estado);
+
+        titulo.innerHTML = `Editando: <span class="text-[#249444]">${limpiarValor(emp.nombre)}</span>`;
+
+        // Mostrar formulario y ocultar listados
+        formContainer.classList.remove('hidden');
+        if (gestionContainer) gestionContainer.classList.add('hidden');
+        if (listadoContainer) listadoContainer.classList.add('hidden');
+    }
+}
+
+// Ya no necesitamos la función testigoClick, el enlace en la tabla llamará directo a la función de edición:
 function renderizarTablaPersonal(registros) {
     const tbody = document.getElementById('tabla-personal-body');
     if (!tbody) return;
@@ -326,108 +406,12 @@ function renderizarTablaPersonal(registros) {
                 <td class="p-3 font-mono text-stone-600">${reg}</td>
                 <td class="p-3 font-mono text-stone-600">${centro}</td>
                 <td class="p-3 font-mono text-stone-600">${noEmp}</td>
-                <td class="p-3"><button type="button" onclick="testigoClick('${noEmp}')" class="font-semibold text-[#249444] hover:underline text-left">${nombre}</button></td>
+                <td class="p-3"><button type="button" onclick="seleccionarEmpleadoParaEditar('${noEmp}')" class="font-semibold text-[#249444] hover:underline text-left">${nombre}</button></td>
                 <td class="p-3 text-stone-600">${puesto}</td>
                 <td class="p-3 text-stone-600">${depto}</td>
             </tr>
         `;
     }).join('');
-}
-
-// ==========================================
-// SECCIÓN DE TESTIGOS PASO A PASO
-// ==========================================
-function testigoClick(numEmpParam) {
-    alert("TESTIGO 1: Clic interceptado para el empleado con ID: " + numEmpParam);
-    console.log("TESTIGO 1: Caché actual en window._empleadosCache:", window._empleadosCache);
-    
-    // Pasamos a la función principal de selección
-    seleccionarEmpleadoParaEditar(numEmpParam);
-}
-
-async function seleccionarEmpleadoParaEditar(numEmpParam) {
-    alert("TESTIGO 2: Entrando a seleccionarEmpleadoParaEditar con ID: " + numEmpParam);
-
-    if (!window._empleadosCache || window._empleadosCache.length === 0) {
-        alert("TESTIGO 3: La caché está vacía. Descargando datos desde la API...");
-        try {
-            const data = await FetchAPI('obtenerPersonal');
-            window._empleadosCache = data || [];
-            alert("TESTIGO 4: Datos descargados con éxito. Total registros: " + window._empleadosCache.length);
-        } catch (error) {
-            alert("TESTIGO ERROR: Falló la llamada a la API -> " + error.message);
-            console.error("Error al recuperar empleados:", error);
-        }
-    } else {
-        alert("TESTIGO 3.1: La caché cuenta con " + window._empleadosCache.length + " elementos.");
-    }
-
-    const numBuscado = String(numEmpParam || '').trim();
-    let emp = window._empleadosCache.find(e => String(e.numEmp || e.noEmp || '').trim() === numBuscado);
-
-    // Respaldo de seguridad adicional por si la caché no coincidió exactamente
-    if (!emp) {
-        alert("TESTIGO 5: Búsqueda exacta falló. Intentando un segundo intento de recarga y búsqueda flexible...");
-        try {
-            const data = await FetchAPI('obtenerPersonal');
-            window._empleadosCache = data || [];
-            emp = window._empleadosCache.find(e => String(e.numEmp || e.noEmp || '').trim() === numBuscado || String(e.numEmp || e.noEmp || '').includes(numBuscado));
-        } catch (error) {
-            console.error("Error en respaldo de carga:", error);
-        }
-    }
-
-    if (!emp) {
-        alert("TESTIGO 6 (CRÍTICO): No se encontró el empleado con ID [" + numBuscado + "] en la caché.");
-        console.log("Elementos en caché disponibles:", window._empleadosCache);
-        return;
-    } else {
-        alert("TESTIGO 7: ¡Empleado encontrado con éxito! Nombre: " + (emp.nombre || emp.NOMBRE));
-    }
-
-    cargarPersonalRh(false);
-    await cargarCatalogosSheets();
-
-    const form = document.getElementById('form-nuevo-personal');
-    const formContainer = document.getElementById('contenedor-formulario-personal');
-    const gestionContainer = document.getElementById('contenedor-gestion-personal');
-    const listadoContainer = document.getElementById('contenedor-listado-personal');
-    const titulo = document.getElementById('titulo-formulario');
-    const inputNumEmp = document.getElementById('input-numEmp');
-
-    if (formContainer && form) {
-        const regVal = extraerClave(emp.claveReg || emp.textoReg);
-        const centroVal = extraerClave(emp.claveCentro || emp.textoCentro);
-        let rawSit = extraerClave(emp.claveSit || emp.textoSit);
-        const sitVal = (!rawSit || rawSit === '0' || String(rawSit).trim().toUpperCase() === 'N/A') ? 'N/A' : rawSit;
-
-        poblarSelectoresCascada(regVal, centroVal, sitVal);
-
-        form.elements['numEmp'].value = limpiarValor(emp.numEmp || emp.noEmp);
-        inputNumEmp.setAttribute('readonly', true);
-        form.elements['nombre'].value = limpiarValor(emp.nombre);
-        form.elements['ext'].value = limpiarValor(emp.ext);
-        form.elements['numPers'].value = limpiarValor(emp.numPers);
-        form.elements['escolaridad'].value = limpiarValor(emp.escolaridad);
-        form.elements['direccion'].value = limpiarValor(emp.direccion);
-        form.elements['cp'].value = limpiarValor(emp.cp);
-        form.elements['email'].value = limpiarValor(emp.email);
-        form.elements['rfc'].value = limpiarValor(emp.rfc);
-        form.elements['puesto'].value = limpiarValor(emp.puesto);
-        form.elements['departamento'].value = limpiarValor(emp.departamento);
-        form.elements['ciudad'].value = limpiarValor(emp.ciudad);
-        form.elements['estado'].value = limpiarValor(emp.estado);
-
-        titulo.innerHTML = `Editando: <span class="text-[#249444]">${limpiarValor(emp.nombre)}</span>`;
-
-        formContainer.classList.remove('hidden');
-        if (gestionContainer) gestionContainer.classList.add('hidden');
-        if (listadoContainer) listadoContainer.classList.add('hidden');
-        
-        alert("TESTIGO 8: Formulario poblado y mostrado correctamente en pantalla.");
-    } else {
-        alert("TESTIGO ERROR: No se encontró 'form-nuevo-personal' o 'contenedor-formulario-personal' en el DOM.");
-    }
 }
 
 function limpiarValor(val) {

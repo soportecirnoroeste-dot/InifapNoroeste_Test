@@ -455,7 +455,8 @@ function renderizarTablaPersonal(registros) {
 }
 
 async function seleccionarEmpleadoParaEditar(numEmpParam) {
-    // Si el caché está vacío, obligamos a esperar la carga de los datos de Sheets primero
+    console.log("🔍 Parámetro recibido para editar:", numEmpParam);
+
     if (!window._empleadosCache || window._empleadosCache.length === 0) {
         try {
             const data = await FetchAPI('obtenerPersonal');
@@ -465,23 +466,35 @@ async function seleccionarEmpleadoParaEditar(numEmpParam) {
         }
     }
 
-    const numBuscado = String(numEmpParam || '').trim();
-    
-    // Buscamos el empleado comparando de forma estricta
-    let emp = window._empleadosCache.find(e => String(e.numEmp || '').trim() === numBuscado);
+    console.log("📦 Contenido actual de window._empleadosCache:", window._empleadosCache);
 
-    // Por si acaso el numEmp viene formateado diferente en la BD, hacemos un respaldo buscando por coincidencia parcial o texto limpio
-    if (!emp) {
-        emp = window._empleadosCache.find(e => String(e.numEmp || '').replace(/\D/g, '') === numBuscado.replace(/\D/g, ''));
-    }
-
-    if (!emp) {
-        console.warn("No se encontró el empleado con ID:", numBuscado, "en el caché:", window._empleadosCache);
-        alert("No se pudieron cargar los datos del empleado.");
+    if (!window._empleadosCache || window._empleadosCache.length === 0) {
+        alert("El caché de empleados está completamente vacío.");
         return;
     }
 
-    // Dibujamos la estructura del módulo sin borrar el caché de empleados
+    // Imprimir las llaves del primer objeto para ver cómo se llama la propiedad del número de empleado
+    console.log("🔑 Propiedades del primer empleado en caché:", Object.keys(window._empleadosCache[0]));
+
+    const numBuscado = String(numEmpParam || '').trim();
+    
+    // Buscamos probando varias propiedades comunes por si el nombre cambia
+    let emp = window._empleadosCache.find(e => 
+        String(e.numEmp || e.numeroEmpleado || e.id || e.empleado || '').trim() === numBuscado
+    );
+
+    if (!emp) {
+        console.warn("⚠️ No se encontró coincidencia exacta. Buscando por texto parcial...");
+        emp = window._empleadosCache.find(e => Object.values(e).some(val => String(val).trim() === numBuscado));
+    }
+
+    if (!emp) {
+        alert("No se pudieron cargar los datos del empleado. Revisa la consola (F12) para ver la estructura.");
+        return;
+    }
+
+    console.log("✅ Empleado encontrado con éxito:", emp);
+
     cargarPersonalRh(false);
     await cargarCatalogosSheets();
 
@@ -500,7 +513,7 @@ async function seleccionarEmpleadoParaEditar(numEmpParam) {
 
         poblarSelectoresCascada(regVal, centroVal, sitVal);
 
-        form.elements['numEmp'].value = limpiarValor(emp.numEmp);
+        form.elements['numEmp'].value = limpiarValor(emp.numEmp || emp.numeroEmpleado || emp.id);
         inputNumEmp.setAttribute('readonly', true);
         form.elements['nombre'].value = limpiarValor(emp.nombre);
         form.elements['ext'].value = limpiarValor(emp.ext);

@@ -67,7 +67,7 @@ async function seleccionarEmpleadoParaEditar(numEmpParam) {
 
     const busqueda = String(numEmpParam || '').trim();
     
-    // Buscamos de forma segura por número de empleado (independientemente del orden de la tabla o filtros)
+    // Buscamos de forma segura por número de empleado
     let emp = window._empleadosCache.find(e => String(e.numEmp || e.noEmp || '').trim() === busqueda);
 
     if (!emp) {
@@ -75,7 +75,6 @@ async function seleccionarEmpleadoParaEditar(numEmpParam) {
         return;
     }
 
-    // Ya no llamamos a cargarPersonalRh(false) para evitar resetear la vista
     await cargarCatalogosSheets();
 
     const form = document.getElementById('form-nuevo-personal');
@@ -105,8 +104,11 @@ async function seleccionarEmpleadoParaEditar(numEmpParam) {
         form.elements['cp'].value = limpiarValor(emp.cp);
         form.elements['email'].value = limpiarValor(emp.email);
         form.elements['rfc'].value = limpiarValor(emp.rfc);
-        form.elements['puesto'].value = limpiarValor(emp.puesto);
-        form.elements['departamento'].value = limpiarValor(emp.departamento);
+        
+        // Mapeo a las nuevas columnas
+        form.elements['NumPto'].value = limpiarValor(emp.NumPto || emp.puesto);
+        form.elements['NomCorDep'].value = limpiarValor(emp.NomCorDep || emp.departamento);
+
         form.elements['ciudad'].value = limpiarValor(emp.ciudad);
         form.elements['estado'].value = limpiarValor(emp.estado);
 
@@ -139,9 +141,15 @@ async function guardarOActualizarPersonal(event) {
         datosEmpleado.textoCentro = optionText !== 'Seleccione un centro...' ? optionText : datosEmpleado.claveCentro;
     }
 
-    const selectDepto = form.querySelector('#select-departamento');
+    // Asegurar valores desde los selects actualizados de Puesto y Departamento
+    const selectPuesto = form.querySelector('#select-NumPto');
+    if (selectPuesto) {
+        datosEmpleado.NumPto = selectPuesto.value || '';
+    }
+
+    const selectDepto = form.querySelector('#select-NomCorDep');
     if (selectDepto) {
-        datosEmpleado.departamento = selectDepto.value || '';
+        datosEmpleado.NomCorDep = selectDepto.value || '';
     }
 
     if (!datosEmpleado.claveSit || String(datosEmpleado.claveSit).trim() === '') {

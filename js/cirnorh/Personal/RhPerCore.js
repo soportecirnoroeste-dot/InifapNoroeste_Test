@@ -455,6 +455,7 @@ function renderizarTablaPersonal(registros) {
 }
 
 async function seleccionarEmpleadoParaEditar(index) {
+    consola.alert(index);
     if (!window._empleadosCache || window._empleadosCache.length === 0) {
         try {
             const data = await FetchAPI('obtenerPersonal');

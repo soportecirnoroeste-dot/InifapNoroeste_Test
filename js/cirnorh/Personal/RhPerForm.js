@@ -66,7 +66,7 @@ async function seleccionarEmpleadoParaEditar(numEmpParam) {
     }
 
     const busqueda = String(numEmpParam || '').trim();
-    
+
     // Buscamos de forma segura por número de empleado
     let emp = window._empleadosCache.find(e => String(e.numEmp || e.noEmp || '').trim() === busqueda);
 
@@ -104,10 +104,10 @@ async function seleccionarEmpleadoParaEditar(numEmpParam) {
         form.elements['cp'].value = limpiarValor(emp.cp);
         form.elements['email'].value = limpiarValor(emp.email);
         form.elements['rfc'].value = limpiarValor(emp.rfc);
-        
+
         // Mapeo a las nuevas columnas
-        form.elements['NumPto'].value = limpiarValor(emp.NumPto || emp.puesto);
-        form.elements['NomCorDep'].value = limpiarValor(emp.NomCorDep || emp.departamento);
+        form.elements['NumPto'].value = limpiarValor(emp.NumPto || emp.numPto || emp.puesto);
+        form.elements['NomCorDep'].value = limpiarValor(emp.NomCorDep || emp.nomCorDep || emp.departamento);
 
         form.elements['ciudad'].value = limpiarValor(emp.ciudad);
         form.elements['estado'].value = limpiarValor(emp.estado);
@@ -123,7 +123,7 @@ async function seleccionarEmpleadoParaEditar(numEmpParam) {
 async function guardarOActualizarPersonal(event) {
     event.preventDefault();
     const form = event.target;
-    
+
     if (typeof mostrarCarga === 'function') mostrarCarga();
 
     const formData = new FormData(form);

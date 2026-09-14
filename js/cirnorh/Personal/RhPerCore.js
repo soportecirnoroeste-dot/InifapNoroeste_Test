@@ -326,7 +326,7 @@ function renderizarTablaPersonal(registros) {
                 <td class="p-3 font-mono text-stone-600">${reg}</td>
                 <td class="p-3 font-mono text-stone-600">${centro}</td>
                 <td class="p-3 font-mono text-stone-600">${noEmp}</td>
-                <td class="p-3"><button type="button" onclick="seleccionarEmpleadoParaEditar('${noEmp}')" class="font-semibold text-[#249444] hover:underline text-left">${nombre}</button></td>
+                <td class="p-3"><button type="button" onclick="testigoClick('${noEmp}')" class="font-semibold text-[#249444] hover:underline text-left">${nombre}</button></td>
                 <td class="p-3 text-stone-600">${puesto}</td>
                 <td class="p-3 text-stone-600">${depto}</td>
             </tr>
@@ -334,36 +334,55 @@ function renderizarTablaPersonal(registros) {
     }).join('');
 }
 
+// ==========================================
+// SECCIÓN DE TESTIGOS PASO A PASO
+// ==========================================
+function testigoClick(numEmpParam) {
+    alert("TESTIGO 1: Clic interceptado para el empleado con ID: " + numEmpParam);
+    console.log("TESTIGO 1: Caché actual en window._empleadosCache:", window._empleadosCache);
+    
+    // Pasamos a la función principal de selección
+    seleccionarEmpleadoParaEditar(numEmpParam);
+}
+
 async function seleccionarEmpleadoParaEditar(numEmpParam) {
-    // TESTIGO: Muestra el número de empleado exacto seleccionado
-    alert("TESTIGO - Número de empleado seleccionado: [" + numEmpParam + "]");
+    alert("TESTIGO 2: Entrando a seleccionarEmpleadoParaEditar con ID: " + numEmpParam);
 
     if (!window._empleadosCache || window._empleadosCache.length === 0) {
+        alert("TESTIGO 3: La caché está vacía. Descargando datos desde la API...");
         try {
             const data = await FetchAPI('obtenerPersonal');
             window._empleadosCache = data || [];
+            alert("TESTIGO 4: Datos descargados con éxito. Total registros: " + window._empleadosCache.length);
         } catch (error) {
+            alert("TESTIGO ERROR: Falló la llamada a la API -> " + error.message);
             console.error("Error al recuperar empleados:", error);
         }
+    } else {
+        alert("TESTIGO 3.1: La caché cuenta con " + window._empleadosCache.length + " elementos.");
     }
 
     const numBuscado = String(numEmpParam || '').trim();
     let emp = window._empleadosCache.find(e => String(e.numEmp || e.noEmp || '').trim() === numBuscado);
 
-    // Respaldo de seguridad por si la caché se limpió por completo
+    // Respaldo de seguridad adicional por si la caché no coincidió exactamente
     if (!emp) {
+        alert("TESTIGO 5: Búsqueda exacta falló. Intentando un segundo intento de recarga y búsqueda flexible...");
         try {
             const data = await FetchAPI('obtenerPersonal');
             window._empleadosCache = data || [];
-            emp = window._empleadosCache.find(e => String(e.numEmp || e.noEmp || '').trim() === numBuscado);
+            emp = window._empleadosCache.find(e => String(e.numEmp || e.noEmp || '').trim() === numBuscado || String(e.numEmp || e.noEmp || '').includes(numBuscado));
         } catch (error) {
             console.error("Error en respaldo de carga:", error);
         }
     }
 
     if (!emp) {
-        alert("No se pudieron cargar los datos del empleado.");
+        alert("TESTIGO 6 (CRÍTICO): No se encontró el empleado con ID [" + numBuscado + "] en la caché.");
+        console.log("Elementos en caché disponibles:", window._empleadosCache);
         return;
+    } else {
+        alert("TESTIGO 7: ¡Empleado encontrado con éxito! Nombre: " + (emp.nombre || emp.NOMBRE));
     }
 
     cargarPersonalRh(false);
@@ -404,6 +423,10 @@ async function seleccionarEmpleadoParaEditar(numEmpParam) {
         formContainer.classList.remove('hidden');
         if (gestionContainer) gestionContainer.classList.add('hidden');
         if (listadoContainer) listadoContainer.classList.add('hidden');
+        
+        alert("TESTIGO 8: Formulario poblado y mostrado correctamente en pantalla.");
+    } else {
+        alert("TESTIGO ERROR: No se encontró 'form-nuevo-personal' o 'contenedor-formulario-personal' en el DOM.");
     }
 }
 

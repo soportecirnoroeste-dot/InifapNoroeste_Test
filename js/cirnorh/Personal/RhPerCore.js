@@ -446,7 +446,7 @@ function renderizarTablaPersonal(registros) {
                 <td class="p-3 font-mono text-stone-600">${valNa(reg)}</td>
                 <td class="p-3 font-mono text-stone-600">${valNa(centro)}</td>
                 <td class="p-3 font-mono text-stone-600">${valNa(noEmp)}</td>
-                <td class="p-3"><button onclick="seleccionarEmpleadoParaEditar('${noEmp}')" class="font-semibold text-[#249444] hover:underline">${valNa(nombre)}</button></td>
+                <td class="p-3"><button type="button" onclick="seleccionarEmpleadoParaEditar('${noEmp}')" class="font-semibold text-[#249444] hover:underline">${valNa(nombre)}</button></td>
                 <td class="p-3 text-stone-600">${valNa(puesto)}</td>
                 <td class="p-3 text-stone-600">${valNa(deptoVisual)}</td>
             </tr>
@@ -457,7 +457,7 @@ function renderizarTablaPersonal(registros) {
 async function seleccionarEmpleadoParaEditar(numEmpParam) {
     console.log("🚀 EJECUTANDO seleccionarEmpleadoParaEditar con ID:", numEmpParam);
 
-    // 1. Asegurar caché
+    // 1. Asegurar caché de empleados
     if (!window._empleadosCache || window._empleadosCache.length === 0) {
         try {
             const data = await FetchAPI('obtenerPersonal');
@@ -469,27 +469,24 @@ async function seleccionarEmpleadoParaEditar(numEmpParam) {
 
     const numBuscado = String(numEmpParam || '').trim();
     
-    // 2. Buscar en caché por múltiples variantes
+    // 2. Buscar en caché comparando como texto limpio (ignorando diferencias de tipo número/string)
     let emp = window._empleadosCache.find(e => 
-        String(e.numEmp || e.numeroEmpleado || e.id || '').trim() === numBuscado
+        String(e.numEmp || '').trim() === numBuscado
     );
 
-    // 3. Plan de emergencia: Si el caché falló, construimos un objeto temporal con lo que haya en la interfaz para que NUNCA bote error
     if (!emp) {
-        console.warn("⚠️ No se halló en caché, buscando en elementos de la interfaz...");
-        // Intentamos buscar la fila visual en la tabla si existe
-        emp = {
-            numEmp: numBuscado,
-            nombre: document.getElementById('input-nombre')?.value || '',
-        };
+        console.error("❌ No se encontró el empleado en el caché. ID buscado:", numBuscado);
+        alert("No se pudieron cargar los datos del empleado.");
+        return;
     }
 
-    console.log("✅ Datos a cargar en formulario:", emp);
+    console.log("✅ Empleado localizado:", emp);
 
-    // 4. Renderizar vistas
+    // 3. PRIMERO preparamos el DOM (construimos el formulario y los contenedores limpios)
     cargarPersonalRh(false);
     await cargarCatalogosSheets();
 
+    // 4. DESPUÉS de que el DOM ya existe en pantalla, seleccionamos los elementos y rellenamos
     const form = document.getElementById('form-nuevo-personal');
     const formContainer = document.getElementById('contenedor-formulario-personal');
     const gestionContainer = document.getElementById('contenedor-gestion-personal');

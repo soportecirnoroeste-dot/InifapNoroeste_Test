@@ -90,7 +90,6 @@ function cargarPersonalRh(cargarLista = true) {
             <div class="p-4 border-b border-stone-100 flex flex-wrap justify-between items-center gap-4 bg-white">
                 <div class="font-bold text-xs text-stone-700 uppercase tracking-wider">Listado General de Empleados</div>
                 
-                <!-- Buscador dinámico integrado -->
                 <div class="relative">
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-stone-400">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
@@ -189,31 +188,6 @@ async function cargarCatalogosSheets(forzar = false) {
         }
     } catch (e) {
         console.error("Error al cargar catálogos desde servidor...", e);
-    }
-}
-
-async function mostrarFormularioNuevoPersonal() {
-    const formContainer = document.getElementById('contenedor-formulario-personal');
-    const gestionContainer = document.getElementById('contenedor-gestion-personal');
-    const listadoContainer = document.getElementById('contenedor-listado-personal');
-    const form = document.getElementById('form-nuevo-personal');
-    const titulo = document.getElementById('titulo-formulario');
-    const inputNumEmp = document.getElementById('input-numEmp');
-
-    if (formContainer && form) {
-        form.reset();
-
-        if (!window._catRegs || window._catRegs.length === 0) {
-            await cargarCatalogosSheets(true);
-        }
-
-        poblarSelectoresCascada('', '', '');
-        inputNumEmp.removeAttribute('readonly');
-        titulo.innerHTML = `Capturar Nuevo Empleado`;
-        formContainer.classList.remove('hidden');
-        if (gestionContainer) gestionContainer.classList.add('hidden');
-        if (listadoContainer) listadoContainer.classList.add('hidden');
-        formContainer.scrollIntoView({ behavior: 'smooth' });
     }
 }
 
@@ -383,9 +357,7 @@ function renderizarTablaPersonal(registros) {
         });
     }
 
-    let catDeptosDisponible = false;
     if (window._catDepartamentos && Array.isArray(window._catDepartamentos) && window._catDepartamentos.length > 0) {
-        catDeptosDisponible = true;
         window._mapDeptosCache = {};
         window._catDepartamentos.forEach(d => {
             const nomCor = String(d.nomCorDep || '').trim();
@@ -395,20 +367,9 @@ function renderizarTablaPersonal(registros) {
             if (nomCor) window._mapDeptosCache[nomCor] = nomLargo;
             if (cDep) window._mapDeptosCache[cDep] = nomLargo;
         });
-    } else {
-        if (!window._esperandoCatDepartamentos) {
-            window._esperandoCatDepartamentos = true;
-            const intervaloCheck = setInterval(() => {
-                if (window._catDepartamentos && Array.isArray(window._catDepartamentos) && window._catDepartamentos.length > 0) {
-                    clearInterval(intervaloCheck);
-                    window._esperandoCatDepartamentos = false;
-                    renderizarTablaPersonal(registros);
-                }
-            }, 150);
-        }
     }
 
-    tbody.innerHTML = registros.map((row, index) => {
+    tbody.innerHTML = registros.map((row) => {
         const cReg = String(row.claveReg || '').trim();
         const cCentro = String(row.claveCentro || '').trim();
         const cDepto = String(row.departamento || '').trim();
@@ -435,7 +396,7 @@ function renderizarTablaPersonal(registros) {
             }
         }
 
-        const noEmp = row.numEmp;
+        const noEmp = String(row.numEmp || row.noEmp || '').trim();
         const nombre = row.nombre;
         const puesto = row.puesto;
 
@@ -446,93 +407,10 @@ function renderizarTablaPersonal(registros) {
                 <td class="p-3 font-mono text-stone-600">${valNa(reg)}</td>
                 <td class="p-3 font-mono text-stone-600">${valNa(centro)}</td>
                 <td class="p-3 font-mono text-stone-600">${valNa(noEmp)}</td>
-                <td class="p-3"><button onclick="seleccionarEmpleadoParaEditar(${index})" class="font-semibold text-[#249444] hover:underline">${valNa(nombre)}</button></td>
+                <td class="p-3"><button type="button" onclick="seleccionarEmpleadoParaEditar('${noEmp}')" class="font-semibold text-[#249444] hover:underline text-left">${valNa(nombre)}</button></td>
                 <td class="p-3 text-stone-600">${valNa(puesto)}</td>
                 <td class="p-3 text-stone-600">${valNa(deptoVisual)}</td>
             </tr>
         `;
     }).join('');
-}
-
-async function seleccionarEmpleadoParaEditar(index) {
-    if (!window._empleadosCache || window._empleadosCache.length === 0) {
-        try {
-            const data = await FetchAPI('obtenerPersonal');
-            window._empleadosCache = data || [];
-        } catch (error) {
-            console.error("❌ Error al recuperar empleados:", error);
-        }
-    }
-
-    const emp = window._empleadosCache[index];
-    if (!emp) {
-        alert("No se pudieron cargar los datos del empleado.");
-        return;
-    }
-
-    cargarPersonalRh(false);
-    await cargarCatalogosSheets();
-
-    const form = document.getElementById('form-nuevo-personal');
-    const formContainer = document.getElementById('contenedor-formulario-personal');
-    const gestionContainer = document.getElementById('contenedor-gestion-personal');
-    const listadoContainer = document.getElementById('contenedor-listado-personal');
-    const titulo = document.getElementById('titulo-formulario');
-    const inputNumEmp = document.getElementById('input-numEmp');
-
-    if (formContainer && form) {
-        const regVal = extraerClave(emp.claveReg || emp.textoReg);
-        const centroVal = extraerClave(emp.claveCentro || emp.textoCentro);
-        let rawSit = extraerClave(emp.claveSit || emp.textoSit);
-        const sitVal = (!rawSit || rawSit === 0 || rawSit === '0' || String(rawSit).trim().toUpperCase() === 'N/A') ? 'N/A' : rawSit;
-
-        poblarSelectoresCascada(regVal, centroVal, sitVal);
-
-        form.elements['numEmp'].value = limpiarValor(emp.numEmp);
-        inputNumEmp.setAttribute('readonly', true);
-        form.elements['nombre'].value = limpiarValor(emp.nombre);
-        form.elements['ext'].value = limpiarValor(emp.ext);
-        form.elements['numPers'].value = limpiarValor(emp.numPers);
-        form.elements['escolaridad'].value = limpiarValor(emp.escolaridad);
-        form.elements['direccion'].value = limpiarValor(emp.direccion);
-        form.elements['cp'].value = limpiarValor(emp.cp);
-        form.elements['email'].value = limpiarValor(emp.email);
-        form.elements['rfc'].value = limpiarValor(emp.rfc);
-        form.elements['puesto'].value = limpiarValor(emp.puesto);
-        form.elements['departamento'].value = limpiarValor(emp.departamento);
-        form.elements['ciudad'].value = limpiarValor(emp.ciudad);
-        form.elements['estado'].value = limpiarValor(emp.estado);
-
-        titulo.innerHTML = `Editando: <span class="text-[#249444]">${limpiarValor(emp.nombre)}</span>`;
-
-        formContainer.classList.remove('hidden');
-        if (gestionContainer) gestionContainer.classList.add('hidden');
-        if (listadoContainer) listadoContainer.classList.add('hidden');
-    }
-}
-
-function limpiarValor(val) {
-    return (!val || val === 0 || val === '0' || String(val).trim() === '') ? '' : val;
-}
-
-function extraerClave(val) {
-    if (!val) return '';
-    const str = String(val).trim();
-    if (str.includes(' - ')) return str.split(' - ')[0].trim();
-    return str;
-}
-
-async function guardarOActualizarPersonal(event) {
-    event.preventDefault();
-    const datosEmpleado = Object.fromEntries(new FormData(event.target).entries());
-    const actionName = window._empleadosCache.some(e => String(e.numEmp).trim() === String(datosEmpleado.numEmp).trim()) ? 'actualizarPersonal' : 'guardarPersonal';
-
-    try {
-        const res = await FetchAPI(actionName, datosEmpleado);
-        alert(res.message || "Guardado exitoso");
-        ocultarFormularioPersonal();
-        cargarDatosGenerales(true);
-    } catch (e) {
-        alert("Error al guardar");
-    }
 }

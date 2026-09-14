@@ -335,7 +335,7 @@ function renderizarTablaPersonal(registros) {
 }
 
 async function seleccionarEmpleadoParaEditar(numEmpParam) {
-    // TESTIGO: Muestra el número de empleado exacto seleccionado[cite: 4]
+    // TESTIGO: Muestra el número de empleado exacto seleccionado
     alert("TESTIGO - Número de empleado seleccionado: [" + numEmpParam + "]");
 
     if (!window._empleadosCache || window._empleadosCache.length === 0) {
@@ -348,7 +348,18 @@ async function seleccionarEmpleadoParaEditar(numEmpParam) {
     }
 
     const numBuscado = String(numEmpParam || '').trim();
-    const emp = window._empleadosCache.find(e => String(e.numEmp || e.noEmp || '').trim() === numBuscado);
+    let emp = window._empleadosCache.find(e => String(e.numEmp || e.noEmp || '').trim() === numBuscado);
+
+    // Respaldo de seguridad por si la caché se limpió por completo
+    if (!emp) {
+        try {
+            const data = await FetchAPI('obtenerPersonal');
+            window._empleadosCache = data || [];
+            emp = window._empleadosCache.find(e => String(e.numEmp || e.noEmp || '').trim() === numBuscado);
+        } catch (error) {
+            console.error("Error en respaldo de carga:", error);
+        }
+    }
 
     if (!emp) {
         alert("No se pudieron cargar los datos del empleado.");

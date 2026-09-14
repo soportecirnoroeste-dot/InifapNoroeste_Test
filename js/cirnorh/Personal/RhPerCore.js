@@ -470,6 +470,7 @@ async function seleccionarEmpleadoParaEditar(numEmpParam) {
     const emp = window._empleadosCache.find(e => String(e.numEmp || e.noEmp || e.numeroEmpleado || '').trim() === numBuscado);
 
     if (!emp) {
+        console.log(numEmpParam);
         alert("No se pudieron cargar los datos del empleado.");
         return;
     }

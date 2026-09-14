@@ -137,25 +137,20 @@ async function cargarDatosGenerales(forzarRecarga = false) {
         window._empleadosCache = [];
     }
 
-    if (!forzarRecarga && window._empleadosCache.length > 0) {
-        renderizarTablaPersonal(window._empleadosCache);
-        cargarCatalogosSheets();
-        return;
+    // Si el caché está vacío, obligamos a consultar los datos de inmediato
+    if (!window._empleadosCache || window._empleadosCache.length === 0) {
+        forzarRecarga = true;
     }
 
     const tbody = document.getElementById('tabla-personal-body');
-    if (tbody && window._empleadosCache.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-stone-400 italic">Sincronizando datos...</td></tr>`;
+    if (tbody && (!window._empleadosCache || window._empleadosCache.length === 0)) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-stone-400 italic">Sincronizando datos con Sheets...</td></tr>`;
     }
 
     await Promise.all([
         cargarCatalogosSheets(forzarRecarga),
         cargarDatosPersonalSheets(forzarRecarga)
     ]);
-}
-
-function cancelarEdicionPersonal() {
-    ocultarFormularioPersonal();
 }
 
 function ocultarFormularioPersonal() {
@@ -167,9 +162,16 @@ function ocultarFormularioPersonal() {
     if (gestionContainer) gestionContainer.classList.remove('hidden');
     if (listadoContainer) listadoContainer.classList.remove('hidden');
 
+    // Si hay caché los muestra; si por algo se vació, los recarga automáticamente
     if (window._empleadosCache && window._empleadosCache.length > 0) {
         renderizarTablaPersonal(window._empleadosCache);
+    } else {
+        cargarDatosGenerales(false);
     }
+}
+
+function cancelarEdicionPersonal() {
+    ocultarFormularioPersonal();
 }
 
 async function cargarCatalogosSheets(forzar = false) {

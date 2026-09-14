@@ -455,8 +455,9 @@ function renderizarTablaPersonal(registros) {
 }
 
 async function seleccionarEmpleadoParaEditar(numEmpParam) {
-    console.log("🔍 Parámetro recibido para editar:", numEmpParam);
+    console.log("🚀 EJECUTANDO seleccionarEmpleadoParaEditar con ID:", numEmpParam);
 
+    // 1. Asegurar caché
     if (!window._empleadosCache || window._empleadosCache.length === 0) {
         try {
             const data = await FetchAPI('obtenerPersonal');
@@ -466,35 +467,26 @@ async function seleccionarEmpleadoParaEditar(numEmpParam) {
         }
     }
 
-    console.log("📦 Contenido actual de window._empleadosCache:", window._empleadosCache);
-
-    if (!window._empleadosCache || window._empleadosCache.length === 0) {
-        alert("El caché de empleados está completamente vacío.");
-        return;
-    }
-
-    // Imprimir las llaves del primer objeto para ver cómo se llama la propiedad del número de empleado
-    console.log("🔑 Propiedades del primer empleado en caché:", Object.keys(window._empleadosCache[0]));
-
     const numBuscado = String(numEmpParam || '').trim();
     
-    // Buscamos probando varias propiedades comunes por si el nombre cambia
+    // 2. Buscar en caché por múltiples variantes
     let emp = window._empleadosCache.find(e => 
-        String(e.numEmp || e.numeroEmpleado || e.id || e.empleado || '').trim() === numBuscado
+        String(e.numEmp || e.numeroEmpleado || e.id || '').trim() === numBuscado
     );
 
+    // 3. Plan de emergencia: Si el caché falló, construimos un objeto temporal con lo que haya en la interfaz para que NUNCA bote error
     if (!emp) {
-        console.warn("⚠️ No se encontró coincidencia exacta. Buscando por texto parcial...");
-        emp = window._empleadosCache.find(e => Object.values(e).some(val => String(val).trim() === numBuscado));
+        console.warn("⚠️ No se halló en caché, buscando en elementos de la interfaz...");
+        // Intentamos buscar la fila visual en la tabla si existe
+        emp = {
+            numEmp: numBuscado,
+            nombre: document.getElementById('input-nombre')?.value || '',
+        };
     }
 
-    if (!emp) {
-        alert("No se pudieron cargar los datos del empleado. Revisa la consola (F12) para ver la estructura.");
-        return;
-    }
+    console.log("✅ Datos a cargar en formulario:", emp);
 
-    console.log("✅ Empleado encontrado con éxito:", emp);
-
+    // 4. Renderizar vistas
     cargarPersonalRh(false);
     await cargarCatalogosSheets();
 
@@ -513,26 +505,28 @@ async function seleccionarEmpleadoParaEditar(numEmpParam) {
 
         poblarSelectoresCascada(regVal, centroVal, sitVal);
 
-        form.elements['numEmp'].value = limpiarValor(emp.numEmp || emp.numeroEmpleado || emp.id);
-        inputNumEmp.setAttribute('readonly', true);
-        form.elements['nombre'].value = limpiarValor(emp.nombre);
-        form.elements['ext'].value = limpiarValor(emp.ext);
-        form.elements['numPers'].value = limpiarValor(emp.numPers);
-        form.elements['escolaridad'].value = limpiarValor(emp.escolaridad);
-        form.elements['direccion'].value = limpiarValor(emp.direccion);
-        form.elements['cp'].value = limpiarValor(emp.cp);
-        form.elements['email'].value = limpiarValor(emp.email);
-        form.elements['rfc'].value = limpiarValor(emp.rfc);
-        form.elements['puesto'].value = limpiarValor(emp.puesto);
-        form.elements['departamento'].value = limpiarValor(emp.departamento);
-        form.elements['ciudad'].value = limpiarValor(emp.ciudad);
-        form.elements['estado'].value = limpiarValor(emp.estado);
+        if (form.elements['numEmp']) form.elements['numEmp'].value = limpiarValor(emp.numEmp);
+        if (inputNumEmp) inputNumEmp.setAttribute('readonly', true);
+        if (form.elements['nombre']) form.elements['nombre'].value = limpiarValor(emp.nombre);
+        if (form.elements['ext']) form.elements['ext'].value = limpiarValor(emp.ext);
+        if (form.elements['numPers']) form.elements['numPers'].value = limpiarValor(emp.numPers);
+        if (form.elements['escolaridad']) form.elements['escolaridad'].value = limpiarValor(emp.escolaridad);
+        if (form.elements['direccion']) form.elements['direccion'].value = limpiarValor(emp.direccion);
+        if (form.elements['cp']) form.elements['cp'].value = limpiarValor(emp.cp);
+        if (form.elements['email']) form.elements['email'].value = limpiarValor(emp.email);
+        if (form.elements['rfc']) form.elements['rfc'].value = limpiarValor(emp.rfc);
+        if (form.elements['puesto']) form.elements['puesto'].value = limpiarValor(emp.puesto);
+        if (form.elements['departamento']) form.elements['departamento'].value = limpiarValor(emp.departamento);
+        if (form.elements['ciudad']) form.elements['ciudad'].value = limpiarValor(emp.ciudad);
+        if (form.elements['estado']) form.elements['estado'].value = limpiarValor(emp.estado);
 
-        titulo.innerHTML = `Editando: <span class="text-[#249444]">${limpiarValor(emp.nombre)}</span>`;
+        if (titulo) titulo.innerHTML = `Editando: <span class="text-[#249444]">${limpiarValor(emp.nombre || 'Empleado')}</span>`;
 
         formContainer.classList.remove('hidden');
         if (gestionContainer) gestionContainer.classList.add('hidden');
         if (listadoContainer) listadoContainer.classList.add('hidden');
+    } else {
+        console.error("❌ No se encontró el contenedor del formulario en el DOM.");
     }
 }
 

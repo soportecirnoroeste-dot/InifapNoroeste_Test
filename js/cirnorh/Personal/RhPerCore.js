@@ -67,13 +67,20 @@ function cargarPersonalRh(cargarLista = true) {
                 <div><label class="block font-bold text-stone-700 mb-1">C.P.:</label><input type="text" name="cp" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
                 <div><label class="block font-bold text-stone-700 mb-1">Email:</label><input type="email" name="email" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
                 <div><label class="block font-bold text-stone-700 mb-1">RFC:</label><input type="text" name="rfc" required class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
-                <div><label class="block font-bold text-stone-700 mb-1">Puesto:</label><input type="text" name="puesto" required class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
+                
+                <div>
+                    <label class="block font-bold text-stone-700 mb-1">Puesto:</label>
+                    <select name="NumPto" id="select-NumPto" required class="w-full p-2.5 border border-stone-300 rounded-lg bg-white focus:outline-none focus:border-[#249444]">
+                        <option value="" disabled selected>Seleccione un puesto...</option>
+                    </select>
+                </div>
                 <div>
                     <label class="block font-bold text-stone-700 mb-1">Departamento:</label>
-                    <select name="departamento" id="select-departamento" required class="w-full p-2.5 border border-stone-300 rounded-lg bg-white focus:outline-none focus:border-[#249444]">
+                    <select name="NomCorDep" id="select-NomCorDep" required class="w-full p-2.5 border border-stone-300 rounded-lg bg-white focus:outline-none focus:border-[#249444]">
                         <option value="" disabled selected>Seleccione un departamento...</option>
                     </select>
-                </div> 
+                </div>
+
                 <div><label class="block font-bold text-stone-700 mb-1">Ciudad:</label><input type="text" name="ciudad" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
                 <div><label class="block font-bold text-stone-700 mb-1">Estado:</label><input type="text" name="estado" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
                 
@@ -181,6 +188,29 @@ async function cargarCatalogosSheets(forzar = false) {
         window._catCentros = data.campos || [];
         window._catSitios = data.sitios || [];
         window._catDepartamentos = data.departamentos || data.deptos || []; 
+        window._catPuestos = data.puestos || data.catPuestos || [];
+
+        // Poblar select de puestos
+        const selPuesto = document.getElementById('select-NumPto');
+        if (selPuesto && window._catPuestos) {
+            selPuesto.innerHTML = '<option value="" disabled selected>Seleccione un puesto...</option>' +
+                window._catPuestos.map(p => {
+                    const numPto = p.NumPto || p.numPto || p.clave || '';
+                    const nomPto = p.NomPto || p.nomPto || p.nombre || '';
+                    return `<option value="${numPto}">${numPto} - ${nomPto}</option>`;
+                }).join('');
+        }
+
+        // Poblar select de departamentos
+        const selDepto = document.getElementById('select-NomCorDep');
+        if (selDepto && window._catDepartamentos) {
+            selDepto.innerHTML = '<option value="" disabled selected>Seleccione un departamento...</option>' +
+                window._catDepartamentos.map(d => {
+                    const nomCor = d.nomCorDep || d.NomCorDep || d.claveDep || '';
+                    const nomDep = d.nomDep || d.nombre || '';
+                    return `<option value="${nomCor}">${nomCor} - ${nomDep}</option>`;
+                }).join('');
+        }
 
         const selCentro = document.getElementById('select-claveCentro');
         if (selCentro && selCentro.value && typeof filtrarSitiosPorCentro === 'function') {
@@ -318,8 +348,8 @@ function filtrarTablaPersonal(textoBusqueda) {
         const centro = String(row.claveCentro || row.textoCentro || "").toLowerCase();
         const numEmp = String(row.numEmp || "").toLowerCase();
         const nombre = String(row.nombre || "").toLowerCase();
-        const puesto = String(row.puesto || "").toLowerCase();
-        const depto = String(row.departamento || "").toLowerCase();
+        const puesto = String(row.NumPto || row.puesto || "").toLowerCase();
+        const depto = String(row.NomCorDep || row.departamento || "").toLowerCase();
 
         return reg.includes(query) || 
                centro.includes(query) || 
@@ -369,10 +399,20 @@ function renderizarTablaPersonal(registros) {
         });
     }
 
+    if (window._catPuestos && Array.isArray(window._catPuestos) && window._catPuestos.length > 0) {
+        window._mapPuestosCache = {};
+        window._catPuestos.forEach(p => {
+            const numPto = String(p.NumPto || p.numPto || '').trim();
+            const nomPto = p.NomPto || p.nomPto || p.nombre || '';
+            if (numPto) window._mapPuestosCache[numPto] = nomPto;
+        });
+    }
+
     tbody.innerHTML = registros.map((row) => {
         const cReg = String(row.claveReg || '').trim();
         const cCentro = String(row.claveCentro || '').trim();
-        const cDepto = String(row.departamento || '').trim();
+        const cNumPto = String(row.NumPto || row.puesto || '').trim();
+        const cNomCorDep = String(row.NomCorDep || row.departamento || '').trim();
 
         const nomCortoReg = (window._mapRegsCache && window._mapRegsCache[cReg]) || '';
         const reg = nomCortoReg ? `${cReg} - ${nomCortoReg}` : (row.textoReg || cReg);
@@ -380,25 +420,39 @@ function renderizarTablaPersonal(registros) {
         const nomCortoCentro = (window._mapCentrosCache && window._mapCentrosCache[cCentro]) || '';
         const centro = nomCortoCentro ? `${cCentro} - ${nomCortoCentro}` : (row.textoCentro || cCentro);
 
-        let deptoVisual = cDepto;
-        if (cDepto) {
-            if (window._mapDeptosCache && window._mapDeptosCache[cDepto]) {
-                deptoVisual = window._mapDeptosCache[cDepto];
-            } else if (Array.isArray(window._catDepartamentos)) {
-                const encontrado = window._catDepartamentos.find(d => 
-                    String(d.nomCorDep || '').trim().toUpperCase() === cDepto.toUpperCase() ||
-                    String(d.claveDep || '').trim() === cDepto ||
-                    String(d.nomDep || '').trim().toUpperCase() === cDepto.toUpperCase()
+        let puestoVisual = cNumPto;
+        if (cNumPto) {
+            if (window._mapPuestosCache && window._mapPuestosCache[cNumPto]) {
+                puestoVisual = window._mapPuestosCache[cNumPto];
+            } else if (Array.isArray(window._catPuestos)) {
+                const encontrado = window._catPuestos.find(p => 
+                    String(p.NumPto || p.numPto || '').trim() === cNumPto ||
+                    String(p.NomPto || '').trim().toUpperCase() === cNumPto.toUpperCase()
                 );
                 if (encontrado) {
-                    deptoVisual = encontrado.nomDep || encontrado.nombre || cDepto;
+                    puestoVisual = encontrado.NomPto || encontrado.nomPto || encontrado.nombre || cNumPto;
+                }
+            }
+        }
+
+        let deptoVisual = cNomCorDep;
+        if (cNomCorDep) {
+            if (window._mapDeptosCache && window._mapDeptosCache[cNomCorDep]) {
+                deptoVisual = window._mapDeptosCache[cNomCorDep];
+            } else if (Array.isArray(window._catDepartamentos)) {
+                const encontrado = window._catDepartamentos.find(d => 
+                    String(d.nomCorDep || '').trim().toUpperCase() === cNomCorDep.toUpperCase() ||
+                    String(d.claveDep || '').trim() === cNomCorDep ||
+                    String(d.nomDep || '').trim().toUpperCase() === cNomCorDep.toUpperCase()
+                );
+                if (encontrado) {
+                    deptoVisual = encontrado.nomDep || encontrado.nombre || cNomCorDep;
                 }
             }
         }
 
         const noEmp = String(row.numEmp || row.noEmp || '').trim();
         const nombre = row.nombre;
-        const puesto = row.puesto;
 
         const valNa = (v) => (!v || v === 0 || v === '0' || String(v).trim() === '') ? 'N/A' : v;
 
@@ -408,7 +462,7 @@ function renderizarTablaPersonal(registros) {
                 <td class="p-3 font-mono text-stone-600">${valNa(centro)}</td>
                 <td class="p-3 font-mono text-stone-600">${valNa(noEmp)}</td>
                 <td class="p-3"><button type="button" onclick="seleccionarEmpleadoParaEditar('${noEmp}')" class="font-semibold text-[#249444] hover:underline text-left">${valNa(nombre)}</button></td>
-                <td class="p-3 text-stone-600">${valNa(puesto)}</td>
+                <td class="p-3 text-stone-600">${valNa(puestoVisual)}</td>
                 <td class="p-3 text-stone-600">${valNa(deptoVisual)}</td>
             </tr>
         `;

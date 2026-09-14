@@ -399,12 +399,12 @@ function renderizarTablaPersonal(registros) {
         });
     }
 
-    if (window._catPuestos && Array.isArray(window._catPuestos) && window._catPuestos.length > 0) {
+    if (!window._mapPuestosCache && window._catPuestos && Array.isArray(window._catPuestos)) {
         window._mapPuestosCache = {};
         window._catPuestos.forEach(p => {
-            const numPto = String(p.NumPto || p.numPto || '').trim();
-            const nomPto = p.NomPto || p.nomPto || p.nombre || '';
-            if (numPto) window._mapPuestosCache[numPto] = nomPto;
+            const k = String(p.NumPto || p.numPto || p.clave || '').trim();
+            const v = p.NomPto || p.nomPto || p.nombre || '';
+            if (k) window._mapPuestosCache[k] = v;
         });
     }
 
@@ -420,14 +420,15 @@ function renderizarTablaPersonal(registros) {
         const nomCortoCentro = (window._mapCentrosCache && window._mapCentrosCache[cCentro]) || '';
         const centro = nomCortoCentro ? `${cCentro} - ${nomCortoCentro}` : (row.textoCentro || cCentro);
 
-        let puestoVisual = cNumPto;
+        let puestoVisual = cNumPto; // Por si no encuentra coincidencia, muestra el número temporalmente
         if (cNumPto) {
-            // Intentamos buscar primero en el mapa de puestos precargado
+            // 1. Buscamos primero en el mapa optimizado de puestos
             if (window._mapPuestosCache && window._mapPuestosCache[cNumPto]) {
                 puestoVisual = window._mapPuestosCache[cNumPto];
-            } else if (Array.isArray(window._catPuestos) && window._catPuestos.length > 0) {
-                // Búsqueda directa en el arreglo de catálogos
-                const encontrado = window._catPuestos.find(p =>
+            } 
+            // 2. Si no está en el mapa, hacemos una búsqueda directa en el arreglo de catálogos
+            else if (Array.isArray(window._catPuestos) && window._catPuestos.length > 0) {
+                const encontrado = window._catPuestos.find(p => 
                     String(p.NumPto || p.numPto || '').trim() === cNumPto
                 );
                 if (encontrado) {

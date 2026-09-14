@@ -181,7 +181,7 @@ async function cargarCatalogosSheets(forzar = false) {
         window._catRegs = data.regionales || [];
         window._catCentros = data.campos || [];
         window._catSitios = data.sitios || [];
-        window._catDepartamentos = data.departamentos || data.deptos || []; 
+        window._catDepartamentos = data.departamentos || data.deptos || [];
 
         const selCentro = document.getElementById('select-claveCentro');
         if (selCentro && selCentro.value && typeof filtrarSitiosPorCentro === 'function') {
@@ -307,7 +307,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const selCentro = document.getElementById('select-claveCentro');
     if (selCentro) {
-        selCentro.addEventListener('change', function(e) {
+        selCentro.addEventListener('change', function (e) {
             window.filtrarSitiosPorCentro(e.target.value);
         });
     }
@@ -333,7 +333,7 @@ async function cargarDatosPersonalSheets(forzar = false) {
 
 function filtrarTablaPersonal(textoBusqueda) {
     const query = textoBusqueda.toLowerCase().trim();
-    
+
     if (!query) {
         renderizarTablaPersonal(window._empleadosCache);
         return;
@@ -347,12 +347,12 @@ function filtrarTablaPersonal(textoBusqueda) {
         const puesto = String(row.puesto || "").toLowerCase();
         const depto = String(row.departamento || "").toLowerCase();
 
-        return reg.includes(query) || 
-               centro.includes(query) || 
-               numEmp.includes(query) || 
-               nombre.includes(query) || 
-               puesto.includes(query) || 
-               depto.includes(query);
+        return reg.includes(query) ||
+            centro.includes(query) ||
+            numEmp.includes(query) ||
+            nombre.includes(query) ||
+            puesto.includes(query) ||
+            depto.includes(query);
     });
 
     renderizarTablaPersonal(empleadosFiltrados);
@@ -424,7 +424,7 @@ function renderizarTablaPersonal(registros) {
             if (window._mapDeptosCache && window._mapDeptosCache[cDepto]) {
                 deptoVisual = window._mapDeptosCache[cDepto];
             } else if (Array.isArray(window._catDepartamentos)) {
-                const encontrado = window._catDepartamentos.find(d => 
+                const encontrado = window._catDepartamentos.find(d =>
                     String(d.nomCorDep || '').trim().toUpperCase() === cDepto.toUpperCase() ||
                     String(d.claveDep || '').trim() === cDepto ||
                     String(d.nomDep || '').trim().toUpperCase() === cDepto.toUpperCase()
@@ -440,7 +440,7 @@ function renderizarTablaPersonal(registros) {
         const puesto = row.puesto;
 
         const valNa = (v) => (!v || v === 0 || v === '0' || String(v).trim() === '') ? 'N/A' : v;
-
+        console.log('${noEmp}');
         return `
             <tr class="border-b border-stone-100 hover:bg-stone-50 transition">
                 <td class="p-3 font-mono text-stone-600">${valNa(reg)}</td>
@@ -476,7 +476,7 @@ async function seleccionarEmpleadoParaEditar(numEmpParam) {
     });
 
     if (!emp) {
-        alert("No se pudieron cargar los datos del empleado seleccionado.");
+        alert("No se pudieron cargar los datos del empleado seleccionado." + numEmpParam);
         return;
     }
 

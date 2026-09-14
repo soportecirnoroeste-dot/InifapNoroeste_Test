@@ -108,8 +108,9 @@ window.RhAsisCasc = {
 
                     <div class="bg-white rounded-2xl border border-stone-200 overflow-hidden shadow-xs">
                         <div class="px-6 py-4 border-b border-stone-100 flex justify-between items-center bg-white">
-                            <h4 class="font-bold text-stone-800 text-xs uppercase tracking-wider">LISTADO GENERAL DE BIOMÉTRICO</h4>
-                            <span id="contadorRegistrosBio" class="text-xs font-bold text-stone-500"></span>
+                            <h4 class="font-bold text-stone-800 text-xs uppercase tracking-wider">
+                                LISTADO DE <span id="contadorRegistrosBio">0</span> REGISTROS DE BIOMÉTRICO
+                            </h4>
 
                             <div class="flex flex-wrap items-end gap-3">
                                     <div class="flex flex-col gap-1">
@@ -345,7 +346,7 @@ window.RhAsisCasc = {
                 exportBtn.disabled = true;
                 exportBtn.className = "px-4 py-2 bg-stone-100 border border-stone-200 text-stone-400 opacity-60 cursor-not-allowed rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 h-[34px]";
             }
-            if (contador) contador.innerText = "";
+            if (contador) contador.innerText = "0";
 
             gridContent.innerHTML = `
                 <table class="w-full text-[11px] text-left border-collapse min-w-[950px]">
@@ -370,7 +371,7 @@ window.RhAsisCasc = {
         }
 
         if (contador) {
-            contador.innerText = `${listaRegistros.length} registros`;
+            contador.innerText = `${listaRegistros.length}`;
         }
 
         gridContent.innerHTML = `

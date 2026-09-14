@@ -455,6 +455,9 @@ function renderizarTablaPersonal(registros) {
 }
 
 async function seleccionarEmpleadoParaEditar(numEmpParam) {
+    console.log("🚀 Abriendo edición para el empleado con No. Emp:", numEmpParam);
+
+    // 1. Asegurar que el caché tenga los datos
     if (!window._empleadosCache || window._empleadosCache.length === 0) {
         try {
             const data = await FetchAPI('obtenerPersonal');
@@ -465,13 +468,21 @@ async function seleccionarEmpleadoParaEditar(numEmpParam) {
     }
 
     const numBuscado = String(numEmpParam || '').trim();
-    const emp = window._empleadosCache.find(e => String(e.numEmp || e.noEmp || '').trim() === numBuscado);
+
+    // 2. Buscar exactamente al empleado que corresponde a ese número en el caché general
+    let emp = window._empleadosCache.find(e => {
+        const actual = String(e.numEmp || e.noEmp || e.numeroEmpleado || '').trim();
+        return actual === numBuscado;
+    });
 
     if (!emp) {
-        alert("No se pudieron cargar los datos del empleado.");
+        alert("No se pudieron cargar los datos del empleado seleccionado.");
         return;
     }
 
+    console.log("✅ Empleado encontrado correctamente:", emp);
+
+    // 3. Preparar la interfaz del formulario
     cargarPersonalRh(false);
     await cargarCatalogosSheets();
 
@@ -490,22 +501,25 @@ async function seleccionarEmpleadoParaEditar(numEmpParam) {
 
         poblarSelectoresCascada(regVal, centroVal, sitVal);
 
-        form.elements['numEmp'].value = limpiarValor(emp.numEmp);
-        inputNumEmp.setAttribute('readonly', true);
-        form.elements['nombre'].value = limpiarValor(emp.nombre);
-        form.elements['ext'].value = limpiarValor(emp.ext);
-        form.elements['numPers'].value = limpiarValor(emp.numPers);
-        form.elements['escolaridad'].value = limpiarValor(emp.escolaridad);
-        form.elements['direccion'].value = limpiarValor(emp.direccion);
-        form.elements['cp'].value = limpiarValor(emp.cp);
-        form.elements['email'].value = limpiarValor(emp.email);
-        form.elements['rfc'].value = limpiarValor(emp.rfc);
-        form.elements['puesto'].value = limpiarValor(emp.puesto);
-        form.elements['departamento'].value = limpiarValor(emp.departamento);
-        form.elements['ciudad'].value = limpiarValor(emp.ciudad);
-        form.elements['estado'].value = limpiarValor(emp.estado);
+        // Rellenar cada campo con los datos exactos del empleado encontrado
+        if (form.elements['numEmp']) {
+            form.elements['numEmp'].value = limpiarValor(emp.numEmp || numBuscado);
+            form.elements['numEmp'].setAttribute('readonly', true);
+            form.elements['numEmp'].classList.add('bg-stone-100', 'cursor-not-allowed');
+        }
 
-        titulo.innerHTML = `Editando: <span class="text-[#249444]">${limpiarValor(emp.nombre)}</span>`;
+        const camposEditables = ['nombre', 'ext', 'numPers', 'escolaridad', 'direccion', 'cp', 'email', 'rfc', 'puesto', 'departamento', 'ciudad', 'estado'];
+        camposEditables.forEach(campo => {
+            if (form.elements[campo]) {
+                form.elements[campo].value = limpiarValor(emp[campo]);
+                form.elements[campo].removeAttribute('readonly');
+                form.elements[campo].removeAttribute('disabled');
+            }
+        });
+
+        if (titulo) {
+            titulo.innerHTML = `Editando: <span class="text-[#249444]">${limpiarValor(emp.nombre)}</span>`;
+        }
 
         formContainer.classList.remove('hidden');
         if (gestionContainer) gestionContainer.classList.add('hidden');

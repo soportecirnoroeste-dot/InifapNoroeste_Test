@@ -67,63 +67,144 @@ function cargarFormatosSis() {
     renderizarVistaModuloSis('formatos', "Descarga de formatos de resguardo, altas y reportes técnicos.");
 }
 
+// 1. VISTA INICIAL: Listado del Personal para configurar permisos
 function cargarPermisosSis() {
-    renderizarVistaModuloSis('permisos', "Control de accesos, perfiles de usuario y matriz de privilegios por módulo.");
+    renderizarVistaModuloSis('permisos', "Selecciona un colaborador para administrar su matriz de accesos por módulos y submódulos.");
     
-    // Inyectamos una interfaz inicial de control de permisos dentro del contenedor dinámico
     const contenedorDinamico = document.getElementById('contenido-submodulo-dinamico');
     if (contenedorDinamico) {
-        contenedorDinamico.className = "col-span-1 sm:col-span-2 md:col-span-3 space-y-6";
+        contenedorDinamico.className = "col-span-1 sm:col-span-2 md:col-span-3 space-y-4";
+        contenedorDinamico.innerHTML = `
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4 bg-stone-50 p-4 rounded-xl border border-stone-200">
+                <div class="w-full md:w-1/3">
+                    <input type="text" placeholder="Buscar colaborador..." class="w-full bg-white border border-stone-200 text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-[#249444]">
+                </div>
+                <div class="text-xs text-stone-500 font-medium">
+                    Mostrando personal activo del departamento de sistemas
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Tarjeta de Ejemplo Colaborador 1 -->
+                <div class="bg-white border border-stone-200 rounded-xl p-4 flex items-center justify-between shadow-sm hover:border-[#249444] transition-all">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-[#f0fdf4] text-[#059669] font-bold flex items-center justify-center border border-[#c6f6d5] text-sm">
+                            EG
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-stone-800 text-xs uppercase">Elías González</h4>
+                            <p class="text-[11px] text-stone-500">Administrador de Redes</p>
+                            <span class="inline-block mt-1 bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-md">Rol: Administrador</span>
+                        </div>
+                    </div>
+                    <button onclick="abrirMatrizPermisosUsuario('Elías González', 'Administrador')" class="bg-stone-100 hover:bg-[#249444] hover:text-white text-stone-700 p-2.5 rounded-xl transition-all text-xs font-bold flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 7.54 16.63"/><path d="M12 6v6l4 2"/></svg>
+                        Permisos
+                    </button>
+                </div>
+
+                <!-- Tarjeta de Ejemplo Colaborador 2 -->
+                <div class="bg-white border border-stone-200 rounded-xl p-4 flex items-center justify-between shadow-sm hover:border-[#249444] transition-all">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-stone-100 text-stone-600 font-bold flex items-center justify-center border border-stone-200 text-sm">
+                            JR
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-stone-800 text-xs uppercase">Juan Ruiz</h4>
+                            <p class="text-[11px] text-stone-500">Soporte Técnico</p>
+                            <span class="inline-block mt-1 bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-md">Rol: Soporte</span>
+                        </div>
+                    </div>
+                    <button onclick="abrirMatrizPermisosUsuario('Juan Ruiz', 'Soporte Técnico')" class="bg-stone-100 hover:bg-[#249444] hover:text-white text-stone-700 p-2.5 rounded-xl transition-all text-xs font-bold flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 7.54 16.63"/><path d="M12 6v6l4 2"/></svg>
+                        Permisos
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+}
+
+// 2. VISTA DETALLE: Matriz de Control de Acceso por Módulos y Submódulos para el usuario seleccionado
+function abrirMatrizPermisosUsuario(nombreColaborador, rolActual) {
+    const contenedorDinamico = document.getElementById('contenido-submodulo-dinamico');
+    if (contenedorDinamico) {
+        contenedorDinamico.className = "col-span-1 sm:col-span-2 md:col-span-3 space-y-6 animate-fade-in";
         contenedorDinamico.innerHTML = `
             <div class="bg-stone-50 border border-stone-200 rounded-xl p-4 flex flex-col md:flex-row justify-between items-center gap-4">
-                <div>
-                    <h4 class="font-bold text-stone-700 text-sm">Matriz de Control de Acceso</h4>
-                    <p class="text-xs text-stone-500">Configura qué roles pueden visualizar o modificar cada sección del sistema.</p>
+                <div class="flex items-center gap-3">
+                    <button onclick="cargarPermisosSis()" class="p-2 bg-white border border-stone-200 hover:bg-stone-100 text-stone-600 rounded-xl transition-all flex items-center justify-center" title="Regresar al listado">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                    </button>
+                    <div>
+                        <h4 class="font-bold text-stone-800 text-sm">Configurando Permisos para: <span class="text-[#249444]">${nombreColaborador}</span> (${rolActual})</h4>
+                        <p class="text-xs text-stone-500">Habilita o deshabilita el acceso específico por Módulos Principales y sus Submódulos complementarios.</p>
+                    </div>
                 </div>
-                <button onclick="guardarMatrizPermisosSis()" class="bg-[#249444] hover:bg-[#1e7a37] text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-                    Guardar Cambios
-                </button>
+                <div class="flex items-center gap-2">
+                    <button onclick="cargarPermisosSis()" class="bg-stone-200 hover:bg-stone-300 text-stone-700 text-xs font-bold px-4 py-2.5 rounded-xl transition-all">
+                        Cancelar
+                    </button>
+                    <button onclick="guardarMatrizPermisosSis()" class="bg-[#249444] hover:bg-[#1e7a37] text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                        Guardar Cambios
+                    </button>
+                </div>
             </div>
 
             <div class="overflow-x-auto border border-stone-200 rounded-xl">
                 <table class="w-full text-left border-collapse text-xs">
                     <thead>
                         <tr class="bg-stone-100 text-stone-600 font-bold border-b border-stone-200">
-                            <th class="p-3">Módulo / Submódulo</th>
-                            <th class="p-3 text-center">Administrador</th>
-                            <th class="p-3 text-center">Soporte Técnico</th>
-                            <th class="p-3 text-center">Consulta / General</th>
+                            <th class="p-3">MÓDULO PRINCIPAL / SUBMÓDULO</th>
+                            <th class="p-3 text-center">VER / LEER</th>
+                            <th class="p-3 text-center">CREAR / EDITAR</th>
+                            <th class="p-3 text-center">ELIMINAR</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-stone-200 text-stone-700">
+                        <!-- Módulo 1: Sistemas -->
+                        <tr class="bg-stone-100/70 font-bold text-stone-800">
+                            <td class="p-3 uppercase tracking-wider" colspan="4">📁 Módulo Principal: Sistemas</td>
+                        </tr>
                         <tr>
-                            <td class="p-3 font-medium">Reuniones de Sistemas</td>
+                            <td class="p-3 pl-6 font-medium">↳ Reuniones de Sistemas</td>
                             <td class="p-3 text-center"><input type="checkbox" checked class="accent-[#249444] w-4 h-4 cursor-pointer"></td>
                             <td class="p-3 text-center"><input type="checkbox" checked class="accent-[#249444] w-4 h-4 cursor-pointer"></td>
                             <td class="p-3 text-center"><input type="checkbox" class="accent-[#249444] w-4 h-4 cursor-pointer"></td>
                         </tr>
                         <tr class="bg-stone-50/50">
-                            <td class="p-3 font-medium">Contraseñas y Credenciales</td>
+                            <td class="p-3 pl-6 font-medium">↳ Contraseñas y Credenciales</td>
                             <td class="p-3 text-center"><input type="checkbox" checked class="accent-[#249444] w-4 h-4 cursor-pointer"></td>
                             <td class="p-3 text-center"><input type="checkbox" class="accent-[#249444] w-4 h-4 cursor-pointer"></td>
                             <td class="p-3 text-center"><input type="checkbox" disabled class="accent-[#249444] w-4 h-4 opacity-50 cursor-not-allowed"></td>
                         </tr>
                         <tr>
-                            <td class="p-3 font-medium">Licenciamiento de Software</td>
+                            <td class="p-3 pl-6 font-medium">↳ Licenciamiento de Software</td>
                             <td class="p-3 text-center"><input type="checkbox" checked class="accent-[#249444] w-4 h-4 cursor-pointer"></td>
                             <td class="p-3 text-center"><input type="checkbox" checked class="accent-[#249444] w-4 h-4 cursor-pointer"></td>
                             <td class="p-3 text-center"><input type="checkbox" checked class="accent-[#249444] w-4 h-4 cursor-pointer"></td>
                         </tr>
                         <tr class="bg-stone-50/50">
-                            <td class="p-3 font-medium">Inventarios de Cómputo</td>
+                            <td class="p-3 pl-6 font-medium">↳ Inventarios de Cómputo</td>
                             <td class="p-3 text-center"><input type="checkbox" checked class="accent-[#249444] w-4 h-4 cursor-pointer"></td>
                             <td class="p-3 text-center"><input type="checkbox" checked class="accent-[#249444] w-4 h-4 cursor-pointer"></td>
                             <td class="p-3 text-center"><input type="checkbox" checked class="accent-[#249444] w-4 h-4 cursor-pointer"></td>
                         </tr>
                         <tr>
-                            <td class="p-3 font-medium">Módulo de Permisos (Sistema)</td>
-                            <td class="p-3 text-center"><input type="checkbox" checked disabled class="accent-[#249444] w-4 h-4 cursor-not-allowed"></td>
+                            <td class="p-3 pl-6 font-medium">↳ Formatos Oficiales</td>
+                            <td class="p-3 text-center"><input type="checkbox" checked class="accent-[#249444] w-4 h-4 cursor-pointer"></td>
+                            <td class="p-3 text-center"><input type="checkbox" checked class="accent-[#249444] w-4 h-4 cursor-pointer"></td>
+                            <td class="p-3 text-center"><input type="checkbox" class="accent-[#249444] w-4 h-4 cursor-pointer"></td>
+                        </tr>
+
+                        <!-- Módulo 2: Configuración y Seguridad -->
+                        <tr class="bg-stone-100/70 font-bold text-stone-800">
+                            <td class="p-3 uppercase tracking-wider" colspan="4">📁 Módulo Principal: Administración del Sistema</td>
+                        </tr>
+                        <tr>
+                            <td class="p-3 pl-6 font-medium">↳ Módulo de Permisos y Accesos</td>
+                            <td class="p-3 text-center"><input type="checkbox" disabled class="accent-[#249444] w-4 h-4 opacity-50 cursor-not-allowed"></td>
                             <td class="p-3 text-center"><input type="checkbox" disabled class="accent-[#249444] w-4 h-4 opacity-50 cursor-not-allowed"></td>
                             <td class="p-3 text-center"><input type="checkbox" disabled class="accent-[#249444] w-4 h-4 opacity-50 cursor-not-allowed"></td>
                         </tr>
@@ -135,8 +216,7 @@ function cargarPermisosSis() {
 }
 
 function guardarMatrizPermisosSis() {
-    // Aquí puedes enlazar la lógica con Google Apps Script o LocalStorage según prefieras
-    alert("¡Matriz de permisos actualizada correctamente!");
+    alert("¡Permisos del colaborador actualizados correctamente!");
 }
 
 function renderizarVistaModuloSis(idOpt, descripcion) {

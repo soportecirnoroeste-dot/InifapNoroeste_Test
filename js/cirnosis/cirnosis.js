@@ -33,6 +33,12 @@ window.cirnosisConfig = {
             title: "Formatos Of.", 
             icon: "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z'/><path d='M14 2v5a1 1 0 0 0 1 1h5'/><path d='M10 9H8'/><path d='M16 13H8'/><path d='M16 17H8'/></svg>", 
             action: "cargarFormatosSis()" 
+        },
+        { 
+            id: "permisos", 
+            title: "Permisos", 
+            icon: "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 2a10 10 0 1 0 7.54 16.63'/><path d='M12 6v6l4 2'/></svg>", 
+            action: "cargarPermisosSis()" 
         }
     ]
 };
@@ -59,6 +65,78 @@ function cargarInventariosSis() {
 
 function cargarFormatosSis() {
     renderizarVistaModuloSis('formatos', "Descarga de formatos de resguardo, altas y reportes técnicos.");
+}
+
+function cargarPermisosSis() {
+    renderizarVistaModuloSis('permisos', "Control de accesos, perfiles de usuario y matriz de privilegios por módulo.");
+    
+    // Inyectamos una interfaz inicial de control de permisos dentro del contenedor dinámico
+    const contenedorDinamico = document.getElementById('contenido-submodulo-dinamico');
+    if (contenedorDinamico) {
+        contenedorDinamico.className = "col-span-1 sm:col-span-2 md:col-span-3 space-y-6";
+        contenedorDinamico.innerHTML = `
+            <div class="bg-stone-50 border border-stone-200 rounded-xl p-4 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div>
+                    <h4 class="font-bold text-stone-700 text-sm">Matriz de Control de Acceso</h4>
+                    <p class="text-xs text-stone-500">Configura qué roles pueden visualizar o modificar cada sección del sistema.</p>
+                </div>
+                <button onclick="guardarMatrizPermisosSis()" class="bg-[#249444] hover:bg-[#1e7a37] text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                    Guardar Cambios
+                </button>
+            </div>
+
+            <div class="overflow-x-auto border border-stone-200 rounded-xl">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-stone-100 text-stone-600 font-bold border-b border-stone-200">
+                            <th class="p-3">Módulo / Submódulo</th>
+                            <th class="p-3 text-center">Administrador</th>
+                            <th class="p-3 text-center">Soporte Técnico</th>
+                            <th class="p-3 text-center">Consulta / General</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-stone-200 text-stone-700">
+                        <tr>
+                            <td class="p-3 font-medium">Reuniones de Sistemas</td>
+                            <td class="p-3 text-center"><input type="checkbox" checked class="accent-[#249444] w-4 h-4 cursor-pointer"></td>
+                            <td class="p-3 text-center"><input type="checkbox" checked class="accent-[#249444] w-4 h-4 cursor-pointer"></td>
+                            <td class="p-3 text-center"><input type="checkbox" class="accent-[#249444] w-4 h-4 cursor-pointer"></td>
+                        </tr>
+                        <tr class="bg-stone-50/50">
+                            <td class="p-3 font-medium">Contraseñas y Credenciales</td>
+                            <td class="p-3 text-center"><input type="checkbox" checked class="accent-[#249444] w-4 h-4 cursor-pointer"></td>
+                            <td class="p-3 text-center"><input type="checkbox" class="accent-[#249444] w-4 h-4 cursor-pointer"></td>
+                            <td class="p-3 text-center"><input type="checkbox" disabled class="accent-[#249444] w-4 h-4 opacity-50 cursor-not-allowed"></td>
+                        </tr>
+                        <tr>
+                            <td class="p-3 font-medium">Licenciamiento de Software</td>
+                            <td class="p-3 text-center"><input type="checkbox" checked class="accent-[#249444] w-4 h-4 cursor-pointer"></td>
+                            <td class="p-3 text-center"><input type="checkbox" checked class="accent-[#249444] w-4 h-4 cursor-pointer"></td>
+                            <td class="p-3 text-center"><input type="checkbox" checked class="accent-[#249444] w-4 h-4 cursor-pointer"></td>
+                        </tr>
+                        <tr class="bg-stone-50/50">
+                            <td class="p-3 font-medium">Inventarios de Cómputo</td>
+                            <td class="p-3 text-center"><input type="checkbox" checked class="accent-[#249444] w-4 h-4 cursor-pointer"></td>
+                            <td class="p-3 text-center"><input type="checkbox" checked class="accent-[#249444] w-4 h-4 cursor-pointer"></td>
+                            <td class="p-3 text-center"><input type="checkbox" checked class="accent-[#249444] w-4 h-4 cursor-pointer"></td>
+                        </tr>
+                        <tr>
+                            <td class="p-3 font-medium">Módulo de Permisos (Sistema)</td>
+                            <td class="p-3 text-center"><input type="checkbox" checked disabled class="accent-[#249444] w-4 h-4 cursor-not-allowed"></td>
+                            <td class="p-3 text-center"><input type="checkbox" disabled class="accent-[#249444] w-4 h-4 opacity-50 cursor-not-allowed"></td>
+                            <td class="p-3 text-center"><input type="checkbox" disabled class="accent-[#249444] w-4 h-4 opacity-50 cursor-not-allowed"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+}
+
+function guardarMatrizPermisosSis() {
+    // Aquí puedes enlazar la lógica con Google Apps Script o LocalStorage según prefieras
+    alert("¡Matriz de permisos actualizada correctamente!");
 }
 
 function renderizarVistaModuloSis(idOpt, descripcion) {

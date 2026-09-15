@@ -140,13 +140,8 @@ async function cargarDatosGenerales(forzarRecarga = false) {
         window._catSitiosCache = null;
         window._mapRegsCache = null;
         window._mapCentrosCache = null;
+        window._mapPuestosCache = null; // <-- Limpiamos caché de puestos también
         window._empleadosCache = [];
-    }
-
-    if (!forzarRecarga && window._empleadosCache.length > 0) {
-        renderizarTablaPersonal(window._empleadosCache);
-        cargarCatalogosSheets();
-        return;
     }
 
     const tbody = document.getElementById('tabla-personal-body');
@@ -154,10 +149,11 @@ async function cargarDatosGenerales(forzarRecarga = false) {
         tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-stone-400 italic">Sincronizando datos...</td></tr>`;
     }
 
-    await Promise.all([
-        cargarCatalogosSheets(forzarRecarga),
-        cargarDatosPersonalSheets(forzarRecarga)
-    ]);
+    // 1. CARGAMOS PRIMERO LOS CATÁLOGOS (Puestos, Departamentos, etc.)
+    await cargarCatalogosSheets(forzarRecarga);
+
+    // 2. DESPUÉS CARGAMOS EL PERSONAL Y RENDERIZAMOS CON LOS NOMBRES YA LISTOS
+    await cargarDatosPersonalSheets(forzarRecarga);
 }
 
 function cancelarEdicionPersonal() {

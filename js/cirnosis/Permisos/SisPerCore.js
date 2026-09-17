@@ -3,16 +3,32 @@
 function renderizarListadoPermisosSis() {
     console.log("1. Entrando a renderizarListadoPermisosSis");
 
-    // 1. Usar la función oficial del sistema para cambiar de vista correctamente
+    // 1. Intentar limpiar la vista usando la función global si existe
     if (typeof renderizarVistaModuloSis === 'function') {
-        renderizarVistaModuloSis('permisos', "Selecciona un colaborador para administrar su matriz de accesos por módulos y submódulos.");
+        try {
+            renderizarVistaModuloSis('permisos', "Selecciona un colaborador para administrar su matriz de accesos por módulos y submódulos.");
+        } catch (e) {
+            console.warn("renderizarVistaModuloSis lanzó un aviso, continuando de forma manual...", e);
+        }
     }
     
-    // 2. Buscar el contenedor oficial que crea renderizarVistaModuloSis
-    const contenedorDinamico = document.getElementById('contenido-submodulo-dinamico');
+    // 2. Buscar o crear dinámicamente el contenedor de forma segura para que nunca falle
+    let contenedorDinamico = document.getElementById('contenido-submodulo-dinamico');
+    
+    if (!contenedorDinamico) {
+        console.log("Creando '#contenido-submodulo-dinamico' en pantalla...");
+        // Buscamos el contenedor principal donde la app dibuja las vistas
+        const areaTrabajo = document.getElementById('app-container') || document.querySelector('main') || document.body;
+        
+        if (areaTrabajo) {
+            // Opcional: limpiar contenido previo si quedó amontonado
+            areaTrabajo.innerHTML = `<div id="contenido-submodulo-dinamico"></div>`;
+            contenedorDinamico = document.getElementById('contenido-submodulo-dinamico');
+        }
+    }
 
     if (contenedorDinamico) {
-        contenedorDinamico.className = "col-span-1 sm:col-span-2 md:col-span-3 space-y-6 animate-fade-in";
+        contenedorDinamico.className = "col-span-1 sm:col-span-2 md:col-span-3 space-y-6 animate-fade-in w-full p-4";
         contenedorDinamico.innerHTML = `
             <div class="bg-white p-4 rounded-2xl border border-stone-200 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4">
                 <div class="w-full sm:w-96">
@@ -31,9 +47,10 @@ function renderizarListadoPermisosSis() {
             </div>
         `;
         
+        console.log("Contenedor preparado con éxito. Cargando datos...");
         cargarDatosPermisosConCatalogos();
     } else {
-        console.error("❌ No se encontró '#contenido-submodulo-dinamico'. Asegúrate de que 'renderizarVistaModuloSis' esté creando la vista correctamente.");
+        console.error("❌ Error crítico: No se pudo ubicar ningún contenedor base en el DOM.");
     }
 }
 

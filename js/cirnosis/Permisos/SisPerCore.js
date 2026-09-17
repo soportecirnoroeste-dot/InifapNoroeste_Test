@@ -3,34 +3,31 @@
 function renderizarListadoPermisosSis() {
     console.log("1. Entrando a renderizarListadoPermisosSis");
 
-    // 1. Intentar limpiar la vista usando la función global si existe
     if (typeof renderizarVistaModuloSis === 'function') {
         try {
             renderizarVistaModuloSis('permisos', "Selecciona un colaborador para administrar su matriz de accesos por módulos y submódulos.");
         } catch (e) {
-            console.warn("renderizarVistaModuloSis lanzó un aviso, continuando de forma manual...", e);
+            console.warn("renderizarVistaModuloSis lanzó un aviso...", e);
         }
     }
     
-    // 2. Buscar o crear dinámicamente el contenedor de forma segura para que nunca falle
     let contenedorDinamico = document.getElementById('contenido-submodulo-dinamico');
     
     if (!contenedorDinamico) {
-        console.log("Creando '#contenido-submodulo-dinamico' en pantalla...");
-        // Buscamos el contenedor principal donde la app dibuja las vistas
         const areaTrabajo = document.getElementById('app-container') || document.querySelector('main') || document.body;
-        
         if (areaTrabajo) {
-            // Opcional: limpiar contenido previo si quedó amontonado
-            areaTrabajo.innerHTML = `<div id="contenido-submodulo-dinamico"></div>`;
-            contenedorDinamico = document.getElementById('contenido-submodulo-dinamico');
+            contenedorDinamico = document.createElement('div');
+            contenedorDinamico.id = 'contenido-submodulo-dinamico';
+            areaTrabajo.appendChild(contenedorDinamico);
         }
     }
 
     if (contenedorDinamico) {
-        contenedorDinamico.className = "col-span-1 sm:col-span-2 md:col-span-3 space-y-6 animate-fade-in w-full p-4";
+        // CORRECCIÓN CLAVE: Usamos 'grid grid-cols-1 md:grid-cols-3 gap-6' para que los elementos se distribuyan correctamente en columnas
+        contenedorDinamico.className = "col-span-1 sm:col-span-2 md:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in w-full p-4";
         contenedorDinamico.innerHTML = `
-            <div class="bg-white p-4 rounded-2xl border border-stone-200 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4">
+            <!-- Barra de búsqueda ocupando todo el ancho superior del grid -->
+            <div class="col-span-full bg-white p-4 rounded-2xl border border-stone-200 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4">
                 <div class="w-full sm:w-96">
                     <input type="text" id="input-buscar-permisos" placeholder="BUSCAR POR NOMBRE, PUESTO, DEPARTAMENTO..." onkeyup="filtrarTarjetasPermisosSis()" class="w-full bg-stone-50 border border-stone-200 text-xs rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-[#249444] uppercase">
                 </div>
@@ -39,15 +36,14 @@ function renderizarListadoPermisosSis() {
                 </div>
             </div>
 
-            <!-- Grid 100% dinámico conectado al Google Sheets -->
-            <div id="grid-permisos-empleados" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <!-- Grid interno de empleados -->
+            <div id="grid-permisos-empleados" class="col-span-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div class="col-span-full p-8 text-center text-stone-400 italic bg-white rounded-2xl border border-stone-200 shadow-sm">
                     Sincronizando colaboradores desde Google Sheets...
                 </div>
             </div>
         `;
         
-        console.log("Contenedor preparado con éxito. Cargando datos...");
         cargarDatosPermisosConCatalogos();
     } else {
         console.error("❌ Error crítico: No se pudo ubicar ningún contenedor base en el DOM.");

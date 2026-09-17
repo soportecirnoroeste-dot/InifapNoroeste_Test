@@ -10,7 +10,7 @@ function renderizarListadoPermisosSis() {
             console.warn("renderizarVistaModuloSis lanzó un aviso...", e);
         }
     }
-    
+
     // Ocultar menús de tarjetas principales previos si se quedan colgados
     const elementosPagina = document.querySelectorAll('div, section');
     elementosPagina.forEach(el => {
@@ -20,7 +20,7 @@ function renderizarListadoPermisosSis() {
     });
 
     let contenedorDinamico = document.getElementById('contenido-submodulo-dinamico');
-    
+
     if (!contenedorDinamico) {
         const areaTrabajo = document.getElementById('app-container') || document.querySelector('main') || document.body;
         if (areaTrabajo) {
@@ -33,7 +33,10 @@ function renderizarListadoPermisosSis() {
     if (contenedorDinamico) {
         contenedorDinamico.style.display = 'block';
         // Contenedor principal idéntico al módulo Personal
-        contenedorDinamico.className = "flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-stone-50 p-4 rounded-xl border border-stone-200";
+        const contenedorDinamico = document.getElementById('contenido-submodulo-dinamico');
+        if (!contenedorDinamico) return;
+        contenedorDinamico.className = "w-full space-y-6";
+
         contenedorDinamico.innerHTML = `
             <!-- Encabezado del Módulo -->
             <div class="flex items-center gap-3 pb-2 border-b border-stone-100">
@@ -94,7 +97,7 @@ function renderizarListadoPermisosSis() {
                 </div>
             </div>
         `;
-        
+
         cargarDatosPermisosConCatalogos();
     } else {
         console.error("❌ Error crítico: No se pudo ubicar ningún contenedor base en el DOM.");
@@ -164,7 +167,7 @@ function renderizarTarjetasPermisosSis(empleados) {
         const centro = emp.centro || emp.CENTRO || "108 - DIRECCION";
         const numEmp = String(emp.numEmp || emp.noEmp || emp.NO_EMP || emp.NumEmp || '').trim();
         const nombre = emp.nombre || emp.NOMBRE || "SIN NOMBRE";
-        
+
         const cNumPto = String(emp.NumPto || emp.numPto || emp.puesto || '').trim();
         let puestoVisual = cNumPto;
         if (cNumPto && window._mapPuestosCache && window._mapPuestosCache[cNumPto]) {
@@ -202,7 +205,7 @@ function filtrarTarjetasPermisosSis() {
 
     const filtro = inputBusqueda.value.toUpperCase().trim();
     const lista = window.listaEmpleadosPermisosCache || [];
-    
+
     if (!filtro) {
         renderizarTarjetasPermisosSis(lista);
         return;

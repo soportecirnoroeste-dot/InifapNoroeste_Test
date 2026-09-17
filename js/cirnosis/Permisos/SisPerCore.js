@@ -1,16 +1,11 @@
-// js/SisPer/SisPerCore.js
+// ==========================================
+// MÓDULO DE PERMISOS - SISPER CORE
+// ==========================================
 
 function renderizarListadoPermisosSis() {
     console.log("1. Entrando a renderizarListadoPermisosSis (Con contenedor principal)");
 
-    if (typeof renderizarVistaModuloSis === 'function') {
-        try {
-            renderizarVistaModuloSis('permisos', "Selecciona un colaborador para administrar su matriz de accesos por módulos y submódulos.");
-        } catch (e) {
-            console.warn("renderizarVistaModuloSis lanzó un aviso...", e);
-        }
-    }
-    
+    // Ocultar menús de departamentos anteriores si los hubiera
     const elementosPagina = document.querySelectorAll('div, section');
     elementosPagina.forEach(el => {
         if (el.innerText && el.innerText.includes("MENÚ DEL DEPARTAMENTO") && el.id !== 'contenido-submodulo-dinamico') {
@@ -31,13 +26,17 @@ function renderizarListadoPermisosSis() {
 
     if (contenedorDinamico) {
         contenedorDinamico.style.display = 'block';
-        contenedorDinamico.className = "w-full space-y-6 bg-white p-6 rounded-xl border border-stone-200 shadow-sm";
+        contenedorDinamico.className = "w-full space-y-6 bg-white p-6 md:p-8 rounded-2xl soft-shadow border border-sky-500/10 mb-8 animate-fade-in";
         contenedorDinamico.innerHTML = `
-            <!-- Encabezado del Módulo -->
-            <div class="flex items-center gap-3 pb-2 border-b border-stone-100">
-                <div class="p-2.5 bg-[#f0fdf4] border border-[#c6f6d5] text-[#059669] rounded-xl flex items-center justify-center">
-                <svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' class='lucide lucide-user-round-key'><path d='M19 11v6'/><path d='M19 13h2'/><path d='M2 21a8 8 0 0 1 12.868-6.349'/><circle cx='10' cy='8' r='5'/><circle cx='19' cy='19' r='2'/></svg>   </div>
-                <h3 class="font-black text-stone-800 text-lg uppercase tracking-wide">Permisos</h3>
+            <!-- Encabezado del Módulo con Subtítulo Integrado -->
+            <div class="flex items-center gap-3 pb-4 border-b border-stone-100">
+                <div class="p-2.5 bg-sky-50 border border-sky-100 text-sky-600 rounded-xl flex items-center justify-center">
+                    <svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' class='lucide lucide-user-round-key'><path d='M19 11v6'/><path d='M19 13h2'/><path d='M2 21a8 8 0 0 1 12.868-6.349'/><circle cx='10' cy='8' r='5'/><circle cx='19' cy='19' r='2'/></svg>
+                </div>
+                <div>
+                    <h3 class="font-black text-stone-800 text-lg uppercase tracking-wide">Permisos</h3>
+                    <p class="text-xs text-stone-500">Selecciona un colaborador para administrar su matriz de accesos por módulos y submódulos.</p>
+                </div>
             </div>
 
             <!-- Bloque superior de gestión -->
@@ -46,7 +45,7 @@ function renderizarListadoPermisosSis() {
                     <h4 class="font-bold text-stone-800 text-sm">Gestión de Permisos por Colaborador</h4>
                 </div>
                 <div class="flex gap-2">
-                    <button type="button" onclick="actualizarDatosPermisosSis()" class="px-4 py-2 bg-stone-200 text-stone-700 rounded-xl text-xs font-bold hover:bg-stone-300 transition flex items-center gap-2">
+                    <button type="button" onclick="actualizarDatosPermisosSis()" class="px-4 py-2 bg-stone-200 text-stone-700 rounded-xl text-xs font-bold hover:bg-stone-300 transition flex items-center gap-2 cursor-pointer">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
                         Actualizar Datos
                     </button>
@@ -63,7 +62,7 @@ function renderizarListadoPermisosSis() {
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
                         </span>
                         <input type="text" id="input-buscar-permisos" oninput="filtrarTarjetasPermisosSis()" placeholder="Buscar por nombre, puesto, centro..." 
-                            class="w-64 sm:w-72 pl-9 pr-4 py-1.5 bg-stone-50 border border-stone-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-[#249444] text-stone-700 transition-all shadow-xs uppercase">
+                            class="w-64 sm:w-72 pl-9 pr-4 py-1.5 bg-stone-50 border border-stone-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-sky-500 text-stone-700 transition-all shadow-xs uppercase">
                     </div>
                 </div>
                 
@@ -80,7 +79,6 @@ function renderizarListadoPermisosSis() {
                                     <th class="p-3 border-b border-stone-200">DEPARTAMENTO</th>
                                 </tr>
                             </thead>
-                            <!-- ID corregido aquí para que coincida con renderizarTarjetasPermisosSis -->
                             <tbody id="grid-permisos-empleados" class="divide-y divide-stone-100">
                                 <tr><td colspan="6" class="p-6 text-center text-stone-400 italic">Cargando registros...</td></tr>
                             </tbody>
@@ -174,7 +172,7 @@ function renderizarTarjetasPermisosSis(empleados) {
                 <td class="p-3 font-mono text-stone-600">${reg}</td>
                 <td class="p-3 font-mono text-stone-600">${centro}</td>
                 <td class="p-3 font-mono text-stone-600">${numEmp}</td>
-                <td class="p-3 font-bold text-[#249444] uppercase">
+                <td class="p-3 font-bold text-sky-600 uppercase">
                     <button type="button" onclick="abrirMatrizPermisosUsuario('${nombre.replace(/'/g, "\\'")}', '${numEmp}')" class="hover:underline text-left cursor-pointer focus:outline-none">
                         ${nombre}
                     </button>

@@ -1,7 +1,7 @@
 // js/SisPer/SisPerCore.js
 
 function renderizarListadoPermisosSis() {
-    console.log("1. Entrando a renderizarListadoPermisosSis (Diseño Exacto Personal)");
+    console.log("1. Entrando a renderizarListadoPermisosSis (Contenedor Maestro Exacto)");
 
     if (typeof renderizarVistaModuloSis === 'function') {
         try {
@@ -32,31 +32,32 @@ function renderizarListadoPermisosSis() {
 
     if (contenedorDinamico) {
         contenedorDinamico.style.display = 'block';
-        contenedorDinamico.className = "space-y-6 animate-fade-in w-full p-4 md:p-6 max-w-7xl mx-auto";
+        // Contenedor principal idéntico al módulo Personal
+        contenedorDinamico.className = "space-y-6 animate-fade-in w-full p-4 md:p-6 max-w-7xl mx-auto bg-white rounded-3xl border border-stone-200 shadow-sm";
         contenedorDinamico.innerHTML = `
-            <!-- Encabezado idéntico al módulo Personal -->
-            <div class="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm flex items-center gap-3">
+            <!-- Encabezado del Módulo -->
+            <div class="flex items-center gap-3 pb-2 border-b border-stone-100">
                 <div class="w-10 h-10 rounded-xl bg-emerald-50 text-[#249444] flex items-center justify-center font-bold">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                 </div>
                 <h1 class="text-lg font-bold text-stone-800 uppercase tracking-wide">Permisos</h1>
             </div>
 
-            <!-- Barra de acciones idéntica -->
-            <div class="bg-white p-4 rounded-2xl border border-stone-200 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4">
+            <!-- Barra de acciones -->
+            <div class="bg-stone-50/50 p-4 rounded-2xl border border-stone-200/80 flex flex-col sm:flex-row justify-between items-center gap-4">
                 <div class="font-semibold text-stone-700 text-sm pl-2">
                     Gestión de Permisos por Colaborador
                 </div>
                 <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
-                    <button type="button" onclick="actualizarDatosPermisosSis()" class="bg-stone-50 hover:bg-stone-100 border border-stone-200 text-stone-700 text-xs font-bold px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 shadow-sm">
+                    <button type="button" onclick="actualizarDatosPermisosSis()" class="bg-white hover:bg-stone-50 border border-stone-200 text-stone-700 text-xs font-bold px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 shadow-sm">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
                         Actualizar Datos
                     </button>
                 </div>
             </div>
 
-            <!-- Contenedor principal de la tabla -->
-            <div class="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
+            <!-- Contenedor interno de la tabla -->
+            <div class="rounded-2xl border border-stone-200 overflow-hidden bg-white">
                 <div class="p-4 md:p-5 border-b border-stone-100 flex flex-col sm:flex-row justify-between items-center gap-4">
                     <div class="font-bold text-xs text-stone-500 uppercase tracking-wider pl-2">
                         Listado General de Empleados

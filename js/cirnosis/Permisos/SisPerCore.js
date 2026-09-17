@@ -37,16 +37,15 @@ function renderizarListadoPermisosSis() {
         contenedorDinamico.innerHTML = `
             <!-- Encabezado del Módulo -->
             <div class="flex items-center gap-3 pb-2 border-b border-stone-100">
-                <div class="w-10 h-10 rounded-xl bg-emerald-50 text-[#249444] flex items-center justify-center font-bold">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                </div>
-                <h1 class="text-lg font-bold text-stone-800 uppercase tracking-wide">Permisos</h1>
+                <div class="p-2.5 bg-[#f0fdf4] border border-[#c6f6d5] text-[#059669] rounded-xl flex items-center justify-center">
+                <svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' class='lucide lucide-user-round-key'><path d='M19 11v6'/><path d='M19 13h2'/><path d='M2 21a8 8 0 0 1 12.868-6.349'/><circle cx='10' cy='8' r='5'/><circle cx='19' cy='19' r='2'/></svg>                </div>
+                <h3 class="font-black text-stone-800 text-lg uppercase tracking-wide">Permisos</h3>
             </div>
 
             <!-- Barra de acciones -->
             <div class="bg-stone-50/50 p-4 rounded-2xl border border-stone-200/80 flex flex-col sm:flex-row justify-between items-center gap-4">
-                <div class="font-semibold text-stone-700 text-sm pl-2">
-                    Gestión de Permisos por Colaborador
+                <div>
+                    <h4 class="font-bold text-stone-800 text-sm">Gestión de Permisos</h4>
                 </div>
                 <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
                     <button type="button" onclick="actualizarDatosPermisosSis()" class="bg-white hover:bg-stone-50 border border-stone-200 text-stone-700 text-xs font-bold px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 shadow-sm">

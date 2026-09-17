@@ -1,16 +1,16 @@
 // js/SisPer/SisPerCore.js
 
 function renderizarListadoPermisosSis() {
-    renderizarVistaModuloSis('permisos', "Control institucional de accesos y privilegios por colaborador.");
+    renderizarVistaModuloSis('permisos', "Selecciona un colaborador para administrar su matriz de accesos por módulos y submódulos.");
     
     const contenedorDinamico = document.getElementById('contenido-submodulo-dinamico');
     if (contenedorDinamico) {
         contenedorDinamico.className = "col-span-1 sm:col-span-2 md:col-span-3 space-y-6 animate-fade-in";
         contenedorDinamico.innerHTML = `
-            <!-- Barra de acciones superior estilo Personal -->
+            <!-- Barra superior idéntica a Personal -->
             <div class="bg-white p-4 rounded-2xl border border-stone-200 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4">
                 <div class="flex items-center gap-2">
-                    <span class="text-xs font-bold text-stone-700 uppercase tracking-wider">Gestión de Permisos</span>
+                    <span class="text-xs font-bold text-stone-700 uppercase tracking-wider">Gestión de Permisos por Empleado</span>
                 </div>
                 <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
                     <button onclick="actualizarDatosPermisosSis()" class="bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold px-4 py-2.5 rounded-xl transition-all flex items-center gap-2">
@@ -20,10 +20,10 @@ function renderizarListadoPermisosSis() {
                 </div>
             </div>
 
-            <!-- Tabla de Empleados (Estilo institucional INIFAP / Personal) -->
+            <!-- Tabla General de Empleados adaptada para Permisos -->
             <div class="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
                 <div class="p-4 border-b border-stone-100 flex flex-col sm:flex-row justify-between items-center gap-3">
-                    <span class="text-xs font-bold text-stone-500 uppercase tracking-wide">Listado General de Empleados (Permisos)</span>
+                    <span class="text-xs font-bold text-stone-500 uppercase tracking-wide">Listado General de Empleados</span>
                     <div class="w-full sm:w-72">
                         <input type="text" placeholder="BUSCAR POR NOMBRE, PUESTO, CENTRO..." class="w-full bg-stone-50 border border-stone-200 text-[11px] rounded-xl px-3 py-2 focus:outline-none focus:border-[#249444] uppercase">
                     </div>
@@ -61,6 +61,18 @@ function renderizarListadoPermisosSis() {
                                 <td class="p-3">
                                     <button onclick="abrirMatrizPermisosUsuario('GONZALEZ GARCIA YOLANDA', '4229')" class="text-[#249444] hover:underline font-bold text-left uppercase">
                                         GONZALEZ GARCIA YOLANDA
+                                    </button>
+                                </td>
+                                <td class="p-3 text-stone-600 uppercase">INVESTIGADOR TITULAR C</td>
+                                <td class="p-3 pr-4 text-stone-600 uppercase">INVESTIGACIÓN</td>
+                            </tr>
+                            <tr class="hover:bg-stone-50/80 transition-all">
+                                <td class="p-3 pl-4 text-stone-500">100 - CIRNO</td>
+                                <td class="p-3 text-stone-600">102 - CENEB</td>
+                                <td class="p-3 text-stone-600">387</td>
+                                <td class="p-3">
+                                    <button onclick="abrirMatrizPermisosUsuario('CHAVEZ VILLALBA GABRIELA', '387')" class="text-[#249444] hover:underline font-bold text-left uppercase">
+                                        CHAVEZ VILLALBA GABRIELA
                                     </button>
                                 </td>
                                 <td class="p-3 text-stone-600 uppercase">INVESTIGADOR TITULAR C</td>

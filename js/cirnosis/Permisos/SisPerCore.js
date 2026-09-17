@@ -1,53 +1,79 @@
 // js/SisPer/SisPerCore.js
 
 function renderizarListadoPermisosSis() {
-    console.log("1. Entrando a renderizarListadoPermisosSis");
+    console.log("1. Entrando a renderizarListadoPermisosSis (Modo Tabla)");
 
-    // 1. Intentar limpiar la vista usando la función global si existe
     if (typeof renderizarVistaModuloSis === 'function') {
         try {
             renderizarVistaModuloSis('permisos', "Selecciona un colaborador para administrar su matriz de accesos por módulos y submódulos.");
         } catch (e) {
-            console.warn("renderizarVistaModuloSis lanzó un aviso, continuando de forma manual...", e);
+            console.warn("renderizarVistaModuloSis lanzó un aviso...", e);
         }
     }
     
-    // 2. Buscar o crear dinámicamente el contenedor de forma segura para que nunca falle
     let contenedorDinamico = document.getElementById('contenido-submodulo-dinamico');
     
     if (!contenedorDinamico) {
-        console.log("Creando '#contenido-submodulo-dinamico' en pantalla...");
-        // Buscamos el contenedor principal donde la app dibuja las vistas
         const areaTrabajo = document.getElementById('app-container') || document.querySelector('main') || document.body;
-        
         if (areaTrabajo) {
-            // Opcional: limpiar contenido previo si quedó amontonado
-            areaTrabajo.innerHTML = `<div id="contenido-submodulo-dinamico"></div>`;
-            contenedorDinamico = document.getElementById('contenido-submodulo-dinamico');
+            contenedorDinamico = document.createElement('div');
+            contenedorDinamico.id = 'contenido-submodulo-dinamico';
+            areaTrabajo.appendChild(contenedorDinamico);
         }
     }
 
     if (contenedorDinamico) {
-        contenedorDinamico.className = "col-span-1 sm:col-span-2 md:col-span-3 space-y-6 animate-fade-in w-full p-4";
+        contenedorDinamico.className = "space-y-6 animate-fade-in w-full p-4";
         contenedorDinamico.innerHTML = `
+            <!-- Barra superior estilo Vista 2 -->
             <div class="bg-white p-4 rounded-2xl border border-stone-200 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4">
-                <div class="w-full sm:w-96">
-                    <input type="text" id="input-buscar-permisos" placeholder="BUSCAR POR NOMBRE, PUESTO, DEPARTAMENTO..." onkeyup="filtrarTarjetasPermisosSis()" class="w-full bg-stone-50 border border-stone-200 text-xs rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-[#249444] uppercase">
+                <div class="font-bold text-stone-700 text-sm uppercase tracking-wide">
+                    Gestión de Permisos por Colaborador
                 </div>
-                <div class="text-xs text-stone-400 font-medium text-right w-full sm:w-auto">
-                    Mostrando personal activo del sistema
+                <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                    <button type="button" onclick="actualizarDatosPermisosSis()" class="bg-stone-50 hover:bg-stone-100 border border-stone-200 text-stone-700 text-xs font-bold px-4 py-2.5 rounded-xl transition-all flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
+                        Actualizar Datos
+                    </button>
                 </div>
             </div>
 
-            <!-- Grid 100% dinámico conectado al Google Sheets -->
-            <div id="grid-permisos-empleados" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div class="col-span-full p-8 text-center text-stone-400 italic bg-white rounded-2xl border border-stone-200 shadow-sm">
-                    Sincronizando colaboradores desde Google Sheets...
+            <!-- Contenedor principal de la tabla -->
+            <div class="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
+                <div class="p-4 border-b border-stone-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <div class="font-bold text-xs text-stone-500 uppercase tracking-wider">
+                        Listado General de Empleados
+                    </div>
+                    <div class="w-full sm:w-80">
+                        <input type="text" id="input-buscar-permisos" placeholder="BUSCAR POR NOMBRE, PUESTO, CENTRO..." onkeyup="filtrarTarjetasPermisosSis()" class="w-full bg-stone-50 border border-stone-200 text-xs rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-[#249444] uppercase">
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-stone-50 border-b border-stone-200 text-[11px] font-bold text-stone-500 uppercase">
+                                <th class="p-3.5 pl-6">Reg</th>
+                                <th class="p-3.5">Centro</th>
+                                <th class="p-3.5">No. Emp</th>
+                                <th class="p-3.5">Nombre</th>
+                                <th class="p-3.5">Puesto</th>
+                                <th class="p-3.5">Departamento</th>
+                                <th class="p-3.5 pr-6 text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="grid-permisos-empleados" class="divide-y divide-stone-100 text-xs text-stone-700">
+                            <tr>
+                                <td colspan="7" class="p-8 text-center text-stone-400 italic">
+                                    Sincronizando colaboradores desde Google Sheets...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         `;
         
-        console.log("Contenedor preparado con éxito. Cargando datos...");
         cargarDatosPermisosConCatalogos();
     } else {
         console.error("❌ Error crítico: No se pudo ubicar ningún contenedor base en el DOM.");
@@ -56,60 +82,42 @@ function renderizarListadoPermisosSis() {
 
 async function cargarDatosPermisosConCatalogos() {
     console.log("5. Entrando a cargarDatosPermisosConCatalogos");
-    const grid = document.getElementById('grid-permisos-empleados');
+    const tbody = document.getElementById('grid-permisos-empleados');
 
     try {
-        // 1. Cargar catálogos
         if (!window._catPuestos || window._catPuestos.length === 0 || !window._catDepartamentos || window._catDepartamentos.length === 0) {
-            console.log("6. Solicitando catálogos del sistema mediante FetchAPI...");
             const dataSys = await FetchAPI('obtenerDatosSistema', {});
             window._catDepartamentos = dataSys.departamentos || dataSys.deptos || [];
             window._catPuestos = dataSys.puestos || dataSys.catPuestos || [];
         }
 
-        // 2. Obtener personal
         let data = window._empleadosCache || [];
         if (!data || data.length === 0) {
-            console.log("7. Solicitando personal mediante FetchAPI('obtenerPersonal')...");
             data = await FetchAPI('obtenerPersonal');
             window._empleadosCache = data || [];
         }
 
-        console.log("8. Datos de empleados obtenidos con éxito:", window._empleadosCache);
         window.listaEmpleadosPermisosCache = window._empleadosCache;
         renderizarTarjetasPermisosSis(window.listaEmpleadosPermisosCache);
 
     } catch (err) {
-        console.error("❌ Error atrapado en el bloque catch de cargarDatosPermisosConCatalogos:", err);
-        if (grid) {
-            grid.innerHTML = `<div class="col-span-full p-6 text-center text-red-500 bg-white rounded-2xl border border-stone-200 shadow-sm">Error al conectar con Sheets: ${err.message || 'Error de red'}</div>`;
+        console.error("❌ Error en carga:", err);
+        if (tbody) {
+            tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-red-500">Error al conectar con Sheets: ${err.message || 'Error de red'}</td></tr>`;
         }
     }
 }
 
-function obtenerInicialesNombre(nombre) {
-    if (!nombre) return "US";
-    const partes = nombre.trim().split(" ");
-    if (partes.length >= 2) {
-        return (partes[0][0] + partes[1][0]).toUpperCase();
-    }
-    return nombre.substring(0, 2).toUpperCase();
-}
-
 function renderizarTarjetasPermisosSis(empleados) {
-    console.log("9. Renderizando tarjetas para:", empleados?.length, "empleados");
-    const grid = document.getElementById('grid-permisos-empleados');
-    if (!grid) {
-        console.error("❌ No se encontró el grid '#grid-permisos-empleados' en el DOM.");
-        return;
-    }
+    const tbody = document.getElementById('grid-permisos-empleados');
+    if (!tbody) return;
 
     if (!empleados || empleados.length === 0) {
-        grid.innerHTML = `<div class="col-span-full p-8 text-center text-stone-400 bg-white rounded-2xl border border-stone-200 shadow-sm">No se encontraron colaboradores registrados en Google Sheets.</div>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-stone-400">No se encontraron colaboradores registrados en Google Sheets.</td></tr>`;
         return;
     }
 
-    // Mapeo de catálogos (Puestos)
+    // Mapeos de catálogos
     if (!window._mapPuestosCache && window._catPuestos && Array.isArray(window._catPuestos)) {
         window._mapPuestosCache = {};
         window._catPuestos.forEach(p => {
@@ -119,7 +127,6 @@ function renderizarTarjetasPermisosSis(empleados) {
         });
     }
 
-    // Mapeo de catálogos (Departamentos)
     if (!window._mapDeptosCache && window._catDepartamentos && Array.isArray(window._catDepartamentos)) {
         window._mapDeptosCache = {};
         window._catDepartamentos.forEach(d => {
@@ -133,62 +140,42 @@ function renderizarTarjetasPermisosSis(empleados) {
 
     let html = "";
     empleados.forEach(emp => {
+        const reg = emp.reg || emp.REG || "100 - CIRNO";
+        const centro = emp.centro || emp.CENTRO || "108 - DIRECCION";
         const numEmp = String(emp.numEmp || emp.noEmp || emp.NO_EMP || emp.NumEmp || '').trim();
         const nombre = emp.nombre || emp.NOMBRE || "SIN NOMBRE";
         
         const cNumPto = String(emp.NumPto || emp.numPto || emp.puesto || '').trim();
         let puestoVisual = cNumPto;
-        if (cNumPto) {
-            if (window._mapPuestosCache && window._mapPuestosCache[cNumPto]) {
-                puestoVisual = window._mapPuestosCache[cNumPto];
-            } else if (Array.isArray(window._catPuestos)) {
-                const encontrado = window._catPuestos.find(p => String(p.NumPto || p.numPto || '').trim() === cNumPto);
-                if (encontrado) puestoVisual = encontrado.NomPto || encontrado.nomPto || encontrado.nombre || cNumPto;
-            }
+        if (cNumPto && window._mapPuestosCache && window._mapPuestosCache[cNumPto]) {
+            puestoVisual = window._mapPuestosCache[cNumPto];
         }
 
         const cNomCorDep = String(emp.NomCorDep || emp.nomCorDep || emp.depto || '').trim();
         let deptoVisual = cNomCorDep;
-        if (cNomCorDep) {
-            if (window._mapDeptosCache && window._mapDeptosCache[cNomCorDep]) {
-                deptoVisual = window._mapDeptosCache[cNomCorDep];
-            } else if (Array.isArray(window._catDepartamentos)) {
-                const encontrado = window._catDepartamentos.find(d => 
-                    String(d.nomCorDep || '').trim().toUpperCase() === cNomCorDep.toUpperCase() ||
-                    String(d.claveDep || '').trim() === cNomCorDep
-                );
-                if (encontrado) deptoVisual = encontrado.nomDep || encontrado.nombre || cNomCorDep;
-            }
+        if (cNomCorDep && window._mapDeptosCache && window._mapDeptosCache[cNomCorDep]) {
+            deptoVisual = window._mapDeptosCache[cNomCorDep];
         }
 
-        const rol = emp.rol || emp.ROL || "Usuario";
-        const iniciales = obtenerInicialesNombre(nombre);
-
         html += `
-            <div class="bg-white p-4 rounded-2xl border border-stone-200 shadow-sm flex items-center justify-between gap-3 hover:border-stone-300 transition-all">
-                <div class="flex items-center gap-3.5 overflow-hidden">
-                    <div class="w-11 h-11 rounded-full bg-emerald-50 border border-emerald-100 text-[#249444] font-bold text-xs flex items-center justify-center shrink-0">
-                        ${iniciales}
-                    </div>
-                    <div class="overflow-hidden">
-                        <h4 class="text-xs font-bold text-stone-800 truncate uppercase" title="${nombre}">${nombre}</h4>
-                        <p class="text-[11px] text-stone-500 truncate uppercase" title="${puestoVisual}">${puestoVisual}</p>
-                        ${deptoVisual && deptoVisual !== 'N/A' ? `<p class="text-[10px] text-stone-400 truncate uppercase mt-0.5" title="${deptoVisual}">${deptoVisual}</p>` : ''}
-                        <span class="inline-block mt-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
-                            Rol: ${rol}
-                        </span>
-                    </div>
-                </div>
-                <button type="button" onclick="abrirMatrizPermisosUsuario('${nombre.replace(/'/g, "\\'")}', '${numEmp}')" class="shrink-0 bg-stone-50 hover:bg-stone-100 border border-stone-200 text-stone-700 text-xs font-bold px-3 py-2 rounded-xl transition-all flex items-center gap-1.5">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4"/><path d="m16.2 7.8 2.9-2.9"/><path d="M18 12h4"/><path d="m16.2 16.2 2.9 2.9"/><path d="M12 18v4"/><path d="m4.9 19.1 2.9-2.9"/><path d="M2 12h4"/><path d="m4.9 4.9 2.9 2.9"/></svg>
-                    Permisos
-                </button>
-            </div>
+            <tr class="hover:bg-stone-50/80 transition-all border-b border-stone-100">
+                <td class="p-3.5 pl-6 font-medium text-stone-600">${reg}</td>
+                <td class="p-3.5 text-stone-600">${centro}</td>
+                <td class="p-3.5 font-semibold text-stone-800">${numEmp}</td>
+                <td class="p-3.5 font-bold text-[#249444] uppercase">${nombre}</td>
+                <td class="p-3.5 text-stone-600 uppercase">${puestoVisual}</td>
+                <td class="p-3.5 text-stone-600 uppercase">${deptoVisual || 'N/A'}</td>
+                <td class="p-3.5 pr-6 text-center">
+                    <button type="button" onclick="abrirMatrizPermisosUsuario('${nombre.replace(/'/g, "\\'")}', '${numEmp}')" class="bg-stone-50 hover:bg-stone-100 border border-stone-200 text-stone-700 text-xs font-bold px-3 py-1.5 rounded-xl transition-all inline-flex items-center gap-1.5 shadow-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4"/><path d="m16.2 7.8 2.9-2.9"/><path d="M18 12h4"/><path d="m16.2 16.2 2.9 2.9"/><path d="M12 18v4"/><path d="m4.9 19.1 2.9-2.9"/><path d="M2 12h4"/><path d="m4.9 4.9 2.9 2.9"/></svg>
+                        Permisos
+                    </button>
+                </td>
+            </tr>
         `;
     });
 
-    grid.innerHTML = html;
-    console.log("10. Tarjetas pintadas correctamente en pantalla.");
+    tbody.innerHTML = html;
 }
 
 function filtrarTarjetasPermisosSis() {
@@ -204,7 +191,7 @@ function filtrarTarjetasPermisosSis() {
     }
 
     const filtrados = lista.filter(emp => {
-        const texto = `${emp.numEmp || ''} ${emp.noEmp || ''} ${emp.nombre || ''} ${emp.NumPto || ''} ${emp.NomCorDep || ''}`.toUpperCase();
+        const texto = `${emp.reg || ''} ${emp.centro || ''} ${emp.numEmp || ''} ${emp.noEmp || ''} ${emp.nombre || ''} ${emp.NumPto || ''} ${emp.NomCorDep || ''}`.toUpperCase();
         return texto.includes(filtro);
     });
 
@@ -218,6 +205,7 @@ function cargarPermisosSis() {
 }
 
 function actualizarDatosPermisosSis() {
+    window._empleadosCache = null; // Limpiar caché para forzar recarga fresca
     cargarPermisosSis();
 }
 

@@ -69,59 +69,36 @@ function cargarFormatosSis() {
 
 // 1. VISTA INICIAL: Listado del Personal para configurar permisos
 function cargarPermisosSis() {
-    renderizarVistaModuloSis('permisos', "Selecciona un colaborador para administrar su matriz de accesos por módulos y submódulos.");
+    // Validar de forma segura si la función global existe antes de llamarla
+    if (typeof renderizarVistaModuloSis === 'function') {
+        renderizarVistaModuloSis('permisos', "Selecciona un colaborador para administrar su matriz de accesos por módulos y submódulos.");
+    }
     
     const contenedorDinamico = document.getElementById('contenido-submodulo-dinamico');
     if (contenedorDinamico) {
-        contenedorDinamico.className = "col-span-1 sm:col-span-2 md:col-span-3 space-y-4";
+        contenedorDinamico.className = "col-span-1 sm:col-span-2 md:col-span-3 space-y-6 animate-fade-in";
         contenedorDinamico.innerHTML = `
-            <div class="flex flex-col md:flex-row justify-between items-center gap-4 bg-stone-50 p-4 rounded-xl border border-stone-200">
-                <div class="w-full md:w-1/3">
-                    <input type="text" placeholder="Buscar colaborador..." class="w-full bg-white border border-stone-200 text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-[#249444]">
+            <div class="bg-white p-4 rounded-2xl border border-stone-200 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div class="w-full sm:w-96">
+                    <input type="text" id="input-buscar-permisos" placeholder="BUSCAR POR NOMBRE, PUESTO, DEPARTAMENTO..." onkeyup="filtrarTarjetasPermisosSis()" class="w-full bg-stone-50 border border-stone-200 text-xs rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-[#249444] uppercase">
                 </div>
-                <div class="text-xs text-stone-500 font-medium">
-                    Mostrando personal activo del departamento de sistemas
+                <div class="text-xs text-stone-400 font-medium text-right w-full sm:w-auto">
+                    Mostrando personal activo del sistema
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <!-- Tarjeta de Ejemplo Colaborador 1 -->
-                <div class="bg-white border border-stone-200 rounded-xl p-4 flex items-center justify-between shadow-sm hover:border-[#249444] transition-all">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-[#f0fdf4] text-[#059669] font-bold flex items-center justify-center border border-[#c6f6d5] text-sm">
-                            EG
-                        </div>
-                        <div>
-                            <h4 class="font-bold text-stone-800 text-xs uppercase">Elías González</h4>
-                            <p class="text-[11px] text-stone-500">Administrador de Redes</p>
-                            <span class="inline-block mt-1 bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-md">Rol: Administrador</span>
-                        </div>
-                    </div>
-                    <button onclick="abrirMatrizPermisosUsuario(' González', 'Administrador')" class="bg-stone-100 hover:bg-[#249444] hover:text-white text-stone-700 p-2.5 rounded-xl transition-all text-xs font-bold flex items-center gap-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 7.54 16.63"/><path d="M12 6v6l4 2"/></svg>
-                        Permisos
-                    </button>
-                </div>
-
-                <!-- Tarjeta de Ejemplo Colaborador 2 -->
-                <div class="bg-white border border-stone-200 rounded-xl p-4 flex items-center justify-between shadow-sm hover:border-[#249444] transition-all">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-stone-100 text-stone-600 font-bold flex items-center justify-center border border-stone-200 text-sm">
-                            JR
-                        </div>
-                        <div>
-                            <h4 class="font-bold text-stone-800 text-xs uppercase">Juan Ruiz</h4>
-                            <p class="text-[11px] text-stone-500">Soporte Técnico</p>
-                            <span class="inline-block mt-1 bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-md">Rol: Soporte</span>
-                        </div>
-                    </div>
-                    <button onclick="abrirMatrizPermisosUsuario('Juan Ruiz', 'Soporte Técnico')" class="bg-stone-100 hover:bg-[#249444] hover:text-white text-stone-700 p-2.5 rounded-xl transition-all text-xs font-bold flex items-center gap-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 7.54 16.63"/><path d="M12 6v6l4 2"/></svg>
-                        Permisos
-                    </button>
+            <!-- Grid 100% dinámico conectado al Google Sheets -->
+            <div id="grid-permisos-empleados" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div class="col-span-full p-8 text-center text-stone-400 italic bg-white rounded-2xl border border-stone-200 shadow-sm">
+                    Sincronizando colaboradores desde Google Sheets...
                 </div>
             </div>
         `;
+
+        // Llamar a la función que descarga y pinta los datos reales
+        if (typeof cargarDatosPermisosConCatalogos === 'function') {
+            cargarDatosPermisosConCatalogos();
+        }
     }
 }
 

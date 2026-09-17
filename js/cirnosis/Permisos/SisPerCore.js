@@ -23,11 +23,11 @@ function renderizarListadoPermisosSis() {
     }
 
     if (contenedorDinamico) {
-        // CORRECCIÓN CLAVE: Usamos 'grid grid-cols-1 md:grid-cols-3 gap-6' para que los elementos se distribuyan correctamente en columnas
-        contenedorDinamico.className = "col-span-1 sm:col-span-2 md:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in w-full p-4";
+        // Contenedor principal en columna limpia para que no se amontone
+        contenedorDinamico.className = "space-y-6 animate-fade-in w-full p-4";
         contenedorDinamico.innerHTML = `
-            <!-- Barra de búsqueda ocupando todo el ancho superior del grid -->
-            <div class="col-span-full bg-white p-4 rounded-2xl border border-stone-200 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4">
+            <!-- Barra de búsqueda superior -->
+            <div class="bg-white p-4 rounded-2xl border border-stone-200 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4">
                 <div class="w-full sm:w-96">
                     <input type="text" id="input-buscar-permisos" placeholder="BUSCAR POR NOMBRE, PUESTO, DEPARTAMENTO..." onkeyup="filtrarTarjetasPermisosSis()" class="w-full bg-stone-50 border border-stone-200 text-xs rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-[#249444] uppercase">
                 </div>
@@ -36,8 +36,8 @@ function renderizarListadoPermisosSis() {
                 </div>
             </div>
 
-            <!-- Grid interno de empleados -->
-            <div id="grid-permisos-empleados" class="col-span-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <!-- Grid de empleados ordenado en 3 columnas -->
+            <div id="grid-permisos-empleados" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div class="col-span-full p-8 text-center text-stone-400 italic bg-white rounded-2xl border border-stone-200 shadow-sm">
                     Sincronizando colaboradores desde Google Sheets...
                 </div>
@@ -49,7 +49,6 @@ function renderizarListadoPermisosSis() {
         console.error("❌ Error crítico: No se pudo ubicar ningún contenedor base en el DOM.");
     }
 }
-
 async function cargarDatosPermisosConCatalogos() {
     console.log("5. Entrando a cargarDatosPermisosConCatalogos");
     const grid = document.getElementById('grid-permisos-empleados');

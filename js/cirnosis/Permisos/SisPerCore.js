@@ -12,52 +12,52 @@ function renderizarListadoPermisosSis() {
                     <input type="text" id="input-buscar-permisos" placeholder="BUSCAR POR NOMBRE, PUESTO, DEPARTAMENTO..." onkeyup="filtrarTarjetasPermisosSis()" class="w-full bg-stone-50 border border-stone-200 text-xs rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-[#249444] uppercase">
                 </div>
                 <div class="text-xs text-stone-400 font-medium text-right w-full sm:w-auto">
-                    Mostrando personal activo
+                    Mostrando personal activo del sistema
                 </div>
             </div>
 
+            <!-- Grid 100% dinámico sin datos quemados -->
             <div id="grid-permisos-empleados" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div class="col-span-full p-8 text-center text-stone-400 italic bg-white rounded-2xl border border-stone-200 shadow-sm">
-                    Cargando colaboradores desde Google Sheets...
+                    Sincronizando colaboradores desde Google Sheets...
                 </div>
             </div>
         `;
 
-        // Llamar de forma inmediata y segura a la carga de datos
-        cargarEmpleadosParaPermisosSis();
+        cargarDatosPermisosConCatalogos();
     }
 }
 
-// Función para traer los datos reales de la pestaña Personal
-async function cargarEmpleadosParaPermisosSis() {
+async function cargarDatosPermisosConCatalogos() {
     const grid = document.getElementById('grid-permisos-empleados');
-    
-    if (window.listaEmpleadosPermisosCache && window.listaEmpleadosPermisosCache.length > 0) {
-        renderizarTarjetasPermisosSis(window.listaEmpleadosPermisosCache);
-        return;
-    }
 
     try {
-        let data = [];
-        if (typeof FetchAPI === 'function') {
-            data = await FetchAPI('obtenerPersonal');
-        } else if (typeof google !== 'undefined' && google.script && google.script.run) {
-            data = await new Promise((resolve, reject) => {
-                google.script.run.withSuccessHandler(resolve).withFailureHandler(reject).obtenerPersonalDesdeSheet();
-            });
+        // 1. Cargar catálogos para cruzar nombres de puestos y departamentos correctamente
+        if (!window._catPuestos || window._catPuestos.length === 0 || !window._catDepartamentos || window._catDepartamentos.length === 0) {
+            const dataSys = await FetchAPI('obtenerDatosSistema', {});
+            window._catDepartamentos = dataSys.departamentos || dataSys.deptos || [];
+            window._catPuestos = dataSys.puestos || dataSys.catPuestos || [];
         }
 
-        window.listaEmpleadosPermisosCache = data || [];
+        // 2. Obtener estrictamente el personal del Sheets (usando la caché de RH o consultando la API)
+        let data = window._empleadosCache || [];
+        if (!data || data.length === 0) {
+            data = await FetchAPI('obtenerPersonal');
+            window._empleadosCache = data || [];
+        }
+
+        window.listaEmpleadosPermisosCache = window._empleadosCache;
         renderizarTarjetasPermisosSis(window.listaEmpleadosPermisosCache);
+
     } catch (err) {
         console.error("Error al cargar empleados para permisos:", err);
         if (grid) {
-            grid.innerHTML = `<div class="col-span-full p-6 text-center text-red-500 bg-white rounded-2xl border border-stone-200 shadow-sm">Error al cargar datos: ${err.message || 'Error de conexión'}</div>`;
+            grid.innerHTML = `<div class="col-span-full p-6 text-center text-red-500 bg-white rounded-2xl border border-stone-200 shadow-sm">Error al conectar con Sheets: ${err.message || 'Error de red'}</div>`;
         }
     }
 }
 
-// Función para generar iniciales
+// Función para generar iniciales a partir del nombre real
 function obtenerInicialesNombre(nombre) {
     if (!nombre) return "US";
     const partes = nombre.trim().split(" ");
@@ -67,22 +67,70 @@ function obtenerInicialesNombre(nombre) {
     return nombre.substring(0, 2).toUpperCase();
 }
 
-// Función para pintar las tarjetas en el grid
+// Función para pintar las tarjetas basadas 100% en los registros reales del Sheets
 function renderizarTarjetasPermisosSis(empleados) {
     const grid = document.getElementById('grid-permisos-empleados');
     if (!grid) return;
 
     if (!empleados || empleados.length === 0) {
-        grid.innerHTML = `<div class="col-span-full p-8 text-center text-stone-400 bg-white rounded-2xl border border-stone-200 shadow-sm">No se encontraron colaboradores registrados.</div>`;
+        grid.innerHTML = `<div class="col-span-full p-8 text-center text-stone-400 bg-white rounded-2xl border border-stone-200 shadow-sm">No se encontraron colaboradores registrados en Google Sheets.</div>`;
         return;
+    }
+
+    // Mapeo de catálogos (Puestos)
+    if (!window._mapPuestosCache && window._catPuestos && Array.isArray(window._catPuestos)) {
+        window._mapPuestosCache = {};
+        window._catPuestos.forEach(p => {
+            const k = String(p.NumPto || p.numPto || p.clave || '').trim();
+            const v = p.NomPto || p.nomPto || p.nombre || '';
+            if (k) window._mapPuestosCache[k] = v;
+        });
+    }
+
+    // Mapeo de catálogos (Departamentos)
+    if (!window._mapDeptosCache && window._catDepartamentos && Array.isArray(window._catDepartamentos)) {
+        window._mapDeptosCache = {};
+        window._catDepartamentos.forEach(d => {
+            const nomCor = String(d.nomCorDep || '').trim();
+            const cDep = String(d.claveDep || '').trim();
+            const nomLargo = d.nomDep || d.nombre || '';
+            if (nomCor) window._mapDeptosCache[nomCor] = nomLargo;
+            if (cDep) window._mapDeptosCache[cDep] = nomLargo;
+        });
     }
 
     let html = "";
     empleados.forEach(emp => {
-        const numEmp = emp.numEmp || emp.noEmp || emp.NO_EMP || emp.NumEmp || "";
+        const numEmp = String(emp.numEmp || emp.noEmp || emp.NO_EMP || emp.NumEmp || '').trim();
         const nombre = emp.nombre || emp.NOMBRE || "SIN NOMBRE";
-        const puesto = emp.puesto || emp.PUESTO || emp.NumPto || "SIN PUESTO";
-        const depto = emp.depto || emp.DEPARTAMENTO || emp.NomCorDep || "";
+        
+        // Resolver Puesto
+        const cNumPto = String(emp.NumPto || emp.numPto || emp.puesto || '').trim();
+        let puestoVisual = cNumPto;
+        if (cNumPto) {
+            if (window._mapPuestosCache && window._mapPuestosCache[cNumPto]) {
+                puestoVisual = window._mapPuestosCache[cNumPto];
+            } else if (Array.isArray(window._catPuestos)) {
+                const encontrado = window._catPuestos.find(p => String(p.NumPto || p.numPto || '').trim() === cNumPto);
+                if (encontrado) puestoVisual = encontrado.NomPto || encontrado.nomPto || encontrado.nombre || cNumPto;
+            }
+        }
+
+        // Resolver Departamento
+        const cNomCorDep = String(emp.NomCorDep || emp.nomCorDep || emp.depto || '').trim();
+        let deptoVisual = cNomCorDep;
+        if (cNomCorDep) {
+            if (window._mapDeptosCache && window._mapDeptosCache[cNomCorDep]) {
+                deptoVisual = window._mapDeptosCache[cNomCorDep];
+            } else if (Array.isArray(window._catDepartamentos)) {
+                const encontrado = window._catDepartamentos.find(d => 
+                    String(d.nomCorDep || '').trim().toUpperCase() === cNomCorDep.toUpperCase() ||
+                    String(d.claveDep || '').trim() === cNomCorDep
+                );
+                if (encontrado) deptoVisual = encontrado.nomDep || encontrado.nombre || cNomCorDep;
+            }
+        }
+
         const rol = emp.rol || emp.ROL || "Usuario";
         const iniciales = obtenerInicialesNombre(nombre);
 
@@ -94,8 +142,8 @@ function renderizarTarjetasPermisosSis(empleados) {
                     </div>
                     <div class="overflow-hidden">
                         <h4 class="text-xs font-bold text-stone-800 truncate uppercase" title="${nombre}">${nombre}</h4>
-                        <p class="text-[11px] text-stone-500 truncate uppercase" title="${puesto}">${puesto}</p>
-                        ${depto && depto !== 'N/A' ? `<p class="text-[10px] text-stone-400 truncate uppercase mt-0.5">${depto}</p>` : ''}
+                        <p class="text-[11px] text-stone-500 truncate uppercase" title="${puestoVisual}">${puestoVisual}</p>
+                        ${deptoVisual && deptoVisual !== 'N/A' ? `<p class="text-[10px] text-stone-400 truncate uppercase mt-0.5" title="${deptoVisual}">${deptoVisual}</p>` : ''}
                         <span class="inline-block mt-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
                             Rol: ${rol}
                         </span>
@@ -112,9 +160,12 @@ function renderizarTarjetasPermisosSis(empleados) {
     grid.innerHTML = html;
 }
 
-// Función para filtrar el grid en tiempo real
+// Filtro en tiempo real sobre la caché real de empleados
 function filtrarTarjetasPermisosSis() {
-    const filtro = document.getElementById('input-buscar-permisos').value.toUpperCase().trim();
+    const inputBusqueda = document.getElementById('input-buscar-permisos');
+    if (!inputBusqueda) return;
+
+    const filtro = inputBusqueda.value.toUpperCase().trim();
     const lista = window.listaEmpleadosPermisosCache || [];
     
     if (!filtro) {
@@ -123,12 +174,23 @@ function filtrarTarjetasPermisosSis() {
     }
 
     const filtrados = lista.filter(emp => {
-        const texto = `${emp.numEmp || ''} ${emp.noEmp || ''} ${emp.nombre || ''} ${emp.puesto || ''} ${emp.NumPto || ''} ${emp.depto || ''} ${emp.NomCorDep || ''} ${emp.centro || ''}`.toUpperCase();
+        const texto = `${emp.numEmp || ''} ${emp.noEmp || ''} ${emp.nombre || ''} ${emp.NumPto || ''} ${emp.NomCorDep || ''}`.toUpperCase();
         return texto.includes(filtro);
     });
 
     renderizarTarjetasPermisosSis(filtrados);
 }
 
-// Asegurar que el enrutador principal de tu app llame a esta función al hacer clic en la opción de permisos
+function cargarPermisosSis() {
+    if (typeof window.renderizarListadoPermisosSis === 'function') {
+        window.renderizarListadoPermisosSis();
+    }
+}
+
+function actualizarDatosPermisosSis() {
+    cargarPermisosSis();
+}
+
 window.renderizarListadoPermisosSis = renderizarListadoPermisosSis;
+window.cargarPermisosSis = cargarPermisosSis;
+window.actualizarDatosPermisosSis = actualizarDatosPermisosSis;

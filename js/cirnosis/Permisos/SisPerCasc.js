@@ -9,6 +9,9 @@ function cargarPermisosSis() {
 }
 
 function actualizarDatosPermisosSis() {
-    // Acción para refrescar el listado o sincronizar con el backend
     cargarPermisosSis();
 }
+
+// Hacemos global la función para que el menú principal la encuentre de inmediato
+window.cargarPermisosSis = cargarPermisosSis;
+window.renderizarListadoPermisosSis = renderizarListadoPermisosSis;

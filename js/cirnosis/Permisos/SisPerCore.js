@@ -3,24 +3,13 @@
 function renderizarListadoPermisosSis() {
     console.log("1. Entrando a renderizarListadoPermisosSis");
 
-    // 1. Intentar llamar a la función global si existe
+    // 1. Usar la función oficial del sistema para cambiar de vista correctamente
     if (typeof renderizarVistaModuloSis === 'function') {
         renderizarVistaModuloSis('permisos', "Selecciona un colaborador para administrar su matriz de accesos por módulos y submódulos.");
     }
     
-    // 2. Buscar el contenedor dinámico, y si no existe, buscar el contenedor principal de la app para crearlo al vuelo
-    let contenedorDinamico = document.getElementById('contenido-submodulo-dinamico');
-    
-    if (!contenedorDinamico) {
-        console.warn("⚠️ No se encontró '#contenido-submodulo-dinamico'. Creándolo dinámicamente...");
-        const contenedorPrincipal = document.getElementById('app-container') || document.querySelector('main') || document.body;
-        
-        if (contenedorPrincipal) {
-            contenedorDinamico = document.createElement('div');
-            contenedorDinamico.id = 'contenido-submodulo-dinamico';
-            contenedorPrincipal.appendChild(contenedorDinamico);
-        }
-    }
+    // 2. Buscar el contenedor oficial que crea renderizarVistaModuloSis
+    const contenedorDinamico = document.getElementById('contenido-submodulo-dinamico');
 
     if (contenedorDinamico) {
         contenedorDinamico.className = "col-span-1 sm:col-span-2 md:col-span-3 space-y-6 animate-fade-in";
@@ -42,10 +31,9 @@ function renderizarListadoPermisosSis() {
             </div>
         `;
         
-        console.log("4. Contenedor listo. Llamando a cargarDatosPermisosConCatalogos...");
         cargarDatosPermisosConCatalogos();
     } else {
-        console.error("❌ ERROR CRÍTICO: Imposible crear o encontrar un contenedor para la vista.");
+        console.error("❌ No se encontró '#contenido-submodulo-dinamico'. Asegúrate de que 'renderizarVistaModuloSis' esté creando la vista correctamente.");
     }
 }
 

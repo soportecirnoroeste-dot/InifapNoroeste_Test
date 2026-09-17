@@ -1,7 +1,9 @@
 // js/SisPer/SisPerCore.js
 
 function renderizarListadoPermisosSis() {
-    renderizarVistaModuloSis('permisos', "Selecciona un colaborador para administrar su matriz de accesos por módulos y submódulos.");
+    if (typeof renderizarVistaModuloSis === 'function') {
+        renderizarVistaModuloSis('permisos', "Selecciona un colaborador para administrar su matriz de accesos por módulos y submódulos.");
+    }
     
     const contenedorDinamico = document.getElementById('contenido-submodulo-dinamico');
     if (contenedorDinamico) {
@@ -39,7 +41,7 @@ async function cargarDatosPermisosConCatalogos() {
             window._catPuestos = dataSys.puestos || dataSys.catPuestos || [];
         }
 
-        // 2. Obtener estrictamente el personal del Sheets (usando la caché de RH o consultando la API)
+        // 2. Obtener estrictamente el personal del Sheets
         let data = window._empleadosCache || [];
         if (!data || data.length === 0) {
             data = await FetchAPI('obtenerPersonal');

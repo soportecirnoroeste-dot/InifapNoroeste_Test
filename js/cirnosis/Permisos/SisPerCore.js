@@ -26,11 +26,11 @@ function renderizarListadoPermisosSis() {
 
     if (contenedorDinamico) {
         contenedorDinamico.style.display = 'block';
-        contenedorDinamico.className = "w-full space-y-6 bg-white p-6 md:p-8 rounded-2xl soft-shadow border border-sky-500/10 mb-8 animate-fade-in";
+        contenedorDinamico.className = "w-full space-y-6 bg-white p-6 md:p-8 rounded-2xl soft-shadow border border-[#249444]/10 mb-8 animate-fade-in";
         contenedorDinamico.innerHTML = `
             <!-- Encabezado del Módulo con Subtítulo Integrado -->
             <div class="flex items-center gap-3 pb-4 border-b border-stone-100">
-                <div class="p-2.5 bg-sky-50 border border-sky-100 text-sky-600 rounded-xl flex items-center justify-center">
+                <div class="p-2.5 bg-[#f0fdf4] border border-[#c6f6d5] text-[#059669] rounded-xl flex items-center justify-center">
                     <svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' class='lucide lucide-user-round-key'><path d='M19 11v6'/><path d='M19 13h2'/><path d='M2 21a8 8 0 0 1 12.868-6.349'/><circle cx='10' cy='8' r='5'/><circle cx='19' cy='19' r='2'/></svg>
                 </div>
                 <div>
@@ -62,7 +62,7 @@ function renderizarListadoPermisosSis() {
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
                         </span>
                         <input type="text" id="input-buscar-permisos" oninput="filtrarTarjetasPermisosSis()" placeholder="Buscar por nombre, puesto, centro..." 
-                            class="w-64 sm:w-72 pl-9 pr-4 py-1.5 bg-stone-50 border border-stone-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-sky-500 text-stone-700 transition-all shadow-xs uppercase">
+                            class="w-64 sm:w-72 pl-9 pr-4 py-1.5 bg-stone-50 border border-stone-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-[#249444] text-stone-700 transition-all shadow-xs uppercase">
                     </div>
                 </div>
                 
@@ -172,7 +172,7 @@ function renderizarTarjetasPermisosSis(empleados) {
                 <td class="p-3 font-mono text-stone-600">${reg}</td>
                 <td class="p-3 font-mono text-stone-600">${centro}</td>
                 <td class="p-3 font-mono text-stone-600">${numEmp}</td>
-                <td class="p-3 font-bold text-sky-600 uppercase">
+                <td class="p-3 font-bold text-[#249444] uppercase">
                     <button type="button" onclick="abrirMatrizPermisosUsuario('${nombre.replace(/'/g, "\\'")}', '${numEmp}')" class="hover:underline text-left cursor-pointer focus:outline-none">
                         ${nombre}
                     </button>

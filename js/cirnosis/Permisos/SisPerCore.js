@@ -170,17 +170,13 @@ function renderizarTarjetasPermisosSis(empleados) {
         }
 
         html += `
-            <tr class="hover:bg-stone-50/80 transition-all border-b border-stone-100">
-                <td class="p-3 font-medium text-stone-600">${reg}</td>
-                <td class="p-3 text-stone-600">${centro}</td>
-                <td class="p-3 font-semibold text-stone-800">${numEmp}</td>
-                <td class="p-3 font-bold text-[#249444] uppercase">
-                    <button type="button" onclick="abrirMatrizPermisosUsuario('${nombre.replace(/'/g, "\\'")}', '${numEmp}')" class="hover:underline text-left cursor-pointer focus:outline-none">
-                        ${nombre}
-                    </button>
-                </td>
-                <td class="p-3 text-stone-600 uppercase">${puestoVisual}</td>
-                <td class="p-3 text-stone-600 uppercase">${deptoVisual || 'N/A'}</td>
+            <tr class="border-b border-stone-100 hover:bg-stone-50 transition">
+                <td class="p-3 font-mono text-stone-600">${valNa(reg)}</td>
+                <td class="p-3 font-mono text-stone-600">${valNa(centro)}</td>
+                <td class="p-3 font-mono text-stone-600">${valNa(noEmp)}</td>
+                <td class="p-3"><button type="button" onclick="abrirMatrizPermisosUsuario('${nombre.replace(/'/g, "\\'")}', '${numEmp}')" class="font-semibold text-[#249444] hover:underline text-left">${valNa(nombre)}</button></td>
+                <td class="p-3 text-stone-600">${valNa(puestoVisual)}</td>
+                <td class="p-3 text-stone-600">${valNa(deptoVisual)}</td>
             </tr>
         `;
     });

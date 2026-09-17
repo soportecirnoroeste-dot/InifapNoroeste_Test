@@ -33,7 +33,7 @@ function renderizarListadoPermisosSis() {
     if (contenedorDinamico) {
         contenedorDinamico.style.display = 'block';
         // Contenedor principal idéntico al módulo Personal
-        contenedorDinamico.className = "space-y-6 animate-fade-in w-full p-4 md:p-6 max-w-7xl mx-auto bg-white rounded-3xl border border-stone-200 shadow-sm";
+        contenedorDinamico.className = "flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-stone-50 p-4 rounded-xl border border-stone-200";
         contenedorDinamico.innerHTML = `
             <!-- Encabezado del Módulo -->
             <div class="flex items-center gap-3 pb-2 border-b border-stone-100">

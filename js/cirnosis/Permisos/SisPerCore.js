@@ -3,15 +3,24 @@
 function renderizarListadoPermisosSis() {
     console.log("1. Entrando a renderizarListadoPermisosSis");
 
+    // 1. Intentar llamar a la función global si existe
     if (typeof renderizarVistaModuloSis === 'function') {
-        console.log("2. renderizarVistaModuloSis existe, ejecutando...");
         renderizarVistaModuloSis('permisos', "Selecciona un colaborador para administrar su matriz de accesos por módulos y submódulos.");
-    } else {
-        console.warn("⚠️ Aviso: renderizarVistaModuloSis no está definida, pero continuando...");
     }
     
-    const contenedorDinamico = document.getElementById('contenido-submodulo-dinamico');
-    console.log("3. Buscando contenedor dinámico:", contenedorDinamico);
+    // 2. Buscar el contenedor dinámico, y si no existe, buscar el contenedor principal de la app para crearlo al vuelo
+    let contenedorDinamico = document.getElementById('contenido-submodulo-dinamico');
+    
+    if (!contenedorDinamico) {
+        console.warn("⚠️ No se encontró '#contenido-submodulo-dinamico'. Creándolo dinámicamente...");
+        const contenedorPrincipal = document.getElementById('app-container') || document.querySelector('main') || document.body;
+        
+        if (contenedorPrincipal) {
+            contenedorDinamico = document.createElement('div');
+            contenedorDinamico.id = 'contenido-submodulo-dinamico';
+            contenedorPrincipal.appendChild(contenedorDinamico);
+        }
+    }
 
     if (contenedorDinamico) {
         contenedorDinamico.className = "col-span-1 sm:col-span-2 md:col-span-3 space-y-6 animate-fade-in";
@@ -25,17 +34,18 @@ function renderizarListadoPermisosSis() {
                 </div>
             </div>
 
-            <!-- Grid 100% dinámico sin datos quemados -->
+            <!-- Grid 100% dinámico conectado al Google Sheets -->
             <div id="grid-permisos-empleados" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div class="col-span-full p-8 text-center text-stone-400 italic bg-white rounded-2xl border border-stone-200 shadow-sm">
                     Sincronizando colaboradores desde Google Sheets...
                 </div>
             </div>
         `;
-        console.log("4. HTML inyectado correctamente. Llamando a cargarDatosPermisosConCatalogos...");
+        
+        console.log("4. Contenedor listo. Llamando a cargarDatosPermisosConCatalogos...");
         cargarDatosPermisosConCatalogos();
     } else {
-        console.error("❌ ERROR CRÍTICO: No se encontró el elemento con ID 'contenido-submodulo-dinamico' en el DOM.");
+        console.error("❌ ERROR CRÍTICO: Imposible crear o encontrar un contenedor para la vista.");
     }
 }
 

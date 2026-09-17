@@ -40,7 +40,7 @@ function renderizarListadoPermisosSis() {
                 <svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' class='lucide lucide-user-round-key'><path d='M19 11v6'/><path d='M19 13h2'/><path d='M2 21a8 8 0 0 1 12.868-6.349'/><circle cx='10' cy='8' r='5'/><circle cx='19' cy='19' r='2'/></svg>                </div>
                 <h3 class="font-black text-stone-800 text-lg uppercase tracking-wide">Permisos</h3>
             </div>
-            
+
             <!-- Bloque superior de gestión -->
             <div id="contenedor-gestion-permisos" class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-stone-50 p-4 rounded-xl border border-stone-200">
                 <div>
@@ -57,7 +57,7 @@ function renderizarListadoPermisosSis() {
             <!-- Contenedor del listado -->
             <div id="contenedor-listado-permisos" class="bg-white rounded-xl border border-stone-200 overflow-hidden shadow-sm">
                 <div class="p-4 border-b border-stone-100 flex flex-wrap justify-between items-center gap-4 bg-white">
-                    <div class="font-bold text-xs text-stone-700 uppercase tracking-wider">Listado General de Empleados (Haz clic en el nombre para editar permisos)</div>
+                    <div class="font-bold text-xs text-stone-700 uppercase tracking-wider">Listado General de Empleados</div>
                     
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-stone-400">
@@ -81,8 +81,8 @@ function renderizarListadoPermisosSis() {
                                     <th class="p-3 border-b border-stone-200">DEPARTAMENTO</th>
                                 </tr>
                             </thead>
-                            <tbody id="grid-permisos-empleados" class="divide-y divide-stone-100">
-                                <tr><td colspan="6" class="p-6 text-center text-stone-400 italic">Sincronizando colaboradores desde Google Sheets...</td></tr>
+                            <tbody id="tabla-personal-body" class="divide-y divide-stone-100">
+                                <tr><td colspan="6" class="p-6 text-center text-stone-400 italic">Cargando registros...</td></tr>
                             </tbody>
                         </table>
                     </div>

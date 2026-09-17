@@ -168,7 +168,8 @@ function renderizarTarjetasPermisosSis(empleados) {
         if (cNomCorDep && window._mapDeptosCache && window._mapDeptosCache[cNomCorDep]) {
             deptoVisual = window._mapDeptosCache[cNomCorDep];
         }
-
+        
+        const valNa = (v) => (!v || v === 0 || v === '0' || String(v).trim() === '') ? 'N/A' : v;
         html += `
             <tr class="border-b border-stone-100 hover:bg-stone-50 transition">
                 <td class="p-3 font-mono text-stone-600">${valNa(reg)}</td>

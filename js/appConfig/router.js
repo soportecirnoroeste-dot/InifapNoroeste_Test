@@ -71,9 +71,23 @@
             const contenedorApp = document.getElementById('app-container');
             if (!contenedorApp) return;
 
-            // RUTA DIRECTA: Evitamos renderizados duplicados evaluando la sección de inmediato
+            // RUTA DIRECTA: Evaluamos las secciones de Asistencia o Permisos de forma dinámica
             if ((seccionUrl === 'asistencia' || seccionUrl === 'biometrico') && window.RhAsisCasc && typeof window.RhAsisCasc.mostrarVistaBiometrico === 'function') {
                 window.RhAsisCasc.mostrarVistaBiometrico();
+                
+                setTimeout(() => {
+                    if (typeof window.actualizarBotonRegresar === 'function') {
+                        window.actualizarBotonRegresar('submodulo', nombreCortoUrl);
+                    }
+                }, 50);
+
+            } else if (seccionUrl === 'permisos' || seccionUrl === 'gestion-permisos') {
+                // Soporte directo para el módulo de Permisos SisPer
+                if (typeof window.cargarPermisosSis === 'function') {
+                    window.cargarPermisosSis();
+                } else if (typeof window.renderizarListadoPermisosSis === 'function') {
+                    window.renderizarListadoPermisosSis();
+                }
                 
                 setTimeout(() => {
                     if (typeof window.actualizarBotonRegresar === 'function') {

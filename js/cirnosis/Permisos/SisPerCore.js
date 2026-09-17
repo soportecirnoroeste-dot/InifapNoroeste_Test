@@ -1,9 +1,8 @@
 // js/SisPer/SisPerCore.js
 
 function renderizarListadoPermisosSis() {
-    console.log("1. Entrando a renderizarListadoPermisosSis (Diseño espejo de Personal)");
+    console.log("1. Entrando a renderizarListadoPermisosSis (Con contenedor principal)");
 
-    // 1. Llamar a la función del sistema para configurar el título superior de la vista
     if (typeof renderizarVistaModuloSis === 'function') {
         try {
             renderizarVistaModuloSis('permisos', "Selecciona un colaborador para administrar su matriz de accesos por módulos y submódulos.");
@@ -12,7 +11,6 @@ function renderizarListadoPermisosSis() {
         }
     }
     
-    // 2. Ocultar menús de tarjetas principales previos si se quedan colgados
     const elementosPagina = document.querySelectorAll('div, section');
     elementosPagina.forEach(el => {
         if (el.innerText && el.innerText.includes("MENÚ DEL DEPARTAMENTO") && el.id !== 'contenido-submodulo-dinamico') {
@@ -33,10 +31,10 @@ function renderizarListadoPermisosSis() {
 
     if (contenedorDinamico) {
         contenedorDinamico.style.display = 'block';
-        // Estructura idéntica al módulo Personal
-        contenedorDinamico.className = "w-full space-y-6";
+        // Clases idénticas al contenedor raíz del módulo Personal
+        contenedorDinamico.className = "w-full space-y-6 bg-white p-6 rounded-xl border border-stone-200 shadow-sm";
         contenedorDinamico.innerHTML = `
-            <!-- Bloque superior de gestión idéntico -->
+            <!-- Bloque superior de gestión -->
             <div id="contenedor-gestion-permisos" class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-stone-50 p-4 rounded-xl border border-stone-200">
                 <div>
                     <h4 class="font-bold text-stone-800 text-sm">Gestión de Permisos por Colaborador</h4>
@@ -49,7 +47,7 @@ function renderizarListadoPermisosSis() {
                 </div>
             </div>
 
-            <!-- Contenedor del listado idéntico -->
+            <!-- Contenedor del listado -->
             <div id="contenedor-listado-permisos" class="bg-white rounded-xl border border-stone-200 overflow-hidden shadow-sm">
                 <div class="p-4 border-b border-stone-100 flex flex-wrap justify-between items-center gap-4 bg-white">
                     <div class="font-bold text-xs text-stone-700 uppercase tracking-wider">Listado General de Empleados (Haz clic en el nombre para editar permisos)</div>
@@ -86,10 +84,137 @@ function renderizarListadoPermisosSis() {
         `;
         
         cargarDatosPermisosConCatalogos();
-    } else {
-        console.error("❌ Error crítico: No se pudo ubicar ningún contenedor base en el DOM.");
     }
 }
+
+async function cargarDatosPermisosConCatalogos() {
+    const tbody = document.getElementById('grid-permisos-empleados');
+
+    try {
+        if (!window._catPuestos || window._catPuestos.length === 0 || !window._catDepartamentos || window._catDepartamentos.length === 0) {
+            const dataSys = await FetchAPI('obtenerDatosSistema', {});
+            window._catDepartamentos = dataSys.departamentos || dataSys.deptos || [];
+            window._catPuestos = dataSys.puestos || dataSys.catPuestos || [];
+        }
+
+        let data = window._empleadosCache || [];
+        if (!data || data.length === 0) {
+            data = await FetchAPI('obtenerPersonal');
+            window._empleadosCache = data || [];
+        }
+
+        window.listaEmpleadosPermisosCache = window._empleadosCache;
+        renderizarTarjetasPermisosSis(window.listaEmpleadosPermisosCache);
+
+    } catch (err) {
+        console.error("❌ Error en carga:", err);
+        if (tbody) {
+            tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-red-500">Error al conectar con Sheets: ${err.message || 'Error de red'}</td></tr>`;
+        }
+    }
+}
+
+function renderizarTarjetasPermisosSis(empleados) {
+    const tbody = document.getElementById('grid-permisos-empleados');
+    if (!tbody) return;
+
+    if (!empleados || empleados.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-stone-400">No se encontraron colaboradores registrados en Google Sheets.</td></tr>`;
+        return;
+    }
+
+    if (!window._mapPuestosCache && window._catPuestos && Array.isArray(window._catPuestos)) {
+        window._mapPuestosCache = {};
+        window._catPuestos.forEach(p => {
+            const k = String(p.NumPto || p.numPto || p.clave || '').trim();
+            const v = p.NomPto || p.nomPto || p.nombre || '';
+            if (k) window._mapPuestosCache[k] = v;
+        });
+    }
+
+    if (!window._mapDeptosCache && window._catDepartamentos && Array.isArray(window._catDepartamentos)) {
+        window._mapDeptosCache = {};
+        window._catDepartamentos.forEach(d => {
+            const nomCor = String(d.nomCorDep || '').trim();
+            const cDep = String(d.claveDep || '').trim();
+            const nomLargo = d.nomDep || d.nombre || '';
+            if (nomCor) window._mapDeptosCache[nomCor] = nomLargo;
+            if (cDep) window._mapDeptosCache[cDep] = nomLargo;
+        });
+    }
+
+    let html = "";
+    empleados.forEach(emp => {
+        const reg = emp.reg || emp.REG || "100 - CIRNO";
+        const centro = emp.centro || emp.CENTRO || "108 - DIRECCION";
+        const numEmp = String(emp.numEmp || emp.noEmp || emp.NO_EMP || emp.NumEmp || '').trim();
+        const nombre = emp.nombre || emp.NOMBRE || "SIN NOMBRE";
+        
+        const cNumPto = String(emp.NumPto || emp.numPto || emp.puesto || '').trim();
+        let puestoVisual = cNumPto;
+        if (cNumPto && window._mapPuestosCache && window._mapPuestosCache[cNumPto]) {
+            puestoVisual = window._mapPuestosCache[cNumPto];
+        }
+
+        const cNomCorDep = String(emp.NomCorDep || emp.nomCorDep || emp.depto || '').trim();
+        let deptoVisual = cNomCorDep;
+        if (cNomCorDep && window._mapDeptosCache && window._mapDeptosCache[cNomCorDep]) {
+            deptoVisual = window._mapDeptosCache[cNomCorDep];
+        }
+
+        html += `
+            <tr class="hover:bg-stone-50/80 transition-all border-b border-stone-100">
+                <td class="p-3 font-medium text-stone-600">${reg}</td>
+                <td class="p-3 text-stone-600">${centro}</td>
+                <td class="p-3 font-semibold text-stone-800">${numEmp}</td>
+                <td class="p-3 font-bold text-[#249444] uppercase">
+                    <button type="button" onclick="abrirMatrizPermisosUsuario('${nombre.replace(/'/g, "\\'")}', '${numEmp}')" class="hover:underline text-left cursor-pointer focus:outline-none">
+                        ${nombre}
+                    </button>
+                </td>
+                <td class="p-3 text-stone-600 uppercase">${puestoVisual}</td>
+                <td class="p-3 text-stone-600 uppercase">${deptoVisual || 'N/A'}</td>
+            </tr>
+        `;
+    });
+
+    tbody.innerHTML = html;
+}
+
+function filtrarTarjetasPermisosSis() {
+    const inputBusqueda = document.getElementById('input-buscar-permisos');
+    if (!inputBusqueda) return;
+
+    const filtro = inputBusqueda.value.toUpperCase().trim();
+    const lista = window.listaEmpleadosPermisosCache || [];
+    
+    if (!filtro) {
+        renderizarTarjetasPermisosSis(lista);
+        return;
+    }
+
+    const filtrados = lista.filter(emp => {
+        const texto = `${emp.reg || ''} ${emp.centro || ''} ${emp.numEmp || ''} ${emp.noEmp || ''} ${emp.nombre || ''} ${emp.NumPto || ''} ${emp.NomCorDep || ''}`.toUpperCase();
+        return texto.includes(filtro);
+    });
+
+    renderizarTarjetasPermisosSis(filtrados);
+}
+
+function cargarPermisosSis() {
+    if (typeof window.renderizarListadoPermisosSis === 'function') {
+        window.renderizarListadoPermisosSis();
+    }
+}
+
+function actualizarDatosPermisosSis() {
+    window._empleadosCache = null;
+    cargarPermisosSis();
+}
+
+window.renderizarListadoPermisosSis = renderizarListadoPermisosSis;
+window.cargarPermisosSis = cargarPermisosSis;
+window.actualizarDatosPermisosSis = actualizarDatosPermisosSis;
 
 async function cargarDatosPermisosConCatalogos() {
     console.log("5. Entrando a cargarDatosPermisosConCatalogos");

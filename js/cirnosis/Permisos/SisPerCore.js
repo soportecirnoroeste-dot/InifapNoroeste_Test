@@ -1,8 +1,9 @@
 // js/SisPer/SisPerCore.js
 
 function renderizarListadoPermisosSis() {
-    console.log("1. Entrando a renderizarListadoPermisosSis (Modo Tabla)");
+    console.log("1. Entrando a renderizarListadoPermisosSis (Vista Limpia)");
 
+    // 1. Intentar llamar a la función oficial del sistema
     if (typeof renderizarVistaModuloSis === 'function') {
         try {
             renderizarVistaModuloSis('permisos', "Selecciona un colaborador para administrar su matriz de accesos por módulos y submódulos.");
@@ -11,6 +12,15 @@ function renderizarListadoPermisosSis() {
         }
     }
     
+    // 2. Ocultar de forma segura cualquier menú principal que se haya quedado estorbando arriba
+    const elementosPagina = document.querySelectorAll('div, section');
+    elementosPagina.forEach(el => {
+        if (el.innerText && el.innerText.includes("MENÚ DEL DEPARTAMENTO") && el.id !== 'contenido-submodulo-dinamico') {
+            el.style.display = 'none';
+        }
+    });
+
+    // 3. Obtener o crear el contenedor dinámico de la vista
     let contenedorDinamico = document.getElementById('contenido-submodulo-dinamico');
     
     if (!contenedorDinamico) {
@@ -23,6 +33,7 @@ function renderizarListadoPermisosSis() {
     }
 
     if (contenedorDinamico) {
+        contenedorDinamico.style.display = 'block';
         contenedorDinamico.className = "space-y-6 animate-fade-in w-full p-4";
         contenedorDinamico.innerHTML = `
             <!-- Barra superior estilo Vista 2 -->
@@ -117,7 +128,6 @@ function renderizarTarjetasPermisosSis(empleados) {
         return;
     }
 
-    // Mapeos de catálogos
     if (!window._mapPuestosCache && window._catPuestos && Array.isArray(window._catPuestos)) {
         window._mapPuestosCache = {};
         window._catPuestos.forEach(p => {
@@ -205,7 +215,7 @@ function cargarPermisosSis() {
 }
 
 function actualizarDatosPermisosSis() {
-    window._empleadosCache = null; // Limpiar caché para forzar recarga fresca
+    window._empleadosCache = null;
     cargarPermisosSis();
 }
 

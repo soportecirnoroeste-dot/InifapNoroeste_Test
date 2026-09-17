@@ -1,9 +1,8 @@
 // js/SisPer/SisPerCore.js
 
 function renderizarListadoPermisosSis() {
-    console.log("1. Entrando a renderizarListadoPermisosSis (Vista Limpia)");
+    console.log("1. Entrando a renderizarListadoPermisosSis (Vista Limpia sin Columna Acciones)");
 
-    // 1. Intentar llamar a la función oficial del sistema
     if (typeof renderizarVistaModuloSis === 'function') {
         try {
             renderizarVistaModuloSis('permisos', "Selecciona un colaborador para administrar su matriz de accesos por módulos y submódulos.");
@@ -12,7 +11,6 @@ function renderizarListadoPermisosSis() {
         }
     }
     
-    // 2. Ocultar de forma segura cualquier menú principal que se haya quedado estorbando arriba
     const elementosPagina = document.querySelectorAll('div, section');
     elementosPagina.forEach(el => {
         if (el.innerText && el.innerText.includes("MENÚ DEL DEPARTAMENTO") && el.id !== 'contenido-submodulo-dinamico') {
@@ -20,7 +18,6 @@ function renderizarListadoPermisosSis() {
         }
     });
 
-    // 3. Obtener o crear el contenedor dinámico de la vista
     let contenedorDinamico = document.getElementById('contenido-submodulo-dinamico');
     
     if (!contenedorDinamico) {
@@ -36,7 +33,7 @@ function renderizarListadoPermisosSis() {
         contenedorDinamico.style.display = 'block';
         contenedorDinamico.className = "space-y-6 animate-fade-in w-full p-4";
         contenedorDinamico.innerHTML = `
-            <!-- Barra superior estilo Vista 2 -->
+            <!-- Barra superior -->
             <div class="bg-white p-4 rounded-2xl border border-stone-200 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4">
                 <div class="font-bold text-stone-700 text-sm uppercase tracking-wide">
                     Gestión de Permisos por Colaborador
@@ -53,7 +50,7 @@ function renderizarListadoPermisosSis() {
             <div class="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
                 <div class="p-4 border-b border-stone-100 flex flex-col sm:flex-row justify-between items-center gap-4">
                     <div class="font-bold text-xs text-stone-500 uppercase tracking-wider">
-                        Listado General de Empleados
+                        Listado General de Empleados (Haz clic en el nombre para editar permisos)
                     </div>
                     <div class="w-full sm:w-80">
                         <input type="text" id="input-buscar-permisos" placeholder="BUSCAR POR NOMBRE, PUESTO, CENTRO..." onkeyup="filtrarTarjetasPermisosSis()" class="w-full bg-stone-50 border border-stone-200 text-xs rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-[#249444] uppercase">
@@ -69,13 +66,12 @@ function renderizarListadoPermisosSis() {
                                 <th class="p-3.5">No. Emp</th>
                                 <th class="p-3.5">Nombre</th>
                                 <th class="p-3.5">Puesto</th>
-                                <th class="p-3.5">Departamento</th>
-                                <th class="p-3.5 pr-6 text-center">Acciones</th>
+                                <th class="p-3.5 pr-6">Departamento</th>
                             </tr>
                         </thead>
                         <tbody id="grid-permisos-empleados" class="divide-y divide-stone-100 text-xs text-stone-700">
                             <tr>
-                                <td colspan="7" class="p-8 text-center text-stone-400 italic">
+                                <td colspan="6" class="p-8 text-center text-stone-400 italic">
                                     Sincronizando colaboradores desde Google Sheets...
                                 </td>
                             </tr>
@@ -114,7 +110,7 @@ async function cargarDatosPermisosConCatalogos() {
     } catch (err) {
         console.error("❌ Error en carga:", err);
         if (tbody) {
-            tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-red-500">Error al conectar con Sheets: ${err.message || 'Error de red'}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-red-500">Error al conectar con Sheets: ${err.message || 'Error de red'}</td></tr>`;
         }
     }
 }
@@ -124,7 +120,7 @@ function renderizarTarjetasPermisosSis(empleados) {
     if (!tbody) return;
 
     if (!empleados || empleados.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-stone-400">No se encontraron colaboradores registrados en Google Sheets.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-stone-400">No se encontraron colaboradores registrados en Google Sheets.</td></tr>`;
         return;
     }
 
@@ -172,15 +168,13 @@ function renderizarTarjetasPermisosSis(empleados) {
                 <td class="p-3.5 pl-6 font-medium text-stone-600">${reg}</td>
                 <td class="p-3.5 text-stone-600">${centro}</td>
                 <td class="p-3.5 font-semibold text-stone-800">${numEmp}</td>
-                <td class="p-3.5 font-bold text-[#249444] uppercase">${nombre}</td>
-                <td class="p-3.5 text-stone-600 uppercase">${puestoVisual}</td>
-                <td class="p-3.5 text-stone-600 uppercase">${deptoVisual || 'N/A'}</td>
-                <td class="p-3.5 pr-6 text-center">
-                    <button type="button" onclick="abrirMatrizPermisosUsuario('${nombre.replace(/'/g, "\\'")}', '${numEmp}')" class="bg-stone-50 hover:bg-stone-100 border border-stone-200 text-stone-700 text-xs font-bold px-3 py-1.5 rounded-xl transition-all inline-flex items-center gap-1.5 shadow-sm">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4"/><path d="m16.2 7.8 2.9-2.9"/><path d="M18 12h4"/><path d="m16.2 16.2 2.9 2.9"/><path d="M12 18v4"/><path d="m4.9 19.1 2.9-2.9"/><path d="M2 12h4"/><path d="m4.9 4.9 2.9 2.9"/></svg>
-                        Permisos
+                <td class="p-3.5 font-bold text-[#249444] uppercase">
+                    <button type="button" onclick="abrirMatrizPermisosUsuario('${nombre.replace(/'/g, "\\'")}', '${numEmp}')" class="hover:underline text-left cursor-pointer focus:outline-none">
+                        ${nombre}
                     </button>
                 </td>
+                <td class="p-3.5 text-stone-600 uppercase">${puestoVisual}</td>
+                <td class="p-3.5 pr-6 text-stone-600 uppercase">${deptoVisual || 'N/A'}</td>
             </tr>
         `;
     });

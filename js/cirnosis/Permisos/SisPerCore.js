@@ -56,31 +56,39 @@ function renderizarListadoPermisosSis() {
     }
 }
 
-// Función para traer los datos reales de la pestaña Personal
-function cargarEmpleadosParaPermisosSis() {
-    if (typeof google !== 'undefined' && google.script && google.script.run) {
-        google.script.run
-            .withSuccessHandler(function(data) {
-                window.listaEmpleadosPermisosCache = data; // Guardamos en caché para el buscador
-                renderizarFilasPermisosSis(data);
-            })
-            .withFailureHandler(function(err) {
-                const tbody = document.getElementById('tbody-permisos-empleados');
-                if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-red-500">Error al cargar datos: ${err.message}</td></tr>`;
-            })
-            .obtenerPersonalDesdeSheet(); // Esta función ya la tienes en tu Apps Script
-    } else {
-        // Datos de respaldo para pruebas locales si no estás dentro de Apps Script
-        const simulados = [
-            { reg: "100 - CIRNO", centro: "108 - DIRECCION", numEmp: "4227", nombre: "VILLICAÑA BOTELLO MARIA DEL CARMEN", puesto: "JEFE DE DEPARTAMENTO", depto: "RECURSOS MATERIALES" },
-            { reg: "100 - CIRNO", centro: "107 - CETOD", numEmp: "4229", nombre: "GONZALEZ GARCIA YOLANDA", puesto: "INVESTIGADOR TITULAR C", depto: "INVESTIGACIÓN" }
-        ];
-        window.listaEmpleadosPermisosCache = simulados;
-        renderizarFilasPermisosSis(simulados);
+// Función para traer los datos reales de la pestaña Personal usando tu arquitectura de FetchAPI / Sheets
+async function cargarEmpleadosParaPermisosSis() {
+    const tbody = document.getElementById('tbody-permisos-empleados');
+    
+    // Si ya tenemos caché previa, la usamos directo para mayor velocidad
+    if (window.listaEmpleadosPermisosCache && window.listaEmpleadosPermisosCache.length > 0) {
+        renderizarFilasPermisosSis(window.listaEmpleadosPermisosCache);
+        return;
+    }
+
+    try {
+        // Usamos FetchAPI o el método estándar con el que te conectas en tus otros módulos (ej. RhPersonal.js)
+        let data = [];
+        if (typeof FetchAPI === 'function') {
+            data = await FetchAPI('obtenerPersonal');
+        } else if (typeof google !== 'undefined' && google.script && google.script.run) {
+            // Respaldo por si se llama directo a google.script.run
+            data = await new Promise((resolve, reject) => {
+                google.script.run.withSuccessHandler(resolve).withFailureHandler(reject).obtenerPersonalDesdeSheet();
+            });
+        }
+
+        window.listaEmpleadosPermisosCache = data || [];
+        renderizarFilasPermisosSis(window.listaEmpleadosPermisosCache);
+    } catch (err) {
+        console.error("Error al cargar empleados para permisos:", err);
+        if (tbody) {
+            tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-red-500">Error al cargar datos: ${err.message || 'Error de conexión con Sheets'}</td></tr>`;
+        }
     }
 }
 
-// Función para pintar las filas en el tbody
+// Función para pintar las filas en el tbody conectando de forma inteligente las propiedades
 function renderizarFilasPermisosSis(empleados) {
     const tbody = document.getElementById('tbody-permisos-empleados');
     if (!tbody) return;
@@ -90,23 +98,21 @@ function renderizarFilasPermisosSis(empleados) {
         return;
     }
 
-    let html = "";
-    empleados.forEach(emp => {
-        // Adaptable por si las propiedades vienen con otro nombre desde tu Apps Script
-        const reg = emp.reg || emp.REG || "100 - CIRNO";
-        const centro = emp.centro || emp.CENTRO || "---";
-        const numEmp = emp.numEmp || emp.NO_EMP || emp.NumEmp || "";
-        const nombre = emp.nombre || emp.NOMBRE || "";
-        const puesto = emp.puesto || emp.PUESTO || "";
-        const depto = emp.depto || emp.DEPARTAMENTO || "";
+    tbody.innerHTML = empleados.map(emp => {
+        const reg = emp.claveReg || emp.reg || emp.REG || "N/A";
+        const centro = emp.claveCentro || emp.centro || emp.CENTRO || "N/A";
+        const numEmp = emp.numEmp || emp.noEmp || emp.NO_EMP || emp.NumEmp || "";
+        const nombre = emp.nombre || emp.NOMBRE || "Sin Nombre";
+        const puesto = emp.NumPto || emp.puesto || emp.PUESTO || "";
+        const depto = emp.NomCorDep || emp.depto || emp.DEPARTAMENTO || "";
 
-        html += `
+        return `
             <tr class="hover:bg-stone-50/85 transition-all">
-                <td class="p-3 pl-4 text-stone-500">${reg}</td>
-                <td class="p-3 text-stone-600">${centro}</td>
-                <td class="p-3 text-stone-600 font-medium">${numEmp}</td>
+                <td class="p-3 pl-4 font-mono text-stone-500">${reg}</td>
+                <td class="p-3 font-mono text-stone-600">${centro}</td>
+                <td class="p-3 font-mono text-stone-600 font-medium">${numEmp}</td>
                 <td class="p-3">
-                    <button onclick="abrirMatrizPermisosUsuario('${nombre.replace(/'/g, "\\'")}', '${numEmp}')" class="text-[#249444] hover:underline font-bold text-left uppercase">
+                    <button type="button" onclick="abrirMatrizPermisosUsuario('${nombre.replace(/'/g, "\\'")}', '${numEmp}')" class="text-[#249444] hover:underline font-bold text-left uppercase">
                         ${nombre}
                     </button>
                 </td>
@@ -114,17 +120,21 @@ function renderizarFilasPermisosSis(empleados) {
                 <td class="p-3 pr-4 text-stone-600 uppercase">${depto}</td>
             </tr>
         `;
-    });
-    tbody.innerHTML = html;
+    }).join('');
 }
 
 // Función para filtrar en tiempo real con el input de búsqueda
 function filtrarTablaPermisosSis() {
-    const filtro = document.getElementById('input-buscar-permisos').value.toUpperCase();
+    const filtro = document.getElementById('input-buscar-permisos').value.toUpperCase().trim();
     const lista = window.listaEmpleadosPermisosCache || [];
     
+    if (!filtro) {
+        renderizarFilasPermisosSis(lista);
+        return;
+    }
+
     const filtrados = lista.filter(emp => {
-        const texto = `${emp.numEmp || ''} ${emp.nombre || ''} ${emp.puesto || ''} ${emp.depto || ''} ${emp.centro || ''}`.toUpperCase();
+        const texto = `${emp.numEmp || ''} ${emp.noEmp || ''} ${emp.nombre || ''} ${emp.puesto || ''} ${emp.NumPto || ''} ${emp.depto || ''} ${emp.NomCorDep || ''} ${emp.centro || ''} ${emp.claveCentro || ''}`.toUpperCase();
         return texto.includes(filtro);
     });
 

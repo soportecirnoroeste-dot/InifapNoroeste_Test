@@ -1,11 +1,18 @@
 // js/SisPer/SisPerCore.js
 
 function renderizarListadoPermisosSis() {
+    console.log("1. Entrando a renderizarListadoPermisosSis");
+
     if (typeof renderizarVistaModuloSis === 'function') {
+        console.log("2. renderizarVistaModuloSis existe, ejecutando...");
         renderizarVistaModuloSis('permisos', "Selecciona un colaborador para administrar su matriz de accesos por módulos y submódulos.");
+    } else {
+        console.warn("⚠️ Aviso: renderizarVistaModuloSis no está definida, pero continuando...");
     }
     
     const contenedorDinamico = document.getElementById('contenido-submodulo-dinamico');
+    console.log("3. Buscando contenedor dinámico:", contenedorDinamico);
+
     if (contenedorDinamico) {
         contenedorDinamico.className = "col-span-1 sm:col-span-2 md:col-span-3 space-y-6 animate-fade-in";
         contenedorDinamico.innerHTML = `
@@ -25,41 +32,46 @@ function renderizarListadoPermisosSis() {
                 </div>
             </div>
         `;
-
+        console.log("4. HTML inyectado correctamente. Llamando a cargarDatosPermisosConCatalogos...");
         cargarDatosPermisosConCatalogos();
+    } else {
+        console.error("❌ ERROR CRÍTICO: No se encontró el elemento con ID 'contenido-submodulo-dinamico' en el DOM.");
     }
 }
 
 async function cargarDatosPermisosConCatalogos() {
+    console.log("5. Entrando a cargarDatosPermisosConCatalogos");
     const grid = document.getElementById('grid-permisos-empleados');
 
     try {
-        // 1. Cargar catálogos para cruzar nombres de puestos y departamentos correctamente
+        // 1. Cargar catálogos
         if (!window._catPuestos || window._catPuestos.length === 0 || !window._catDepartamentos || window._catDepartamentos.length === 0) {
+            console.log("6. Solicitando catálogos del sistema mediante FetchAPI...");
             const dataSys = await FetchAPI('obtenerDatosSistema', {});
             window._catDepartamentos = dataSys.departamentos || dataSys.deptos || [];
             window._catPuestos = dataSys.puestos || dataSys.catPuestos || [];
         }
 
-        // 2. Obtener estrictamente el personal del Sheets
+        // 2. Obtener personal
         let data = window._empleadosCache || [];
         if (!data || data.length === 0) {
+            console.log("7. Solicitando personal mediante FetchAPI('obtenerPersonal')...");
             data = await FetchAPI('obtenerPersonal');
             window._empleadosCache = data || [];
         }
 
+        console.log("8. Datos de empleados obtenidos con éxito:", window._empleadosCache);
         window.listaEmpleadosPermisosCache = window._empleadosCache;
         renderizarTarjetasPermisosSis(window.listaEmpleadosPermisosCache);
 
     } catch (err) {
-        console.error("Error al cargar empleados para permisos:", err);
+        console.error("❌ Error atrapado en el bloque catch de cargarDatosPermisosConCatalogos:", err);
         if (grid) {
             grid.innerHTML = `<div class="col-span-full p-6 text-center text-red-500 bg-white rounded-2xl border border-stone-200 shadow-sm">Error al conectar con Sheets: ${err.message || 'Error de red'}</div>`;
         }
     }
 }
 
-// Función para generar iniciales a partir del nombre real
 function obtenerInicialesNombre(nombre) {
     if (!nombre) return "US";
     const partes = nombre.trim().split(" ");
@@ -69,10 +81,13 @@ function obtenerInicialesNombre(nombre) {
     return nombre.substring(0, 2).toUpperCase();
 }
 
-// Función para pintar las tarjetas basadas 100% en los registros reales del Sheets
 function renderizarTarjetasPermisosSis(empleados) {
+    console.log("9. Renderizando tarjetas para:", empleados?.length, "empleados");
     const grid = document.getElementById('grid-permisos-empleados');
-    if (!grid) return;
+    if (!grid) {
+        console.error("❌ No se encontró el grid '#grid-permisos-empleados' en el DOM.");
+        return;
+    }
 
     if (!empleados || empleados.length === 0) {
         grid.innerHTML = `<div class="col-span-full p-8 text-center text-stone-400 bg-white rounded-2xl border border-stone-200 shadow-sm">No se encontraron colaboradores registrados en Google Sheets.</div>`;
@@ -106,7 +121,6 @@ function renderizarTarjetasPermisosSis(empleados) {
         const numEmp = String(emp.numEmp || emp.noEmp || emp.NO_EMP || emp.NumEmp || '').trim();
         const nombre = emp.nombre || emp.NOMBRE || "SIN NOMBRE";
         
-        // Resolver Puesto
         const cNumPto = String(emp.NumPto || emp.numPto || emp.puesto || '').trim();
         let puestoVisual = cNumPto;
         if (cNumPto) {
@@ -118,7 +132,6 @@ function renderizarTarjetasPermisosSis(empleados) {
             }
         }
 
-        // Resolver Departamento
         const cNomCorDep = String(emp.NomCorDep || emp.nomCorDep || emp.depto || '').trim();
         let deptoVisual = cNomCorDep;
         if (cNomCorDep) {
@@ -160,9 +173,9 @@ function renderizarTarjetasPermisosSis(empleados) {
     });
 
     grid.innerHTML = html;
+    console.log("10. Tarjetas pintadas correctamente en pantalla.");
 }
 
-// Filtro en tiempo real sobre la caché real de empleados
 function filtrarTarjetasPermisosSis() {
     const inputBusqueda = document.getElementById('input-buscar-permisos');
     if (!inputBusqueda) return;

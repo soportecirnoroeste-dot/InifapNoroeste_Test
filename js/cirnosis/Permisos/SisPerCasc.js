@@ -1,8 +1,8 @@
 // js/SisPer/SisPerCasc.js
 
 function cargarPermisosSis() {
-    if (typeof renderizarListadoPermisosSis === 'function') {
-        renderizarListadoPermisosSis();
+    if (typeof window.renderizarListadoPermisosSis === 'function') {
+        window.renderizarListadoPermisosSis();
     } else {
         console.error("SisPerCore no está cargado correctamente.");
     }
@@ -12,6 +12,6 @@ function actualizarDatosPermisosSis() {
     cargarPermisosSis();
 }
 
-// Hacemos global la función para que el menú principal la encuentre de inmediato
+// Exportamos únicamente las de este archivo de cascada de forma segura
 window.cargarPermisosSis = cargarPermisosSis;
-window.renderizarListadoPermisosSis = renderizarListadoPermisosSis;
+window.actualizarDatosPermisosSis = actualizarDatosPermisosSis;

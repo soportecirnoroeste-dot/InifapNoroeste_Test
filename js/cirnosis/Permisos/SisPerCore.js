@@ -7,7 +7,6 @@ function renderizarListadoPermisosSis() {
     if (contenedorDinamico) {
         contenedorDinamico.className = "col-span-1 sm:col-span-2 md:col-span-3 space-y-6 animate-fade-in";
         contenedorDinamico.innerHTML = `
-            <!-- Barra superior con buscador -->
             <div class="bg-white p-4 rounded-2xl border border-stone-200 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4">
                 <div class="w-full sm:w-96">
                     <input type="text" id="input-buscar-permisos" placeholder="BUSCAR POR NOMBRE, PUESTO, DEPARTAMENTO..." onkeyup="filtrarTarjetasPermisosSis()" class="w-full bg-stone-50 border border-stone-200 text-xs rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-[#249444] uppercase">
@@ -17,7 +16,6 @@ function renderizarListadoPermisosSis() {
                 </div>
             </div>
 
-            <!-- Contenedor en Grid de Tarjetas -->
             <div id="grid-permisos-empleados" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div class="col-span-full p-8 text-center text-stone-400 italic bg-white rounded-2xl border border-stone-200 shadow-sm">
                     Cargando colaboradores desde Google Sheets...
@@ -25,7 +23,7 @@ function renderizarListadoPermisosSis() {
             </div>
         `;
 
-        // Llamar a la función que consulta los datos reales
+        // Llamar de forma inmediata y segura a la carga de datos
         cargarEmpleadosParaPermisosSis();
     }
 }
@@ -59,7 +57,7 @@ async function cargarEmpleadosParaPermisosSis() {
     }
 }
 
-// Función para generar iniciales (Ej: "VILLICAÑA BOTELLO MARIA" -> "VB")
+// Función para generar iniciales
 function obtenerInicialesNombre(nombre) {
     if (!nombre) return "US";
     const partes = nombre.trim().split(" ");
@@ -69,7 +67,7 @@ function obtenerInicialesNombre(nombre) {
     return nombre.substring(0, 2).toUpperCase();
 }
 
-// Función para pintar las tarjetas en el grid con los datos reales correctos
+// Función para pintar las tarjetas en el grid
 function renderizarTarjetasPermisosSis(empleados) {
     const grid = document.getElementById('grid-permisos-empleados');
     if (!grid) return;
@@ -81,12 +79,11 @@ function renderizarTarjetasPermisosSis(empleados) {
 
     let html = "";
     empleados.forEach(emp => {
-        // Mapeo exhaustivo para capturar los nombres reales de las columnas de tu Sheet
         const numEmp = emp.numEmp || emp.noEmp || emp.NO_EMP || emp.NumEmp || "";
         const nombre = emp.nombre || emp.NOMBRE || "SIN NOMBRE";
         const puesto = emp.puesto || emp.PUESTO || emp.NumPto || "SIN PUESTO";
         const depto = emp.depto || emp.DEPARTAMENTO || emp.NomCorDep || "";
-        const rol = emp.rol || emp.ROL || "Usuario"; // Valor por defecto o el que venga en el registro
+        const rol = emp.rol || emp.ROL || "Usuario";
         const iniciales = obtenerInicialesNombre(nombre);
 
         html += `
@@ -132,3 +129,6 @@ function filtrarTarjetasPermisosSis() {
 
     renderizarTarjetasPermisosSis(filtrados);
 }
+
+// Asegurar que el enrutador principal de tu app llame a esta función al hacer clic en la opción de permisos
+window.renderizarListadoPermisosSis = renderizarListadoPermisosSis;

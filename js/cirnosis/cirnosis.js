@@ -67,38 +67,11 @@ function cargarFormatosSis() {
     renderizarVistaModuloSis('formatos', "Descarga de formatos de resguardo, altas y reportes técnicos.");
 }
 
-// 1. VISTA INICIAL: Listado del Personal para configurar permisos
+// PUENTE: Conecta el menú de cirnosis con la lógica avanzada de SisPerCore.js
 function cargarPermisosSis() {
-    // Validar de forma segura si la función global existe antes de llamarla
-    if (typeof renderizarVistaModuloSis === 'function') {
-        renderizarVistaModuloSis('permisos', "Selecciona un colaborador para administrar su matriz de accesos por módulos y submódulos.");
-    }
-    
-    const contenedorDinamico = document.getElementById('contenido-submodulo-dinamico');
-    if (contenedorDinamico) {
-        contenedorDinamico.className = "col-span-1 sm:col-span-2 md:col-span-3 space-y-6 animate-fade-in";
-        contenedorDinamico.innerHTML = `
-            <div class="bg-white p-4 rounded-2xl border border-stone-200 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4">
-                <div class="w-full sm:w-96">
-                    <input type="text" id="input-buscar-permisos" placeholder="BUSCAR POR NOMBRE, PUESTO, DEPARTAMENTO..." onkeyup="filtrarTarjetasPermisosSis()" class="w-full bg-stone-50 border border-stone-200 text-xs rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-[#249444] uppercase">
-                </div>
-                <div class="text-xs text-stone-400 font-medium text-right w-full sm:w-auto">
-                    Mostrando personal activo del sistema
-                </div>
-            </div>
-
-            <!-- Grid 100% dinámico conectado al Google Sheets -->
-            <div id="grid-permisos-empleados" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div class="col-span-full p-8 text-center text-stone-400 italic bg-white rounded-2xl border border-stone-200 shadow-sm">
-                    Sincronizando colaboradores desde Google Sheets...
-                </div>
-            </div>
-        `;
-
-        // Llamar a la función que descarga y pinta los datos reales
-        if (typeof cargarDatosPermisosConCatalogos === 'function') {
-            cargarDatosPermisosConCatalogos();
-        }
+    if (typeof window.renderizarListadoPermisosSis === 'function') {
+        window.renderizarListadoPermisosSis();
+    } else {
+        console.error("No se encontró la función renderizarListadoPermisosSis en SisPerCore.js");
     }
 }
-

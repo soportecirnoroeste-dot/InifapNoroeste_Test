@@ -8,13 +8,15 @@ window.cirnosisConfig = {
     icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-terminal"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="m8 16 2-2-2-2"/><path d="M12 18h4"/></svg>`,
 
     get options() {
-        // Si los datos de Google Sheets aún no se han cargado, devolvemos vacío
-        if (!window.allSubModulosData || !Array.isArray(window.allSubModulosData)) {
+        // Buscamos los datos tanto en la variable directa como dentro de un objeto de sistema global
+        const fuenteDatos = window.allSubModulosData || (window.datosSistema && window.datosSistema.submodulos);
+
+        if (!fuenteDatos || !Array.isArray(fuenteDatos)) {
             return [];
         }
 
         // Filtramos por la ClaveDep correspondiente a este departamento
-        const submodulosFiltrados = window.allSubModulosData.filter(item => {
+        const submodulosFiltrados = fuenteDatos.filter(item => {
             const dep = item.ClaveDep !== undefined ? item.ClaveDep : item.claveDep;
             return String(dep) === String(this.claveDep);
         });
@@ -71,7 +73,7 @@ function ejecutarCargaSeccionSis(idOpt) {
 }
 
 function limpiarSeccionUrlSis() {
-    sessionStorage.removeItem('submodulo_activo_cirnosis'); // 👈 Corregido aquí
+    sessionStorage.removeItem('submodulo_activo_cirnosis');
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.has('seccion')) {
         const deptoActual = urlParams.get('depto') || 'cirnosis';
@@ -249,12 +251,20 @@ function procesarCargaInicialSeccionSis(event) {
 }
 
 // ==========================================
-// LISTENERS DE HISTORIAL Y ARRANQUE
+// LISTENERS DE HISTORIAL Y ARRANQUE (CORREGIDO)
 // ==========================================
 window.addEventListener('popstate', (event) => {
     procesarCargaInicialSeccionSis(event);
 });
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    if (typeof window.cargarDatosDelSistema === 'function' && (!window.allSubModulosData || window.allSubModulosData.length === 0)) {
+        try {
+            await window.cargarDatosDelSistema();
+        } catch (e) {
+            console.error("Error al precargar los datos de sistema:", e);
+        }
+    }
+    
     procesarCargaInicialSeccionSis();
 });

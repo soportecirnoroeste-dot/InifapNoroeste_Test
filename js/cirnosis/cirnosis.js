@@ -1,49 +1,26 @@
 // ==========================================
-// CONFIGURACIÓN Y OPCIONES DEL MÓDULO CIRNOSIS
+// CONFIGURACIÓN DINÁMICA DEL MÓDULO CIRNOSIS
 // ==========================================
 window.cirnosisConfig = {
     deptoKey: "cirnosis",
-    claveDep: "7", // Clave numérica asociada en la pestaña SubModulo de Google Sheets
+    claveDep: "7", // Clave numérica que usará para buscar sus submódulos en Google Sheets
     subtitle: "Gestión de infraestructura tecnológica, redes y soporte técnico.",
     icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-terminal"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="m8 16 2-2-2-2"/><path d="M12 18h4"/></svg>`,
-    options: [
-        { 
-            id: "reuniones", 
-            title: "Reuniones", 
-            icon: "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M8 2v4'/><path d='M16 2v4'/><rect width='18' height='18' x='3' y='4' rx='2'/><path d='M3 10h18'/></svg>", 
-            action: "manejarAccionSeccionSis('reuniones')" 
-        },
-        { 
-            id: "contrasenias", 
-            title: "Contraseñas", 
-            icon: "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect width='18' height='11' x='3' y='11' rx='2' ry='2'/><path d='M7 11V7a5 5 0 0 1 10 0v4'/></svg>", 
-            action: "manejarAccionSeccionSis('contrasenias')" 
-        },
-        { 
-            id: "licencias", 
-            title: "Licencias", 
-            icon: "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10'/></svg>", 
-            action: "manejarAccionSeccionSis('licencias')" 
-        },
-        { 
-            id: "inventarios", 
-            title: "Inventarios", 
-            icon: "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect width='20' height='14' x='2' y='3' rx='2'/><line x1='8' x2='16' y1='21' y2='21'/><line x1='12' x2='12' y1='17' y2='21'/></svg>", 
-            action: "manejarAccionSeccionSis('inventarios')" 
-        },
-        { 
-            id: "formatos", 
-            title: "Formatos Of.", 
-            icon: "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z'/><path d='M14 2v5a1 1 0 0 0 1 1h5'/><path d='M10 9H8'/><path d='M16 13H8'/><path d='M16 17H8'/></svg>", 
-            action: "manejarAccionSeccionSis('formatos')" 
-        },
-        { 
-            id: "permisos", 
-            title: "Permisos", 
-            icon: "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' class='lucide lucide-user-round-key'><path d='M19 11v6'/><path d='M19 13h2'/><path d='M2 21a8 8 0 0 1 12.868-6.349'/><circle cx='10' cy='8' r='5'/><circle cx='19' cy='19' r='2'/></svg>", 
-            action: "manejarAccionSeccionSis('permisos')" 
-        }
-    ]
+    
+    // Función dinámica para obtener las opciones directamente desde el Sheets
+    getOptions: function() {
+        if (!window.allSubModulosData) return [];
+        
+        // Filtra los submódulos que pertenecen a esta ClaveDep y los mapea al formato de opciones
+        return window.allSubModulosData
+            .filter(item => String(item.ClaveDep) === String(this.claveDep))
+            .map(sub => ({
+                id: String(sub.SModClave), // O un identificador amigable
+                title: sub.SModNom,
+                icon: "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect width='18' height='18' x='3' y='3' rx='2'/></svg>", // Icono por defecto o dinámico
+                action: `manejarAccionSeccionSis('${sub.SModClave}')`
+            }));
+    }
 };
 
 // ==========================================
@@ -64,18 +41,16 @@ function manejarAccionSeccionSis(idOpt) {
 }
 
 function ejecutarCargaSeccionSis(idOpt) {
-    if (idOpt === 'reuniones') {
-        cargarReunionesSis();
-    } else if (idOpt === 'contrasenias') {
-        cargarContraseniasSis();
-    } else if (idOpt === 'licencias') {
-        cargarLicenciasSis();
-    } else if (idOpt === 'inventarios') {
-        cargarInventariosSis();
-    } else if (idOpt === 'formatos') {
-        cargarFormatosSis();
-    } else if (idOpt === 'permisos') {
+    // Si la sección es 'permisos', abrimos la gestión de permisos
+    if (idOpt === 'permisos' || idOpt === '6') { // Ajusta según tu ID de permisos en Sheets
         cargarPermisosSis();
+    } else {
+        // Para cualquier otro submódulo leído del Sheets, renderizamos su vista genérica o específica
+        const configDepto = window.cirnosisConfig;
+        const opciones = configDepto.getOptions ? configDepto.getOptions() : [];
+        const optEncontrada = opciones.find(o => o.id === String(idOpt));
+        
+        renderizarVistaModuloSis(idOpt, optEncontrada ? optEncontrada.title : "Módulo del sistema.");
     }
 }
 
@@ -89,27 +64,7 @@ function limpiarSeccionUrlSis() {
     }
 }
 
-function cargarReunionesSis() {
-    renderizarVistaModuloSis('reuniones', "Registro y minuta de juntas del departamento de sistemas.");
-}
-
-function cargarContraseniasSis() {
-    renderizarVistaModuloSis('contrasenias', "Gestión segura de credenciales institucionales de servidores y sistemas.");
-}
-
-function cargarLicenciasSis() {
-    renderizarVistaModuloSis('licencias', "Inventario de licencias activas, fechas de expiración y costos.");
-}
-
-function cargarInventariosSis() {
-    renderizarVistaModuloSis('inventarios', "Listado general de equipos de cómputo asignados por área.");
-}
-
-function cargarFormatosSis() {
-    renderizarVistaModuloSis('formatos', "Descarga de formatos de resguardo, altas y reportes técnicos.");
-}
-
-// PUENTE: Conecta el menú de cirnosis con la lógica avanzada de SisPerCore.js
+// PUENTE: Conecta el menú con la lógica avanzada de permisos
 function cargarPermisosSis() {
     if (typeof window.renderizarListadoPermisosSis === 'function') {
         if (typeof window.actualizarBotonRegresar === 'function') {
@@ -133,11 +88,11 @@ function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
         const urlParams = new URLSearchParams(window.location.search);
         const deptoActual = urlParams.get('depto') || 'cirnosis';
         const configDepto = window[deptoActual + 'Config'];
-        const claveDepBuscada = configDepto ? configDepto.claveDep : "7"; // Clave por defecto para cirnosis
+        const claveDepBuscada = configDepto ? configDepto.claveDep : "7";
 
         let filasHTML = "";
 
-        // Filtramos los submódulos de la pestaña "SubModulo" de Sheets según la ClaveDep correspondiente
+        // Lee directamente los submódulos de la pestaña "SubModulo" de Sheets según la ClaveDep
         const submodulosDelDepto = window.allSubModulosData 
             ? window.allSubModulosData.filter(item => String(item.ClaveDep) === String(claveDepBuscada)) 
             : [];
@@ -145,7 +100,7 @@ function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
         if (submodulosDelDepto.length > 0) {
             filasHTML += `
                 <tr class="bg-stone-50 font-bold text-stone-800 border-t border-stone-200">
-                    <td class="p-3 pl-4 uppercase tracking-wider" colspan="4">📁 Submódulos (ClaveDep: ${claveDepBuscada})[cite: 8]</td>
+                    <td class="p-3 pl-4 uppercase tracking-wider" colspan="4">📁 Submódulos desde Google Sheets (ClaveDep: ${claveDepBuscada})</td>
                 </tr>
             `;
 
@@ -163,7 +118,7 @@ function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
                 `;
             });
         } else {
-            filasHTML = `<tr><td colspan="4" class="p-4 text-center text-xs text-stone-400">No se encontraron submódulos en Google Sheets para la ClaveDep: ${claveDepBuscada}[cite: 8]</td></tr>`;
+            filasHTML = `<tr><td colspan="4" class="p-4 text-center text-xs text-stone-400">No se encontraron submódulos en Google Sheets para la ClaveDep: ${claveDepBuscada}</td></tr>`;
         }
 
         contenedorDinamico.innerHTML = `
@@ -178,7 +133,7 @@ function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
                     <table class="w-full text-left border-collapse text-xs">
                         <thead class="sticky top-0 z-10 bg-stone-100">
                             <tr class="text-stone-600 font-bold border-b border-stone-200 text-[11px]">
-                                <th class="p-3 pl-4">SUBMÓDULO (DESDE SHEETS)</th>
+                                <th class="p-3 pl-4">SUBMÓDULO (SHEETS)</th>
                                 <th class="p-3 text-center">VER / LEER</th>
                                 <th class="p-3 text-center">CREAR / EDITAR</th>
                                 <th class="p-3 text-center pr-4">ELIMINAR</th>
@@ -203,13 +158,11 @@ function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
     }
 }
 
-function renderizarVistaModuloSis(idOpt, descripcion) {
-    const nombreCortoActual = new URLSearchParams(window.location.search).get('depto') || 'cirnosis';
-    const configActual = window[nombreCortoActual + 'Config'];
-    const opt = configActual ? configActual.options.find(o => o.id === idOpt) : null;
+function renderizarVistaModuloSis(idOpt, tituloModulo) {
     const contenedor = obtenerContenedor();
+    const nombreCortoActual = new URLSearchParams(window.location.search).get('depto') || 'cirnosis';
 
-    if (contenedor && opt) {
+    if (contenedor) {
         if (typeof window.actualizarBotonRegresar === 'function') {
             window.actualizarBotonRegresar('submodulo', nombreCortoActual);
         }
@@ -218,17 +171,17 @@ function renderizarVistaModuloSis(idOpt, descripcion) {
             <section class="bg-white rounded-2xl p-6 md:p-8 soft-shadow border border-sky-500/10 mb-8 animate-fade-in">
                 <div class="flex items-center gap-3 mb-6 pb-4 border-b border-stone-100">
                     <div class="p-2.5 bg-sky-50 border border-sky-100 text-sky-600 rounded-xl flex items-center justify-center">
-                        ${opt.icon}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width='18' height='18' x='3' y='3' rx='2'/></svg>
                     </div>
                     <div>
-                        <h3 class="font-black text-stone-800 text-lg uppercase tracking-wide">${opt.title}</h3>
-                        <p class="text-xs text-stone-500">${descripcion}</p>
+                        <h3 class="font-black text-stone-800 text-lg uppercase tracking-wide">${tituloModulo}</h3>
+                        <p class="text-xs text-stone-500">Módulo cargado dinámicamente desde Google Sheets.</p>
                     </div>
                 </div>
 
                 <div id="contenido-submodulo-dinamico" class="w-full space-y-6">
                     <div class="p-6 rounded-xl border border-dashed border-stone-200 bg-stone-50 text-center">
-                        <p class="text-xs text-stone-500 font-medium">Módulo activo: ${opt.title}. Espacio listo para la carga de componentes.</p>
+                        <p class="text-xs text-stone-500 font-medium">Área de trabajo para: ${tituloModulo}</p>
                     </div>
                 </div>
             </section>
@@ -282,7 +235,7 @@ function procesarCargaInicialSeccionSis(event) {
 }
 
 // ==========================================
-// LISTENERS DE HISTORIAL Y ARRANQUE (F5 y ATRÁS)
+// LISTENERS DE HISTORIAL Y ARRANQUE
 // ==========================================
 window.addEventListener('popstate', (event) => {
     procesarCargaInicialSeccionSis(event);

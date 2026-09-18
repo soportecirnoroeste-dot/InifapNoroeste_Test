@@ -3,8 +3,6 @@
 // ==========================================
 
 function renderizarListadoPermisosSis() {
-    console.log("1. Entrando a renderizarListadoPermisosSis (Con contenedor principal)");
-
     // Ocultar menús de departamentos anteriores si los hubiera
     const elementosPagina = document.querySelectorAll('div, section');
     elementosPagina.forEach(el => {

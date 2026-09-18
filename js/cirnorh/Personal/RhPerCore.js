@@ -33,7 +33,7 @@ function cargarPersonalRh(cargarLista = true) {
             </div>
         </div>
 
-        <div id="contenedor-formulario-personal" class="hidden bg-white p-6 rounded-xl border shadow-sm animate-fade-in">
+        <div id="contenedor-formulario-personal" class="rounded-xl border border-stone-200 overflow-hidden shadow-sm">
             <h5 id="titulo-formulario" class="font-bold text-stone-800 text-sm mb-4 pb-2 border-b border-stone-100 flex items-center gap-2">
                 Capturar Nuevo Empleado
             </h5>

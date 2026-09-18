@@ -114,7 +114,7 @@ async function seleccionarEmpleadoParaEditar(numEmpParam) {
 
         // Título estilizado adaptado exactamente como lo pediste
         if (titulo) {
-            titulo.innerHTML = `<div class="p-4 border-b border-stone-100 flex flex-wrap justify-between items-center gap-4 bg-white">
+            titulo.innerHTML = `<div class="p-4 border-stone-100 flex flex-wrap justify-between items-center gap-4 bg-white">
                         <div class="font-bold text-xs text-stone-700 uppercase tracking-wider"> 
                             <p class="text-xs text-stone-500">Editando permisos para: <span class="font-bold text-stone-800">${limpiarValor(emp.nombre)}</span> (No. Empleado: ${limpiarValor(emp.numEmp)})</p>
                         </div>

@@ -1,31 +1,32 @@
-// ==========================================
-// 1. CONEXIÓN CON GOOGLE APPS SCRIPT (BACKEND)
-// ==========================================
 function cargarDatosDelSistema() {
-    return new Promise((resolve, reject) => {
-        // Validamos si estamos usando google.script.run (entorno de Google Apps Script)
+    return new Promise((resolve) => {
         if (typeof google !== 'undefined' && google.script && google.script.run) {
             google.script.run
                 .withSuccessHandler(function(respuesta) {
-                    console.log("Datos del sistema recibidos de Sheets:", respuesta);
-                    if (respuesta && respuesta.success) {
-                        // Guardamos los submódulos y datos generales en las variables globales
-                        window.allSubModulosData = respuesta.submodulos || [];
-                        window.datosSistema = respuesta;
-                        resolve(respuesta);
-                    } else {
-                        console.error("El servidor respondió pero sin éxito:", respuesta);
-                        resolve(null);
-                    }
+                    window.allSubModulosData = respuesta.submodulos || [];
+                    window.datosSistema = respuesta;
+                    resolve(respuesta);
                 })
                 .withFailureHandler(function(error) {
-                    console.error("Error crítico al invocar obtenerDatosSistema:", error);
-                    reject(error);
+                    console.error("Error:", error);
+                    resolve(null);
                 })
-                .obtenerDatosSistema(); // 👈 Llama exactamente a tu función del backend
+                .obtenerDatosSistema();
         } else {
-            console.warn("No se detectó el entorno de Google Apps Script (google.script.run).");
-            resolve(null);
+            console.warn("Modo simulación activado para GitHub Pages.");
+            
+            // 🛠️ DATOS DE PRUEBA (MOCK) para ver el diseño y las tarjetas en GitHub
+            window.allSubModulosData = [
+                { ClaveDep: "7", SModClave: "permisos", SModNom: "Gestión de Permisos", SModIcon: "" },
+                { ClaveDep: "7", SModClave: "reportes", SModNom: "Reportes del Sistema", SModIcon: "" }
+            ];
+            
+            resolve({ success: true, submodulos: window.allSubModulosData });
+            
+            // Forzar renderizado si ya cargó el DOM
+            if (typeof window.cargarMenuDepartamento === 'function') {
+                window.cargarMenuDepartamento();
+            }
         }
     });
 }

@@ -114,7 +114,7 @@ async function seleccionarEmpleadoParaEditar(numEmpParam) {
 
         // Título estilizado adaptado exactamente como lo pediste
         if (titulo) {
-            titulo.innerHTML = `Editando permisos para: <span class="text-[#249444] font-bold">${limpiarValor(emp.nombre)}</span>`;
+            titulo.innerHTML = `<p class="text-xs text-stone-500">Editando permisos para: <span class="text-[#249444] font-bold">${limpiarValor(emp.nombre)}</span></p>`;
         }
 
         formContainer.classList.remove('hidden');

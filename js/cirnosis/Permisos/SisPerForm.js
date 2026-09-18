@@ -80,12 +80,11 @@ function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
                     </div>
                     <div>
                         <h3 class="font-black text-stone-800 text-lg uppercase tracking-wide">Permisos</h3>
-                        <p class="text-xs text-stone-500">Selecciona un colaborador para administrar su matriz de accesos por módulos y submódulos.</p>
                     </div>
                 </div>
 
                 <!-- Tabla de Módulos y Permisos con Scroll -->
-                <div class="rounded-xl border border-stone-200 overflow-hidden">
+                <div class="rounded-xl border border-stone-200 overflow-hidden shadow-sm">
 
                     <div class="p-4 border-b border-stone-100 flex flex-wrap justify-between items-center gap-4 bg-white">
                         <div class="font-bold text-xs text-stone-700 uppercase tracking-wider"> 

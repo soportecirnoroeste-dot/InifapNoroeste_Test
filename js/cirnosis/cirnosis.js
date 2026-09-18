@@ -6,13 +6,13 @@ window.cirnosisConfig = {
     claveDep: "7", // Clave numérica para buscar en la pestaña SubModulo de Sheets
     subtitle: "Gestión de infraestructura tecnológica, redes y soporte técnico.",
     icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-terminal"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="m8 16 2-2-2-2"/><path d="M12 18h4"/></svg>`,
-    
+
     get options() {
         // Si los datos de Google Sheets aún no se han cargado, devolvemos vacío
         if (!window.allSubModulosData || !Array.isArray(window.allSubModulosData)) {
             return [];
         }
-        
+
         // Filtramos por la ClaveDep correspondiente a este departamento
         const submodulosFiltrados = window.allSubModulosData.filter(item => {
             const dep = item.ClaveDep !== undefined ? item.ClaveDep : item.claveDep;
@@ -23,10 +23,10 @@ window.cirnosisConfig = {
         return submodulosFiltrados.map(sub => {
             const idSheet = String(sub.SModClave !== undefined ? sub.SModClave : sub.sModClave);
             const nombreSheet = String(sub.SModNom !== undefined ? sub.SModNom : sub.sModNom);
-            
+
             // Intentamos leer el icono de las columnas comunes en Sheets (SModIcon, sModIcon o icono)
             const iconoSheet = sub.SModIcon !== undefined ? sub.SModIcon : (sub.sModIcon || sub.icono);
-            
+
             // Icono de respaldo por si alguna fila no tiene diseño SVG asignado en la celda
             const iconoPorDefecto = "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect width='18' height='18' x='3' y='3' rx='2'/></svg>";
 
@@ -65,7 +65,7 @@ function ejecutarCargaSeccionSis(idOpt) {
         const configDepto = window.cirnosisConfig;
         const opciones = configDepto.getOptions ? configDepto.getOptions() : [];
         const optEncontrada = opciones.find(o => o.id === String(idOpt));
-        
+
         renderizarVistaModuloSis(idOpt, optEncontrada ? optEncontrada.title : "Módulo del sistema.");
     }
 }
@@ -100,7 +100,7 @@ function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
     const contenedorDinamico = document.getElementById('contenido-submodulo-dinamico');
     if (contenedorDinamico) {
         contenedorDinamico.className = "col-span-1 sm:col-span-2 md:col-span-3 space-y-6 animate-fade-in";
-        
+
         const urlParams = new URLSearchParams(window.location.search);
         const deptoActual = urlParams.get('depto') || 'cirnosis';
         const configDepto = window[deptoActual + 'Config'];
@@ -109,32 +109,22 @@ function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
         let filasHTML = "";
 
         // Lee directamente los submódulos de la pestaña "SubModulo" de Sheets según la ClaveDep
-        const submodulosDelDepto = window.allSubModulosData 
-            ? window.allSubModulosData.filter(item => String(item.ClaveDep) === String(claveDepBuscada)) 
-            : [];
+        const contenedorMenu = document.getElementById("menuSubmodulos"); // El contenedor en tu HTML
+        contenedorMenu.innerHTML = ""; // Limpiamos lo anterior
 
         if (submodulosDelDepto.length > 0) {
-            filasHTML += `
-                <tr class="bg-stone-50 font-bold text-stone-800 border-t border-stone-200">
-                    <td class="p-3 pl-4 uppercase tracking-wider" colspan="4">📁 Submódulos desde Google Sheets (ClaveDep: ${claveDepBuscada})</td>
-                </tr>
-            `;
-
-            submodulosDelDepto.forEach((sub) => {
-                filasHTML += `
-                    <tr class="hover:bg-stone-50 transition-all border-b border-stone-100">
-                        <td class="p-3 pl-8 font-medium text-stone-600 flex items-center gap-2">
-                            <span class="w-5 h-5 flex items-center justify-center text-stone-400">↳</span>
-                            ${sub.SModNom}
-                        </td>
-                        <td class="p-3 text-center"><input type="checkbox" data-smod="${sub.SModClave}" data-tipo="ver" class="accent-[#249444] w-4 h-4 cursor-pointer chk-permiso" checked></td>
-                        <td class="p-3 text-center"><input type="checkbox" data-smod="${sub.SModClave}" data-tipo="editar" class="accent-[#249444] w-4 h-4 cursor-pointer chk-permiso" checked></td>
-                        <td class="p-3 text-center pr-4"><input type="checkbox" data-smod="${sub.SModClave}" data-tipo="eliminar" class="accent-[#249444] w-4 h-4 cursor-pointer chk-permiso"></td>
-                    </tr>
-                `;
+            submodulosDelDepto.forEach(sub => {
+                // Creamos el elemento visual para cada submódulo
+                const itemHtml = `
+            <div class="submodulo-card" data-clave="${sub.SModClave}">
+                <i class="${sub.SModIcon || 'fas fa-folder'}"></i>
+                <span>${sub.SModNom}</span>
+            </div>
+        `;
+                contenedorMenu.innerHTML += itemHtml;
             });
         } else {
-            filasHTML = `<tr><td colspan="4" class="p-4 text-center text-xs text-stone-400">No se encontraron submódulos en Google Sheets para la ClaveDep: ${claveDepBuscada}</td></tr>`;
+            contenedorMenu.innerHTML = "<p>No hay submódulos configurados para este departamento.</p>";
         }
 
         contenedorDinamico.innerHTML = `

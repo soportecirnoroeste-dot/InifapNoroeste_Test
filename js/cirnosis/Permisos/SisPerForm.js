@@ -100,6 +100,19 @@ function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
 
                 <!-- Tabla de Módulos y Permisos con Scroll -->
                 <div class="rounded-xl border border-stone-200 overflow-hidden">
+
+                    <div class="p-4 border-b border-stone-100 flex flex-wrap justify-between items-center gap-4 bg-white">
+                        <div class="font-bold text-xs text-stone-700 uppercase tracking-wider">Listado General de Empleados</div>
+                        
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-stone-400">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                            </span>
+                            <input type="text" id="input-buscar-permisos" oninput="filtrarTarjetasPermisosSis()" placeholder="Buscar por nombre, puesto, centro..." 
+                                class="w-64 sm:w-72 pl-9 pr-4 py-1.5 bg-stone-50 border border-stone-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-[#249444] text-stone-700 transition-all shadow-xs uppercase">
+                        </div>
+                    </div>
+
                     <div class="max-h-[500px] overflow-y-auto custom-scrollbar">
                         <table class="w-full text-left border-collapse text-xs">
                             <thead class="sticky top-0 z-10 bg-stone-100">

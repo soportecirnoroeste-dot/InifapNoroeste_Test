@@ -39,6 +39,7 @@ window.cirnosisConfig = {
         });
     }
 };
+
 // ==========================================
 // FUNCIONES DE ACCIÓN Y CARGA DE SECCIONES
 // ==========================================
@@ -58,12 +59,11 @@ function manejarAccionSeccionSis(idOpt) {
 
 function ejecutarCargaSeccionSis(idOpt) {
     // Si la sección es 'permisos', abrimos la gestión de permisos
-    if (idOpt === 'permisos' || idOpt === '6') { // Ajusta según tu ID de permisos en Sheets
+    if (idOpt === 'permisos' || idOpt === '6') { 
         cargarPermisosSis();
     } else {
-        // Para cualquier otro submódulo leído del Sheets, renderizamos su vista genérica o específica
         const configDepto = window.cirnosisConfig;
-        const opciones = configDepto.getOptions ? configDepto.getOptions() : [];
+        const opciones = configDepto.options || [];
         const optEncontrada = opciones.find(o => o.id === String(idOpt));
 
         renderizarVistaModuloSis(idOpt, optEncontrada ? optEncontrada.title : "Módulo del sistema.");
@@ -71,7 +71,7 @@ function ejecutarCargaSeccionSis(idOpt) {
 }
 
 function limpiarSeccionUrlSis() {
-    sessionStorage.removeItem('submodulo_activo_cirnosis');
+    sessionSession.removeItem('submodulo_activo_cirnosis');
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.has('seccion')) {
         const deptoActual = urlParams.get('depto') || 'cirnosis';
@@ -101,30 +101,38 @@ function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
     if (contenedorDinamico) {
         contenedorDinamico.className = "col-span-1 sm:col-span-2 md:col-span-3 space-y-6 animate-fade-in";
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const deptoActual = urlParams.get('depto') || 'cirnosis';
-        const configDepto = window[deptoActual + 'Config'];
-        const claveDepBuscada = configDepto ? configDepto.claveDep : "7";
+        // Obtenemos los submódulos directamente usando la configuración global
+        const configDepto = window.cirnosisConfig;
+        const submodulosDelDepto = configDepto ? configDepto.options : [];
 
         let filasHTML = "";
 
-        // Lee directamente los submódulos de la pestaña "SubModulo" de Sheets según la ClaveDep
-        const contenedorMenu = document.getElementById("menuSubmodulos"); // El contenedor en tu HTML
-        contenedorMenu.innerHTML = ""; // Limpiamos lo anterior
-
         if (submodulosDelDepto.length > 0) {
             submodulosDelDepto.forEach(sub => {
-                // Creamos el elemento visual para cada submódulo
-                const itemHtml = `
-            <div class="submodulo-card" data-clave="${sub.SModClave}">
-                <i class="${sub.SModIcon || 'fas fa-folder'}"></i>
-                <span>${sub.SModNom}</span>
-            </div>
-        `;
-                contenedorMenu.innerHTML += itemHtml;
+                filasHTML += `
+                    <tr class="hover:bg-stone-50/80 transition-colors border-b border-stone-100">
+                        <td class="p-3 pl-4 font-semibold text-stone-800 flex items-center gap-2">
+                            <span class="w-6 h-6 inline-flex items-center justify-center text-sky-600">${sub.icon}</span>
+                            <span>${sub.title}</span>
+                        </td>
+                        <td class="p-3 text-center">
+                            <input type="checkbox" class="permiso-ver rounded text-green-600 focus:ring-green-500" data-sub="${sub.id}">
+                        </td>
+                        <td class="p-3 text-center">
+                            <input type="checkbox" class="permiso-editar rounded text-green-600 focus:ring-green-500" data-sub="${sub.id}">
+                        </td>
+                        <td class="p-3 text-center pr-4">
+                            <input type="checkbox" class="permiso-eliminar rounded text-green-600 focus:ring-green-500" data-sub="${sub.id}">
+                        </td>
+                    </tr>
+                `;
             });
         } else {
-            contenedorMenu.innerHTML = "<p>No hay submódulos configurados para este departamento.</p>";
+            filasHTML = `
+                <tr>
+                    <td colspan="4" class="p-4 text-center text-stone-500">No hay submódulos disponibles en Google Sheets para este departamento.</td>
+                </tr>
+            `;
         }
 
         contenedorDinamico.innerHTML = `

@@ -49,7 +49,7 @@ function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
     const contenedorDinamico = document.getElementById('contenido-submodulo-dinamico');
     if (contenedorDinamico) {
         contenedorDinamico.className = "col-span-1 sm:col-span-2 md:col-span-3 space-y-6 animate-fade-in";
-        
+
         let filasHTML = "";
         CATALOGO_MODULOS_SISTEMA.forEach((grupo, idxMod) => {
             filasHTML += `
@@ -84,32 +84,12 @@ function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
                     </div>
                 </div>
 
-                <!-- Encabezado con título de edición -->
-                <div class="border-b border-stone-100 pb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <div>
-                        <div class="flex items-center gap-2 text-[#249444] font-bold text-sm mb-1">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                            MATRIZ DE ACCESO Y PRIVILEGIOS
-                        </div>
-                        <p class="text-xs text-stone-500">Editando permisos para: <span class="font-bold text-stone-800">${nombreColaborador}</span> (No. Empleado: ${noEmp})</p>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="text-xs bg-stone-100 text-stone-600 font-semibold px-3 py-1.5 rounded-lg">Sistema Regional Interno</span>
-                    </div>
-                </div>
-
                 <!-- Tabla de Módulos y Permisos con Scroll -->
                 <div class="rounded-xl border border-stone-200 overflow-hidden">
 
                     <div class="p-4 border-b border-stone-100 flex flex-wrap justify-between items-center gap-4 bg-white">
-                        <div class="font-bold text-xs text-stone-700 uppercase tracking-wider">Listado General de Empleados</div>
-                        
-                        <div class="relative">
-                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-stone-400">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                            </span>
-                            <input type="text" id="input-buscar-permisos" oninput="filtrarTarjetasPermisosSis()" placeholder="Buscar por nombre, puesto, centro..." 
-                                class="w-64 sm:w-72 pl-9 pr-4 py-1.5 bg-stone-50 border border-stone-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-[#249444] text-stone-700 transition-all shadow-xs uppercase">
+                        <div class="font-bold text-xs text-stone-700 uppercase tracking-wider"> 
+                            <p class="text-xs text-stone-500">Editando permisos para: <span class="font-bold text-stone-800">${nombreColaborador}</span> (No. Empleado: ${noEmp})</p>
                         </div>
                     </div>
 

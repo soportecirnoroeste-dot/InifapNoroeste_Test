@@ -3,6 +3,7 @@
 // ==========================================
 window.cirnosisConfig = {
     deptoKey: "cirnosis",
+    claveDep: "7", // Clave numérica asociada en la pestaña SubModulo de Google Sheets
     subtitle: "Gestión de infraestructura tecnológica, redes y soporte técnico.",
     icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-terminal"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="m8 16 2-2-2-2"/><path d="M12 18h4"/></svg>`,
     options: [
@@ -118,6 +119,87 @@ function cargarPermisosSis() {
         window.renderizarListadoPermisosSis();
     } else {
         console.error("No se encontró la función renderizarListadoPermisosSis en SisPerCore.js");
+    }
+}
+
+// ==========================================
+// MATRIZ DE PERMISOS DINÁMICA (LEE DESDE GOOGLE SHEETS)
+// ==========================================
+function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
+    const contenedorDinamico = document.getElementById('contenido-submodulo-dinamico');
+    if (contenedorDinamico) {
+        contenedorDinamico.className = "col-span-1 sm:col-span-2 md:col-span-3 space-y-6 animate-fade-in";
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const deptoActual = urlParams.get('depto') || 'cirnosis';
+        const configDepto = window[deptoActual + 'Config'];
+        const claveDepBuscada = configDepto ? configDepto.claveDep : "7"; // Clave por defecto para cirnosis
+
+        let filasHTML = "";
+
+        // Filtramos los submódulos de la pestaña "SubModulo" de Sheets según la ClaveDep correspondiente
+        const submodulosDelDepto = window.allSubModulosData 
+            ? window.allSubModulosData.filter(item => String(item.ClaveDep) === String(claveDepBuscada)) 
+            : [];
+
+        if (submodulosDelDepto.length > 0) {
+            filasHTML += `
+                <tr class="bg-stone-50 font-bold text-stone-800 border-t border-stone-200">
+                    <td class="p-3 pl-4 uppercase tracking-wider" colspan="4">📁 Submódulos (ClaveDep: ${claveDepBuscada})[cite: 8]</td>
+                </tr>
+            `;
+
+            submodulosDelDepto.forEach((sub) => {
+                filasHTML += `
+                    <tr class="hover:bg-stone-50 transition-all border-b border-stone-100">
+                        <td class="p-3 pl-8 font-medium text-stone-600 flex items-center gap-2">
+                            <span class="w-5 h-5 flex items-center justify-center text-stone-400">↳</span>
+                            ${sub.SModNom}
+                        </td>
+                        <td class="p-3 text-center"><input type="checkbox" data-smod="${sub.SModClave}" data-tipo="ver" class="accent-[#249444] w-4 h-4 cursor-pointer chk-permiso" checked></td>
+                        <td class="p-3 text-center"><input type="checkbox" data-smod="${sub.SModClave}" data-tipo="editar" class="accent-[#249444] w-4 h-4 cursor-pointer chk-permiso" checked></td>
+                        <td class="p-3 text-center pr-4"><input type="checkbox" data-smod="${sub.SModClave}" data-tipo="eliminar" class="accent-[#249444] w-4 h-4 cursor-pointer chk-permiso"></td>
+                    </tr>
+                `;
+            });
+        } else {
+            filasHTML = `<tr><td colspan="4" class="p-4 text-center text-xs text-stone-400">No se encontraron submódulos en Google Sheets para la ClaveDep: ${claveDepBuscada}[cite: 8]</td></tr>`;
+        }
+
+        contenedorDinamico.innerHTML = `
+            <div class="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
+                <div class="p-4 border-b border-stone-100 flex flex-wrap justify-between items-center gap-4 bg-white">
+                    <div class="font-bold text-xs text-stone-700 uppercase tracking-wider"> 
+                        <p class="text-xs text-stone-500">Editando permisos para: <span class="font-bold text-stone-800">${nombreColaborador}</span> (No. Empleado: ${noEmp})</p>
+                    </div>
+                </div>
+
+                <div class="max-h-[500px] overflow-y-auto custom-scrollbar p-4">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead class="sticky top-0 z-10 bg-stone-100">
+                            <tr class="text-stone-600 font-bold border-b border-stone-200 text-[11px]">
+                                <th class="p-3 pl-4">SUBMÓDULO (DESDE SHEETS)</th>
+                                <th class="p-3 text-center">VER / LEER</th>
+                                <th class="p-3 text-center">CREAR / EDITAR</th>
+                                <th class="p-3 text-center pr-4">ELIMINAR</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-stone-100 text-stone-700">
+                            ${filasHTML}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="p-4 border-t border-stone-100 flex items-center gap-3 bg-stone-50/50">
+                    <button onclick="guardarMatrizPermisosSis('${noEmp}')" class="bg-[#249444] hover:bg-[#1e7a37] text-white text-xs font-bold px-6 py-2.5 rounded-xl transition-all shadow-sm">
+                        Guardar
+                    </button>
+                    <button onclick="cargarPermisosSis()" class="bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold px-6 py-2.5 rounded-xl transition-all">
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        `;
     }
 }
 

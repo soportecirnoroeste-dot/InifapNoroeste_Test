@@ -112,7 +112,10 @@ async function seleccionarEmpleadoParaEditar(numEmpParam) {
         form.elements['ciudad'].value = limpiarValor(emp.ciudad);
         form.elements['estado'].value = limpiarValor(emp.estado);
 
-        titulo.innerHTML = `Editando: <span class="text-[#249444]">${limpiarValor(emp.nombre)}</span>`;
+        // Título estilizado adaptado exactamente como lo pediste
+        if (titulo) {
+            titulo.innerHTML = `Editando permisos para: <span class="text-[#249444] font-bold">${limpiarValor(emp.nombre)}</span>`;
+        }
 
         formContainer.classList.remove('hidden');
         if (gestionContainer) gestionContainer.classList.add('hidden');

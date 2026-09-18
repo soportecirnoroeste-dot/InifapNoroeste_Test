@@ -87,7 +87,7 @@ function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
                 <div class="rounded-xl border border-stone-200 overflow-hidden shadow-sm">
 
                     <div class="p-4 border-b border-stone-100 flex flex-wrap justify-between items-center gap-4 bg-white">
-                        <div class="font-bold text-xs text-stone-700 uppercase tracking-wider"> 
+                        <div class="font-bold p-6 text-xs text-stone-700 uppercase tracking-wider"> 
                             <p class="text-xs text-stone-500">Editando permisos para: <span class="font-bold text-stone-800">${nombreColaborador}</span> (No. Empleado: ${noEmp})</p>
                         </div>
                     </div>

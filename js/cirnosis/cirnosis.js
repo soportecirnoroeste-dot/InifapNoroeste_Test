@@ -1,4 +1,36 @@
 // ==========================================
+// 1. CONEXIÓN CON GOOGLE APPS SCRIPT (BACKEND)
+// ==========================================
+function cargarDatosDelSistema() {
+    return new Promise((resolve, reject) => {
+        // Validamos si estamos usando google.script.run (entorno de Google Apps Script)
+        if (typeof google !== 'undefined' && google.script && google.script.run) {
+            google.script.run
+                .withSuccessHandler(function(respuesta) {
+                    console.log("Datos del sistema recibidos de Sheets:", respuesta);
+                    if (respuesta && respuesta.success) {
+                        // Guardamos los submódulos y datos generales en las variables globales
+                        window.allSubModulosData = respuesta.submodulos || [];
+                        window.datosSistema = respuesta;
+                        resolve(respuesta);
+                    } else {
+                        console.error("El servidor respondió pero sin éxito:", respuesta);
+                        resolve(null);
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    console.error("Error crítico al invocar obtenerDatosSistema:", error);
+                    reject(error);
+                })
+                .obtenerDatosSistema(); // 👈 Llama exactamente a tu función del backend
+        } else {
+            console.warn("No se detectó el entorno de Google Apps Script (google.script.run).");
+            resolve(null);
+        }
+    });
+}
+
+// ==========================================
 // CONFIGURACIÓN 100% DINÁMICA (ID, NOMBRE E ICONO DESDE SHEETS)
 // ==========================================
 window.cirnosisConfig = {
@@ -26,7 +58,7 @@ window.cirnosisConfig = {
             const idSheet = String(sub.SModClave !== undefined ? sub.SModClave : sub.sModClave);
             const nombreSheet = String(sub.SModNom !== undefined ? sub.SModNom : sub.sModNom);
 
-            // Intentamos leer el icono de las columnas comunes en Sheets (SModIcon, sModIcon o icono)
+            // Intentamos leer el icono de las columnas comunes en Sheets
             const iconoSheet = sub.SModIcon !== undefined ? sub.SModIcon : (sub.sModIcon || sub.icono);
 
             // Icono de respaldo por si alguna fila no tiene diseño SVG asignado en la celda
@@ -60,7 +92,6 @@ function manejarAccionSeccionSis(idOpt) {
 }
 
 function ejecutarCargaSeccionSis(idOpt) {
-    // Si la sección es 'permisos', abrimos la gestión de permisos
     if (idOpt === 'permisos' || idOpt === '6') { 
         cargarPermisosSis();
     } else {
@@ -82,7 +113,6 @@ function limpiarSeccionUrlSis() {
     }
 }
 
-// PUENTE: Conecta el menú con la lógica avanzada de permisos
 function cargarPermisosSis() {
     if (typeof window.renderizarListadoPermisosSis === 'function') {
         if (typeof window.actualizarBotonRegresar === 'function') {
@@ -103,7 +133,6 @@ function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
     if (contenedorDinamico) {
         contenedorDinamico.className = "col-span-1 sm:col-span-2 md:col-span-3 space-y-6 animate-fade-in";
 
-        // Obtenemos los submódulos directamente usando la configuración global
         const configDepto = window.cirnosisConfig;
         const submodulosDelDepto = configDepto ? configDepto.options : [];
 
@@ -251,19 +280,18 @@ function procesarCargaInicialSeccionSis(event) {
 }
 
 // ==========================================
-// LISTENERS DE HISTORIAL Y ARRANQUE (CORREGIDO)
+// LISTENERS DE HISTORIAL Y ARRANQUE
 // ==========================================
 window.addEventListener('popstate', (event) => {
     procesarCargaInicialSeccionSis(event);
 });
 
 document.addEventListener('DOMContentLoaded', async () => {
-    if (typeof window.cargarDatosDelSistema === 'function' && (!window.allSubModulosData || window.allSubModulosData.length === 0)) {
-        try {
-            await window.cargarDatosDelSistema();
-        } catch (e) {
-            console.error("Error al precargar los datos de sistema:", e);
-        }
+    try {
+        // Ejecutamos la carga inicial conectando al backend de Sheets
+        await cargarDatosDelSistema();
+    } catch (e) {
+        console.error("Error al precargar los datos del sistema:", e);
     }
     
     procesarCargaInicialSeccionSis();

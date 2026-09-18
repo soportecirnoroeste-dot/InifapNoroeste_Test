@@ -72,8 +72,18 @@ function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
 
         contenedorDinamico.innerHTML = `
             <!-- Contenedor con el formato exacto de tarjeta institucional (igual a la vista de Personal) -->
-            <div class="bg-white rounded-2xl border border-stone-200 shadow-sm p-6 space-y-6">
+            <div class="w-full space-y-6 bg-white p-6 md:p-8 rounded-2xl soft-shadow border border-[#249444]/10 mb-8 animate-fade-in">
                 
+                <div class="flex items-center gap-3 pb-4 border-b border-stone-100">
+                    <div class="p-2.5 bg-[#f0fdf4] border border-[#c6f6d5] text-[#059669] rounded-xl flex items-center justify-center">
+                        <svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' class='lucide lucide-user-round-key'><path d='M19 11v6'/><path d='M19 13h2'/><path d='M2 21a8 8 0 0 1 12.868-6.349'/><circle cx='10' cy='8' r='5'/><circle cx='19' cy='19' r='2'/></svg>
+                    </div>
+                    <div>
+                        <h3 class="font-black text-stone-800 text-lg uppercase tracking-wide">Permisos</h3>
+                        <p class="text-xs text-stone-500">Selecciona un colaborador para administrar su matriz de accesos por módulos y submódulos.</p>
+                    </div>
+                </div>
+
                 <!-- Encabezado con título de edición -->
                 <div class="border-b border-stone-100 pb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>

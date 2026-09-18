@@ -33,7 +33,6 @@ function renderizarListadoPermisosSis() {
                 </div>
                 <div>
                     <h3 class="font-black text-stone-800 text-lg uppercase tracking-wide">Permisos</h3>
-                    <p class="text-xs text-stone-500">Selecciona un colaborador para administrar su matriz de accesos por módulos y submódulos.</p>
                 </div>
             </div>
 

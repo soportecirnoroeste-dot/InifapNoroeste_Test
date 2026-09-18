@@ -71,7 +71,7 @@ function ejecutarCargaSeccionSis(idOpt) {
 }
 
 function limpiarSeccionUrlSis() {
-    sessionSession.removeItem('submodulo_activo_cirnosis');
+    sessionStorage.removeItem('submodulo_activo_cirnosis'); // 👈 Corregido aquí
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.has('seccion')) {
         const deptoActual = urlParams.get('depto') || 'cirnosis';

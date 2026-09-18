@@ -5,7 +5,7 @@ async function mostrarFormularioNuevoPersonal() {
     const gestionContainer = document.getElementById('contenedor-gestion-personal');
     const listadoContainer = document.getElementById('contenedor-listado-personal');
     const form = document.getElementById('form-nuevo-personal');
-    const titulo = document.getElementById('titulo-formulario');
+    const titulo = document.getElementById('formulario');
     const inputNumEmp = document.getElementById('input-numEmp');
 
     if (formContainer && form) {

@@ -71,54 +71,54 @@ function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
         });
 
         contenedorDinamico.innerHTML = `
-            <div class="bg-white border border-stone-200 rounded-2xl p-5 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
-                <div class="flex items-center gap-3">
-                    <!-- Botón de regresar integrado en la tarjeta -->
-                    <button onclick="cargarPermisosSis()" class="p-2.5 bg-stone-50 border border-stone-200 hover:bg-stone-100 text-stone-600 rounded-xl transition-all flex items-center justify-center" title="Regresar al listado">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-                    </button>
+            <!-- Contenedor con el formato exacto de tarjeta institucional (igual a la vista de Personal) -->
+            <div class="bg-white rounded-2xl border border-stone-200 shadow-sm p-6 space-y-6">
+                
+                <!-- Encabezado con título de edición -->
+                <div class="border-b border-stone-100 pb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
-                        <h4 class="font-bold text-stone-800 text-sm uppercase">Matriz de Acceso: <span class="text-[#249444]">${nombreColaborador}</span></h4>
-                        <p class="text-xs text-stone-500">No. Empleado: ${noEmp} — Configura los privilegios específicos por módulos principales y submódulos.</p>
+                        <div class="flex items-center gap-2 text-[#249444] font-bold text-sm mb-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                            MATRIZ DE ACCESO Y PRIVILEGIOS
+                        </div>
+                        <p class="text-xs text-stone-500">Editando permisos para: <span class="font-bold text-stone-800">${nombreColaborador}</span> (No. Empleado: ${noEmp})</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs bg-stone-100 text-stone-600 font-semibold px-3 py-1.5 rounded-lg">Sistema Regional Interno</span>
                     </div>
                 </div>
-                <div class="flex items-center gap-2">
-                    <button onclick="cargarPermisosSis()" class="bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold px-4 py-2.5 rounded-xl transition-all">
-                        Regresar
-                    </button>
-                    <button onclick="guardarMatrizPermisosSis('${noEmp}')" class="bg-[#249444] hover:bg-[#1e7a37] text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-                        Guardar Cambios
-                    </button>
-                </div>
-            </div>
 
-            <div class="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
-                <div class="max-h-[600px] overflow-y-auto custom-scrollbar">
-                    <table class="w-full text-left border-collapse text-xs">
-                        <thead class="sticky top-0 z-10 bg-stone-100">
-                            <tr class="text-stone-600 font-bold border-b border-stone-200 text-[11px]">
-                                <th class="p-3 pl-4">MÓDULO PRINCIPAL / SUBMÓDULO</th>
-                                <th class="p-3 text-center">VER / LEER</th>
-                                <th class="p-3 text-center">CREAR / EDITAR</th>
-                                <th class="p-3 text-center pr-4">ELIMINAR</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-stone-100 text-stone-700">
-                            ${filasHTML}
-                        </tbody>
-                    </table>
+                <!-- Tabla de Módulos y Permisos con Scroll -->
+                <div class="rounded-xl border border-stone-200 overflow-hidden">
+                    <div class="max-h-[500px] overflow-y-auto custom-scrollbar">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead class="sticky top-0 z-10 bg-stone-100">
+                                <tr class="text-stone-600 font-bold border-b border-stone-200 text-[11px]">
+                                    <th class="p-3 pl-4">MÓDULO PRINCIPAL / SUBMÓDULO</th>
+                                    <th class="p-3 text-center">VER / LEER</th>
+                                    <th class="p-3 text-center">CREAR / EDITAR</th>
+                                    <th class="p-3 text-center pr-4">ELIMINAR</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-stone-100 text-stone-700">
+                                ${filasHTML}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
+
+                <!-- Botones de Acción inferiores (Guardar / Cancelar) -->
+                <div class="flex items-center gap-3 pt-2">
+                    <button onclick="guardarMatrizPermisosSis('${noEmp}')" class="bg-[#249444] hover:bg-[#1e7a37] text-white text-xs font-bold px-6 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-2">
+                        Guardar
+                    </button>
+                    <button onclick="cargarPermisosSis()" class="bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold px-6 py-2.5 rounded-xl transition-all">
+                        Cancelar
+                    </button>
+                </div>
+
             </div>
         `;
-    }
-
-    // Vinculamos de forma dinámica el botón superior izquierdo (marcado en rojo) para que también ejecute cargarPermisosSis()
-    const btnRegresarGlobal = document.querySelector('header button, .flex.items-center.gap-3 button, button[title*="Regresar"], header img + button, header .flex button'); 
-    // O de forma más directa si el botón de la barra superior tiene una clase o estructura específica en tu HTML principal:
-    const flechaSuperior = document.querySelector('nav button, header button'); 
-    if (flechaSuperior && flechaSuperior.innerHTML.includes('svg')) {
-        flechaSuperior.onclick = () => cargarPermisosSis();
     }
 }
 

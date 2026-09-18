@@ -1,165 +1,196 @@
-// ==========================================
-// js/SisPer/SisPerForm.js
-// ==========================================
+// js/cirnorh/personal_form.js
 
-// Catálogo completo de módulos principales y submódulos institucionales (SISPER)
-const CATALOGO_MODULOS_SISTEMA = [
-    {
-        modulo: "DIRECCIÓN REGIONAL",
-        submodulos: ["PANEL GENERAL", "INFORMES Y REPORTES", "DIRECTORIOS"]
-    },
-    {
-        modulo: "DIRECCIÓN DE INVESTIGACIÓN",
-        submodulos: ["PROYECTOS DE INVESTIGACIÓN", "AVANCES Y EVALUACIONES", "CATÁLOGO DE INVESTIGADORES"]
-    },
-    {
-        modulo: "DIRECCIÓN DE ADMINISTRACIÓN",
-        submodulos: ["CONTROL ADMINISTRATIVO", "RECURSOS Y PRESUPUESTO", "NORMATIVA INTERNA"]
-    },
-    {
-        modulo: "RECURSOS FINANCIEROS",
-        submodulos: ["PRESUPUESTOS", "COMPROBACIÓN DE GASTOS", "ESTADOS FINANCIEROS"]
-    },
-    {
-        modulo: "RECURSOS HUMANOS",
-        submodulos: ["EXPEDIENTES DE PERSONAL", "ASISTENCIA Y BIOMETRÍA", "VACACIONES Y PERMISOS"]
-    },
-    {
-        modulo: "RECURSOS MATERIALES",
-        submodulos: ["INVENTARIO DE ACTIVOS", "RESGUARDOS", "SOLICITUDES DE MATERIAL"]
-    },
-    {
-        modulo: "SISTEMAS",
-        submodulos: ["REUNIONES DE SISTEMAS", "CONTRASEÑAS Y CREDENCIALES", "LICENCIAMIENTO DE SOFTWARE", "INVENTARIOS DE CÓMPUTO", "FORMATOS OFICIALES"]
-    },
-    {
-        modulo: "OFICIALÍA",
-        submodulos: ["CORRESPONDENCIA RECIBIDA", "CORRESPONDENCIA ENVIADA", "GESTIÓN DE OFICIOS"]
-    },
-    {
-        modulo: "INVESTIGACIÓN",
-        submodulos: ["CENTROS DE TRABAJO", "PROGRAMAS DE ESTUDIO", "PUBLICACIONES"]
-    },
-    {
-        modulo: "ADMINISTRACIÓN DEL SISTEMA",
-        submodulos: ["MÓDULO DE PERMISOS Y ACCESOS", "CATÁLOGOS DEL SISTEMA", "AUDITORÍA Y LOGS"]
-    }
-];
+async function mostrarFormularioNuevoPersonal() {
+    const formContainer = document.getElementById('contenedor-formulario-personal');
+    const gestionContainer = document.getElementById('contenedor-gestion-personal');
+    const listadoContainer = document.getElementById('contenedor-listado-personal');
+    const form = document.getElementById('form-nuevo-personal');
+    const titulo = document.getElementById('titulo-formulario');
+    const inputNumEmp = document.getElementById('input-numEmp');
 
-function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
-    const contenedorDinamico = document.getElementById('contenido-submodulo-dinamico');
-    if (contenedorDinamico) {
-        contenedorDinamico.className = "col-span-1 sm:col-span-2 md:col-span-3 space-y-6 animate-fade-in";
-        
-        // Construir dinámicamente las filas de la tabla usando el catálogo completo
-        let filasHTML = "";
-        CATALOGO_MODULOS_SISTEMA.forEach((grupo, idxMod) => {
-            filasHTML += `
-                <tr class="bg-stone-50/80 font-bold text-stone-800 border-t border-stone-200">
-                    <td class="p-3 pl-4 uppercase tracking-wider" colspan="4">📁 MÓDULO PRINCIPAL: ${grupo.modulo}</td>
-                </tr>
-            `;
+    if (formContainer && form) {
+        form.reset();
+        if (!window._catRegs || window._catRegs.length === 0) {
+            await cargarCatalogosSheets(true);
+        }
 
-            grupo.submodulos.forEach((sub, idxSub) => {
-                const idBase = `mod_${idxMod}_sub_${idxSub}`;
-                
-                filasHTML += `
-                    <tr class="hover:bg-stone-50 transition-all border-b border-stone-100">
-                        <td class="p-3 pl-8 font-medium text-stone-600">↳ ${sub}</td>
-                        <td class="p-3 text-center"><input type="checkbox" id="${idBase}_ver" data-modulo="${grupo.modulo}" data-submodulo="${sub}" data-tipo="ver" class="accent-[#249444] w-4 h-4 cursor-pointer checkbox-permiso"></td>
-                        <td class="p-3 text-center"><input type="checkbox" id="${idBase}_editar" data-modulo="${grupo.modulo}" data-submodulo="${sub}" data-tipo="editar" class="accent-[#249444] w-4 h-4 cursor-pointer checkbox-permiso"></td>
-                        <td class="p-3 text-center pr-4"><input type="checkbox" id="${idBase}_eliminar" data-modulo="${grupo.modulo}" data-submodulo="${sub}" data-tipo="eliminar" class="accent-[#249444] w-4 h-4 cursor-pointer checkbox-permiso"></td>
-                    </tr>
-                `;
-            });
-        });
+        if (typeof poblarSelectoresCascada === 'function') {
+            poblarSelectoresCascada('', '', '');
+        }
 
-        contenedorDinamico.innerHTML = `
-            <!-- Barra de navegación superior -->
-            <div class="bg-white border border-stone-200 rounded-2xl p-5 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
-                <div class="flex items-center gap-3 w-full md:w-auto">
-                    <button onclick="cargarPermisosSis()" class="p-2.5 bg-stone-50 border border-stone-200 hover:bg-stone-100 text-stone-600 rounded-xl transition-all flex items-center justify-center shrink-0" title="Regresar al listado">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-                    </button>
-                    <div>
-                        <h4 class="font-bold text-stone-800 text-sm uppercase">Configurando Permisos para: <span class="text-[#249444]">${nombreColaborador}</span></h4>
-                        <p class="text-xs text-stone-500">No. Empleado: ${noEmp} — Habilita o deshabilita el acceso específico por Módulos Principales y sus Submódulos.</p>
-                    </div>
-                </div>
-                <div class="flex items-center gap-2 shrink-0 w-full md:w-auto justify-end">
-                    <button onclick="cargarPermisosSis()" class="bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold px-4 py-2.5 rounded-xl transition-all">
-                        Cancelar
-                    </button>
-                    <button onclick="guardarMatrizPermisosSis('${noEmp}')" class="bg-[#249444] hover:bg-[#1e7a37] text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-                        Guardar Cambios
-                    </button>
-                </div>
-            </div>
-
-            <!-- Tabla de Matriz de Permisos Completa con Scroll -->
-            <div class="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
-                <div class="max-h-[600px] overflow-y-auto custom-scrollbar">
-                    <table class="w-full text-left border-collapse text-xs">
-                        <thead class="sticky top-0 z-10 bg-stone-100">
-                            <tr class="text-stone-600 font-bold border-b border-stone-200 text-[11px]">
-                                <th class="p-3 pl-4">MÓDULO PRINCIPAL / SUBMÓDULO</th>
-                                <th class="p-3 text-center">VER / LEER</th>
-                                <th class="p-3 text-center">CREAR / EDITAR</th>
-                                <th class="p-3 text-center pr-4">ELIMINAR</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-stone-100 text-stone-700">
-                            ${filasHTML}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        `;
+        inputNumEmp.removeAttribute('readonly');
+        titulo.innerHTML = `Capturar Nuevo Empleado`;
+        formContainer.classList.remove('hidden');
+        if (gestionContainer) gestionContainer.classList.add('hidden');
+        if (listadoContainer) listadoContainer.classList.add('hidden');
+        formContainer.scrollIntoView({ behavior: 'smooth' });
     }
 }
 
-async function guardarMatrizPermisosSis(noEmp) {
-    // Recopilar de forma inteligente todos los checkboxes marcados/desmarcados por su atributo
-    const checkboxes = document.querySelectorAll('.checkbox-permiso');
-    const matrizPermisos = {};
+function ocultarFormularioPersonal() {
+    const formContainer = document.getElementById('contenedor-formulario-personal');
+    const gestionContainer = document.getElementById('contenedor-gestion-personal');
+    const listadoContainer = document.getElementById('contenedor-listado-personal');
 
-    checkboxes.forEach(chk => {
-        const modulo = chk.getAttribute('data-modulo');
-        const submodulo = chk.getAttribute('data-submodulo');
-        const tipo = chk.getAttribute('data-tipo'); // ver, editar, eliminar
+    if (formContainer) formContainer.classList.add('hidden');
+    if (gestionContainer) gestionContainer.classList.remove('hidden');
+    if (listadoContainer) listadoContainer.classList.remove('hidden');
 
-        if (!matrizPermisos[modulo]) {
-            matrizPermisos[modulo] = {};
+    if (window._empleadosCache && window._empleadosCache.length > 0) {
+        renderizarTablaPersonal(window._empleadosCache);
+    }
+}
+
+function cancelarEdicionPersonal() {
+    const formContainer = document.getElementById('contenedor-formulario-personal');
+    const gestionContainer = document.getElementById('contenedor-gestion-personal');
+    const listadoContainer = document.getElementById('contenedor-listado-personal');
+
+    if (formContainer) formContainer.classList.add('hidden');
+    if (gestionContainer) gestionContainer.classList.remove('hidden');
+    if (listadoContainer) listadoContainer.classList.remove('hidden');
+
+    if (window._empleadosCache && window._empleadosCache.length > 0) {
+        renderizarTablaPersonal(window._empleadosCache);
+    }
+}
+
+async function seleccionarEmpleadoParaEditar(numEmpParam) {
+    if (!window._empleadosCache || window._empleadosCache.length === 0) {
+        try {
+            const data = await FetchAPI('obtenerPersonal');
+            window._empleadosCache = data || [];
+        } catch (error) {
+            console.error("❌ Error al recuperar empleados:", error);
         }
-        if (!matrizPermisos[modulo][submodulo]) {
-            matrizPermisos[modulo][submodulo] = { ver: 0, editar: 0, eliminar: 0 };
+    }
+
+    const busqueda = String(numEmpParam || '').trim();
+
+    // Buscamos de forma segura por número de empleado
+    let emp = window._empleadosCache.find(e => String(e.numEmp || e.noEmp || '').trim() === busqueda);
+
+    if (!emp) {
+        alert("No se pudieron cargar los datos del empleado.");
+        return;
+    }
+
+    await cargarCatalogosSheets();
+
+    const form = document.getElementById('form-nuevo-personal');
+    const formContainer = document.getElementById('contenedor-formulario-personal');
+    const gestionContainer = document.getElementById('contenedor-gestion-personal');
+    const listadoContainer = document.getElementById('contenedor-listado-personal');
+    const titulo = document.getElementById('titulo-formulario');
+    const inputNumEmp = document.getElementById('input-numEmp');
+
+    if (formContainer && form) {
+        const regVal = extraerClave(emp.claveReg || emp.textoReg);
+        const centroVal = extraerClave(emp.claveCentro || emp.textoCentro);
+        let rawSit = extraerClave(emp.claveSit || emp.textoSit);
+        const sitVal = (!rawSit || rawSit === 0 || rawSit === '0' || String(rawSit).trim().toUpperCase() === 'N/A') ? 'N/A' : rawSit;
+
+        if (typeof poblarSelectoresCascada === 'function') {
+            poblarSelectoresCascada(regVal, centroVal, sitVal);
         }
 
-        matrizPermisos[modulo][submodulo][tipo] = chk.checked ? 1 : 0;
-    });
+        form.elements['numEmp'].value = limpiarValor(emp.numEmp || emp.noEmp);
+        inputNumEmp.setAttribute('readonly', true);
+        form.elements['nombre'].value = limpiarValor(emp.nombre);
+        form.elements['ext'].value = limpiarValor(emp.ext);
+        form.elements['numPers'].value = limpiarValor(emp.numPers);
+        form.elements['escolaridad'].value = limpiarValor(emp.escolaridad);
+        form.elements['direccion'].value = limpiarValor(emp.direccion);
+        form.elements['cp'].value = limpiarValor(emp.cp);
+        form.elements['email'].value = limpiarValor(emp.email);
+        form.elements['rfc'].value = limpiarValor(emp.rfc);
 
-    const permisosPayload = {
-        numEmp: noEmp,
-        permisos: matrizPermisos
-    };
+        // Mapeo a las nuevas columnas
+        form.elements['NumPto'].value = limpiarValor(emp.NumPto || emp.numPto || emp.puesto);
+        form.elements['NomCorDep'].value = limpiarValor(emp.NomCorDep || emp.nomCorDep || emp.departamento);
+
+        form.elements['ciudad'].value = limpiarValor(emp.ciudad);
+        form.elements['estado'].value = limpiarValor(emp.estado);
+
+        titulo.innerHTML = `Editando: <span class="text-[#249444]">${limpiarValor(emp.nombre)}</span>`;
+
+        formContainer.classList.remove('hidden');
+        if (gestionContainer) gestionContainer.classList.add('hidden');
+        if (listadoContainer) listadoContainer.classList.add('hidden');
+    }
+}
+
+async function guardarOActualizarPersonal(event) {
+    event.preventDefault();
+    const form = event.target;
+
+    if (typeof mostrarCarga === 'function') mostrarCarga();
+
+    const formData = new FormData(form);
+    let datosEmpleado = Object.fromEntries(formData.entries());
+
+    const selectReg = form.querySelector('#select-claveReg');
+    if (selectReg && selectReg.selectedIndex >= 0) {
+        const optionText = selectReg.options[selectReg.selectedIndex].text;
+        datosEmpleado.textoReg = optionText !== 'Seleccione una región...' ? optionText : datosEmpleado.claveReg;
+    }
+
+    const selectCentro = form.querySelector('#select-claveCentro');
+    if (selectCentro && selectCentro.selectedIndex >= 0) {
+        const optionText = selectCentro.options[selectCentro.selectedIndex].text;
+        datosEmpleado.textoCentro = optionText !== 'Seleccione un centro...' ? optionText : datosEmpleado.claveCentro;
+    }
+
+    // Asegurar valores desde los selects actualizados de Puesto y Departamento
+    const selectPuesto = form.querySelector('#select-NumPto');
+    if (selectPuesto) {
+        datosEmpleado.NumPto = selectPuesto.value || '';
+    }
+
+    const selectDepto = form.querySelector('#select-NomCorDep');
+    if (selectDepto) {
+        datosEmpleado.NomCorDep = selectDepto.value || '';
+    }
+
+    if (!datosEmpleado.claveSit || String(datosEmpleado.claveSit).trim() === '') {
+        datosEmpleado.claveSit = 'N/A';
+    }
+
+    if (typeof convertirObjetoAMayusculas === 'function') {
+        datosEmpleado = convertirObjetoAMayusculas(datosEmpleado);
+    }
+
+    const formDataFinal = new FormData();
+    for (const key in datosEmpleado) {
+        formDataFinal.append(key, datosEmpleado[key]);
+    }
+
+    const actionName = window._empleadosCache.some(e => String(e.numEmp || e.noEmp).trim() === String(datosEmpleado.numEmp).trim()) ? 'actualizarPersonal' : 'guardarPersonal';
+
+    const btnSubmit = form.querySelector('button[type="submit"]');
+    if (btnSubmit) btnSubmit.disabled = true;
 
     try {
-        if (typeof FetchAPI === 'function') {
-            await FetchAPI('guardarPermisos', permisosPayload);
-        } else if (typeof google !== 'undefined' && google.script && google.script.run) {
-            await new Promise((resolve, reject) => {
-                google.script.run
-                    .withSuccessHandler(resolve)
-                    .withFailureHandler(reject)
-                    .guardarPermisosEnSheet(permisosPayload);
-            });
-        }
-
-        alert("¡Permisos actualizados y guardados correctamente en Google Sheets!");
-        cargarPermisosSis();
-    } catch (err) {
-        console.error("Error al guardar permisos:", err);
-        alert("Error al guardar los permisos: " + (err.message || err));
+        const res = await FetchAPI(actionName, formDataFinal);
+        alert(res.message || "Guardado exitoso");
+        ocultarFormularioPersonal();
+        cargarDatosGenerales(true);
+    } catch (e) {
+        console.error("Error al guardar:", e);
+        alert("Error de conexión al guardar.");
+    } finally {
+        if (btnSubmit) btnSubmit.disabled = false;
+        if (typeof ocultarCarga === 'function') ocultarCarga();
     }
+}
+
+function limpiarValor(val) {
+    return (!val || val === 0 || val === '0' || String(val).trim() === '') ? '' : val;
+}
+
+function extraerClave(val) {
+    if (!val) return '';
+    const str = String(val).trim();
+    if (str.includes(' - ')) return str.split(' - ')[0].trim();
+    return str;
 }

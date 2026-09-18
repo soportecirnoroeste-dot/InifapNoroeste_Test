@@ -2,7 +2,6 @@
 // js/SisPer/SisPerForm.js
 // ==========================================
 
-// Catálogo institucional completo con todos los módulos y submódulos
 const CATALOGO_MODULOS_SISTEMA = [
     {
         modulo: "DIRECCIÓN REGIONAL",
@@ -51,7 +50,6 @@ function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
     if (contenedorDinamico) {
         contenedorDinamico.className = "col-span-1 sm:col-span-2 md:col-span-3 space-y-6 animate-fade-in";
         
-        // Generar dinámicamente las filas de todos los módulos y submódulos
         let filasHTML = "";
         CATALOGO_MODULOS_SISTEMA.forEach((grupo, idxMod) => {
             filasHTML += `
@@ -75,6 +73,7 @@ function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
         contenedorDinamico.innerHTML = `
             <div class="bg-white border border-stone-200 rounded-2xl p-5 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
                 <div class="flex items-center gap-3">
+                    <!-- Botón de regresar integrado en la tarjeta -->
                     <button onclick="cargarPermisosSis()" class="p-2.5 bg-stone-50 border border-stone-200 hover:bg-stone-100 text-stone-600 rounded-xl transition-all flex items-center justify-center" title="Regresar al listado">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
                     </button>
@@ -113,6 +112,14 @@ function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
             </div>
         `;
     }
+
+    // Vinculamos de forma dinámica el botón superior izquierdo (marcado en rojo) para que también ejecute cargarPermisosSis()
+    const btnRegresarGlobal = document.querySelector('header button, .flex.items-center.gap-3 button, button[title*="Regresar"], header img + button, header .flex button'); 
+    // O de forma más directa si el botón de la barra superior tiene una clase o estructura específica en tu HTML principal:
+    const flechaSuperior = document.querySelector('nav button, header button'); 
+    if (flechaSuperior && flechaSuperior.innerHTML.includes('svg')) {
+        flechaSuperior.onclick = () => cargarPermisosSis();
+    }
 }
 
 async function guardarMatrizPermisosSis(noEmp) {
@@ -122,7 +129,7 @@ async function guardarMatrizPermisosSis(noEmp) {
     checkboxes.forEach(chk => {
         const modulo = chk.getAttribute('data-modulo');
         const submodulo = chk.getAttribute('data-submodulo');
-        const tipo = chk.getAttribute('data-tipo'); // ver, editar, eliminar
+        const tipo = chk.getAttribute('data-tipo');
 
         if (!permisosEstructura[modulo]) {
             permisosEstructura[modulo] = {};

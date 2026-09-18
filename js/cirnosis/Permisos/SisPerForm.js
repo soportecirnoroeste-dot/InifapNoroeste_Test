@@ -38,10 +38,6 @@ const CATALOGO_MODULOS_SISTEMA = [
     {
         modulo: "INVESTIGACIÓN",
         submodulos: ["CENTROS DE TRABAJO", "PROGRAMAS DE ESTUDIO", "PUBLICACIONES"]
-    },
-    {
-        modulo: "ADMINISTRACIÓN DEL SISTEMA",
-        submodulos: ["MÓDULO DE PERMISOS Y ACCESOS", "CATÁLOGOS DEL SISTEMA", "AUDITORÍA Y LOGS"]
     }
 ];
 
@@ -54,7 +50,7 @@ function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
         CATALOGO_MODULOS_SISTEMA.forEach((grupo, idxMod) => {
             filasHTML += `
                 <tr class="bg-stone-50 font-bold text-stone-800 border-t border-stone-200">
-                    <td class="p-3 pl-4 uppercase tracking-wider" colspan="4">📁 Módulo Principal: ${grupo.modulo}</td>
+                    <td class="p-3 pl-4 uppercase tracking-wider" colspan="4">📁 Módulo: ${grupo.modulo}</td>
                 </tr>
             `;
 

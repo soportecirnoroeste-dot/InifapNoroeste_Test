@@ -1,27 +1,44 @@
 // ==========================================
-// CONFIGURACIÓN DINÁMICA DEL MÓDULO CIRNOSIS
+// CONFIGURACIÓN 100% DINÁMICA (ID, NOMBRE E ICONO DESDE SHEETS)
 // ==========================================
 window.cirnosisConfig = {
     deptoKey: "cirnosis",
-    claveDep: "7", // Clave numérica para buscar en la pestaña SubModulo de Sheets[cite: 8]
+    claveDep: "7", // Clave numérica para buscar en la pestaña SubModulo de Sheets
     subtitle: "Gestión de infraestructura tecnológica, redes y soporte técnico.",
     icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-terminal"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="m8 16 2-2-2-2"/><path d="M12 18h4"/></svg>`,
     
-    // Hacemos que 'options' actúe como un evaluador dinámico para que el router.js no falle
     get options() {
-        if (!window.allSubModulosData) return [];
+        // Si los datos de Google Sheets aún no se han cargado, devolvemos vacío
+        if (!window.allSubModulosData || !Array.isArray(window.allSubModulosData)) {
+            return [];
+        }
         
-        return window.allSubModulosData
-            .filter(item => String(item.ClaveDep) === String(this.claveDep))
-            .map(sub => ({
-                id: String(sub.SModClave),
-                title: sub.SModNom,
-                icon: "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect width='18' height='18' x='3' y='3' rx='2'/></svg>",
-                action: `manejarAccionSeccionSis('${sub.SModClave}')`
-            }));
+        // Filtramos por la ClaveDep correspondiente a este departamento
+        const submodulosFiltrados = window.allSubModulosData.filter(item => {
+            const dep = item.ClaveDep !== undefined ? item.ClaveDep : item.claveDep;
+            return String(dep) === String(this.claveDep);
+        });
+
+        // Mapeamos los datos leyendo ID, Nombre e Icono directamente del Sheets
+        return submodulosFiltrados.map(sub => {
+            const idSheet = String(sub.SModClave !== undefined ? sub.SModClave : sub.sModClave);
+            const nombreSheet = String(sub.SModNom !== undefined ? sub.SModNom : sub.sModNom);
+            
+            // Intentamos leer el icono de las columnas comunes en Sheets (SModIcon, sModIcon o icono)
+            const iconoSheet = sub.SModIcon !== undefined ? sub.SModIcon : (sub.sModIcon || sub.icono);
+            
+            // Icono de respaldo por si alguna fila no tiene diseño SVG asignado en la celda
+            const iconoPorDefecto = "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect width='18' height='18' x='3' y='3' rx='2'/></svg>";
+
+            return {
+                id: idSheet,
+                title: nombreSheet,
+                icon: iconoSheet && iconoSheet.trim() !== "" ? iconoSheet : iconoPorDefecto,
+                action: `manejarAccionSeccionSis('${idSheet}')`
+            };
+        });
     }
 };
-
 // ==========================================
 // FUNCIONES DE ACCIÓN Y CARGA DE SECCIONES
 // ==========================================

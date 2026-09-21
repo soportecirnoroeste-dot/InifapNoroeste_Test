@@ -71,7 +71,7 @@ function cargarDatosDelSistema() {
 // ==========================================
 window.cirnorhConfig = {
     deptoKey: "cirnorh",
-    claveDep: "6", // Clave predeterminada (puedes ajustarla si lo requieres)
+    claveDep: "6", 
     subtitle: "Gestión de personal, incidencias, nómina y desarrollo humano.",
     icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-handshake"><path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/><path d="m21 3 1 11h-2"/><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"/><path d="M3 4h8"/></svg>`,
 
@@ -82,7 +82,6 @@ window.cirnorhConfig = {
 
         const fuenteDatos = window.allSubModulosData || (window.datosSistema && window.datosSistema.submodulos);
         
-        // 🛡️ RESPALDO DE EMERGENCIA: Si por algo Sheets aún no cargó, mostramos las opciones base para que nunca se quede en blanco
         const opcionesPorDefecto = [
             {
                 id: "personal",
@@ -102,7 +101,6 @@ window.cirnorhConfig = {
             return opcionesPorDefecto;
         }
 
-        // Filtro flexible y robusto adaptado para atrapar los submódulos sin importar cómo estén registrados en Sheets
         const submodulosFiltrados = fuenteDatos.filter(item => {
             const dep = String(item.ClaveDep !== undefined ? item.ClaveDep : (item.claveDep || '')).trim().toLowerCase();
             return dep === String(this.claveDep).toLowerCase() || dep === String(this.deptoKey).toLowerCase();
@@ -128,7 +126,6 @@ window.cirnorhConfig = {
     }
 };
 
-// Alias por si algún otro script busca directamente 'window.cirnorh'
 window.cirnorh = window.cirnorhConfig;
 
 // ==========================================

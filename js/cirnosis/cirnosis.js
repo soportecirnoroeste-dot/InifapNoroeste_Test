@@ -1,4 +1,15 @@
 // ==========================================
+// PUENTES GLOBALES PARA EL ROUTER DE LA APP
+// ==========================================
+window.manejarAccionSeccion_cirnosis = function(idOpt) {
+    manejarAccionSeccionSis(idOpt);
+};
+
+window.manejarAccionSeccionCirnosis = function(idOpt) {
+    manejarAccionSeccionSis(idOpt);
+};
+
+// ==========================================
 // CARGA INSTÁNTANEA CON CACHÉ Y RED EN SEGUNDO PLANO
 // ==========================================
 function cargarDatosDelSistema() {
@@ -87,7 +98,7 @@ window.cirnosisConfig = {
                 id: idSheet,
                 title: nombreSheet,
                 icon: iconoSheet && iconoSheet.trim() !== "" ? iconoSheet : iconoPorDefecto,
-                action: `manejarAccionSeccionSis('${idSheet}')`
+                action: `manejarAccionSeccion_cirnosis('${idSheet}')`
             };
         });
     }
@@ -314,7 +325,6 @@ window.addEventListener('popstate', (event) => {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Disparamos la carga al instante sin usar await para no congelar la vista
     cargarDatosDelSistema();
     procesarCargaInicialSeccionSis();
 });

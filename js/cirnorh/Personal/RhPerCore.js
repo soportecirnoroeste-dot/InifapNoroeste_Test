@@ -9,9 +9,7 @@ window._mapRegsCache = window._mapRegsCache || null;
 window._mapCentrosCache = window._mapCentrosCache || null;
 
 function cargarPersonalRh(cargarLista = true) {
-    if (typeof renderizarVistaModuloRh === 'function') {
-        renderizarVistaModuloRh('personal', "Personal");
-    }
+    renderizarVistaModulo('personal', "");
 
     const contenedorDinamico = document.getElementById('contenido-submodulo-dinamico');
     if (!contenedorDinamico) return;
@@ -35,7 +33,7 @@ function cargarPersonalRh(cargarLista = true) {
             </div>
         </div>
 
-        <div id="contenedor-formulario-personal" class="hidden bg-white p-6 rounded-xl border border-stone-200 shadow-sm animate-fade-in">
+        <div id="contenedor-formulario-personal" class="hidden bg-white p-6 rounded-xl border border-[#249444]/20 shadow-sm animate-fade-in">
             <h5 id="titulo-formulario" class="font-bold text-stone-800 text-sm mb-4 pb-2 border-b border-stone-100 flex items-center gap-2">
                 Capturar Nuevo Empleado
             </h5>
@@ -87,7 +85,7 @@ function cargarPersonalRh(cargarLista = true) {
                 <div><label class="block font-bold text-stone-700 mb-1">Estado:</label><input type="text" name="estado" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
                 
                 <div class="sm:col-span-2 md:col-span-3 flex items-end gap-2 pt-2">
-                    <button type="submit" class="py-2.5 px-6 bg-[#249444] text-white font-bold rounded-lg hover:bg-[#047857] transition flex items-center justify-center gap-1.5">
+                    <button type="submit" class="py-2.5 px-6 bg-[#059669] text-white font-bold rounded-lg hover:bg-[#047857] transition flex items-center justify-center gap-1.5">
                         Guardar
                     </button>
                     <button type="button" onclick="cancelarEdicionPersonal()" class="px-4 py-2.5 bg-stone-100 text-stone-600 font-bold rounded-lg hover:bg-stone-200 transition">Cancelar</button>
@@ -423,10 +421,10 @@ function renderizarTablaPersonal(registros) {
             // 1. Buscamos primero en el mapa optimizado de puestos
             if (window._mapPuestosCache && window._mapPuestosCache[cNumPto]) {
                 puestoVisual = window._mapPuestosCache[cNumPto];
-            }
+            } 
             // 2. Si no está en el mapa, hacemos una búsqueda directa en el arreglo de catálogos
             else if (Array.isArray(window._catPuestos) && window._catPuestos.length > 0) {
-                const encontrado = window._catPuestos.find(p =>
+                const encontrado = window._catPuestos.find(p => 
                     String(p.NumPto || p.numPto || '').trim() === cNumPto
                 );
                 if (encontrado) {

@@ -6,6 +6,12 @@ function cargarDatosDelSistema() {
                 .withSuccessHandler(function(respuesta) {
                     window.allSubModulosData = respuesta.submodulos || [];
                     window.datosSistema = respuesta;
+                    
+                    // Guardamos también en caché automáticamente para futuras recargas en local/GH
+                    try {
+                        localStorage.setItem('sistema_cache_datos', JSON.stringify(respuesta));
+                    } catch (e) {}
+
                     resolve(respuesta);
                 })
                 .withFailureHandler(function(error) {
@@ -16,23 +22,22 @@ function cargarDatosDelSistema() {
         } else {
             console.warn("Modo simulación activado para GitHub Pages. Leyendo desde caché local.");
             
-            // 🛠️ SIN VALORES FIJOS: Intentamos recuperar la caché real generada por el sistema
-            let submodulosCacheados = [];
+            let datosCacheados = { success: true, submodulos: [] };
             try {
                 const cacheGuardada = localStorage.getItem('sistema_cache_datos');
                 if (cacheGuardada) {
-                    const datosParsed = JSON.parse(cacheGuardada);
-                    submodulosCacheados = datosParsed.submodulos || [];
+                    datosCacheados = JSON.parse(cacheGuardada);
                 }
             } catch (e) {
                 console.error("Error al leer la caché local:", e);
             }
 
-            window.allSubModulosData = submodulosCacheados;
-            window.datosSistema = { success: true, submodulos: submodulosCacheados };
+            window.allSubModulosData = datosCacheados.submodulos || [];
+            window.datosSistema = datosCacheados;
             
-            resolve(window.datosSistema);
+            resolve(datosCacheados);
             
+            // Si el menú ya puede cargarse con la caché, lo disparamos
             if (typeof window.cargarMenuDepartamento === 'function') {
                 window.cargarMenuDepartamento();
             }
@@ -55,7 +60,7 @@ window.cirnosisConfig = {
             return window.AppConfigUtils.crearOpcionesDinamicas(this.claveDep, this.deptoKey);
         }
 
-        // Respaldo dinámico leyendo de las variables globales de Sheets
+        // Respaldo dinámico leyendo de las variables globales de Sheets o caché
         const fuenteDatos = window.allSubModulosData || (window.datosSistema && window.datosSistema.submodulos);
         if (!fuenteDatos || !Array.isArray(fuenteDatos)) return [];
 

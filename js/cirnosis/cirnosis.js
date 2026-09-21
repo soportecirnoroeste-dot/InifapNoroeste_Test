@@ -1,5 +1,6 @@
-function cargarDatosDelSistema() {
-    return new Promise((resolve) => {
+async function cargarDatosDelSistema() {
+    return new Promise(async (resolve) => {
+        // 1. Si estamos dentro de Google Apps Script (entorno nativo)
         if (typeof google !== 'undefined' && google.script && google.script.run) {
             google.script.run
                 .withSuccessHandler(function(respuesta) {
@@ -13,27 +14,55 @@ function cargarDatosDelSistema() {
                     resolve(respuesta);
                 })
                 .withFailureHandler(function(error) {
-                    console.error("Error:", error);
+                    console.error("Error al obtener de Sheets:", error);
                     resolve(null);
                 })
                 .obtenerDatosSistema();
-        } else {
-            console.warn("Modo simulación activado para GitHub Pages. Leyendo desde caché local.");
+        } 
+        // 2. Si estamos en GitHub Pages o fuera, leemos directamente de Google Sheets usando tu FetchAPI central
+        else {
+            console.log("Leyendo submódulos directamente de Google Sheets vía API...");
             
-            let datosCacheados = { success: true, submodulos: [] };
             try {
-                const cacheGuardada = localStorage.getItem('sistema_cache_datos');
-                if (cacheGuardada) {
-                    datosCacheados = JSON.parse(cacheGuardada);
+                // Usamos la misma pasarela de FetchAPI que ya tienes configurada en api.js
+                let respuesta = null;
+                if (typeof window.FetchAPI === 'function') {
+                    respuesta = await window.FetchAPI('obtenerDatosSistema');
+                } else {
+                    // Respaldo directo si FetchAPI no está disponible globalmente aún
+                    const response = await fetch("https://script.google.com/macros/s/AKfycbz1wzz5zC_6Cf4thUdl_5BkAca6m_MM7IWQyPwVAQcMaraPqfX8nBGMQpSdy31_tjz1Aw/exec", {
+                        method: "POST",
+                        redirect: "follow",
+                        headers: { "Content-Type": "text/plain;charset=utf-8" },
+                        body: JSON.stringify({ action: "obtenerDatosSistema" })
+                    });
+                    respuesta = await response.json();
+                }
+
+                if (respuesta && respuesta.success) {
+                    window.allSubModulosData = respuesta.submodulos || [];
+                    window.datosSistema = respuesta;
+                    
+                    // Actualizamos la caché con lo que viene del Sheets real
+                    localStorage.setItem('sistema_cache_datos', JSON.stringify(respuesta));
+                    resolve(respuesta);
+                } else {
+                    throw new Error("La respuesta del servidor no fue exitosa.");
                 }
             } catch (e) {
-                console.error("Error al leer la caché local:", e);
-            }
+                console.error("Error al conectar con Google Sheets, recurriendo a caché:", e);
+                let datosCacheados = { success: true, submodulos: [] };
+                try {
+                    const cacheGuardada = localStorage.getItem('sistema_cache_datos');
+                    if (cacheGuardada) {
+                        datosCacheados = JSON.parse(cacheGuardada);
+                    }
+                } catch (err) {}
 
-            window.allSubModulosData = datosCacheados.submodulos || [];
-            window.datosSistema = datosCacheados;
-            
-            resolve(datosCacheados);
+                window.allSubModulosData = datosCacheados.submodulos || [];
+                window.datosSistema = datosCacheados;
+                resolve(datosCacheados);
+            }
             
             if (typeof window.cargarMenuDepartamento === 'function') {
                 window.cargarMenuDepartamento();

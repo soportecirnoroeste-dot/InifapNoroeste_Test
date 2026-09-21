@@ -7,8 +7,6 @@ window._catSitiosCache = window._catSitiosCache || null;
 window._empleadosCache = window._empleadosCache || [];
 window._mapRegsCache = window._mapRegsCache || null;
 window._mapCentrosCache = window._mapCentrosCache || null;
-window._mapPuestosCache = window._mapPuestosCache || null; // 👈 Agregado
-window._mapDeptosCache = window._mapDeptosCache || null;   // 👈 Agregado
 
 function cargarPersonalRh(cargarLista = true) {
     if (typeof renderizarVistaModuloRh === 'function') {

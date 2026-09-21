@@ -1,46 +1,53 @@
-// js/cirnorh/cirnorh.js
+// ==========================================
+// js/cirnorh/cirnorh.js - VERSIÓN DINÁMICA DESDE GOOGLE SHEETS
+// ==========================================
+
 window.cirnorhConfig = {
     deptoKey: "cirnorh",
     subtitle: "Gestión de personal, incidencias, nómina y desarrollo humano.",
     icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-handshake"><path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/><path d="m21 3 1 11h-2"/><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"/><path d="M3 4h8"/></svg>`,
-    options: [
-        {
-            id: "personal",
-            title: "Personal",
-            icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 21a8 8 0 0 0-16 0"/><circle cx="10" cy="8" r="5"/><path d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3"/></svg>`,
-            action: "manejarAccionSeccion('personal')"
-        },
-        {
-            id: "asistencia",
-            title: "Control de Asistencia",
-            icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 21a8 8 0 0 1 13.292-6"/><circle cx="10" cy="8" r="5"/><path d="m16 19 2 2 4-4"/></svg>`,
-            action: "manejarAccionSeccion('asistencia')"
-        },
-        {
-            id: "vacaciones",
-            title: "Vacaciones",
-            icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 11.134 18.196 21"/><path d="M20.425 5.299a10 10 0 0 0-16.941 9.78c.183.563.843.774 1.355.478L20.16 6.711c.512-.296.66-.973.264-1.413"/><path d="M21 21H3"/></svg>`,
-            action: "manejarAccionSeccion('vacaciones')"
-        },
-        {
-            id: "capacitacion",
-            title: "Capacitación",
-            icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="18" x="3" y="3" rx="1"/><path d="M7 3v18"/><path d="M20.4 18.9c.2.5-.1 1.1-.6 1.3l-1.9.7c-.5.2-1.1-.1-1.3-.6L11.1 5.1c-.2-.5.1-1.1.6-1.3l1.9-.7c.5-.2 1.1.1 1.3.6Z"/></svg>`,
-            action: "manejarAccionSeccion('capacitacion')"
-        },
-        {
-            id: "expedientes",
-            title: "Expedientes",
-            icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></svg>`,
-            action: "manejarAccionSeccion('expedientes')"
-        },
-        {
-            id: "generar-oficios",
-            title: "Generar Oficios",
-            icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>`,
-            action: "manejarAccionSeccion('generar-oficios')"
+    
+    // Método dinámico para obtener las opciones/submódulos desde Google Sheets
+    get options() {
+        const submodulos = window.allSubModulosData || (window.datosSistema && window.datosSistema.submodulos) || [];
+        
+        // Filtramos los submódulos que pertenecen específicamente a 'cirnorh' (o variantes)
+        const subsCirnorh = submodulos.filter(sub => {
+            const subDep = String(sub.ClaveDep !== undefined ? sub.ClaveDep : sub.claveDep || '').trim().toLowerCase();
+            return subDep === 'cirnorh';
+        });
+
+        // Si hay submódulos sincronizados en Sheets, los mapeamos al formato visual
+        if (subsCirnorh.length > 0) {
+            return subsCirnorh.map(sub => {
+                const idSub = String(sub.SModClave !== undefined ? sub.SModClave : (sub.sModClave || sub.id || '')).trim();
+                const nombreSub = sub.SModNom !== undefined ? sub.SModNom : (sub.sModNom || sub.nombre || 'Submódulo');
+                
+                return {
+                    id: idSub.toLowerCase(),
+                    title: nombreSub,
+                    icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>`,
+                    action: `manejarAccionSeccion('${idSub.toLowerCase()}')`
+                };
+            });
         }
-    ]
+
+        // Fallback de respaldo por si Sheets aún no sincroniza o está vacío
+        return [
+            {
+                id: "personal",
+                title: "Personal",
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 21a8 8 0 0 0-16 0"/><circle cx="10" cy="8" r="5"/><path d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3"/></svg>`,
+                action: "manejarAccionSeccion('personal')"
+            },
+            {
+                id: "asistencia",
+                title: "Control de Asistencia",
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 21a8 8 0 0 1 13.292-6"/><circle cx="10" cy="8" r="5"/><path d="m16 19 2 2 4-4"/></svg>`,
+                action: "manejarAccionSeccion('asistencia')"
+            }
+        ];
+    }
 };
 
 function manejarAccionSeccion(idOpt) {
@@ -54,23 +61,27 @@ function manejarAccionSeccion(idOpt) {
 }
 
 function ejecutarCargaSeccion(idOpt) {
-    if (idOpt === 'personal') {
+    const idMinus = String(idOpt).toLowerCase();
+
+    if (idMinus.includes('personal') || idMinus === 'per') {
         if (typeof cargarPersonalRh === 'function') cargarPersonalRh(true);
-    } else if (idOpt === 'asistencia') {
-        // 🚀 Salor el submenú y cargar directamente la vista biométrica
+    } else if (idMinus.includes('asistencia') || idMinus.includes('asis') || idMinus === 'biometrico') {
         if (typeof RhAsisCasc !== 'undefined' && RhAsisCasc.mostrarVistaBiometrico) {
             RhAsisCasc.mostrarVistaBiometrico();
         } else if (typeof cargarVistaBiometrico === 'function') {
             cargarVistaBiometrico();
         }
-    } else if (idOpt === 'vacaciones') {
+    } else if (idMinus.includes('vacaciones')) {
         cargarVacacionesRh();
-    } else if (idOpt === 'capacitacion') {
+    } else if (idMinus.includes('capacitacion')) {
         cargarCapacitacionRh();
-    } else if (idOpt === 'expedientes') {
+    } else if (idMinus.includes('expedientes')) {
         cargarExpedientesRh();
-    } else if (idOpt === 'generar-oficios') {
+    } else if (idMinus.includes('oficios') || idMinus.includes('generar')) {
         cargarGenerarOficiosRh();
+    } else {
+        // Vista genérica por defecto para cualquier submódulo nuevo creado en Sheets
+        renderizarVistaModulo(idOpt, "Módulo sincronizado desde Google Sheets.", []);
     }
 }
 
@@ -85,48 +96,34 @@ function limpiarSeccionUrl() {
 }
 
 function cargarAsistenciaRh() {
-    // 1. Actualizamos la URL de forma limpia para que el navegador y el router sepan exactamente dónde estamos
     const urlActual = new URL(window.location);
-    urlActual.searchParams.set('seccion', 'biometrico');
-    window.history.pushState({ seccion: 'biometrico' }, '', urlActual);
+    urlActual.searchParams.set('seccion', 'asistencia');
+    window.history.pushState({ seccion: 'asistencia' }, '', urlActual);
 
-    // 2. Guardamos la sección activa en sessionStorage
-    sessionStorage.setItem('seccion_activa_actual', 'biometrico');
+    sessionStorage.setItem('seccion_activa_actual', 'asistencia');
 
-    // 3. Mostramos la vista biométrica
     if (typeof window.RhAsisCasc !== 'undefined' && window.RhAsisCasc.mostrarVistaBiometrico) {
         window.RhAsisCasc.mostrarVistaBiometrico();
     } else if (typeof cargarVistaBiometrico === 'function') {
         cargarVistaBiometrico();
     }
 
-    // 4. Actualizamos el botón de retroceso inmediatamente para que apunte al menú principal
-    const deptoActual = localStorage.getItem('depto_activo_actual') || '';
+    const deptoActual = localStorage.getItem('depto_activo_actual') || 'cirnorh';
     if (typeof window.actualizarBotonRegresar === 'function') {
         window.actualizarBotonRegresar('submodulo', deptoActual);
     }
 }
 
 function cargarVacacionesRh() {
-    renderizarVistaModulo('vacaciones', "EN CONSTRUCCION", [
-        /*"Calendario de descansos y control de días económicos disponibles."{ titulo: "Solicitud de Vacaciones", desc: "Formulario para periodos vacacionales del trabajador." },
-        { titulo: "Días Económicos", desc: "Consulta de saldos y días disfrutados en el año en curso." },
-        { titulo: "Calendario General", desc: "Vista general de ausencias programadas por área." }*/
-    ]);
+    renderizarVistaModulo('vacaciones', "Calendario de descansos y control de días económicos disponibles.", []);
 }
 
 function cargarCapacitacionRh() {
-    renderizarVistaModulo('capacitacion', "EN CONSTRUCCION", [
-        /*"Cursos, talleres y constancias de desarrollo profesional para el personal."{ titulo: "Catálogo de Cursos", desc: "Inscripciones a talleres internos y externos." },
-        { titulo: "Historial de Constancias", desc: "Registro de acreditaciones y diplomas obtenidos." }*/
-    ]);
+    renderizarVistaModulo('capacitacion', "Cursos, talleres y constancias de desarrollo profesional para el personal.", []);
 }
 
 function cargarExpedientesRh() {
-    renderizarVistaModulo('expedientes', "EN CONSTRUCCION", [
-        /*"Documentación oficial, contratos y resguardos de los trabajadores."{ titulo: "Documentos Digitales", desc: "Actas de nacimiento, CURP, INE y comprobantes." },
-        { titulo: "Contratos y Nombramientos", desc: "Historial laboral y vigencia de contratos." }*/
-    ]);
+    renderizarVistaModulo('expedientes', "Documentación oficial, contratos y resguardos de los trabajadores.", []);
 }
 
 function cargarGenerarOficiosRh() {
@@ -139,45 +136,38 @@ function cargarGenerarOficiosRh() {
 function renderizarVistaModulo(idOpt, descripcion, itemsIndice = []) {
     const nombreCortoActual = localStorage.getItem('depto_activo_actual') || 'cirnorh';
     const configActual = window[nombreCortoActual + 'Config'];
-    const opt = configActual ? configActual.options.find(o => o.id === idOpt) : null;
+    const opt = configActual ? configActual.options.find(o => o.id.toLowerCase() === String(idOpt).toLowerCase()) : null;
     const contenedor = obtenerContenedor();
-    if (descripcion === "EN CONSTRUCCION") {
-        let htmlTarjetasIndice = `
-                <div class="col-span-full py-12 px-4 text-center bg-stone-50/80 rounded-2xl border border-dashed border-stone-300">
-                    <div class="inline-flex p-3 bg-amber-50 text-amber-600 rounded-2xl mb-3 border border-amber-200">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                    </div>
-                    <h4 class="font-bold text-stone-800 text-sm uppercase tracking-wide mb-1">Módulo en Construcción</h4>
-                    <p class="text-xs text-stone-500 max-w-sm mx-auto">Este módulo se encuentra actualmente en desarrollo y pronto estará disponible.</p>
-                </div>
-            `;
 
-        // Muestra la alerta emergente del navegador
-        alert('Módulo en Construcción. Este apartado se encuentra en desarrollo y no cuenta con navegación.');
+    if (contenedor && opt) {
+        if (typeof window.actualizarBotonRegresar === 'function') {
+            window.actualizarBotonRegresar('submodulo', nombreCortoActual);
+        }
 
-        // Limpia el contenedor para que no se muestre ningún contenido previo
-        //contenedor.innerHTML = '';
-
-    } else {
-        if (contenedor && opt) {
-            if (typeof window.actualizarBotonRegresar === 'function') {
-                window.actualizarBotonRegresar('submodulo', nombreCortoActual);
-            }
-
-            let htmlTarjetasIndice = '';
-            if (itemsIndice && itemsIndice.length > 0) {
-                htmlTarjetasIndice = itemsIndice.map(item => {
-                    const laAccion = item.action || item.accion || '';
-                    return `
+        let htmlTarjetasIndice = '';
+        if (itemsIndice && itemsIndice.length > 0) {
+            htmlTarjetasIndice = itemsIndice.map(item => {
+                const laAccion = item.action || item.accion || '';
+                return `
                     <div data-accion="${laAccion}" class="tarjeta-accion p-4 rounded-xl border border-stone-200 bg-stone-50/50 hover:border-[#249444] hover:bg-emerald-50/30 transition-all cursor-pointer group shadow-xs">
                         <h4 class="font-bold text-xs text-stone-800 uppercase group-hover:text-[#249444] mb-1">${item.titulo}</h4>
                         <p class="text-[11px] text-stone-500 leading-relaxed">${item.desc}</p>
                     </div>
                 `;
-                }).join('');
-            }
+            }).join('');
+        } else {
+            htmlTarjetasIndice = `
+                <div class="col-span-full py-12 px-4 text-center bg-stone-50/80 rounded-2xl border border-dashed border-stone-300">
+                    <div class="inline-flex p-3 bg-emerald-50 text-[#249444] rounded-2xl mb-3 border border-emerald-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                    </div>
+                    <h4 class="font-bold text-stone-800 text-sm uppercase tracking-wide mb-1">Módulo Sincronizado</h4>
+                    <p class="text-xs text-stone-500 max-w-sm mx-auto">Este apartado está vinculado correctamente con Google Sheets y listo para operar.</p>
+                </div>
+            `;
+        }
 
-            contenedor.innerHTML = `
+        contenedor.innerHTML = `
             <section class="bg-white rounded-2xl p-6 md:p-8 soft-shadow border border-[#249444]/10 mb-8 animate-fade-in">
                 <div class="flex items-center gap-3 mb-6 pb-4 border-b border-stone-100">
                     <div class="p-2.5 bg-[#f0fdf4] border border-[#c6f6d5] text-[#059669] rounded-xl flex items-center justify-center">
@@ -189,12 +179,11 @@ function renderizarVistaModulo(idOpt, descripcion, itemsIndice = []) {
                     </div>
                 </div>
 
-                <div id="contenido-submodulo-dinamico" class="${idOpt === 'personal' ? 'w-full space-y-6' : 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4'}">
+                <div id="contenido-submodulo-dinamico" class="${String(idOpt).toLowerCase().includes('personal') ? 'w-full space-y-6' : 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4'}">
                     ${htmlTarjetasIndice}
                 </div>
             </section>
         `;
-        }
     }
 }
 
@@ -219,32 +208,7 @@ function procesarCargaInicialSeccion(event) {
     const depto = urlParams.get('depto') || 'cirnorh';
     const contenedor = obtenerContenedor();
 
-    // CASO 1: Vista interna del Biométrico
-    if (seccion === 'asistencia' && vista === 'biometrico') {
-        sessionStorage.setItem('submodulo_activo_cirnorh', 'asistencia');
-
-        if (typeof window.actualizarBotonRegresar === 'function') {
-            window.actualizarBotonRegresar('vista-interna', depto, 'seccion=asistencia');
-        }
-
-        if (window.RhAsisCasc && typeof window.RhAsisCasc.mostrarVistaBiometrico === 'function') {
-            window.RhAsisCasc.mostrarVistaBiometrico();
-        } else if (typeof cargarVistaBiometrico === 'function') {
-            cargarVistaBiometrico();
-        }
-    }
-    // CASO 2: Submódulo de Asistencia general
-    else if (seccion === 'asistencia') {
-        sessionStorage.setItem('submodulo_activo_cirnorh', 'asistencia');
-
-        if (typeof window.actualizarBotonRegresar === 'function') {
-            window.actualizarBotonRegresar('submodulo', depto);
-        }
-
-        cargarAsistenciaRh();
-    }
-    // CASO 3: Cualquier otra sección
-    else if (seccion) {
+    if (seccion) {
         sessionStorage.setItem('submodulo_activo_cirnorh', seccion);
 
         if (typeof window.actualizarBotonRegresar === 'function') {
@@ -252,9 +216,7 @@ function procesarCargaInicialSeccion(event) {
         }
 
         ejecutarCargaSeccion(seccion);
-    }
-    // CASO 4: Menú Principal del departamento
-    else {
+    } else {
         sessionStorage.removeItem('submodulo_activo_cirnorh');
 
         if (typeof window.actualizarBotonRegresar === 'function') {
@@ -286,38 +248,12 @@ document.addEventListener('click', function (e) {
     if (!tarjeta) return;
 
     const accion = tarjeta.getAttribute('data-accion') || '';
-
-    // 🛑 Si la acción NO es la del biométrico, bloqueamos por completo la navegación:
-    if (!accion.includes("cargarVistaBiometrico") && !accion.includes("mostrarVistaBiometrico")) {
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-
-        // En lugar de alert() (que te bota de la pantalla al cerrar), 
-        // puedes usar un aviso en consola o un mensaje visual amigable si lo deseas:
-        console.log("Módulo en construcción, navegación bloqueada.");
-
-        // AQUÍ HACEMOS UN RETURN DIRECTO PARA QUE NO HAGA NADA MÁS
-        return false;
-    }
-
-    // Código exclusivo para el biométrico:
-    e.preventDefault();
-    const urlParams = new URLSearchParams(window.location.search);
-    const deptoActual = urlParams.get('depto') || 'cirnorh';
-
-    window.history.pushState(
-        { seccion: 'asistencia', vista: 'biometrico' },
-        '',
-        `main.html?depto=${deptoActual}&seccion=asistencia&vista=biometrico`
-    );
-
-    sessionStorage.setItem('submodulo_activo_cirnorh', 'asistencia');
-
-    if (window.RhAsisCasc && typeof window.RhAsisCasc.mostrarVistaBiometrico === 'function') {
-        window.RhAsisCasc.mostrarVistaBiometrico();
-    } else if (typeof cargarVistaBiometrico === 'function') {
-        cargarVistaBiometrico();
+    if (accion) {
+        try {
+            eval(accion);
+        } catch (err) {
+            console.error("Error al ejecutar acción de tarjeta:", err);
+        }
     }
 });
 

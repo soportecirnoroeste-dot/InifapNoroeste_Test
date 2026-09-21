@@ -67,29 +67,51 @@ function cargarDatosDelSistema() {
 }
 
 // ==========================================
-// CONFIGURACIÓN OFICIAL DE CIRNORH
+// CONFIGURACIÓN OFICIAL (DETECTADA POR EL ROUTER)
 // ==========================================
 window.cirnorhConfig = {
     deptoKey: "cirnorh",
-    claveDep: "5", // Clave exacta en Sheets para Recursos Humanos
+    claveDep: "5", // Clave numérica exacta en Sheets para Recursos Humanos (CIRNORH)
     subtitle: "Gestión de personal, incidencias, nómina y desarrollo humano.",
     icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-handshake"><path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/><path d="m21 3 1 11h-2"/><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"/><path d="M3 4h8"/></svg>`,
 
     get options() {
-        // Dejamos que la utilidad global procese los iconos y datos directamente desde Sheets tal como lo hace con los demás departamentos
+        
         if (window.AppConfigUtils && typeof window.AppConfigUtils.crearOpcionesDinamicas === 'function') {
             const dinamicas = window.AppConfigUtils.crearOpcionesDinamicas(this.claveDep, this.deptoKey);
-            if (dinamicas && dinamicas.length > 0) {
-                return dinamicas;
-            }
+            if (dinamicas && dinamicas.length > 0) return dinamicas;
         }
 
-        return opcionesPorDefecto;
+        const fuenteDatos = window.allSubModulosData || (window.datosSistema && window.datosSistema.submodulos);
+        
+        if (!fuenteDatos || !Array.isArray(fuenteDatos) || fuenteDatos.length === 0) {
+            return opcionesPorDefecto;
+        }
+
+        const submodulosFiltrados = fuenteDatos.filter(item => {
+            const dep = String(item.ClaveDep !== undefined ? item.ClaveDep : (item.claveDep || '')).trim();
+            return dep === String(this.claveDep) || dep.toLowerCase() === String(this.deptoKey).toLowerCase();
+        });
+
+        if (submodulosFiltrados.length === 0) {
+            return opcionesPorDefecto;
+        }
+
+        return submodulosFiltrados.map(sub => {
+            const idSheet = String(sub.SModClave !== undefined ? sub.SModClave : (sub.sModClave || sub.id || ''));
+            const nombreSheet = String(sub.SModNom !== undefined ? sub.SModNom : (sub.sModNom || sub.nombre || 'Submódulo'));
+            const iconoSheet = sub.SModIcon !== undefined ? sub.SModIcon : (sub.sModIcon || sub.icono || '');
+            const iconoPorDefecto = "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect width='18' height='18' x='3' y='3' rx='2'/></svg>";
+
+            return {
+                id: idSheet,
+                title: nombreSheet,
+                icon: iconoSheet && iconoSheet.trim() !== "" ? iconoSheet : iconoPorDefecto,
+                action: `manejarAccionSeccion_cirnorh('${idSheet}')`
+            };
+        });
     }
 };
-
-// Alias oficial
-window.cirnorh = window.cirnorhConfig;
 
 // Alias oficial
 window.cirnorh = window.cirnorhConfig;

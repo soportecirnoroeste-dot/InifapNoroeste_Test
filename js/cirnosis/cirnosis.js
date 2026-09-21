@@ -1,4 +1,3 @@
-name=cirnosis.js
 function cargarDatosDelSistema() {
     return new Promise((resolve) => {
         if (typeof google !== 'undefined' && google.script && google.script.run) {

@@ -118,14 +118,20 @@ const SistemaGlobal = {
     },
 
     guardarYCargar(respuestaServidor) {
-        const datosReales = respuestaServidor.success ? respuestaServidor : {
+        const datosReales = {
+            success: respuestaServidor.success !== undefined ? respuestaServidor.success : true,
             departamentos: respuestaServidor.departamentos || [],
             regionales: respuestaServidor.regionales || [],
-            campos: respuestaServidor.campos || []
+            campos: respuestaServidor.campos || [],
+            submodulos: respuestaServidor.submodulos || [] // 👈 Aseguramos capturar los submódulos
         };
 
+        // Guardamos en caché global accesible para todo el sistema
         localStorage.setItem('sistema_cache_datos', JSON.stringify(datosReales));
         localStorage.setItem('sistema_cache_tiempo', new Date().getTime());
+
+        // 🚀 Exponemos los submódulos globalmente para los config de cada depto
+        window.allSubModulosData = datosReales.submodulos;
 
         this.procesarRespuestaServidor(datosReales);
     },
@@ -372,3 +378,39 @@ document.addEventListener('DOMContentLoaded', () => {
         window.history.replaceState({}, '', `main.html?depto=${deptoGuardado}`);
     }
 });
+
+// ==========================================
+// UTILIDAD CENTRALIZADA PARA SUBMÓDULOS DINÁMICOS
+// ==========================================
+window.AppConfigUtils = {
+    crearOpcionesDinamicas(claveDepDepto, deptoKey) {
+        // Buscamos los datos en la variable global o en la caché del sistema
+        const fuenteDatos = window.allSubModulosData || (SistemaGlobal.datos && SistemaGlobal.datos.submodulos);
+
+        if (!fuenteDatos || !Array.isArray(fuenteDatos)) {
+            return [];
+        }
+
+        // Filtramos por la ClaveDep numérica correspondiente en la hoja 'SubModulo'
+        const submodulosFiltrados = fuenteDatos.filter(item => {
+            const dep = item.ClaveDep !== undefined ? item.ClaveDep : item.claveDep;
+            return String(dep).trim() === String(claveDepDepto).trim();
+        });
+
+        // Mapeamos los datos leídos directamente de Sheets
+        return submodulosFiltrados.map(sub => {
+            const idSheet = String(sub.SModClave !== undefined ? sub.SModClave : sub.sModClave);
+            const nombreSheet = String(sub.SModNom !== undefined ? sub.SModNom : sub.sModNom);
+            const iconoSheet = sub.SModIcon !== undefined ? sub.SModIcon : (sub.sModIcon || sub.icono);
+            
+            const iconoPorDefecto = "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect width='18' height='18' x='3' y='3' rx='2'/></svg>";
+
+            return {
+                id: idSheet,
+                title: nombreSheet,
+                icon: iconoSheet && iconoSheet.trim() !== "" ? iconoSheet : iconoPorDefecto,
+                action: `manejarAccionSeccion_${deptoKey}('${idSheet}')`
+            };
+        });
+    }
+};

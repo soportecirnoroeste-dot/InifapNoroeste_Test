@@ -1,5 +1,5 @@
 // ==========================================
-// PUENTES GLOBALES PARA EL ROUTER DE LA APP
+// PUENTES GLOBALES PARA EL ROUTER DE LA APP (CIRNORH)
 // ==========================================
 window.manejarAccionSeccion_cirnorh = function(idOpt) {
     manejarAccionSeccionRh(idOpt);
@@ -71,7 +71,7 @@ function cargarDatosDelSistema() {
 // ==========================================
 window.cirnorhConfig = {
     deptoKey: "cirnorh",
-    claveDep: "6", 
+    claveDep: "6", // Clave numérica para buscar en la pestaña SubModulo de Sheets (Recursos Humanos)
     subtitle: "Gestión de personal, incidencias, nómina y desarrollo humano.",
     icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-handshake"><path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/><path d="m21 3 1 11h-2"/><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"/><path d="M3 4h8"/></svg>`,
 
@@ -82,6 +82,7 @@ window.cirnorhConfig = {
 
         const fuenteDatos = window.allSubModulosData || (window.datosSistema && window.datosSistema.submodulos);
         
+        // 🛡️ RESPALDO DE EMERGENCIA: Opciones base exclusivas de RH por si Sheets aún no carga
         const opcionesPorDefecto = [
             {
                 id: "personal",
@@ -102,8 +103,8 @@ window.cirnorhConfig = {
         }
 
         const submodulosFiltrados = fuenteDatos.filter(item => {
-            const dep = String(item.ClaveDep !== undefined ? item.ClaveDep : (item.claveDep || '')).trim().toLowerCase();
-            return dep === String(this.claveDep).toLowerCase() || dep === String(this.deptoKey).toLowerCase();
+            const dep = String(item.ClaveDep !== undefined ? item.ClaveDep : (item.claveDep || '')).trim();
+            return dep === String(this.claveDep) || dep.toLowerCase() === String(this.deptoKey).toLowerCase();
         });
 
         if (submodulosFiltrados.length === 0) {
@@ -126,10 +127,11 @@ window.cirnorhConfig = {
     }
 };
 
+// Alias oficial
 window.cirnorh = window.cirnorhConfig;
 
 // ==========================================
-// FUNCIONES DE ACCIÓN Y CARGA DE SECCIONES
+// FUNCIONES DE ACCIÓN Y CARGA DE SECCIONES (RH)
 // ==========================================
 function obtenerContenedor() {
     return document.getElementById('app-container') || document.querySelector('main') || document.body;
@@ -157,6 +159,7 @@ function ejecutarCargaSeccionRh(idOpt) {
 
     const idMinus = String(idOpt).toLowerCase();
 
+    // Detectar si es el submódulo de personal o asistencia por ID, clave o texto del título en Sheets
     if (idMinus.includes('personal') || idMinus === 'per' || tituloOpt.includes('personal')) {
         if (typeof cargarPersonalRh === 'function') {
             cargarPersonalRh(true);

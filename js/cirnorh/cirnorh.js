@@ -67,12 +67,6 @@ function cargarDatosDelSistema() {
 }
 
 // ==========================================
-// CONFIGURACIÓN OFICIAL (DETECTADA POR EL ROUTER)
-// ==========================================
-// ==========================================
-// CONFIGURACIÓN OFICIAL (DETECTADA POR EL ROUTER)
-// ==========================================
-// ==========================================
 // CONFIGURACIÓN OFICIAL DE CIRNORH
 // ==========================================
 window.cirnorhConfig = {
@@ -82,22 +76,6 @@ window.cirnorhConfig = {
     icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-handshake"><path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/><path d="m21 3 1 11h-2"/><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"/><path d="M3 4h8"/></svg>`,
 
     get options() {
-        // Opción de respaldo local por si Sheets tarda en responder en la carga inicial
-        const opcionesPorDefecto = [
-            {
-                id: "personal",
-                title: "Personal",
-                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 21a8 8 0 0 0-16 0"/><circle cx="10" cy="8" r="5"/><path d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3"/></svg>`,
-                action: "manejarAccionSeccion_cirnorh('personal')"
-            },
-            {
-                id: "asistencia",
-                title: "Control de Asistencia",
-                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 21a8 8 0 0 1 13.292-6"/><circle cx="10" cy="8" r="5"/><path d="m16 19 2 2 4-4"/></svg>`,
-                action: "manejarAccionSeccion_cirnorh('asistencia')"
-            }
-        ];
-
         // Dejamos que la utilidad global procese los iconos y datos directamente desde Sheets tal como lo hace con los demás departamentos
         if (window.AppConfigUtils && typeof window.AppConfigUtils.crearOpcionesDinamicas === 'function') {
             const dinamicas = window.AppConfigUtils.crearOpcionesDinamicas(this.claveDep, this.deptoKey);
@@ -209,7 +187,6 @@ function renderizarVistaModuloRh(idOpt, tituloModulo) {
             <section class="bg-white rounded-2xl p-6 md:p-8 soft-shadow border border-[#249444]/10 mb-8 animate-fade-in">
                 <div class="flex items-center gap-3 mb-6 pb-4 border-b border-stone-100">
                     <div class="p-2.5 bg-[#f0fdf4] border border-[#c6f6d5] text-[#059669] rounded-xl flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width='18' height='18' x='3' y='3' rx='2'/></svg>
                     </div>
                     <div>
                         <h3 class="font-black text-stone-800 text-lg uppercase tracking-wide">${tituloModulo}</h3>

@@ -71,7 +71,7 @@ function cargarDatosDelSistema() {
 // ==========================================
 window.cirnorhConfig = {
     deptoKey: "cirnorh",
-    claveDep: "6", // ⚠️ Ajusta aquí el número exacto de claveDep que tiene CIRNORH en tu pestaña SubModulo de Sheets
+    claveDep: "6", // Clave predeterminada (puedes ajustarla si lo requieres)
     subtitle: "Gestión de personal, incidencias, nómina y desarrollo humano.",
     icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-handshake"><path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/><path d="m21 3 1 11h-2"/><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"/><path d="M3 4h8"/></svg>`,
 
@@ -81,17 +81,41 @@ window.cirnorhConfig = {
         }
 
         const fuenteDatos = window.allSubModulosData || (window.datosSistema && window.datosSistema.submodulos);
-        if (!fuenteDatos || !Array.isArray(fuenteDatos)) return [];
+        
+        // 🛡️ RESPALDO DE EMERGENCIA: Si por algo Sheets aún no cargó, mostramos las opciones base para que nunca se quede en blanco
+        const opcionesPorDefecto = [
+            {
+                id: "personal",
+                title: "Personal",
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 21a8 8 0 0 0-16 0"/><circle cx="10" cy="8" r="5"/><path d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3"/></svg>`,
+                action: "manejarAccionSeccion_cirnorh('personal')"
+            },
+            {
+                id: "asistencia",
+                title: "Control de Asistencia",
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 21a8 8 0 0 1 13.292-6"/><circle cx="10" cy="8" r="5"/><path d="m16 19 2 2 4-4"/></svg>`,
+                action: "manejarAccionSeccion_cirnorh('asistencia')"
+            }
+        ];
 
+        if (!fuenteDatos || !Array.isArray(fuenteDatos) || fuenteDatos.length === 0) {
+            return opcionesPorDefecto;
+        }
+
+        // Filtro flexible y robusto adaptado para atrapar los submódulos sin importar cómo estén registrados en Sheets
         const submodulosFiltrados = fuenteDatos.filter(item => {
-            const dep = item.ClaveDep !== undefined ? item.ClaveDep : item.claveDep;
-            return String(dep) === String(this.claveDep) || String(dep).trim().toLowerCase() === String(this.deptoKey).toLowerCase();
+            const dep = String(item.ClaveDep !== undefined ? item.ClaveDep : (item.claveDep || '')).trim().toLowerCase();
+            return dep === String(this.claveDep).toLowerCase() || dep === String(this.deptoKey).toLowerCase();
         });
 
+        if (submodulosFiltrados.length === 0) {
+            return opcionesPorDefecto;
+        }
+
         return submodulosFiltrados.map(sub => {
-            const idSheet = String(sub.SModClave !== undefined ? sub.SModClave : sub.sModClave);
-            const nombreSheet = String(sub.SModNom !== undefined ? sub.SModNom : sub.sModNom);
-            const iconoSheet = sub.SModIcon !== undefined ? sub.SModIcon : (sub.sModIcon || sub.icono);
+            const idSheet = String(sub.SModClave !== undefined ? sub.SModClave : (sub.sModClave || sub.id || ''));
+            const nombreSheet = String(sub.SModNom !== undefined ? sub.SModNom : (sub.sModNom || sub.nombre || 'Submódulo'));
+            const iconoSheet = sub.SModIcon !== undefined ? sub.SModIcon : (sub.sModIcon || sub.icono || '');
             const iconoPorDefecto = "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect width='18' height='18' x='3' y='3' rx='2'/></svg>";
 
             return {
@@ -134,7 +158,6 @@ function ejecutarCargaSeccionRh(idOpt) {
     const optEncontrada = opciones.find(o => o.id === String(idOpt));
     const tituloOpt = optEncontrada ? optEncontrada.title.toLowerCase() : '';
 
-    // Detectar submódulos específicos por ID o por nombre configurado en Sheets
     const idMinus = String(idOpt).toLowerCase();
 
     if (idMinus.includes('personal') || idMinus === 'per' || tituloOpt.includes('personal')) {
@@ -242,9 +265,8 @@ function procesarCargaInicialSeccionRh(event) {
         if (contenedor) {
             contenedor.innerHTML = '';
         }
-        if (typeof window.cargarMenuDepartamento === 'function') {
-            window.cargarMenuDepartamento();
-        } else if (typeof window.restaurarMenuDepto === 'function') {
+        if (typeof window.cargarMenuDepartamento === 'function').cargarMenuDepartamento();
+        else if (typeof window.restaurarMenuDepto === 'function') {
             window.restaurarMenuDepto(depto);
         }
     }

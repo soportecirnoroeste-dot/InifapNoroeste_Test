@@ -166,7 +166,7 @@ function cargarPermisosSis() {
 }
 
 // ==========================================
-// js/SisPer/SisPerForm.js - VERSIÓN DINÁMICA DEPARTAMENTOS Y SUBMÓDULOS
+// js/SisPer/SisPerForm.js - TODOS LOS DEPTOS Y SUBMÓDULOS
 // ==========================================
 
 function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
@@ -180,7 +180,7 @@ function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
 
         let filasHTML = "";
 
-        if (deptos.length > 0 && submodulos.length > 0) {
+        if (deptos.length > 0) {
             deptos.forEach(dep => {
                 const cDep = String(dep.claveDep !== undefined ? dep.claveDep : dep.ClaveDep).trim();
                 const nombreDep = dep.nomDep || dep.nombre || dep.NomDep || `Departamento ${cDep}`;
@@ -191,13 +191,14 @@ function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
                     return subDep === cDep;
                 });
 
-                if (subsDelDepto.length > 0) {
-                    filasHTML += `
-                        <tr class="bg-stone-50 font-bold text-stone-800 border-t border-stone-200">
-                            <td class="p-3 pl-4 uppercase tracking-wider" colspan="4">📁 Departamento: ${nombreDep}</td>
-                        </tr>
-                    `;
+                // Pintamos siempre el departamento, tenga o no submódulos
+                filasHTML += `
+                    <tr class="bg-stone-50 font-bold text-stone-800 border-t border-stone-200">
+                        <td class="p-3 pl-4 uppercase tracking-wider" colspan="4">📁 Departamento: ${nombreDep}</td>
+                    </tr>
+                `;
 
+                if (subsDelDepto.length > 0) {
                     subsDelDepto.forEach(sub => {
                         const nombreSub = sub.SModNom !== undefined ? sub.SModNom : (sub.sModNom || sub.nombre || 'Submódulo');
                         const idSub = sub.SModClave !== undefined ? sub.SModClave : (sub.sModClave || sub.id || '');
@@ -213,6 +214,14 @@ function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
                             </tr>
                         `;
                     });
+                } else {
+                    filasHTML += `
+                        <tr class="border-b border-stone-100 bg-stone-50/40">
+                            <td class="p-3 pl-8 text-stone-400 italic text-xs" colspan="4">
+                                Sin submódulos registrados en Google Sheets para este departamento.
+                            </td>
+                        </tr>
+                    `;
                 }
             });
         }
@@ -220,7 +229,7 @@ function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
         if (!filasHTML) {
             filasHTML = `
                 <tr>
-                    <td colspan="4" class="p-6 text-center text-stone-400">No se encontraron departamentos o submódulos sincronizados desde Google Sheets.</td>
+                    <td colspan="4" class="p-6 text-center text-stone-400">No se encontraron departamentos sincronizados desde Google Sheets.</td>
                 </tr>
             `;
         }

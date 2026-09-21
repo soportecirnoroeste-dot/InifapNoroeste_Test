@@ -166,80 +166,160 @@ function cargarPermisosSis() {
 }
 
 // ==========================================
-// MATRIZ DE PERMISOS DINÁMICA
+// js/SisPer/SisPerForm.js - VERSIÓN DINÁMICA DEPARTAMENTOS Y SUBMÓDULOS
 // ==========================================
+
 function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
     const contenedorDinamico = document.getElementById('contenido-submodulo-dinamico');
     if (contenedorDinamico) {
         contenedorDinamico.className = "col-span-1 sm:col-span-2 md:col-span-3 space-y-6 animate-fade-in";
 
-        const configDepto = window.cirnosisConfig;
-        const submodulosDelDepto = configDepto ? configDepto.options : [];
+        // Obtenemos los catálogos globales sincronizados desde Google Sheets
+        const deptos = window._catDepartamentos || (window.datosSistema && window.datosSistema.departamentos) || [];
+        const submodulos = window.allSubModulosData || (window.datosSistema && window.datosSistema.submodulos) || [];
 
         let filasHTML = "";
 
-        if (submodulosDelDepto.length > 0) {
-            submodulosDelDepto.forEach(sub => {
-                filasHTML += `
-                    <tr class="hover:bg-stone-50/80 transition-colors border-b border-stone-100">
-                        <td class="p-3 pl-4 font-semibold text-stone-800 flex items-center gap-2">
-                            <span class="w-6 h-6 inline-flex items-center justify-center text-sky-600">${sub.icon}</span>
-                            <span>${sub.title}</span>
-                        </td>
-                        <td class="p-3 text-center">
-                            <input type="checkbox" class="permiso-ver rounded text-green-600 focus:ring-green-500" data-sub="${sub.id}">
-                        </td>
-                        <td class="p-3 text-center">
-                            <input type="checkbox" class="permiso-editar rounded text-green-600 focus:ring-green-500" data-sub="${sub.id}">
-                        </td>
-                        <td class="p-3 text-center pr-4">
-                            <input type="checkbox" class="permiso-eliminar rounded text-green-600 focus:ring-green-500" data-sub="${sub.id}">
-                        </td>
-                    </tr>
-                `;
+        if (deptos.length > 0 && submodulos.length > 0) {
+            deptos.forEach(dep => {
+                const cDep = String(dep.claveDep !== undefined ? dep.claveDep : dep.ClaveDep).trim();
+                const nombreDep = dep.nomDep || dep.nombre || dep.NomDep || `Departamento ${cDep}`;
+
+                // Filtramos los submódulos que pertenecen a este departamento
+                const subsDelDepto = submodulos.filter(sub => {
+                    const subDep = String(sub.ClaveDep !== undefined ? sub.ClaveDep : sub.claveDep).trim();
+                    return subDep === cDep;
+                });
+
+                if (subsDelDepto.length > 0) {
+                    filasHTML += `
+                        <tr class="bg-stone-50 font-bold text-stone-800 border-t border-stone-200">
+                            <td class="p-3 pl-4 uppercase tracking-wider" colspan="4">📁 Departamento: ${nombreDep}</td>
+                        </tr>
+                    `;
+
+                    subsDelDepto.forEach(sub => {
+                        const nombreSub = sub.SModNom !== undefined ? sub.SModNom : (sub.sModNom || sub.nombre || 'Submódulo');
+                        const idSub = sub.SModClave !== undefined ? sub.SModClave : (sub.sModClave || sub.id || '');
+
+                        filasHTML += `
+                            <tr class="hover:bg-stone-50 transition-all border-b border-stone-100">
+                                <td class="p-3 pl-8 font-medium text-stone-600 flex items-center gap-2">
+                                    <span>↳ ${nombreSub}</span>
+                                </td>
+                                <td class="p-3 text-center"><input type="checkbox" data-depto="${cDep}" data-submodulo="${idSub}" data-tipo="ver" class="accent-[#249444] w-4 h-4 cursor-pointer chk-permiso"></td>
+                                <td class="p-3 text-center"><input type="checkbox" data-depto="${cDep}" data-submodulo="${idSub}" data-tipo="editar" class="accent-[#249444] w-4 h-4 cursor-pointer chk-permiso"></td>
+                                <td class="p-3 text-center pr-4"><input type="checkbox" data-depto="${cDep}" data-submodulo="${idSub}" data-tipo="eliminar" class="accent-[#249444] w-4 h-4 cursor-pointer chk-permiso"></td>
+                            </tr>
+                        `;
+                    });
+                }
             });
-        } else {
+        }
+
+        if (!filasHTML) {
             filasHTML = `
                 <tr>
-                    <td colspan="4" class="p-4 text-center text-stone-500">No hay submódulos disponibles en Google Sheets para este departamento.</td>
+                    <td colspan="4" class="p-6 text-center text-stone-400">No se encontraron departamentos o submódulos sincronizados desde Google Sheets.</td>
                 </tr>
             `;
         }
 
         contenedorDinamico.innerHTML = `
-            <div class="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
-                <div class="p-4 border-b border-stone-100 flex flex-wrap justify-between items-center gap-4 bg-white">
-                    <div class="font-bold text-xs text-stone-700 uppercase tracking-wider"> 
-                        <p class="text-xs text-stone-500">Editando permisos para: <span class="font-bold text-stone-800">${nombreColaborador}</span> (No. Empleado: ${noEmp})</p>
+            <!-- Contenedor con el formato exacto de tarjeta institucional -->
+            <div class="w-full space-y-6 bg-white p-6 md:p-8 rounded-2xl soft-shadow border border-[#249444]/10 mb-8 animate-fade-in">
+                
+                <div class="flex items-center gap-3 pb-4 border-b border-stone-100">
+                    <div class="p-2.5 bg-[#f0fdf4] border border-[#c6f6d5] text-[#059669] rounded-xl flex items-center justify-center">
+                        <svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' class='lucide lucide-user-round-key'><path d='M19 11v6'/><path d='M19 13h2'/><path d='M2 21a8 8 0 0 1 12.868-6.349'/><circle cx='10' cy='8' r='5'/><circle cx='19' cy='19' r='2'/></svg>
+                    </div>
+                    <div>
+                        <h3 class="font-black text-stone-800 text-lg uppercase tracking-wide">Permisos</h3>
                     </div>
                 </div>
 
-                <div class="max-h-[500px] overflow-y-auto custom-scrollbar p-4">
-                    <table class="w-full text-left border-collapse text-xs">
-                        <thead class="sticky top-0 z-10 bg-stone-100">
-                            <tr class="text-stone-600 font-bold border-b border-stone-200 text-[11px]">
-                                <th class="p-3 pl-4">SUBMÓDULO (SHEETS)</th>
-                                <th class="p-3 text-center">VER / LEER</th>
-                                <th class="p-3 text-center">CREAR / EDITAR</th>
-                                <th class="p-3 text-center pr-4">ELIMINAR</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-stone-100 text-stone-700">
-                            ${filasHTML}
-                        </tbody>
-                    </table>
+                <!-- Tabla de Departamentos, Submódulos y Permisos -->
+                <div class="rounded-xl border border-stone-200 overflow-hidden shadow-sm">
+
+                    <div class="p-4 border-b border-stone-100 flex flex-wrap justify-between items-center gap-4 bg-white">
+                        <div class="font-bold p-2 text-xs text-stone-700 uppercase tracking-wider"> 
+                            <p class="text-xs text-stone-500">Editando permisos para: <span class="font-bold text-stone-800">${nombreColaborador}</span> (No. Empleado: ${noEmp})</p>
+                        </div>
+                    </div>
+
+                    <div class="max-h-[500px] overflow-y-auto custom-scrollbar">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead class="sticky top-0 z-10 bg-stone-100">
+                                <tr class="text-stone-600 font-bold border-b border-stone-200 text-[11px]">
+                                    <th class="p-3 pl-4">DEPARTAMENTO / SUBMÓDULO (SHEETS)</th>
+                                    <th class="p-3 text-center">VER / LEER</th>
+                                    <th class="p-3 text-center">CREAR / EDITAR</th>
+                                    <th class="p-3 text-center pr-4">ELIMINAR</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-stone-100 text-stone-700">
+                                ${filasHTML}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
-                <div class="p-4 border-t border-stone-100 flex items-center gap-3 bg-stone-50/50">
-                    <button onclick="guardarMatrizPermisosSis('${noEmp}')" class="bg-[#249444] hover:bg-[#1e7a37] text-white text-xs font-bold px-6 py-2.5 rounded-xl transition-all shadow-sm">
+                <!-- Botones de Acción inferiores -->
+                <div class="flex items-center gap-3 pt-2">
+                    <button onclick="guardarMatrizPermisosSis('${noEmp}')" class="bg-[#249444] hover:bg-[#1e7a37] text-white text-xs font-bold px-6 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-2">
                         Guardar
                     </button>
                     <button onclick="cargarPermisosSis()" class="bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold px-6 py-2.5 rounded-xl transition-all">
                         Cancelar
                     </button>
                 </div>
+
             </div>
         `;
+    }
+}
+
+async function guardarMatrizPermisosSis(noEmp) {
+    const checkboxes = document.querySelectorAll('.chk-permiso');
+    const permisosEstructura = {};
+
+    checkboxes.forEach(chk => {
+        const depto = chk.getAttribute('data-depto');
+        const submodulo = chk.getAttribute('data-submodulo');
+        const tipo = chk.getAttribute('data-tipo');
+
+        if (!permisosEstructura[depto]) {
+            permisosEstructura[depto] = {};
+        }
+        if (!permisosEstructura[depto][submodulo]) {
+            permisosEstructura[depto][submodulo] = { ver: 0, editar: 0, eliminar: 0 };
+        }
+
+        permisosEstructura[depto][submodulo][tipo] = chk.checked ? 1 : 0;
+    });
+
+    const payload = {
+        numEmp: noEmp,
+        permisos: permisosEstructura
+    };
+
+    try {
+        if (typeof FetchAPI === 'function') {
+            await FetchAPI('guardarPermisos', payload);
+        } else if (typeof google !== 'undefined' && google.script && google.script.run) {
+            await new Promise((resolve, reject) => {
+                google.script.run
+                    .withSuccessHandler(resolve)
+                    .withFailureHandler(reject)
+                    .guardarPermisosEnSheet(payload);
+            });
+        }
+
+        alert("¡Permisos actualizados correctamente para el colaborador!");
+        cargarPermisosSis();
+    } catch (err) {
+        console.error("Error al guardar permisos:", err);
+        alert("Error al guardar los permisos: " + (err.message || err));
     }
 }
 

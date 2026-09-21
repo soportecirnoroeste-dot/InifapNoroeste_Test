@@ -3,21 +3,53 @@
 // ==========================================
 window.cirnosisConfig = {
     deptoKey: "cirnosis",
-    claveDep: "7", // Clave numérica exacta en la pestaña SubModulo de Google Sheets
+    claveDep: "7", // Clave exacta que se ve en la columna ClaveDep de tu Sheet
     subtitle: "Gestión de infraestructura tecnológica, redes y soporte técnico.",
     icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-terminal"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="m8 16 2-2-2-2"/><path d="M12 18h4"/></svg>`,
 
-    // HERENCIA DINÁMICA GENERALIZADA: 
-    // Utiliza el motor central de appConfig para leer los submódulos directamente de Google Sheets.
+    // LECTURA DIRECTA Y SEGURA BASADA EN TU GOOGLE SHEETS
     get options() {
-        if (window.AppConfigUtils && typeof window.AppConfigUtils.crearOpcionesDinamicas === 'function') {
-            return window.AppConfigUtils.crearOpcionesDinamicas(this.claveDep, this.deptoKey);
+        // Obtener la fuente de datos global o de la caché del sistema
+        let fuenteDatos = window.allSubModulosData || (window.datosSistema && window.datosSistema.submodulos);
+        
+        if (!fuenteDatos || !Array.isArray(fuenteDatos) || fuenteDatos.length === 0) {
+            try {
+                const cacheGuardada = localStorage.getItem('sistema_cache_datos');
+                if (cacheGuardada) {
+                    const parsed = JSON.parse(cacheGuardada);
+                    fuenteDatos = parsed.submodulos || [];
+                }
+            } catch (e) {}
         }
-        return [];
+
+        if (!fuenteDatos || !Array.isArray(fuenteDatos)) return [];
+
+        // Filtrar usando exactamente el nombre de columna de tu Sheet: ClaveDep
+        const submodulosFiltrados = fuenteDatos.filter(item => {
+            const dep = item.ClaveDep !== undefined ? item.ClaveDep : item.claveDep;
+            return String(dep).trim() === String(this.claveDep);
+        });
+
+        // Mapear usando exactamente los nombres de columnas que tienes en tu Sheet:
+        // SModClave, SModNom, SModIcon
+        return submodulosFiltrados.map(sub => {
+            const idSheet = String(sub.SModClave !== undefined ? sub.SModClave : sub.sModClave);
+            const nombreSheet = String(sub.SModNom !== undefined ? sub.SModNom : sub.sModNom);
+            const iconoSheet = sub.SModIcon !== undefined ? sub.SModIcon : sub.sModIcon;
+            
+            const iconoPorDefecto = "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect width='18' height='18' x='3' y='3' rx='2'/></svg>";
+
+            return {
+                id: idSheet,
+                title: nombreSheet,
+                icon: iconoSheet && String(iconoSheet).trim() !== "" ? iconoSheet : iconoPorDefecto,
+                action: `manejarAccionSeccionSis('${idSheet}')`
+            };
+        });
     }
 };
 
-// Alias global para compatibilidad con el router
+// Alias global para compatibilidad
 window.cirnosis = window.cirnosisConfig;
 
 // ==========================================
@@ -42,7 +74,8 @@ function manejarAccionSeccionSis(idOpt) {
 }
 
 function ejecutarCargaSeccionSis(idOpt) {
-    if (idOpt === 'permisos' || idOpt === '6') { 
+    // Si la clave del submódulo es Permisos (en tu sheet es '1' para Permisos o 'permisos')
+    if (idOpt === '1' || idOpt === 'permisos' || idOpt === '6') { 
         cargarPermisosSis();
     } else {
         const configDepto = window.cirnosisConfig;
@@ -77,7 +110,7 @@ function cargarPermisosSis() {
 }
 
 // ==========================================
-// MATRIZ DE PERMISOS DINÁMICA (LEE DESDE GOOGLE SHEETS)
+// MATRIZ DE PERMISOS DINÁMICA
 // ==========================================
 function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
     const contenedorDinamico = document.getElementById('contenido-submodulo-dinamico');
@@ -112,7 +145,7 @@ function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
         } else {
             filasHTML = `
                 <tr>
-                    <td colspan="4" class="p-4 text-center text-stone-500">No hay submódulos disponibles en Google Sheets para este departamento.</td>
+                    <td colspan="4" class="p-4 text-center text-stone-500">No hay submódulos disponibles en Google Sheets para la Clave Dep 7.</td>
                 </tr>
             `;
         }

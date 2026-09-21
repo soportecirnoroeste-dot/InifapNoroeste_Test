@@ -7,7 +7,6 @@ function cargarDatosDelSistema() {
                     window.allSubModulosData = respuesta.submodulos || [];
                     window.datosSistema = respuesta;
                     
-                    // Guardamos también en caché automáticamente para futuras recargas en local/GH
                     try {
                         localStorage.setItem('sistema_cache_datos', JSON.stringify(respuesta));
                     } catch (e) {}
@@ -37,7 +36,6 @@ function cargarDatosDelSistema() {
             
             resolve(datosCacheados);
             
-            // Si el menú ya puede cargarse con la caché, lo disparamos
             if (typeof window.cargarMenuDepartamento === 'function') {
                 window.cargarMenuDepartamento();
             }
@@ -46,7 +44,7 @@ function cargarDatosDelSistema() {
 }
 
 // ==========================================
-// CONFIGURACIÓN 100% DINÁMICA (ID, NOMBRE E ICONO DESDE SHEETS)
+// CONFIGURACIÓN OFICIAL (DETECTADA POR EL ROUTER)
 // ==========================================
 window.cirnosisConfig = {
     deptoKey: "cirnosis",
@@ -55,12 +53,10 @@ window.cirnosisConfig = {
     icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-terminal"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="m8 16 2-2-2-2"/><path d="M12 18h4"/></svg>`,
 
     get options() {
-        // Usamos la utilidad centralizada de app.js si se encuentra disponible
         if (window.AppConfigUtils && typeof window.AppConfigUtils.crearOpcionesDinamicas === 'function') {
             return window.AppConfigUtils.crearOpcionesDinamicas(this.claveDep, this.deptoKey);
         }
 
-        // Respaldo dinámico leyendo de las variables globales de Sheets o caché
         const fuenteDatos = window.allSubModulosData || (window.datosSistema && window.datosSistema.submodulos);
         if (!fuenteDatos || !Array.isArray(fuenteDatos)) return [];
 
@@ -84,6 +80,9 @@ window.cirnosisConfig = {
         });
     }
 };
+
+// Alias por si algún otro script busca directamente 'window.cirnosis'
+window.cirnosis = window.cirnosisConfig;
 
 // ==========================================
 // FUNCIONES DE ACCIÓN Y CARGA DE SECCIONES

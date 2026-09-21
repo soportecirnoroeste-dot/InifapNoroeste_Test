@@ -129,13 +129,15 @@ function manejarAccionSeccionSis(idOpt) {
 }
 
 function ejecutarCargaSeccionSis(idOpt) {
-    if (idOpt === 'permisos' || idOpt === '6') { 
+    const configDepto = window.cirnosisConfig;
+    const opciones = configDepto.options || [];
+    const optEncontrada = opciones.find(o => o.id === String(idOpt));
+    const tituloOpt = optEncontrada ? optEncontrada.title.toLowerCase() : '';
+
+    // Detectar si es el submódulo de permisos por ID, clave o texto del título en Sheets
+    if (idOpt === 'permisos' || idOpt === '6' || tituloOpt.includes('permiso')) { 
         cargarPermisosSis();
     } else {
-        const configDepto = window.cirnosisConfig;
-        const opciones = configDepto.options || [];
-        const optEncontrada = opciones.find(o => o.id === String(idOpt));
-
         renderizarVistaModuloSis(idOpt, optEncontrada ? optEncontrada.title : "Módulo del sistema.");
     }
 }

@@ -142,16 +142,20 @@ function ejecutarCargaSeccionRh(idOpt) {
 
     const idMinus = String(idOpt).toLowerCase();
 
-    // Detectar si es el submódulo de personal o asistencia por ID, clave o texto del título en Sheets
-    if (idMinus.includes('personal') || idMinus === 'per' || tituloOpt.includes('personal')) {
+    // 🔗 Vínculo exacto para el submódulo de Personal
+    if (idMinus.includes('personal') || idMinus === 'per' || idMinus === '1' || tituloOpt.includes('personal')) {
         if (typeof cargarPersonalRh === 'function') {
             cargarPersonalRh(true);
         } else {
             renderizarVistaModuloRh(idOpt, optEncontrada ? optEncontrada.title : "Personal");
         }
-    } else if (idMinus.includes('asistencia') || idMinus.includes('asis') || idMinus === 'biometrico' || tituloOpt.includes('asistencia')) {
+    } 
+    // 🔗 Vínculo exacto para el submódulo de Control de Asistencia
+    else if (idMinus.includes('asistencia') || idMinus.includes('asis') || idMinus === 'biometrico' || idMinus === '2' || tituloOpt.includes('asistencia')) {
         cargarAsistenciaRh();
-    } else {
+    } 
+    // Cualquier otro submódulo dinámico de Sheets
+    else {
         renderizarVistaModuloRh(idOpt, optEncontrada ? optEncontrada.title : "Módulo de Recursos Humanos.");
     }
 }

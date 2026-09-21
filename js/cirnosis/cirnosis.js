@@ -1,3 +1,4 @@
+name=cirnosis.js
 function cargarDatosDelSistema() {
     return new Promise((resolve) => {
         if (typeof google !== 'undefined' && google.script && google.script.run) {
@@ -13,17 +14,25 @@ function cargarDatosDelSistema() {
                 })
                 .obtenerDatosSistema();
         } else {
-            console.warn("Modo simulación activado para GitHub Pages.");
+            console.warn("Modo simulación activado para GitHub Pages. Leyendo desde caché local.");
             
-            // 🛠️ DATOS DE PRUEBA (MOCK) para ver el diseño y las tarjetas en GitHub
-            window.allSubModulosData = [
-                { ClaveDep: "7", SModClave: "permisos", SModNom: "Gestión de Permisos", SModIcon: "" },
-                { ClaveDep: "7", SModClave: "reportes", SModNom: "Reportes del Sistema", SModIcon: "" }
-            ];
+            // 🛠️ SIN VALORES FIJOS: Intentamos recuperar la caché real generada por el sistema
+            let submodulosCacheados = [];
+            try {
+                const cacheGuardada = localStorage.getItem('sistema_cache_datos');
+                if (cacheGuardada) {
+                    const datosParsed = JSON.parse(cacheGuardada);
+                    submodulosCacheados = datosParsed.submodulos || [];
+                }
+            } catch (e) {
+                console.error("Error al leer la caché local:", e);
+            }
+
+            window.allSubModulosData = submodulosCacheados;
+            window.datosSistema = { success: true, submodulos: submodulosCacheados };
             
-            resolve({ success: true, submodulos: window.allSubModulosData });
+            resolve(window.datosSistema);
             
-            // Forzar renderizado si ya cargó el DOM
             if (typeof window.cargarMenuDepartamento === 'function') {
                 window.cargarMenuDepartamento();
             }
@@ -41,28 +50,24 @@ window.cirnosisConfig = {
     icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-terminal"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="m8 16 2-2-2-2"/><path d="M12 18h4"/></svg>`,
 
     get options() {
-        // Buscamos los datos tanto en la variable directa como dentro de un objeto de sistema global
-        const fuenteDatos = window.allSubModulosData || (window.datosSistema && window.datosSistema.submodulos);
-
-        if (!fuenteDatos || !Array.isArray(fuenteDatos)) {
-            return [];
+        // Usamos la utilidad centralizada de app.js si se encuentra disponible
+        if (window.AppConfigUtils && typeof window.AppConfigUtils.crearOpcionesDinamicas === 'function') {
+            return window.AppConfigUtils.crearOpcionesDinamicas(this.claveDep, this.deptoKey);
         }
 
-        // Filtramos por la ClaveDep correspondiente a este departamento
+        // Respaldo dinámico leyendo de las variables globales de Sheets
+        const fuenteDatos = window.allSubModulosData || (window.datosSistema && window.datosSistema.submodulos);
+        if (!fuenteDatos || !Array.isArray(fuenteDatos)) return [];
+
         const submodulosFiltrados = fuenteDatos.filter(item => {
             const dep = item.ClaveDep !== undefined ? item.ClaveDep : item.claveDep;
             return String(dep) === String(this.claveDep);
         });
 
-        // Mapeamos los datos leyendo ID, Nombre e Icono directamente del Sheets
         return submodulosFiltrados.map(sub => {
             const idSheet = String(sub.SModClave !== undefined ? sub.SModClave : sub.sModClave);
             const nombreSheet = String(sub.SModNom !== undefined ? sub.SModNom : sub.sModNom);
-
-            // Intentamos leer el icono de las columnas comunes en Sheets
             const iconoSheet = sub.SModIcon !== undefined ? sub.SModIcon : (sub.sModIcon || sub.icono);
-
-            // Icono de respaldo por si alguna fila no tiene diseño SVG asignado en la celda
             const iconoPorDefecto = "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect width='18' height='18' x='3' y='3' rx='2'/></svg>";
 
             return {
@@ -83,13 +88,17 @@ function obtenerContenedor() {
 }
 
 function manejarAccionSeccionSis(idOpt) {
-    const urlParams = new URLSearchParams(window.location.search);
-    const deptoActual = urlParams.get('depto') || 'cirnosis';
-    const nuevaUrl = `main.html?depto=${deptoActual}&seccion=${idOpt}`;
+    if (typeof window.manejarAccionSeccionGenerica === 'function') {
+        window.manejarAccionSeccionGenerica(idOpt);
+    } else {
+        const urlParams = new URLSearchParams(window.location.search);
+        const deptoActual = urlParams.get('depto') || 'cirnosis';
+        const nuevaUrl = `main.html?depto=${deptoActual}&seccion=${idOpt}`;
 
-    window.history.pushState({ seccion: idOpt }, '', nuevaUrl);
-    sessionStorage.setItem('submodulo_activo_cirnosis', idOpt);
-    ejecutarCargaSeccionSis(idOpt);
+        window.history.pushState({ seccion: idOpt }, '', nuevaUrl);
+        sessionStorage.setItem(`submodulo_activo_${deptoActual}`, idOpt);
+        ejecutarCargaSeccionSis(idOpt);
+    }
 }
 
 function ejecutarCargaSeccionSis(idOpt) {
@@ -105,10 +114,11 @@ function ejecutarCargaSeccionSis(idOpt) {
 }
 
 function limpiarSeccionUrlSis() {
-    sessionStorage.removeItem('submodulo_activo_cirnosis');
     const urlParams = new URLSearchParams(window.location.search);
+    const deptoActual = urlParams.get('depto') || 'cirnosis';
+    sessionStorage.removeItem(`submodulo_activo_${deptoActual}`);
+    
     if (urlParams.has('seccion')) {
-        const deptoActual = urlParams.get('depto') || 'cirnosis';
         const nuevaUrl = `main.html?depto=${deptoActual}`;
         window.history.replaceState({}, '', nuevaUrl);
     }
@@ -249,7 +259,7 @@ function procesarCargaInicialSeccionSis(event) {
     const contenedor = obtenerContenedor();
 
     if (seccion) {
-        sessionStorage.setItem('submodulo_activo_cirnosis', seccion);
+        sessionStorage.setItem(`submodulo_activo_${depto}`, seccion);
 
         if (typeof window.actualizarBotonRegresar === 'function') {
             window.actualizarBotonRegresar('submodulo', depto);
@@ -257,7 +267,7 @@ function procesarCargaInicialSeccionSis(event) {
 
         ejecutarCargaSeccionSis(seccion);
     } else {
-        sessionStorage.removeItem('submodulo_activo_cirnosis');
+        sessionStorage.removeItem(`submodulo_activo_${depto}`);
 
         if (typeof window.actualizarBotonRegresar === 'function') {
             window.actualizarBotonRegresar('principal', depto);
@@ -289,7 +299,6 @@ window.addEventListener('popstate', (event) => {
 
 document.addEventListener('DOMContentLoaded', async () => {
     try {
-        // Ejecutamos la carga inicial conectando al backend de Sheets
         await cargarDatosDelSistema();
     } catch (e) {
         console.error("Error al precargar los datos del sistema:", e);

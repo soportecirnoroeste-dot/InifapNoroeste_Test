@@ -265,8 +265,10 @@ function procesarCargaInicialSeccionRh(event) {
         if (contenedor) {
             contenedor.innerHTML = '';
         }
-        if (typeof window.cargarMenuDepartamento === 'function').cargarMenuDepartamento();
-        else if (typeof window.restaurarMenuDepto === 'function') {
+        
+        if (typeof window.cargarMenuDepartamento === 'function') {
+            window.cargarMenuDepartamento();
+        } else if (typeof window.restaurarMenuDepto === 'function') {
             window.restaurarMenuDepto(depto);
         }
     }

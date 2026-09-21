@@ -3,36 +3,51 @@
 // ==========================================
 window.cirnosisConfig = {
     deptoKey: "cirnosis",
-    claveDep: "7", // Clave exacta que se ve en la columna ClaveDep de tu Sheet
+    claveDep: "7", // Clave exacta del departamento en Google Sheets
     subtitle: "Gestión de infraestructura tecnológica, redes y soporte técnico.",
     icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-terminal"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="m8 16 2-2-2-2"/><path d="M12 18h4"/></svg>`,
 
-    // LECTURA DIRECTA Y SEGURA BASADA EN TU GOOGLE SHEETS
+    // Lista en caché interna para asegurar renderizado inmediato
+    _optionsCache: [],
+
+    // Método síncrono/asíncrono seguro para obtener las opciones
     get options() {
-        // Obtener la fuente de datos global o de la caché del sistema
-        let fuenteDatos = window.allSubModulosData || (window.datosSistema && window.datosSistema.submodulos);
-        
-        if (!fuenteDatos || !Array.isArray(fuenteDatos) || fuenteDatos.length === 0) {
+        // 1. Si ya tenemos caché interna llena, la usamos de inmediato
+        if (this._optionsCache && this._optionsCache.length > 0) {
+            return this._optionsCache;
+        }
+
+        // 2. Intentar rescatar de variables globales o localStorage
+        let fuenteDatos = window.allSubModulosData || window.subModulosData;
+        if (!fuenteDatos) {
             try {
-                const cacheGuardada = localStorage.getItem('sistema_cache_datos');
-                if (cacheGuardada) {
-                    const parsed = JSON.parse(cacheGuardada);
-                    fuenteDatos = parsed.submodulos || [];
+                const cacheLocal = localStorage.getItem('sistema_cache_datos');
+                if (cacheLocal) {
+                    const parsed = JSON.parse(cacheLocal);
+                    fuenteDatos = parsed.submodulos || parsed;
                 }
             } catch (e) {}
         }
 
-        if (!fuenteDatos || !Array.isArray(fuenteDatos)) return [];
+        if (Array.isArray(fuenteDatos) && fuenteDatos.length > 0) {
+            this._optionsCache = this.procesarDatosSubmodulos(fuenteDatos);
+            return this._optionsCache;
+        }
 
-        // Filtrar usando exactamente el nombre de columna de tu Sheet: ClaveDep
-        const submodulosFiltrados = fuenteDatos.filter(item => {
+        // 3. Disparar carga automática de emergencia desde la API si no hay datos listos
+        this.cargarSubmodulosDesdeAPI();
+        
+        // Retornar temporalmente un indicador o array vacío mientras llega la respuesta de la red
+        return [];
+    },
+
+    procesarDatosSubmodulos(fuenteDatos) {
+        const filtrados = fuenteDatos.filter(item => {
             const dep = item.ClaveDep !== undefined ? item.ClaveDep : item.claveDep;
             return String(dep).trim() === String(this.claveDep);
         });
 
-        // Mapear usando exactamente los nombres de columnas que tienes en tu Sheet:
-        // SModClave, SModNom, SModIcon
-        return submodulosFiltrados.map(sub => {
+        return filtrados.map(sub => {
             const idSheet = String(sub.SModClave !== undefined ? sub.SModClave : sub.sModClave);
             const nombreSheet = String(sub.SModNom !== undefined ? sub.SModNom : sub.sModNom);
             const iconoSheet = sub.SModIcon !== undefined ? sub.SModIcon : sub.sModIcon;
@@ -46,10 +61,32 @@ window.cirnosisConfig = {
                 action: `manejarAccionSeccionSis('${idSheet}')`
             };
         });
+    },
+
+    async cargarSubmodulosDesdeAPI() {
+        try {
+            // URL de tu API o Apps Script configurada en el proyecto (ajusta si usas otra variable global)
+            const urlAPI = window.urlApi || window.GOOGLE_SCRIPT_URL || localStorage.getItem('url_api_sheets');
+            if (!urlAPI) return;
+
+            const respuesta = await fetch(`${urlAPI}?action=getSubModulos`);
+            const resultado = await respuesta.json();
+            
+            const lista = resultado.submodulos || resultado.data || resultado;
+            if (Array.isArray(lista)) {
+                this._optionsCache = this.procesarDatosSubmodulos(lista);
+                // Forzar la actualización del menú visual si ya está dibujado
+                if (typeof window.cargarMenuDepartamento === 'function') {
+                    window.cargarMenuDepartamento();
+                }
+            }
+        } catch (error) {
+            console.error("Error al sincronizar submdulos desde Google Sheets:", error);
+        }
     }
 };
 
-// Alias global para compatibilidad
+// Alias global para compatibilidad con el enrutador
 window.cirnosis = window.cirnosisConfig;
 
 // ==========================================
@@ -74,7 +111,7 @@ function manejarAccionSeccionSis(idOpt) {
 }
 
 function ejecutarCargaSeccionSis(idOpt) {
-    // Si la clave del submódulo es Permisos (en tu sheet es '1' para Permisos o 'permisos')
+    // Si corresponde al submódulo 1 (Permisos) u otra sección de permisos
     if (idOpt === '1' || idOpt === 'permisos' || idOpt === '6') { 
         cargarPermisosSis();
     } else {
@@ -145,7 +182,7 @@ function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
         } else {
             filasHTML = `
                 <tr>
-                    <td colspan="4" class="p-4 text-center text-stone-500">No hay submódulos disponibles en Google Sheets para la Clave Dep 7.</td>
+                    <td colspan="4" class="p-4 text-center text-stone-500">Cargando submódulos desde Google Sheets (Clave 7)...</td>
                 </tr>
             `;
         }

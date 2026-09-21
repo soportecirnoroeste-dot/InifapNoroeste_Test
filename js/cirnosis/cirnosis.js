@@ -1,35 +1,34 @@
-async function cargarDatosDelSistema() {
-    return new Promise(async (resolve) => {
-        // 1. Si estamos dentro de Google Apps Script (entorno nativo)
-        if (typeof google !== 'undefined' && google.script && google.script.run) {
-            google.script.run
-                .withSuccessHandler(function(respuesta) {
-                    window.allSubModulosData = respuesta.submodulos || [];
-                    window.datosSistema = respuesta;
-                    
-                    try {
-                        localStorage.setItem('sistema_cache_datos', JSON.stringify(respuesta));
-                    } catch (e) {}
+// ==========================================
+// CARGA INSTÁNTANEA CON CACHÉ Y RED EN SEGUNDO PLANO
+// ==========================================
+function cargarDatosDelSistema() {
+    return new Promise((resolve) => {
+        // 1. CARGA INMEDIATA DESDE CACHÉ (Velocidad de 0 milisegundos)
+        let datosCacheados = { success: true, submodulos: [] };
+        try {
+            const cacheGuardada = localStorage.getItem('sistema_cache_datos');
+            if (cacheGuardada) {
+                datosCacheados = JSON.parse(cacheGuardada);
+            }
+        } catch (err) {}
 
-                    resolve(respuesta);
-                })
-                .withFailureHandler(function(error) {
-                    console.error("Error al obtener de Sheets:", error);
-                    resolve(null);
-                })
-                .obtenerDatosSistema();
-        } 
-        // 2. Si estamos en GitHub Pages o fuera, leemos directamente de Google Sheets usando tu FetchAPI central
-        else {
-            console.log("Leyendo submódulos directamente de Google Sheets vía API...");
-            
+        window.allSubModulosData = datosCacheados.submodulos || [];
+        window.datosSistema = datosCacheados;
+
+        // Pintar el menú al instante con los datos guardados
+        if (typeof window.cargarMenuDepartamento === 'function') {
+            window.cargarMenuDepartamento();
+        }
+
+        resolve(datosCacheados);
+
+        // 2. SINCRONIZACIÓN EN SEGUNDO PLANO (No bloquea la pantalla al usuario)
+        setTimeout(async () => {
             try {
-                // Usamos la misma pasarela de FetchAPI que ya tienes configurada en api.js
                 let respuesta = null;
                 if (typeof window.FetchAPI === 'function') {
                     respuesta = await window.FetchAPI('obtenerDatosSistema');
                 } else {
-                    // Respaldo directo si FetchAPI no está disponible globalmente aún
                     const response = await fetch("https://script.google.com/macros/s/AKfycbz1wzz5zC_6Cf4thUdl_5BkAca6m_MM7IWQyPwVAQcMaraPqfX8nBGMQpSdy31_tjz1Aw/exec", {
                         method: "POST",
                         redirect: "follow",
@@ -39,35 +38,20 @@ async function cargarDatosDelSistema() {
                     respuesta = await response.json();
                 }
 
-                if (respuesta && respuesta.success) {
-                    window.allSubModulosData = respuesta.submodulos || [];
+                if (respuesta && respuesta.success && respuesta.submodulos) {
+                    window.allSubModulosData = respuesta.submodulos;
                     window.datosSistema = respuesta;
-                    
-                    // Actualizamos la caché con lo que viene del Sheets real
                     localStorage.setItem('sistema_cache_datos', JSON.stringify(respuesta));
-                    resolve(respuesta);
-                } else {
-                    throw new Error("La respuesta del servidor no fue exitosa.");
+                    
+                    // Si hubo cambios en Sheets, actualiza el menú visualmente de forma imperceptible
+                    if (typeof window.cargarMenuDepartamento === 'function') {
+                        window.cargarMenuDepartamento();
+                    }
                 }
             } catch (e) {
-                console.error("Error al conectar con Google Sheets, recurriendo a caché:", e);
-                let datosCacheados = { success: true, submodulos: [] };
-                try {
-                    const cacheGuardada = localStorage.getItem('sistema_cache_datos');
-                    if (cacheGuardada) {
-                        datosCacheados = JSON.parse(cacheGuardada);
-                    }
-                } catch (err) {}
-
-                window.allSubModulosData = datosCacheados.submodulos || [];
-                window.datosSistema = datosCacheados;
-                resolve(datosCacheados);
+                // Silencioso si no hay internet o falla la red, la caché sigue respondiendo
             }
-            
-            if (typeof window.cargarMenuDepartamento === 'function') {
-                window.cargarMenuDepartamento();
-            }
-        }
+        }, 100);
     });
 }
 
@@ -169,7 +153,7 @@ function cargarPermisosSis() {
 }
 
 // ==========================================
-// MATRIZ DE PERMISOS DINÁMICA (LEE DESDE GOOGLE SHEETS)
+// MATRIZ DE PERMISOS DINÁMICA
 // ==========================================
 function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
     const contenedorDinamico = document.getElementById('contenido-submodulo-dinamico');
@@ -323,18 +307,14 @@ function procesarCargaInicialSeccionSis(event) {
 }
 
 // ==========================================
-// LISTENERS DE HISTORIAL Y ARRANQUE
+// LISTENERS DE HISTORIAL Y ARRANQUE ULTRA-RÁPIDO
 // ==========================================
 window.addEventListener('popstate', (event) => {
     procesarCargaInicialSeccionSis(event);
 });
 
-document.addEventListener('DOMContentLoaded', async () => {
-    try {
-        await cargarDatosDelSistema();
-    } catch (e) {
-        console.error("Error al precargar los datos del sistema:", e);
-    }
-    
+document.addEventListener('DOMContentLoaded', () => {
+    // Disparamos la carga al instante sin usar await para no congelar la vista
+    cargarDatosDelSistema();
     procesarCargaInicialSeccionSis();
 });

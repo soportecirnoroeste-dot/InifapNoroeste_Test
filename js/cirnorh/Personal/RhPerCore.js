@@ -9,7 +9,9 @@ window._mapRegsCache = window._mapRegsCache || null;
 window._mapCentrosCache = window._mapCentrosCache || null;
 
 function cargarPersonalRh(cargarLista = true) {
-    renderizarVistaModulo('personal', "");
+    if (typeof renderizarVistaModuloRh === 'function') {
+        renderizarVistaModuloRh('personal', "Personal");
+    }
 
     const contenedorDinamico = document.getElementById('contenido-submodulo-dinamico');
     if (!contenedorDinamico) return;
@@ -421,10 +423,10 @@ function renderizarTablaPersonal(registros) {
             // 1. Buscamos primero en el mapa optimizado de puestos
             if (window._mapPuestosCache && window._mapPuestosCache[cNumPto]) {
                 puestoVisual = window._mapPuestosCache[cNumPto];
-            } 
+            }
             // 2. Si no está en el mapa, hacemos una búsqueda directa en el arreglo de catálogos
             else if (Array.isArray(window._catPuestos) && window._catPuestos.length > 0) {
-                const encontrado = window._catPuestos.find(p => 
+                const encontrado = window._catPuestos.find(p =>
                     String(p.NumPto || p.numPto || '').trim() === cNumPto
                 );
                 if (encontrado) {

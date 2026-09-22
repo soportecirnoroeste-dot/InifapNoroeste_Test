@@ -373,10 +373,27 @@ async function cargarYMarcarPermisosColaborador(noEmp) {
 }
 
 // ==========================================
-// GUARDAR PERMISOS - SISPER CORE
+// GUARDAR PERMISOS - SISPER CORE (CON SPINNER)
 // ==========================================
 
 async function guardarMatrizPermisosSis(noEmp) {
+    // Buscamos el botón de guardar dentro del contenedor dinámico
+    const btnGuardar = document.querySelector(`button[onclick*="guardarMatrizPermisosSis('${noEmp}')"]`);
+    let contenidoOriginalBtn = "";
+
+    if (btnGuardar) {
+        contenidoOriginalBtn = btnGuardar.innerHTML;
+        btnGuardar.disabled = true;
+        btnGuardar.className = "bg-[#249444]/70 text-white text-xs font-bold px-6 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-2 cursor-not-allowed";
+        btnGuardar.innerHTML = `
+            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Guardando...
+        `;
+    }
+
     const checkboxes = document.querySelectorAll('.chk-permiso');
     const permisosEstructura = {};
 
@@ -416,17 +433,23 @@ async function guardarMatrizPermisosSis(noEmp) {
 
         alert("¡Permisos actualizados correctamente para el colaborador!");
         
-        // Recargamos el listado general o la vista de permisos si la función existe
         if (typeof cargarPermisosSis === 'function') {
             cargarPermisosSis();
         }
     } catch (err) {
         console.error("❌ Error al guardar permisos:", err);
         alert("Error al guardar los permisos: " + (err.message || err));
+        
+        // Si hay error, restauramos el botón para que pueda reintentar
+        if (btnGuardar) {
+            btnGuardar.disabled = false;
+            btnGuardar.className = "bg-[#249444] hover:bg-[#1e7a37] text-white text-xs font-bold px-6 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-2";
+            btnGuardar.innerHTML = contenidoOriginalBtn;
+        }
     }
 }
 
-// Asegurarnos de exportarla globalmente para que el botón onclick la encuentre sin problemas
+// Exportación global
 window.guardarMatrizPermisosSis = guardarMatrizPermisosSis;
 
 // Control de selección en cascada de los checkboxes en pantalla

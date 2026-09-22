@@ -372,6 +372,63 @@ async function cargarYMarcarPermisosColaborador(noEmp) {
     }
 }
 
+// ==========================================
+// GUARDAR PERMISOS - SISPER CORE
+// ==========================================
+
+async function guardarMatrizPermisosSis(noEmp) {
+    const checkboxes = document.querySelectorAll('.chk-permiso');
+    const permisosEstructura = {};
+
+    checkboxes.forEach(chk => {
+        const depto = chk.getAttribute('data-depto');
+        const submodulo = chk.getAttribute('data-submodulo');
+        const tipo = chk.getAttribute('data-tipo');
+
+        if (!permisosEstructura[depto]) {
+            permisosEstructura[depto] = {};
+        }
+        if (!permisosEstructura[depto][submodulo]) {
+            permisosEstructura[depto][submodulo] = { ver: 0, editar: 0, eliminar: 0 };
+        }
+
+        permisosEstructura[depto][submodulo][tipo] = chk.checked ? 1 : 0;
+    });
+
+    const payload = {
+        numEmp: noEmp,
+        permisos: permisosEstructura
+    };
+
+    try {
+        console.log("💾 [SISPER] Guardando permisos para empleado:", noEmp, payload);
+
+        if (typeof FetchAPI === 'function') {
+            await FetchAPI('guardarPermisos', payload);
+        } else if (typeof google !== 'undefined' && google.script && google.script.run) {
+            await new Promise((resolve, reject) => {
+                google.script.run
+                    .withSuccessHandler(resolve)
+                    .withFailureHandler(reject)
+                    .guardarPermisosEnSheet(payload);
+            });
+        }
+
+        alert("¡Permisos actualizados correctamente para el colaborador!");
+        
+        // Recargamos el listado general o la vista de permisos si la función existe
+        if (typeof cargarPermisosSis === 'function') {
+            cargarPermisosSis();
+        }
+    } catch (err) {
+        console.error("❌ Error al guardar permisos:", err);
+        alert("Error al guardar los permisos: " + (err.message || err));
+    }
+}
+
+// Asegurarnos de exportarla globalmente para que el botón onclick la encuentre sin problemas
+window.guardarMatrizPermisosSis = guardarMatrizPermisosSis;
+
 // Control de selección en cascada de los checkboxes en pantalla
 document.addEventListener('change', function(e) {
     const chk = e.target;

@@ -214,44 +214,51 @@ function actualizarDatosPermisosSis() {
 // ==========================================
 // LÓGICA DE NEGOCIO Y TESTIGOS (AUTÓNOMA)
 // ==========================================
-
 async function cargarYMarcarPermisosColaborador(noEmp) {
     try {
-        console.log(`🚀 [SISPER] Consultando permisos para empleado: ${noEmp}`);
+        console.group(`🚀 [TESTIGO 1] Iniciando carga de permisos para empleado: ${noEmp}`);
+        
         let permisosMap = {};
         if (typeof FetchAPI === 'function') {
+            console.log("📡 [TESTIGO 2] Llamando a FetchAPI('obtenerPermisosColaborador')...");
             permisosMap = await FetchAPI('obtenerPermisosColaborador', { numEmp: noEmp });
         }
 
-        console.log("📥 [SISPER] Mapa recibido de Sheets:", permisosMap);
-        if (!permisosMap || Object.keys(permisosMap).length === 0) return;
+        console.log("📥 [TESTIGO 3] Mapa completo recibido de Sheets:", permisosMap);
 
-        // Damos un pequeño respiro al DOM para asegurarnos de que el modal terminó de renderizar las filas
+        if (!permisosMap || Object.keys(permisosMap).length === 0) {
+            console.warn("⚠️ [TESTIGO 4] El mapa de permisos llegó vacío.");
+            console.groupEnd();
+            return;
+        }
+
         setTimeout(() => {
             const filas = document.querySelectorAll('tr');
-            console.log(`🔍 [SISPER] Analizando ${filas.length} filas en la matriz...`);
+            console.log(`🔍 [TESTIGO 5] Total de filas <tr> encontradas en la pantalla: ${filas.length}`);
 
-            filas.forEach(fila => {
+            filas.forEach((fila, index) => {
                 const celdas = fila.querySelectorAll('td');
                 if (celdas.length === 0) return;
 
-                // Extraemos el texto de la primera celda de forma dinámica y limpia (ej: "PERMISOS", "LICENCIAS")
                 const textoCelda = celdas[0].innerText || "";
-                if (!textoCelda.includes("↳")) return; // Solo nos interesan las filas que son submódulos (tienen la flechita ↳)
+                if (!textoCelda.includes("↳")) return; // Solo filas con la flechita
 
                 const nombreSubmoduloDOM = textoCelda.replace("↳", "").trim().toUpperCase();
                 const checkboxes = fila.querySelectorAll('input[type="checkbox"]');
 
+                console.log(`📋 [TESTIGO 6] Fila ${index} -> Submódulo detectado en DOM: "${nombreSubmoduloDOM}" | Checkboxes encontrados: ${checkboxes.length}`);
+
                 if (!nombreSubmoduloDOM || checkboxes.length < 3) return;
 
-                // BÚSQUEDA 100% DINÁMICA: Recorremos cualquier departamento del JSON y buscamos por coincidencia de nombre
+                // Buscamos coincidencia dinámica en el objeto
                 let permisosSub = null;
                 for (const claveDep in permisosMap) {
                     const submodulosObj = permisosMap[claveDep];
                     for (const subKey in submodulosObj) {
                         const subData = submodulosObj[subKey];
-                        // Comparamos el nombre del submódulo de la base de datos contra el texto de la pantalla
-                        if (subData && subData.nombre && subData.nombre.toUpperCase().trim() === nombreSubmoduloDOM) {
+                        const nombreSheets = (subData && (subData.nombre || subData.NomSub || "")) ? String(subData.nombre || subData.NomSub).toUpperCase().trim() : "";
+                        
+                        if (nombreSheets === nombreSubmoduloDOM || subKey === nombreSubmoduloDOM) {
                             permisosSub = subData;
                             break;
                         }
@@ -259,17 +266,25 @@ async function cargarYMarcarPermisosColaborador(noEmp) {
                     if (permisosSub) break;
                 }
 
+                console.log(`🔑 [TESTIGO 7] Resultado para "${nombreSubmoduloDOM}":`, permisosSub);
+
                 if (permisosSub) {
-                    console.log(`✨ [SISPER] Marcando submódulo [${nombreSubmoduloDOM}] -> Ver: ${permisosSub.ver}, Editar: ${permisosSub.editar}, Eliminar: ${permisosSub.eliminar}`);
+                    console.log(`✨ [TESTIGO 8] ¡Marcando casillas! Ver: ${permisosSub.ver}, Editar: ${permisosSub.editar}, Eliminar: ${permisosSub.eliminar}`);
                     checkboxes[0].checked = (Number(permisosSub.ver) === 1);
                     checkboxes[1].checked = (Number(permisosSub.editar) === 1);
                     checkboxes[2].checked = (Number(permisosSub.eliminar) === 1);
+                } else {
+                    console.warn(`⚠️ [TESTIGO 9] No se encontró coincidencia de datos en Sheets para el submódulo: "${nombreSubmoduloDOM}"`);
                 }
             });
-        }, 600);
+
+            console.log("🏁 [TESTIGO 10] Proceso de marcado finalizado.");
+            console.groupEnd();
+        }, 800);
 
     } catch (err) {
-        console.error("❌ Error al sincronizar permisos:", err);
+        console.error("❌ [ERROR CRÍTICO]:", err);
+        console.groupEnd();
     }
 }
 

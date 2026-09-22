@@ -73,7 +73,7 @@ function renderizarListadoPermisosSis() {
                                 </tr>
                             </thead>
                             <tbody id="grid-permisos-empleados" class="divide-y divide-stone-100">
-                                <tr><td colspan="6" class="p-6 text-center text-stone-400 italic">Cargando registros...</td></tr>
+                                <tr><td colspan="6" class="p-6 text-center text-stone-400 italic">Sincronizando datos...</td></tr>
                             </tbody>
                         </table>
                     </div>

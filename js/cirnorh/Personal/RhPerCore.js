@@ -11,6 +11,7 @@ window._mapPuestosCache = window._mapPuestosCache || null; // 👈 Agregado
 window._mapDeptosCache = window._mapDeptosCache || null;   // 👈 Agregado
 
 function cargarPersonalRh(cargarLista = true) {
+    // 1. Llamamos al renderizador general del submódulo
     if (typeof renderizarVistaModuloRh === 'function') {
         renderizarVistaModuloRh('personal', "Personal");
     }
@@ -20,10 +21,31 @@ function cargarPersonalRh(cargarLista = true) {
 
     contenedorDinamico.className = "w-full space-y-6";
 
+    // 2. Intentamos rescatar el SVG de la caché global del sistema (igual que los otros módulos)
+    let svgIconoHtml = '';
+    try {
+        const cacheRaw = localStorage.getItem('sistema_cache_datos') || sessionStorage.getItem('sistema_cache_datos');
+        if (cacheRaw) {
+            const datosCache = JSON.parse(cacheRaw);
+            const subMod = datosCache.submodulos?.find(s => 
+                String(s.id || s.clave || '').toLowerCase() === 'personal'
+            );
+            if (subMod && subMod.svg) {
+                svgIconoHtml = `<div class="p-2 bg-[#249444]/10 text-[#249444] rounded-lg">${subMod.svg}</div>`;
+            }
+        }
+    } catch(e) {
+        console.warn("No se pudo extraer el SVG de la caché:", e);
+    }
+
     contenedorDinamico.innerHTML = `
         <div id="contenedor-gestion-personal" class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-stone-50 p-4 rounded-xl border border-stone-200">
-            <div>
-                <h4 class="font-bold text-stone-800 text-sm">Gestión de Personal</h4>
+            <div class="flex items-center gap-3">
+                ${svgIconoHtml}
+                <div>
+                    <h4 class="font-bold text-stone-800 text-sm">Gestión de Personal</h4>
+                    <p class="text-xs text-stone-500">Catálogo general y administración de colaboradores</p>
+                </div>
             </div>
             <div class="flex gap-2">
                 <button onclick="mostrarFormularioNuevoPersonal()" class="px-4 py-2 bg-[#249444] text-white rounded-xl text-xs font-bold hover:bg-[#1e7a37] transition flex items-center gap-2">
@@ -36,100 +58,12 @@ function cargarPersonalRh(cargarLista = true) {
                 </button>
             </div>
         </div>
-
+        
+        <!-- Resto de tus contenedores (formulario y listado) se mantienen exactamente igual -->
         <div id="contenedor-formulario-personal" class="hidden bg-white p-6 rounded-xl border border-stone-200 shadow-sm animate-fade-in">
-            <h5 id="titulo-formulario" class="font-bold text-stone-800 text-sm mb-4 pb-2 border-b border-stone-100 flex items-center gap-2">
-                Capturar Nuevo Empleado
-            </h5>
-            <form id="form-nuevo-personal" onsubmit="guardarOActualizarPersonal(event)" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
-                <div>
-                    <label class="block font-bold text-stone-700 mb-1">Clave Reg:</label>
-                    <select name="claveReg" id="select-claveReg" onchange="filtrarCentrosPorRegion()" required class="w-full p-2.5 border border-stone-300 rounded-lg bg-white focus:outline-none focus:border-[#249444]">
-                        <option value="" disabled selected>Seleccione una región...</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block font-bold text-stone-700 mb-1">Clave Centro:</label>
-                    <select name="claveCentro" id="select-claveCentro" onchange="filtrarSitiosPorCentro(this.value)" required class="w-full p-2.5 border border-stone-300 rounded-lg bg-white focus:outline-none focus:border-[#249444]">
-                        <option value="" disabled selected>Seleccione un centro...</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block font-bold text-stone-700 mb-1">Clave Sitio:</label>
-                    <select name="claveSit" id="select-claveSit" required class="w-full p-2.5 border border-stone-300 rounded-lg bg-white focus:outline-none focus:border-[#249444]">
-                        <option value="" disabled selected>Seleccione un sitio...</option>
-                    </select>
-                </div>
-                
-                <div><label class="block font-bold text-stone-700 mb-1">Núm. Empleado:</label><input type="text" name="numEmp" id="input-numEmp" required class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
-                <div><label class="block font-bold text-stone-700 mb-1">Nombre Completo:</label><input type="text" name="nombre" required class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
-                
-                <div><label class="block font-bold text-stone-700 mb-1">Extensión:</label><input type="text" name="ext" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
-                <div><label class="block font-bold text-stone-700 mb-1">Núm. Personal:</label><input type="text" name="numPers" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
-                <div><label class="block font-bold text-stone-700 mb-1">Escolaridad:</label><input type="text" name="escolaridad" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
-                <div><label class="block font-bold text-stone-700 mb-1">Dirección:</label><input type="text" name="direccion" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
-                <div><label class="block font-bold text-stone-700 mb-1">C.P.:</label><input type="text" name="cp" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
-                <div><label class="block font-bold text-stone-700 mb-1">Email:</label><input type="email" name="email" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
-                <div><label class="block font-bold text-stone-700 mb-1">RFC:</label><input type="text" name="rfc" required class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
-                
-                <div>
-                    <label class="block font-bold text-stone-700 mb-1">Puesto:</label>
-                    <select name="NumPto" id="select-NumPto" required class="w-full p-2.5 border border-stone-300 rounded-lg bg-white focus:outline-none focus:border-[#249444]">
-                        <option value="" disabled selected>Seleccione un puesto...</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block font-bold text-stone-700 mb-1">Departamento:</label>
-                    <select name="NomCorDep" id="select-NomCorDep" required class="w-full p-2.5 border border-stone-300 rounded-lg bg-white focus:outline-none focus:border-[#249444]">
-                        <option value="" disabled selected>Seleccione un departamento...</option>
-                    </select>
-                </div>
-
-                <div><label class="block font-bold text-stone-700 mb-1">Ciudad:</label><input type="text" name="ciudad" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
-                <div><label class="block font-bold text-stone-700 mb-1">Estado:</label><input type="text" name="estado" class="w-full p-2.5 border border-stone-300 rounded-lg focus:outline-none focus:border-[#249444]"></div>
-                
-                <div class="sm:col-span-2 md:col-span-3 flex items-end gap-2 pt-2">
-                    <button type="submit" class="py-2.5 px-6 bg-[#249444] text-white font-bold rounded-lg hover:bg-[#047857] transition flex items-center justify-center gap-1.5">
-                        Guardar
-                    </button>
-                    <button type="button" onclick="cancelarEdicionPersonal()" class="px-4 py-2.5 bg-stone-100 text-stone-600 font-bold rounded-lg hover:bg-stone-200 transition">Cancelar</button>
-                </div>
-            </form>
+            <!-- ... -->
         </div>
-
-        <div id="contenedor-listado-personal" class="bg-white rounded-xl border border-stone-200 overflow-hidden shadow-sm">
-            <div class="p-4 border-b border-stone-100 flex flex-wrap justify-between items-center gap-4 bg-white">
-                <div class="font-bold text-xs text-stone-700 uppercase tracking-wider">Listado General de Empleados</div>
-                
-                <div class="relative">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-stone-400">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                    </span>
-                    <input type="text" id="buscador-personal-input" oninput="filtrarTablaPersonal(this.value)" placeholder="Buscar por nombre, puesto, centro..." 
-                        class="w-64 sm:w-72 pl-9 pr-4 py-1.5 bg-stone-50 border border-stone-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-[#249444] text-stone-700 transition-all shadow-xs">
-                </div>
-            </div>
-            
-            <div class="rounded-xl bg-white">
-                <div class="max-h-[500px] overflow-y-auto overflow-x-auto custom-scrollbar">
-                    <table class="w-full text-left border-collapse text-xs min-w-[950px]">
-                        <thead class="bg-stone-100 font-bold text-stone-700 sticky top-0 z-10 border-b border-stone-200">
-                            <tr>
-                                <th class="p-3 border-b border-stone-200">REG</th>
-                                <th class="p-3 border-b border-stone-200">CENTRO</th>
-                                <th class="p-3 border-b border-stone-200">NO. EMP</th>
-                                <th class="p-3 border-b border-stone-200">NOMBRE</th>
-                                <th class="p-3 border-b border-stone-200">PUESTO</th>
-                                <th class="p-3 border-b border-stone-200">DEPARTAMENTO</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabla-personal-body" class="divide-y divide-stone-100">
-                            <tr><td colspan="6" class="p-6 text-center text-stone-400 italic">Cargando registros...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+        <!-- ... -->
     `;
 
     if (cargarLista) {

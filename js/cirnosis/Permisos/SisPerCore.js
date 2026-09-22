@@ -231,52 +231,50 @@ async function cargarYMarcarPermisosColaborador(noEmp) {
             });
         }
 
-        console.log("📥 [CORE TESTIGO 1] Datos devueltos por Google Sheets:", permisosMap);
+        console.log("📥 [CORE TESTIGO] Mapa de permisos devuelto:", permisosMap);
 
         if (!permisosMap || Object.keys(permisosMap).length === 0) {
-            console.warn("⚠️ [CORE TESTIGO 2] No hay registros previos de permisos para este colaborador.");
+            console.warn("⚠️ [CORE] No hay registros previos para este colaborador.");
             console.groupEnd();
             return;
         }
 
-        // Damos tiempo a que se dibuje el modal y buscamos todas las filas de la tabla de permisos
         setTimeout(() => {
-            const filas = document.querySelectorAll('tr, div'); // Buscamos filas o bloques contenedores en la matriz
-            console.log(`🔍 [CORE TESTIGO 3] Elementos analizados en la matriz: ${filas.length}`);
-
+            const filas = document.querySelectorAll('tr');
+            
             filas.forEach(fila => {
-                const textoFila = fila.innerText ? fila.innerText.toUpperCase() : "";
+                const textoFila = fila.innerText ? fila.innerText.toUpperCase().trim() : "";
                 
-                // Si la fila contiene alguno de los submódulos (ej. PERMISOS, LICENCIAS, etc.)
-                if (textoFila.includes("PERMISOS") || textoFila.includes("LICENCIAS") || textoFila.includes("DOCUMENTOS") || textoFila.includes("CONFIGURACIÓN")) {
-                    const checkboxesEnFila = fila.querySelectorAll('input[type="checkbox"]');
+                let sModClaveMatch = null;
+                if (textoFila.includes("↳ PERMISOS")) sModClaveMatch = "1";
+                else if (textoFila.includes("↳ LICENCIAS")) sModClaveMatch = "2";
+                else if (textoFila.includes("↳ DOCUMENTOS")) sModClaveMatch = "3";
+                else if (textoFila.includes("↳ CONFIGURACIÓN DE MENÚ")) sModClaveMatch = "4";
+                else if (textoFila.includes("↳ FORMATOS DE OF.")) sModClaveMatch = "5";
+
+                if (sModClaveMatch) {
+                    const checkboxes = fila.querySelectorAll('input[type="checkbox"]');
                     
-                    if (checkboxesEnFila.length > 0) {
-                        // Dependiendo de la columna (Ver, Editar, Eliminar)
-                        // Si en Sheets tenemos SModClave 1, 2 o 3 para ClaveDep 7 (Sistemas)
-                        if (Array.isArray(permisosMap)) {
-                            permisosMap.forEach(p => {
-                                const sMod = String(p.SModClave || p.sModClave || '');
-                                const niv = Number(p.NivPer || p.nivPer || 0);
-                                
-                                // Mapeo por posición o texto si coincide con ClaveDep 7 (Sistemas)
-                                if (String(p.ClaveDep || p.claveDep) === "7") {
-                                    if (sMod === "1" && textoFila.includes("PERMISOS") && checkboxesEnFila[0]) checkboxesEnFila[0].checked = (niv >= 1);
-                                    if (sMod === "2" && textoFila.includes("LICENCIAS") && checkboxesEnFila[0]) checkboxesEnFila[0].checked = (niv >= 1);
-                                    if (sMod === "3" && textoFila.includes("DOCUMENTOS") && checkboxesEnFila[0]) checkboxesEnFila[0].checked = (niv >= 1);
-                                }
-                            });
-                        }
+                    // Suponiendo que estamos evaluando el departamento ClaveDep "7" (Sistemas) o buscando dentro del mapa
+                    const deptoSistemas = permisosMap["7"] || {};
+                    const permisosSub = deptoSistemas[sModClaveMatch];
+
+                    if (permisosSub && checkboxes.length >= 3) {
+                        console.log(`✨ Marcando submódulo ${sModClaveMatch} -> Ver: ${permisosSub.ver}, Editar: ${permisosSub.editar}, Eliminar: ${permisosSub.eliminar}`);
+
+                        checkboxes[0].checked = (permisosSub.ver === 1);
+                        checkboxes[1].checked = (permisosSub.editar === 1);
+                        checkboxes[2].checked = (permisosSub.eliminar === 1);
                     }
                 }
             });
 
-            console.log("✨ [CORE TESTIGO 4] Proceso de marcado finalizado.");
+            console.log("✨ [CORE] Sincronización visual completada.");
             console.groupEnd();
-        }, 500);
+        }, 600);
 
     } catch (err) {
-        console.error("❌ [CORE ERROR] al procesar permisos:", err);
+        console.error("❌ [CORE ERROR]:", err);
         console.groupEnd();
     }
 }

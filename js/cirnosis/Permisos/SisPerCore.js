@@ -212,14 +212,140 @@ function actualizarDatosPermisosSis() {
 
 
 // ==========================================
-// LÓGICA DE NEGOCIO Y TESTIGOS (AUTÓNOMA)
+// MÓDULO DE PERMISOS - SISPER CORE
+// ==========================================
+
+async function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
+    const contenedorDinamico = document.getElementById('contenido-submodulo-dinamico');
+    if (contenedorDinamico) {
+        contenedorDinamico.className = "col-span-1 sm:col-span-2 md:col-span-3 space-y-6 animate-fade-in";
+
+        // Obtenemos los catálogos globales sincronizados desde Google Sheets
+        const deptos = window._catDepartamentos || (window.datosSistema && window.datosSistema.departamentos) || [];
+        const submodulos = window.allSubModulosData || (window.datosSistema && window.datosSistema.submodulos) || [];
+
+        let filasHTML = "";
+
+        if (deptos.length > 0) {
+            deptos.forEach(dep => {
+                const cDep = String(dep.claveDep !== undefined ? dep.claveDep : dep.ClaveDep).trim();
+                const nombreDep = dep.nomDep || dep.nombre || dep.NomDep || `Departamento ${cDep}`;
+
+                // Filtramos los submódulos que pertenecen a este departamento
+                const subsDelDepto = submodulos.filter(sub => {
+                    const subDep = String(sub.ClaveDep !== undefined ? sub.ClaveDep : sub.claveDep).trim();
+                    return subDep === cDep;
+                });
+
+                // Pintamos siempre el departamento, tenga o no submódulos
+                filasHTML += `
+                    <tr class="bg-stone-50 font-bold text-stone-800 border-t border-stone-200">
+                        <td class="p-3 pl-4 uppercase tracking-wider" colspan="4">📁 Departamento: ${nombreDep}</td>
+                    </tr>
+                `;
+
+                if (subsDelDepto.length > 0) {
+                    subsDelDepto.forEach(sub => {
+                        const nombreSub = sub.SModNom !== undefined ? sub.SModNom : (sub.sModNom || sub.nombre || 'Submódulo');
+                        const idSub = sub.SModClave !== undefined ? sub.SModClave : (sub.sModClave || sub.id || '');
+
+                        filasHTML += `
+                            <tr class="hover:bg-stone-50 transition-all border-b border-stone-100">
+                                <td class="p-3 pl-8 font-medium text-stone-600 flex items-center gap-2">
+                                    <span>↳ ${nombreSub}</span>
+                                </td>
+                                <td class="p-3 text-center"><input type="checkbox" data-depto="${cDep}" data-submodulo="${idSub}" data-tipo="ver" class="accent-[#249444] w-4 h-4 cursor-pointer chk-permiso"></td>
+                                <td class="p-3 text-center"><input type="checkbox" data-depto="${cDep}" data-submodulo="${idSub}" data-tipo="editar" class="accent-[#249444] w-4 h-4 cursor-pointer chk-permiso"></td>
+                                <td class="p-3 text-center pr-4"><input type="checkbox" data-depto="${cDep}" data-submodulo="${idSub}" data-tipo="eliminar" class="accent-[#249444] w-4 h-4 cursor-pointer chk-permiso"></td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    filasHTML += `
+                        <tr class="border-b border-stone-100 bg-stone-50/40">
+                            <td class="p-3 pl-8 text-stone-400 italic text-xs" colspan="4">
+                                Sin submódulos registrados en Google Sheets para este departamento.
+                            </td>
+                        </tr>
+                    `;
+                }
+            });
+        }
+
+        if (!filasHTML) {
+            filasHTML = `
+                <tr>
+                    <td colspan="4" class="p-6 text-center text-stone-400">No se encontraron departamentos sincronizados desde Google Sheets.</td>
+                </tr>
+            `;
+        }
+
+        contenedorDinamico.innerHTML = `
+            <!-- Contenedor con el formato exacto de tarjeta institucional -->
+            <div class="w-full space-y-6 bg-white p-6 md:p-8 rounded-2xl soft-shadow border border-[#249444]/10 mb-8 animate-fade-in">
+                
+                <div class="flex items-center gap-3 pb-4 border-b border-stone-100">
+                    <div class="p-2.5 bg-[#f0fdf4] border border-[#c6f6d5] text-[#059669] rounded-xl flex items-center justify-center">
+                        <svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' class='lucide lucide-user-round-key'><path d='M19 11v6'/><path d='M19 13h2'/><path d='M2 21a8 8 0 0 1 12.868-6.349'/><circle cx='10' cy='8' r='5'/><circle cx='19' cy='19' r='2'/></svg>
+                    </div>
+                    <div>
+                        <h3 class="font-black text-stone-800 text-lg uppercase tracking-wide">Permisos</h3>
+                    </div>
+                </div>
+
+                <!-- Tabla de Departamentos, Submódulos y Permisos -->
+                <div class="rounded-xl border border-stone-200 overflow-hidden shadow-sm">
+
+                    <div class="p-4 border-b border-stone-100 flex flex-wrap justify-between items-center gap-4 bg-white">
+                        <div class="font-bold p-2 text-xs text-stone-700 uppercase tracking-wider"> 
+                            <p class="text-xs text-stone-500">Editando permisos para: <span class="font-bold text-stone-800">${nombreColaborador}</span> (No. Empleado: ${noEmp})</p>
+                        </div>
+                    </div>
+
+                    <div class="max-h-[500px] overflow-y-auto custom-scrollbar">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead class="sticky top-0 z-10 bg-stone-100">
+                                <tr class="text-stone-600 font-bold border-b border-stone-200 text-[11px]">
+                                    <th class="p-3 pl-4">DEPARTAMENTO / SUBMÓDULO (SHEETS)</th>
+                                    <th class="p-3 text-center">VER / LEER</th>
+                                    <th class="p-3 text-center">CREAR / EDITAR</th>
+                                    <th class="p-3 text-center pr-4">ELIMINAR</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-stone-100 text-stone-700">
+                                ${filasHTML}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Botones de Acción inferiores -->
+                <div class="flex items-center gap-3 pt-2">
+                    <button onclick="guardarMatrizPermisosSis('${noEmp}')" class="bg-[#249444] hover:bg-[#1e7a37] text-white text-xs font-bold px-6 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-2">
+                        Guardar
+                    </button>
+                    <button onclick="cargarPermisosSis()" class="bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold px-6 py-2.5 rounded-xl transition-all">
+                        Cancelar
+                    </button>
+                </div>
+
+            </div>
+        `;
+
+        // 🚀 Llamamos directamente a tu función unificada
+        cargarYMarcarPermisosColaborador(noEmp);
+    }
+}
+
+// ==========================================
+// LÓGICA DE NEGOCIO Y MARCADO
 // ==========================================
 
 async function cargarYMarcarPermisosColaborador(noEmp) {
     try {
         console.log(`🚀 [SISPER] Consultando permisos para empleado: ${noEmp}`);
-        
         let permisosMap = {};
+        
         if (typeof FetchAPI === 'function') {
             permisosMap = await FetchAPI('obtenerPermisosColaborador', { numEmp: String(noEmp).trim() });
         }
@@ -227,86 +353,38 @@ async function cargarYMarcarPermisosColaborador(noEmp) {
         console.log("📥 [SISPER] Mapa recibido de Sheets:", permisosMap);
         if (!permisosMap || Object.keys(permisosMap).length === 0) return;
 
-        // Damos un pequeño respiro para que el modal pinte las filas en pantalla
-        setTimeout(() => {
-            const filas = document.querySelectorAll('tr');
-            console.log(`🔍 [SISPER] Analizando ${filas.length} filas en la matriz...`);
+        // Seleccionamos los checkboxes utilizando los atributos data- que ya imprime tu tabla
+        const checkboxes = document.querySelectorAll('input.chk-permiso[data-submodulo]');
+        
+        checkboxes.forEach(chk => {
+            const depto = chk.getAttribute('data-depto');
+            const submodulo = chk.getAttribute('data-submodulo');
+            const tipo = chk.getAttribute('data-tipo'); // 'ver', 'editar', 'eliminar'
 
-            filas.forEach(fila => {
-                const celdas = fila.querySelectorAll('td');
-                if (celdas.length === 0) return;
-
-                const textoCelda = celdas[0].innerText || "";
-                if (!textoCelda.includes("↳")) return; // Solo filas de submódulos
-
-                const nombreSubmoduloDOM = textoCelda.replace("↳", "").trim().toUpperCase();
-                const checkboxes = fila.querySelectorAll('input[type="checkbox"]');
-
-                if (!nombreSubmoduloDOM || checkboxes.length < 3) return;
-
-                let permisosSub = null;
-                for (const claveDep in permisosMap) {
-                    const submodulosObj = permisosMap[claveDep];
-                    for (const subKey in submodulosObj) {
-                        const subData = submodulosObj[subKey];
-                        const nombreSheets = (subData && (subData.nombre || subData.NomSub || "")) ? String(subData.nombre || subData.NomSub).toUpperCase().trim() : "";
-                        
-                        if (nombreSheets === nombreSubmoduloDOM || subKey.toUpperCase() === nombreSubmoduloDOM) {
-                            permisosSub = subData;
-                            break;
-                        }
-                    }
-                    if (permisosSub) break;
+            if (permisosMap[depto] && permisosMap[depto][submodulo]) {
+                const valorPermiso = permisosMap[depto][submodulo][tipo];
+                if (valorPermiso !== undefined) {
+                    chk.checked = (Number(valorPermiso) === 1);
                 }
+            }
+        });
 
-                if (permisosSub) {
-                    console.log(`✨ [SISPER] Marcando [${nombreSubmoduloDOM}] -> Ver: ${permisosSub.ver}, Editar: ${permisosSub.editar}, Eliminar: ${permisosSub.eliminar}`);
-                    checkboxes[0].checked = (Number(permisosSub.ver) === 1);
-                    checkboxes[1].checked = (Number(permisosSub.editar) === 1);
-                    checkboxes[2].checked = (Number(permisosSub.eliminar) === 1);
-                }
-            });
-        }, 700);
+        console.log("✨ [SISPER] Permisos marcados correctamente en pantalla.");
 
     } catch (err) {
         console.error("❌ Error al sincronizar permisos:", err);
     }
 }
 
-// INTERCEPTOR GLOBAL POR EVENTO DE CLIC (100% Robusto ante carga de scripts externos)
-document.addEventListener('click', function(e) {
-    const boton = e.target.closest('button');
-    if (!boton) return;
-
-    const onclickAttr = boton.getAttribute('onclick') || "";
-    if (onclickAttr.includes('abrirMatrizPermisosUsuario')) {
-        // Extraemos el número de empleado directamente de los parámetros del onclick del botón
-        const match = onclickAttr.match(/'([^']+)'\s*,\s*'([^']+)'/);
-        if (match && match[2]) {
-            const numEmp = match[2];
-            console.log(`🎯 [SISPER] Clic detectado en empleado. Número: ${numEmp}`);
-            cargarYMarcarPermisosColaborador(numEmp);
-        }
-    }
-});
-
-// ==========================================
-// EXPORTACIÓN GLOBAL EN WINDOW
-// ==========================================
-window.renderizarListadoPermisosSis = renderizarListadoPermisosSis;
-window.cargarPermisosSis = cargarPermisosSis;
-window.actualizarDatosPermisosSis = actualizarDatosPermisosSis;
-window.cargarYMarcarPermisosColaborador = cargarYMarcarPermisosColaborador;
-
-// Control de selección en cascada de los checkboxes
+// Control de selección en cascada de los checkboxes en pantalla
 document.addEventListener('change', function(e) {
     const chk = e.target;
-    if (chk.type !== 'checkbox') return;
+    if (!chk.classList.contains('chk-permiso')) return;
 
     const fila = chk.closest('tr');
-    if (!fila || !fila.querySelector('td') || !fila.innerText.includes("↳")) return;
+    if (!fila) return;
 
-    const checkboxes = fila.querySelectorAll('input[type="checkbox"]');
+    const checkboxes = fila.querySelectorAll('input.chk-permiso');
     if (checkboxes.length < 3) return;
 
     const chkVer = checkboxes[0];
@@ -323,3 +401,7 @@ document.addEventListener('change', function(e) {
         chkEliminar.checked = false;
     }
 });
+
+// Exportaciones globales
+window.abrirMatrizPermisosUsuario = abrirMatrizPermisosUsuario;
+window.cargarYMarcarPermisosColaborador = cargarYMarcarPermisosColaborador;

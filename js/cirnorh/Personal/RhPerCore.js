@@ -11,7 +11,6 @@ window._mapPuestosCache = window._mapPuestosCache || null; // 👈 Agregado
 window._mapDeptosCache = window._mapDeptosCache || null;   // 👈 Agregado
 
 function cargarPersonalRh(cargarLista = true) {
-    // 1. Llamamos al renderizador general del submódulo
     if (typeof renderizarVistaModuloRh === 'function') {
         renderizarVistaModuloRh('personal', "Personal");
     }
@@ -21,31 +20,10 @@ function cargarPersonalRh(cargarLista = true) {
 
     contenedorDinamico.className = "w-full space-y-6";
 
-    // 2. Intentamos rescatar el SVG de la caché global del sistema (igual que los otros módulos)
-    let svgIconoHtml = '';
-    try {
-        const cacheRaw = localStorage.getItem('sistema_cache_datos') || sessionStorage.getItem('sistema_cache_datos');
-        if (cacheRaw) {
-            const datosCache = JSON.parse(cacheRaw);
-            const subMod = datosCache.submodulos?.find(s => 
-                String(s.id || s.clave || '').toLowerCase() === 'personal'
-            );
-            if (subMod && subMod.svg) {
-                svgIconoHtml = `<div class="p-2 bg-[#249444]/10 text-[#249444] rounded-lg">${subMod.svg}</div>`;
-            }
-        }
-    } catch(e) {
-        console.warn("No se pudo extraer el SVG de la caché:", e);
-    }
-
     contenedorDinamico.innerHTML = `
         <div id="contenedor-gestion-personal" class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-stone-50 p-4 rounded-xl border border-stone-200">
-            <div class="flex items-center gap-3">
-                ${svgIconoHtml}
-                <div>
-                    <h4 class="font-bold text-stone-800 text-sm">Gestión de Personal</h4>
-                    <p class="text-xs text-stone-500">Catálogo general y administración de colaboradores</p>
-                </div>
+            <div>
+                <h4 class="font-bold text-stone-800 text-sm">Gestión de Personal</h4>
             </div>
             <div class="flex gap-2">
                 <button onclick="mostrarFormularioNuevoPersonal()" class="px-4 py-2 bg-[#249444] text-white rounded-xl text-xs font-bold hover:bg-[#1e7a37] transition flex items-center gap-2">
@@ -58,8 +36,7 @@ function cargarPersonalRh(cargarLista = true) {
                 </button>
             </div>
         </div>
-        
-        <!-- Resto de tus contenedores (formulario y listado) se mantienen exactamente igual -->
+
         <div id="contenedor-formulario-personal" class="hidden bg-white p-6 rounded-xl border border-stone-200 shadow-sm animate-fade-in">
             <h5 id="titulo-formulario" class="font-bold text-stone-800 text-sm mb-4 pb-2 border-b border-stone-100 flex items-center gap-2">
                 Capturar Nuevo Empleado

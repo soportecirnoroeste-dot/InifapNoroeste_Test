@@ -214,45 +214,36 @@ function actualizarDatosPermisosSis() {
 // ==========================================
 // LÓGICA DE NEGOCIO Y TESTIGOS (AUTÓNOMA)
 // ==========================================
-async function cargarYMarcarPermisosColaborador(noEmp) {
-            console.group(`🚀 [TESTIGO 0] Iniciando carga de permisos para empleado: ${noEmp}`);
 
+async function cargarYMarcarPermisosColaborador(noEmp) {
     try {
-        console.group(`🚀 [TESTIGO 1] Iniciando carga de permisos para empleado: ${noEmp}`);
+        console.log(`🚀 [SISPER] Consultando permisos para empleado: ${noEmp}`);
         
         let permisosMap = {};
         if (typeof FetchAPI === 'function') {
-            console.log("📡 [TESTIGO 2] Llamando a FetchAPI('obtenerPermisosColaborador')...");
-            permisosMap = await FetchAPI('obtenerPermisosColaborador', { numEmp: noEmp });
+            permisosMap = await FetchAPI('obtenerPermisosColaborador', { numEmp: String(noEmp).trim() });
         }
 
-        console.log("📥 [TESTIGO 3] Mapa completo recibido de Sheets:", permisosMap);
+        console.log("📥 [SISPER] Mapa recibido de Sheets:", permisosMap);
+        if (!permisosMap || Object.keys(permisosMap).length === 0) return;
 
-        if (!permisosMap || Object.keys(permisosMap).length === 0) {
-            console.warn("⚠️ [TESTIGO 4] El mapa de permisos llegó vacío.");
-            console.groupEnd();
-            return;
-        }
-
+        // Damos un pequeño respiro para que el modal pinte las filas en pantalla
         setTimeout(() => {
             const filas = document.querySelectorAll('tr');
-            console.log(`🔍 [TESTIGO 5] Total de filas <tr> encontradas en la pantalla: ${filas.length}`);
+            console.log(`🔍 [SISPER] Analizando ${filas.length} filas en la matriz...`);
 
-            filas.forEach((fila, index) => {
+            filas.forEach(fila => {
                 const celdas = fila.querySelectorAll('td');
                 if (celdas.length === 0) return;
 
                 const textoCelda = celdas[0].innerText || "";
-                if (!textoCelda.includes("↳")) return; // Solo filas con la flechita
+                if (!textoCelda.includes("↳")) return; // Solo filas de submódulos
 
                 const nombreSubmoduloDOM = textoCelda.replace("↳", "").trim().toUpperCase();
                 const checkboxes = fila.querySelectorAll('input[type="checkbox"]');
 
-                console.log(`📋 [TESTIGO 6] Fila ${index} -> Submódulo detectado en DOM: "${nombreSubmoduloDOM}" | Checkboxes encontrados: ${checkboxes.length}`);
-
                 if (!nombreSubmoduloDOM || checkboxes.length < 3) return;
 
-                // Buscamos coincidencia dinámica en el objeto
                 let permisosSub = null;
                 for (const claveDep in permisosMap) {
                     const submodulosObj = permisosMap[claveDep];
@@ -260,7 +251,7 @@ async function cargarYMarcarPermisosColaborador(noEmp) {
                         const subData = submodulosObj[subKey];
                         const nombreSheets = (subData && (subData.nombre || subData.NomSub || "")) ? String(subData.nombre || subData.NomSub).toUpperCase().trim() : "";
                         
-                        if (nombreSheets === nombreSubmoduloDOM || subKey === nombreSubmoduloDOM) {
+                        if (nombreSheets === nombreSubmoduloDOM || subKey.toUpperCase() === nombreSubmoduloDOM) {
                             permisosSub = subData;
                             break;
                         }
@@ -268,37 +259,36 @@ async function cargarYMarcarPermisosColaborador(noEmp) {
                     if (permisosSub) break;
                 }
 
-                console.log(`🔑 [TESTIGO 7] Resultado para "${nombreSubmoduloDOM}":`, permisosSub);
-
                 if (permisosSub) {
-                    console.log(`✨ [TESTIGO 8] ¡Marcando casillas! Ver: ${permisosSub.ver}, Editar: ${permisosSub.editar}, Eliminar: ${permisosSub.eliminar}`);
+                    console.log(`✨ [SISPER] Marcando [${nombreSubmoduloDOM}] -> Ver: ${permisosSub.ver}, Editar: ${permisosSub.editar}, Eliminar: ${permisosSub.eliminar}`);
                     checkboxes[0].checked = (Number(permisosSub.ver) === 1);
                     checkboxes[1].checked = (Number(permisosSub.editar) === 1);
                     checkboxes[2].checked = (Number(permisosSub.eliminar) === 1);
-                } else {
-                    console.warn(`⚠️ [TESTIGO 9] No se encontró coincidencia de datos en Sheets para el submódulo: "${nombreSubmoduloDOM}"`);
                 }
             });
-
-            console.log("🏁 [TESTIGO 10] Proceso de marcado finalizado.");
-            console.groupEnd();
-        }, 800);
+        }, 700);
 
     } catch (err) {
-        console.error("❌ [ERROR CRÍTICO]:", err);
-        console.groupEnd();
+        console.error("❌ Error al sincronizar permisos:", err);
     }
 }
 
-// Interceptor automático: Envuelve la función global existente para que se ejecute sola al hacer clic en un empleado
-const _originalAbrirMatriz = window.abrirMatrizPermisosUsuario;
-window.abrirMatrizPermisosUsuario = function(nombre, numEmp) {
-    console.log(`🎯 [INTERCEPTOR] Se abrió la matriz para: ${nombre} (${numEmp})`);
-    if (typeof _originalAbrirMatriz === 'function') {
-        _originalAbrirMatriz(nombre, numEmp);
+// INTERCEPTOR GLOBAL POR EVENTO DE CLIC (100% Robusto ante carga de scripts externos)
+document.addEventListener('click', function(e) {
+    const boton = e.target.closest('button');
+    if (!boton) return;
+
+    const onclickAttr = boton.getAttribute('onclick') || "";
+    if (onclickAttr.includes('abrirMatrizPermisosUsuario')) {
+        // Extraemos el número de empleado directamente de los parámetros del onclick del botón
+        const match = onclickAttr.match(/'([^']+)'\s*,\s*'([^']+)'/);
+        if (match && match[2]) {
+            const numEmp = match[2];
+            console.log(`🎯 [SISPER] Clic detectado en empleado. Número: ${numEmp}`);
+            cargarYMarcarPermisosColaborador(numEmp);
+        }
     }
-    cargarYMarcarPermisosColaborador(numEmp);
-};
+});
 
 // ==========================================
 // EXPORTACIÓN GLOBAL EN WINDOW
@@ -308,10 +298,9 @@ window.cargarPermisosSis = cargarPermisosSis;
 window.actualizarDatosPermisosSis = actualizarDatosPermisosSis;
 window.cargarYMarcarPermisosColaborador = cargarYMarcarPermisosColaborador;
 
-// Función para manejar la selección en cascada de los checkboxes en pantalla
+// Control de selección en cascada de los checkboxes
 document.addEventListener('change', function(e) {
     const chk = e.target;
-    // Verificamos si es un checkbox dentro de la tabla de permisos
     if (chk.type !== 'checkbox') return;
 
     const fila = chk.closest('tr');
@@ -324,7 +313,6 @@ document.addEventListener('change', function(e) {
     const chkEditar = checkboxes[1];
     const chkEliminar = checkboxes[2];
 
-    // Lógica en cascada
     if (chk === chkEliminar && chk.checked) {
         chkEditar.checked = true;
         chkVer.checked = true;

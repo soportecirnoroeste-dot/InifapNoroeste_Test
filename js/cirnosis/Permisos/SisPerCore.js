@@ -298,3 +298,30 @@ window.renderizarListadoPermisosSis = renderizarListadoPermisosSis;
 window.cargarPermisosSis = cargarPermisosSis;
 window.actualizarDatosPermisosSis = actualizarDatosPermisosSis;
 window.cargarYMarcarPermisosColaborador = cargarYMarcarPermisosColaborador;
+
+// Función para manejar la selección en cascada de los checkboxes en pantalla
+document.addEventListener('change', function(e) {
+    if (!e.target.classList.contains('chk-permiso')) return;
+
+    const chk = e.target;
+    const tipo = chk.getAttribute('data-tipo'); // 'ver', 'editar', 'eliminar'
+    
+    // Encontramos la fila contenedora de este submódulo para manipular sus hermanos
+    const fila = chk.closest('tr') || chk.closest('.permiso-row');
+    if (!fila) return;
+
+    const chkVer = fila.querySelector('[data-tipo="ver"]');
+    const chkEditar = fila.querySelector('[data-tipo="editar"]');
+    const chkEliminar = fila.querySelector('[data-tipo="eliminar"]');
+
+    if (tipo === 'eliminar' && chk.checked) {
+        if (chkEditar) chkEditar.checked = true;
+        if (chkVer) chkVer.checked = true;
+    } else if (tipo === 'editar' && chk.checked) {
+        if (chkVer) chkVer.checked = true;
+    } else if (tipo === 'ver' && !chk.checked) {
+        // Si desmarca 'ver', por lógica se apagan los superiores
+        if (chkEditar) chkEditar.checked = false;
+        if (chkEliminar) chkEliminar.checked = false;
+    }
+});

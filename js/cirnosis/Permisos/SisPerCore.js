@@ -235,40 +235,59 @@ async function cargarYMarcarPermisosColaborador(noEmp) {
             });
         }
 
-        console.log("📥 [CORE TESTIGO 1] Datos crudos devueltos por Google Sheets:", permisosMap);
+        console.log("📥 [CORE TESTIGO 1] Datos devueltos por Google Sheets:", permisosMap);
 
         if (!permisosMap || Object.keys(permisosMap).length === 0) {
-            console.warn("⚠️ [CORE TESTIGO 2] La hoja 'Permisos' no devolvió registros para este colaborador.");
+            console.warn("⚠️ [CORE TESTIGO 2] No hay registros previos de permisos para este colaborador.");
             console.groupEnd();
             return;
         }
 
-        // Damos un pequeño respiro al DOM para asegurar que los checkboxes ya fueron renderizados
         setTimeout(() => {
             const checkboxes = document.querySelectorAll('.chk-permiso');
-            console.log(`🔍 [CORE TESTIGO 3] Checkboxes encontrados en el DOM: ${checkboxes.length}`);
-
-            if (checkboxes.length === 0) {
-                console.error("❌ [ERROR CRÍTICO] No se encontraron elementos con la clase '.chk-permiso'. Revisa si tu HTML usa esa clase.");
-                console.groupEnd();
-                return;
-            }
+            console.log(`🔍 [CORE TESTIGO 3] Checkboxes en pantalla: ${checkboxes.length}`);
 
             checkboxes.forEach((chk, index) => {
-                const deptoHTML = String(chk.getAttribute('data-depto')).trim();
-                const submoduloHTML = String(chk.getAttribute('data-submodulo')).trim();
-                const tipoHTML = String(chk.getAttribute('data-tipo')).trim(); // ver, editar, eliminar
+                const deptoHTML = String(chk.getAttribute('data-depto') || '').trim();
+                const submoduloHTML = String(chk.getAttribute('data-submodulo') || '').trim();
+                const tipoHTML = String(chk.getAttribute('data-tipo') || '').trim(); // ver, editar, eliminar
+                
+                // Claves numéricas alternativas por si el DOM usa IDs numéricos
+                const deptoClave = String(chk.getAttribute('data-clave-dep') || '').trim();
+                const subClave = String(chk.getAttribute('data-smod-clave') || '').trim();
 
-                console.log(`🔎 [TESTIGO DOM #${index}] Analizando -> Depto: [${deptoHTML}] | Sub: [${submoduloHTML}] | Tipo: [${tipoHTML}]`);
+                let estaMarcado = false;
 
+                // CASO A: El mapa usa estructura por nombres de texto
                 if (permisosMap[deptoHTML] && permisosMap[deptoHTML][submoduloHTML]) {
-                    const valorPermiso = permisosMap[deptoHTML][submoduloHTML][tipoHTML];
-                    console.log(`✅ [MATCH EXITOSO 🎉] Valor en matriz: ${valorPermiso}`);
-                    if (valorPermiso === 1) {
-                        chk.checked = true;
+                    const val = permisosMap[deptoHTML][submoduloHTML][tipoHTML];
+                    if (val === 1 || val === true || val == "1") estaMarcado = true;
+                }
+
+                // CASO B: El mapa viene estructurado o indexado por claves numéricas de Sheets (ClaveDep / SModClave)
+                if (!estaMarcado && deptoClave && subClave) {
+                    if (permisosMap[deptoClave] && permisosMap[deptoClave][subClave]) {
+                        const val = permisosMap[deptoClave][subClave][tipoHTML];
+                        if (val === 1 || val === true || val == "1") estaMarcado = true;
                     }
-                } else {
-                    // console.log(`❌ [SIN MATCH] La ruta [${deptoHTML}][${submoduloHTML}] no tiene permiso activo en Sheets.`);
+                }
+
+                // CASO C: Array plano de registros de Sheets (ej. filas directas con ClaveDep, SModClave, NivPer)
+                if (!estaMarcado && Array.isArray(permisosMap)) {
+                    const coincidencia = permisosMap.find(p => 
+                        (String(p.ClaveDep || p.claveDep) === deptoClave || String(p.ClaveDep || p.claveDep) === deptoHTML) &&
+                        (String(p.SModClave || p.sModClave) === subClave || String(p.SModClave || p.sModClave) === submoduloHTML)
+                    );
+                    if (coincidencia) {
+                        const niv = Number(coincidencia.NivPer || coincidencia.nivPer || 0);
+                        // Si NivPer agrupa permisos (ej: 3 = Ver y Editar) o evalúa bits/tipos específicos
+                        if (niv > 0) estaMarcado = true;
+                    }
+                }
+
+                if (estaMarcado) {
+                    chk.checked = true;
+                    console.log(`✅ [CHECKED] Activado checkbox en Depto: ${deptoHTML || deptoClave} | Sub: ${submoduloHTML || subClave}`);
                 }
             });
 
@@ -276,10 +295,12 @@ async function cargarYMarcarPermisosColaborador(noEmp) {
         }, 300);
 
     } catch (err) {
-        console.error("❌ [CORE ERROR FATAL] al procesar permisos:", err);
+        console.error("❌ [CORE ERROR] al procesar permisos:", err);
         console.groupEnd();
     }
 }
+
+window.cargarYMarcarPermisosColaborador = cargarYMarcarPermisosColaborador;
 
 // ==========================================
 // EXPORTACIÓN GLOBAL EN WINDOW

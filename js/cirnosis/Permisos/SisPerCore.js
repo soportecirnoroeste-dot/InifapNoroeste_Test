@@ -117,7 +117,7 @@ function renderizarTarjetasPermisosSis(empleados) {
     if (!tbody) return;
 
     if (!empleados || empleados.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-stone-400">No se encontraron colaboradores registrados en Google Sheets.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-stone-400">No se encontraron colaboradores registrados Sheets.</td></tr>`;
         return;
     }
 
@@ -215,6 +215,8 @@ function actualizarDatosPermisosSis() {
 // LÓGICA DE NEGOCIO Y TESTIGOS (AUTÓNOMA)
 // ==========================================
 async function cargarYMarcarPermisosColaborador(noEmp) {
+            console.group(`🚀 [TESTIGO 0] Iniciando carga de permisos para empleado: ${noEmp}`);
+
     try {
         console.group(`🚀 [TESTIGO 1] Iniciando carga de permisos para empleado: ${noEmp}`);
         

@@ -235,44 +235,56 @@ async function cargarYMarcarPermisosColaborador(noEmp) {
             });
         }
 
-        console.log("📥 [CORE] Datos crudos de permisos recibidos:", permisosMap);
+        console.log("📥 [CORE TESTIGO 1] Datos crudos devueltos por Google Sheets:", permisosMap);
 
         if (!permisosMap || Object.keys(permisosMap).length === 0) {
-            console.warn("⚠️ [CORE] No hay registros previos de permisos para este colaborador.");
+            console.warn("⚠️ [CORE TESTIGO 2] La hoja 'Permisos' no devolvió registros para este colaborador.");
             console.groupEnd();
             return;
         }
 
-        const checkboxes = document.querySelectorAll('.chk-permiso');
-        console.log(`🔍 [CORE] Checkboxes analizados en pantalla: ${checkboxes.length}`);
+        // Damos un pequeño respiro al DOM para asegurar que los checkboxes ya fueron renderizados
+        setTimeout(() => {
+            const checkboxes = document.querySelectorAll('.chk-permiso');
+            console.log(`🔍 [CORE TESTIGO 3] Checkboxes encontrados en el DOM: ${checkboxes.length}`);
 
-        checkboxes.forEach(chk => {
-            const deptoHTML = String(chk.getAttribute('data-depto')).trim();
-            const submoduloHTML = String(chk.getAttribute('data-submodulo')).trim();
-            const tipoHTML = String(chk.getAttribute('data-tipo')).trim(); // ver, editar, eliminar
-
-            if (permisosMap[deptoHTML] && permisosMap[deptoHTML][submoduloHTML]) {
-                const valorPermiso = permisosMap[deptoHTML][submoduloHTML][tipoHTML];
-                console.log(`✅ [MATCH] Depto: [${deptoHTML}] | Sub: [${submoduloHTML}] | Tipo: [${tipoHTML}] | Valor: ${valorPermiso}`);
-                if (valorPermiso === 1) {
-                    chk.checked = true;
-                }
-            } else {
-                // Testigo opcional por si alguna clave no coincide exactamente
-                // console.log(`❌ [SIN MATCH] Buscando Depto: [${deptoHTML}] - Sub: [${submoduloHTML}]`);
+            if (checkboxes.length === 0) {
+                console.error("❌ [ERROR CRÍTICO] No se encontraron elementos con la clase '.chk-permiso'. Revisa si tu HTML usa esa clase.");
+                console.groupEnd();
+                return;
             }
-        });
 
-        console.groupEnd();
+            checkboxes.forEach((chk, index) => {
+                const deptoHTML = String(chk.getAttribute('data-depto')).trim();
+                const submoduloHTML = String(chk.getAttribute('data-submodulo')).trim();
+                const tipoHTML = String(chk.getAttribute('data-tipo')).trim(); // ver, editar, eliminar
+
+                console.log(`🔎 [TESTIGO DOM #${index}] Analizando -> Depto: [${deptoHTML}] | Sub: [${submoduloHTML}] | Tipo: [${tipoHTML}]`);
+
+                if (permisosMap[deptoHTML] && permisosMap[deptoHTML][submoduloHTML]) {
+                    const valorPermiso = permisosMap[deptoHTML][submoduloHTML][tipoHTML];
+                    console.log(`✅ [MATCH EXITOSO 🎉] Valor en matriz: ${valorPermiso}`);
+                    if (valorPermiso === 1) {
+                        chk.checked = true;
+                    }
+                } else {
+                    // console.log(`❌ [SIN MATCH] La ruta [${deptoHTML}][${submoduloHTML}] no tiene permiso activo en Sheets.`);
+                }
+            });
+
+            console.groupEnd();
+        }, 300);
+
     } catch (err) {
-        console.error("❌ [CORE ERROR] al procesar permisos:", err);
+        console.error("❌ [CORE ERROR FATAL] al procesar permisos:", err);
         console.groupEnd();
     }
 }
 
-// Exportamos la función de forma segura en el objeto window
-window.cargarYMarcarPermisosColaborador = cargarYMarcarPermisosColaborador;
-
+// ==========================================
+// EXPORTACIÓN GLOBAL EN WINDOW
+// ==========================================
 window.renderizarListadoPermisosSis = renderizarListadoPermisosSis;
 window.cargarPermisosSis = cargarPermisosSis;
 window.actualizarDatosPermisosSis = actualizarDatosPermisosSis;
+window.cargarYMarcarPermisosColaborador = cargarYMarcarPermisosColaborador;

@@ -216,14 +216,12 @@ function actualizarDatosPermisosSis() {
 // ==========================================
 async function cargarYMarcarPermisosColaborador(noEmp) {
     try {
-        console.group(`🚀 [TESTIGO 1] Iniciando carga de permisos para empleado: ${noEmp}`);
+        console.group(`🚀 [SISPER CORE] Consultando permisos para empleado: ${noEmp}`);
         
         let permisosMap = {};
         if (typeof FetchAPI === 'function') {
-            console.log("📡 [TESTIGO 2] Llamando a FetchAPI('obtenerPermisosColaborador')...");
             permisosMap = await FetchAPI('obtenerPermisosColaborador', { numEmp: noEmp });
         } else if (typeof google !== 'undefined' && google.script && google.script.run) {
-            console.log("📡 [TESTIGO 2-B] Llamando a google.script.run...");
             permisosMap = await new Promise((resolve, reject) => {
                 google.script.run
                     .withSuccessHandler(resolve)
@@ -232,24 +230,19 @@ async function cargarYMarcarPermisosColaborador(noEmp) {
             });
         }
 
-        console.log("📥 [TESTIGO 3] Objeto completo recibido del backend:", permisosMap);
+        console.log("📥 [CORE] Datos devueltos:", permisosMap);
 
         if (!permisosMap || Object.keys(permisosMap).length === 0) {
-            console.warn("⚠️ [TESTIGO 4] El mapa de permisos llegó vacío o sin datos para este empleado.");
+            console.warn("⚠️ No hay permisos previos.");
             console.groupEnd();
             return;
         }
 
-        // Damos tiempo a que el DOM pinte las filas de la matriz
         setTimeout(() => {
             const filas = document.querySelectorAll('tr');
-            console.log(`🔍 [TESTIGO 5] Total de filas <tr> encontradas en pantalla: ${filas.length}`);
+            console.log(`🔍 Filas encontradas en la matriz: ${filas.length}`);
 
-            if (filas.length === 0) {
-                console.error("❌ [ERROR TESTIGO] No se encontró ninguna etiqueta <tr> en la interfaz. La tabla no está renderizada.");
-            }
-
-            filas.forEach((fila, index) => {
+            filas.forEach(fila => {
                 const textoFila = fila.innerText ? fila.innerText.toUpperCase().trim() : "";
                 
                 let sModClaveMatch = null;
@@ -261,35 +254,32 @@ async function cargarYMarcarPermisosColaborador(noEmp) {
 
                 if (sModClaveMatch) {
                     const checkboxes = fila.querySelectorAll('input[type="checkbox"]');
-                    console.log(`📋 [TESTIGO 6] Fila ${index} detectada -> Submódulo Clave: ${sModClaveMatch} | Checkboxes encontrados: ${checkboxes.length}`);
-
-                    // Buscamos dentro del departamento "7" (Sistemas) que es el de las capturas
-                    const deptoSistemas = permisosMap["7"] || permisosMap[Object.keys(permisosMap)[0]] || {};
-                    const permisosSub = deptoSistemas[sModClaveMatch];
-
-                    console.log(`🔑 [TESTIGO 7] Datos buscados para depto '7', submódulo '${sModClaveMatch}':`, permisosSub);
+                    
+                    // Buscamos dentro de la clave del departamento (en tu captura vimos que es la llave "7" o la primera disponible)
+                    const deptoData = permisosMap["7"] || permisosMap[Object.keys(permisosMap)[0]] || {};
+                    const permisosSub = deptoData[sModClaveMatch];
 
                     if (permisosSub && checkboxes.length >= 3) {
-                        console.log(`✨ [TESTIGO 8] ¡Marcando casillas! Ver: ${permisosSub.ver}, Editar: ${permisosSub.editar}, Eliminar: ${permisosSub.eliminar}`);
+                        console.log(`✨ Marcando submódulo ${sModClaveMatch} -> Ver: ${permisosSub.ver}, Editar: ${permisosSub.editar}, Eliminar: ${permisosSub.eliminar}`);
 
-                        checkboxes[0].checked = (permisosSub.ver === 1);
-                        checkboxes[1].checked = (permisosSub.editar === 1);
-                        checkboxes[2].checked = (permisosSub.eliminar === 1);
-                    } else {
-                        console.warn(`⚠️ [TESTIGO 9] No se pudieron marcar los checks para el submódulo ${sModClaveMatch}. Faltan datos o checkboxes.`);
+                        checkboxes[0].checked = (Number(permisosSub.ver) === 1);
+                        checkboxes[1].checked = (Number(permisosSub.editar) === 1);
+                        checkboxes[2].checked = (Number(permisosSub.eliminar) === 1);
                     }
                 }
             });
 
-            console.log("🏁 [TESTIGO 10] Proceso de marcado por testigos finalizado.");
+            console.log("✨ [CORE] ¡Permisos sincronizados en pantalla con éxito!");
             console.groupEnd();
-        }, 800);
+        }, 500);
 
     } catch (err) {
-        console.error("❌ [ERROR CRÍTICO EN TESTIGOS]:", err);
+        console.error("❌ Error al procesar permisos:", err);
         console.groupEnd();
     }
 }
+
+
 
 // Interceptor automático: Envuelve la función global existente para que se ejecute sola al hacer clic en un empleado
 const _originalAbrirMatriz = window.abrirMatrizPermisosUsuario;

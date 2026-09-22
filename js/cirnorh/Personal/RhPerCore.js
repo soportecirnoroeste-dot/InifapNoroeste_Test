@@ -12,7 +12,7 @@ window._mapDeptosCache = window._mapDeptosCache || null;   // 👈 Agregado
 
 function cargarPersonalRh(cargarLista = true) {
     if (typeof renderizarVistaModuloRh === 'function') {
-        renderizarVistaModuloRh('personal', "Personal");
+        renderizarVistaModuloRh('Personal', "Personal");
     }
 
     const contenedorDinamico = document.getElementById('contenido-submodulo-dinamico');

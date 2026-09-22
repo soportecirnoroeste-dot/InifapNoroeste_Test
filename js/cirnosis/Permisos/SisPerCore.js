@@ -214,72 +214,46 @@ function actualizarDatosPermisosSis() {
 // ==========================================
 // LÓGICA DE NEGOCIO Y TESTIGOS (AUTÓNOMA)
 // ==========================================
+
 async function cargarYMarcarPermisosColaborador(noEmp) {
     try {
-        console.group(`🚀 [SISPER CORE] Consultando permisos para empleado: ${noEmp}`);
-        
         let permisosMap = {};
         if (typeof FetchAPI === 'function') {
             permisosMap = await FetchAPI('obtenerPermisosColaborador', { numEmp: noEmp });
-        } else if (typeof google !== 'undefined' && google.script && google.script.run) {
-            permisosMap = await new Promise((resolve, reject) => {
-                google.script.run
-                    .withSuccessHandler(resolve)
-                    .withFailureHandler(reject)
-                    .obtenerPermisosColaborador({ numEmp: noEmp });
-            });
         }
 
-        console.log("📥 [CORE] Datos devueltos:", permisosMap);
-
-        if (!permisosMap || Object.keys(permisosMap).length === 0) {
-            console.warn("⚠️ No hay permisos previos.");
-            console.groupEnd();
-            return;
-        }
+        if (!permisosMap) return;
 
         setTimeout(() => {
-            const filas = document.querySelectorAll('tr');
-            console.log(`🔍 Filas encontradas en la matriz: ${filas.length}`);
+            // Buscamos cualquier fila que tenga el atributo data-smod-clave
+            const filas = document.querySelectorAll('tr[data-smod-clave]');
 
             filas.forEach(fila => {
-                const textoFila = fila.innerText ? fila.innerText.toUpperCase().trim() : "";
-                
-                let sModClaveMatch = null;
-                if (textoFila.includes("↳ PERMISOS")) sModClaveMatch = "1";
-                else if (textoFila.includes("↳ LICENCIAS")) sModClaveMatch = "2";
-                else if (textoFila.includes("↳ DOCUMENTOS")) sModClaveMatch = "3";
-                else if (textoFila.includes("↳ CONFIGURACIÓN DE MENÚ")) sModClaveMatch = "4";
-                else if (textoFila.includes("↳ FORMATOS DE OF.")) sModClaveMatch = "5";
+                // Se lee el ID directamente del DOM, sin texto fijo ni condicionales de nombres
+                const sModClaveMatch = fila.getAttribute('data-smod-clave');
+                const checkboxes = fila.querySelectorAll('input[type="checkbox"]');
 
-                if (sModClaveMatch) {
-                    const checkboxes = fila.querySelectorAll('input[type="checkbox"]');
-                    
-                    // Buscamos dentro de la clave del departamento (en tu captura vimos que es la llave "7" o la primera disponible)
-                    const deptoData = permisosMap["7"] || permisosMap[Object.keys(permisosMap)[0]] || {};
-                    const permisosSub = deptoData[sModClaveMatch];
-
-                    if (permisosSub && checkboxes.length >= 3) {
-                        console.log(`✨ Marcando submódulo ${sModClaveMatch} -> Ver: ${permisosSub.ver}, Editar: ${permisosSub.editar}, Eliminar: ${permisosSub.eliminar}`);
-
-                        checkboxes[0].checked = (Number(permisosSub.ver) === 1);
-                        checkboxes[1].checked = (Number(permisosSub.editar) === 1);
-                        checkboxes[2].checked = (Number(permisosSub.eliminar) === 1);
+                // Búsqueda 100% dinámica en cualquier departamento del objeto recibido
+                let permisosSub = null;
+                for (const claveDep in permisosMap) {
+                    if (permisosMap[claveDep][sModClaveMatch]) {
+                        permisosSub = permisosMap[claveDep][sModClaveMatch];
+                        break;
                     }
                 }
-            });
 
-            console.log("✨ [CORE] ¡Permisos sincronizados en pantalla con éxito!");
-            console.groupEnd();
+                if (permisosSub && checkboxes.length >= 3) {
+                    checkboxes[0].checked = (Number(permisosSub.ver) === 1);
+                    checkboxes[1].checked = (Number(permisosSub.editar) === 1);
+                    checkboxes[2].checked = (Number(permisosSub.eliminar) === 1);
+                }
+            });
         }, 500);
 
     } catch (err) {
-        console.error("❌ Error al procesar permisos:", err);
-        console.groupEnd();
+        console.error("Error al sincronizar permisos:", err);
     }
 }
-
-
 
 // Interceptor automático: Envuelve la función global existente para que se ejecute sola al hacer clic en un empleado
 const _originalAbrirMatriz = window.abrirMatrizPermisosUsuario;

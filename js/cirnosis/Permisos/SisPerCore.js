@@ -343,14 +343,12 @@ async function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
 
 async function cargarYMarcarPermisosColaborador(noEmp) {
     try {
-        console.log(`🚀 [SISPER] Consultando permisos para empleado: ${noEmp}`);
         let permisosMap = {};
         
         if (typeof FetchAPI === 'function') {
             permisosMap = await FetchAPI('obtenerPermisosColaborador', { numEmp: String(noEmp).trim() });
         }
 
-        console.log("📥 [SISPER] Mapa recibido de Sheets:", permisosMap);
         if (!permisosMap || Object.keys(permisosMap).length === 0) return;
 
         // Seleccionamos los checkboxes utilizando los atributos data- que ya imprime tu tabla
@@ -368,8 +366,6 @@ async function cargarYMarcarPermisosColaborador(noEmp) {
                 }
             }
         });
-
-        console.log("✨ [SISPER] Permisos marcados correctamente en pantalla.");
 
     } catch (err) {
         console.error("❌ Error al sincronizar permisos:", err);

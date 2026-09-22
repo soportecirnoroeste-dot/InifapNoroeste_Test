@@ -217,41 +217,59 @@ function actualizarDatosPermisosSis() {
 
 async function cargarYMarcarPermisosColaborador(noEmp) {
     try {
+        console.log(`🚀 [SISPER] Consultando permisos para empleado: ${noEmp}`);
         let permisosMap = {};
         if (typeof FetchAPI === 'function') {
             permisosMap = await FetchAPI('obtenerPermisosColaborador', { numEmp: noEmp });
         }
 
-        if (!permisosMap) return;
+        console.log("📥 [SISPER] Mapa recibido de Sheets:", permisosMap);
+        if (!permisosMap || Object.keys(permisosMap).length === 0) return;
 
+        // Damos un pequeño respiro al DOM para asegurarnos de que el modal terminó de renderizar las filas
         setTimeout(() => {
-            // Buscamos cualquier fila que tenga el atributo data-smod-clave
-            const filas = document.querySelectorAll('tr[data-smod-clave]');
+            const filas = document.querySelectorAll('tr');
+            console.log(`🔍 [SISPER] Analizando ${filas.length} filas en la matriz...`);
 
             filas.forEach(fila => {
-                // Se lee el ID directamente del DOM, sin texto fijo ni condicionales de nombres
-                const sModClaveMatch = fila.getAttribute('data-smod-clave');
+                const celdas = fila.querySelectorAll('td');
+                if (celdas.length === 0) return;
+
+                // Extraemos el texto de la primera celda de forma dinámica y limpia (ej: "PERMISOS", "LICENCIAS")
+                const textoCelda = celdas[0].innerText || "";
+                if (!textoCelda.includes("↳")) return; // Solo nos interesan las filas que son submódulos (tienen la flechita ↳)
+
+                const nombreSubmoduloDOM = textoCelda.replace("↳", "").trim().toUpperCase();
                 const checkboxes = fila.querySelectorAll('input[type="checkbox"]');
 
-                // Búsqueda 100% dinámica en cualquier departamento del objeto recibido
+                if (!nombreSubmoduloDOM || checkboxes.length < 3) return;
+
+                // BÚSQUEDA 100% DINÁMICA: Recorremos cualquier departamento del JSON y buscamos por coincidencia de nombre
                 let permisosSub = null;
                 for (const claveDep in permisosMap) {
-                    if (permisosMap[claveDep][sModClaveMatch]) {
-                        permisosSub = permisosMap[claveDep][sModClaveMatch];
-                        break;
+                    const submodulosObj = permisosMap[claveDep];
+                    for (const subKey in submodulosObj) {
+                        const subData = submodulosObj[subKey];
+                        // Comparamos el nombre del submódulo de la base de datos contra el texto de la pantalla
+                        if (subData && subData.nombre && subData.nombre.toUpperCase().trim() === nombreSubmoduloDOM) {
+                            permisosSub = subData;
+                            break;
+                        }
                     }
+                    if (permisosSub) break;
                 }
 
-                if (permisosSub && checkboxes.length >= 3) {
+                if (permisosSub) {
+                    console.log(`✨ [SISPER] Marcando submódulo [${nombreSubmoduloDOM}] -> Ver: ${permisosSub.ver}, Editar: ${permisosSub.editar}, Eliminar: ${permisosSub.eliminar}`);
                     checkboxes[0].checked = (Number(permisosSub.ver) === 1);
                     checkboxes[1].checked = (Number(permisosSub.editar) === 1);
                     checkboxes[2].checked = (Number(permisosSub.eliminar) === 1);
                 }
             });
-        }, 500);
+        }, 600);
 
     } catch (err) {
-        console.error("Error al sincronizar permisos:", err);
+        console.error("❌ Error al sincronizar permisos:", err);
     }
 }
 
@@ -275,27 +293,28 @@ window.cargarYMarcarPermisosColaborador = cargarYMarcarPermisosColaborador;
 
 // Función para manejar la selección en cascada de los checkboxes en pantalla
 document.addEventListener('change', function(e) {
-    if (!e.target.classList.contains('chk-permiso')) return;
-
     const chk = e.target;
-    const tipo = chk.getAttribute('data-tipo'); // 'ver', 'editar', 'eliminar'
-    
-    // Encontramos la fila contenedora de este submódulo para manipular sus hermanos
-    const fila = chk.closest('tr') || chk.closest('.permiso-row');
-    if (!fila) return;
+    // Verificamos si es un checkbox dentro de la tabla de permisos
+    if (chk.type !== 'checkbox') return;
 
-    const chkVer = fila.querySelector('[data-tipo="ver"]');
-    const chkEditar = fila.querySelector('[data-tipo="editar"]');
-    const chkEliminar = fila.querySelector('[data-tipo="eliminar"]');
+    const fila = chk.closest('tr');
+    if (!fila || !fila.querySelector('td') || !fila.innerText.includes("↳")) return;
 
-    if (tipo === 'eliminar' && chk.checked) {
-        if (chkEditar) chkEditar.checked = true;
-        if (chkVer) chkVer.checked = true;
-    } else if (tipo === 'editar' && chk.checked) {
-        if (chkVer) chkVer.checked = true;
-    } else if (tipo === 'ver' && !chk.checked) {
-        // Si desmarca 'ver', por lógica se apagan los superiores
-        if (chkEditar) chkEditar.checked = false;
-        if (chkEliminar) chkEliminar.checked = false;
+    const checkboxes = fila.querySelectorAll('input[type="checkbox"]');
+    if (checkboxes.length < 3) return;
+
+    const chkVer = checkboxes[0];
+    const chkEditar = checkboxes[1];
+    const chkEliminar = checkboxes[2];
+
+    // Lógica en cascada
+    if (chk === chkEliminar && chk.checked) {
+        chkEditar.checked = true;
+        chkVer.checked = true;
+    } else if (chk === chkEditar && chk.checked) {
+        chkVer.checked = true;
+    } else if (chk === chkVer && !chk.checked) {
+        chkEditar.checked = false;
+        chkEliminar.checked = false;
     }
 });

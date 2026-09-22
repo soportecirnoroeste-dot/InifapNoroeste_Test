@@ -1,8 +1,8 @@
 // ==========================================
-// js/SisPer/SisPerForm.js - VERSIÓN LIMPIA Y DINÁMICA
+// js/SisPer/SisPerForm.js - VERSIÓN CON CARGA DE PERMISOS
 // ==========================================
 
-function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
+async function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
     const contenedorDinamico = document.getElementById('contenido-submodulo-dinamico');
     if (contenedorDinamico) {
         contenedorDinamico.className = "col-span-1 sm:col-span-2 md:col-span-3 space-y-6 animate-fade-in";
@@ -24,7 +24,6 @@ function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
                     return subDep === cDep;
                 });
 
-                // Pintamos siempre el departamento, tenga o no submódulos
                 filasHTML += `
                     <tr class="bg-stone-50 font-bold text-stone-800 border-t border-stone-200">
                         <td class="p-3 pl-4 uppercase tracking-wider" colspan="4">📁 Departamento: ${nombreDep}</td>
@@ -68,7 +67,6 @@ function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
         }
 
         contenedorDinamico.innerHTML = `
-            <!-- Contenedor con el formato exacto de tarjeta institucional -->
             <div class="w-full space-y-6 bg-white p-6 md:p-8 rounded-2xl soft-shadow border border-[#249444]/10 mb-8 animate-fade-in">
                 
                 <div class="flex items-center gap-3 pb-4 border-b border-stone-100">
@@ -80,9 +78,7 @@ function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
                     </div>
                 </div>
 
-                <!-- Tabla de Departamentos, Submódulos y Permisos -->
                 <div class="rounded-xl border border-stone-200 overflow-hidden shadow-sm">
-
                     <div class="p-4 border-b border-stone-100 flex flex-wrap justify-between items-center gap-4 bg-white">
                         <div class="font-bold p-2 text-xs text-stone-700 uppercase tracking-wider"> 
                             <p class="text-xs text-stone-500">Editando permisos para: <span class="font-bold text-stone-800">${nombreColaborador}</span> (No. Empleado: ${noEmp})</p>
@@ -106,7 +102,6 @@ function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
                     </div>
                 </div>
 
-                <!-- Botones de Acción inferiores -->
                 <div class="flex items-center gap-3 pt-2">
                     <button onclick="guardarMatrizPermisosSis('${noEmp}')" class="bg-[#249444] hover:bg-[#1e7a37] text-white text-xs font-bold px-6 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-2">
                         Guardar
@@ -115,52 +110,45 @@ function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
                         Cancelar
                     </button>
                 </div>
-
             </div>
         `;
+
+        // 🔍 CONSULTAR Y MARCAR LOS PERMISOS EXISTENTES EN SHEETS
+        await cargarPermisosGuardadosEnInterfaz(noEmp);
     }
 }
 
-async function guardarMatrizPermisosSis(noEmp) {
-    const checkboxes = document.querySelectorAll('.chk-permiso');
-    const permisosEstructura = {};
-
-    checkboxes.forEach(chk => {
-        const depto = chk.getAttribute('data-depto');
-        const submodulo = chk.getAttribute('data-submodulo');
-        const tipo = chk.getAttribute('data-tipo');
-
-        if (!permisosEstructura[depto]) {
-            permisosEstructura[depto] = {};
-        }
-        if (!permisosEstructura[depto][submodulo]) {
-            permisosEstructura[depto][submodulo] = { ver: 0, editar: 0, eliminar: 0 };
-        }
-
-        permisosEstructura[depto][submodulo][tipo] = chk.checked ? 1 : 0;
-    });
-
-    const payload = {
-        numEmp: noEmp,
-        permisos: permisosEstructura
-    };
-
+async function cargarPermisosGuardadosEnInterfaz(noEmp) {
     try {
+        let permisosMap = {};
         if (typeof FetchAPI === 'function') {
-            await FetchAPI('guardarPermisos', payload);
+            permisosMap = await FetchAPI('obtenerPermisosColaborador', { numEmp: noEmp });
         } else if (typeof google !== 'undefined' && google.script && google.script.run) {
-            await new Promise((resolve, reject) => {
+            permisosMap = await new Promise((resolve, reject) => {
                 google.script.run
                     .withSuccessHandler(resolve)
                     .withFailureHandler(reject)
-                    .guardarPermisosEnSheet(payload);
+                    .obtenerPermisosColaborador({ numEmp: noEmp });
             });
         }
 
-        alert("¡Permisos actualizados correctamente para el colaborador!");
-        cargarPermisosSis();
+        if (!permisosMap || Object.keys(permisosMap).length === 0) return;
+
+        // Recorremos todos los checkboxes de la interfaz y los marcamos si están en el mapa
+        const checkboxes = document.querySelectorAll('.chk-permiso');
+        checkboxes.forEach(chk => {
+            const depto = chk.getAttribute('data-depto');
+            const submodulo = chk.getAttribute('data-submodulo');
+            const tipo = chk.getAttribute('data-tipo'); // ver, editar, eliminar
+
+            if (permisosMap[depto] && permisosMap[depto][submodulo]) {
+                const valorPermiso = permisosMap[depto][submodulo][tipo];
+                if (valorPermiso === 1) {
+                    chk.checked = true;
+                }
+            }
+        });
     } catch (err) {
-        console.error("Error al guardar permisos:", err);
-        alert("Error al guardar los permisos: " + (err.message || err));
+        console.error("Error al cargar permisos guardados:", err);
     }
 }

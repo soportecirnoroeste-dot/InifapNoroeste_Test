@@ -1,5 +1,5 @@
 // js/cirnorh/asistencia/RhAsisCore.js
-/*
+
 function cargarAsistenciaRh() {
     renderizarVistaModulo('asistencia', "Registro de retardos, faltas, permisos y justificantes.", [
         {
@@ -29,4 +29,4 @@ window.RhAsisCore = {
     init: function () {
         cargarAsistenciaRh();
     }
-};*/
+};

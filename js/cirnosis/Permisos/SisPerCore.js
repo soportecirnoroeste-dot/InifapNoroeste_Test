@@ -3,7 +3,6 @@
 // ==========================================
 
 function renderizarListadoPermisosSis() {
-    // Ocultar menús de departamentos anteriores si los hubiera
     const elementosPagina = document.querySelectorAll('div, section');
     elementosPagina.forEach(el => {
         if (el.innerText && el.innerText.includes("MENÚ DEL DEPARTAMENTO") && el.id !== 'contenido-submodulo-dinamico') {
@@ -26,7 +25,6 @@ function renderizarListadoPermisosSis() {
         contenedorDinamico.style.display = 'block';
         contenedorDinamico.className = "w-full space-y-6 bg-white p-6 md:p-8 rounded-2xl soft-shadow border border-[#249444]/10 mb-8 animate-fade-in";
         contenedorDinamico.innerHTML = `
-            <!-- Encabezado del Módulo con Subtítulo Integrado -->
             <div class="flex items-center gap-3 pb-4 border-b border-stone-100">
                 <div class="p-2.5 bg-[#f0fdf4] border border-[#c6f6d5] text-[#059669] rounded-xl flex items-center justify-center">
                     <svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' class='lucide lucide-user-round-key'><path d='M19 11v6'/><path d='M19 13h2'/><path d='M2 21a8 8 0 0 1 12.868-6.349'/><circle cx='10' cy='8' r='5'/><circle cx='19' cy='19' r='2'/></svg>
@@ -36,7 +34,6 @@ function renderizarListadoPermisosSis() {
                 </div>
             </div>
 
-            <!-- Bloque superior de gestión -->
             <div id="contenedor-gestion-permisos" class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-stone-50 p-4 rounded-xl border border-stone-200">
                 <div>
                     <h4 class="font-bold text-stone-800 text-sm">Gestión de Permisos por Colaborador</h4>
@@ -49,7 +46,6 @@ function renderizarListadoPermisosSis() {
                 </div>
             </div>
 
-            <!-- Contenedor del listado -->
             <div id="contenedor-listado-permisos" class="bg-white rounded-xl border border-stone-200 overflow-hidden shadow-sm">
                 <div class="p-4 border-b border-stone-100 flex flex-wrap justify-between items-center gap-4 bg-white">
                     <div class="font-bold text-xs text-stone-700 uppercase tracking-wider">Listado General de Empleados</div>
@@ -216,7 +212,7 @@ function actualizarDatosPermisosSis() {
 
 
 // ==========================================
-// LÓGICA DE NEGOCIO Y TESTIGOS EN CORE
+// LÓGICA DE NEGOCIO Y TESTIGOS (AUTÓNOMA)
 // ==========================================
 
 async function cargarYMarcarPermisosColaborador(noEmp) {
@@ -243,56 +239,41 @@ async function cargarYMarcarPermisosColaborador(noEmp) {
             return;
         }
 
+        // Damos tiempo a que se dibuje el modal y buscamos todas las filas de la tabla de permisos
         setTimeout(() => {
-            const checkboxes = document.querySelectorAll('.chk-permiso');
-            console.log(`🔍 [CORE TESTIGO 3] Checkboxes en pantalla: ${checkboxes.length}`);
+            const filas = document.querySelectorAll('tr, div'); // Buscamos filas o bloques contenedores en la matriz
+            console.log(`🔍 [CORE TESTIGO 3] Elementos analizados en la matriz: ${filas.length}`);
 
-            checkboxes.forEach((chk, index) => {
-                const deptoHTML = String(chk.getAttribute('data-depto') || '').trim();
-                const submoduloHTML = String(chk.getAttribute('data-submodulo') || '').trim();
-                const tipoHTML = String(chk.getAttribute('data-tipo') || '').trim(); // ver, editar, eliminar
+            filas.forEach(fila => {
+                const textoFila = fila.innerText ? fila.innerText.toUpperCase() : "";
                 
-                // Claves numéricas alternativas por si el DOM usa IDs numéricos
-                const deptoClave = String(chk.getAttribute('data-clave-dep') || '').trim();
-                const subClave = String(chk.getAttribute('data-smod-clave') || '').trim();
-
-                let estaMarcado = false;
-
-                // CASO A: El mapa usa estructura por nombres de texto
-                if (permisosMap[deptoHTML] && permisosMap[deptoHTML][submoduloHTML]) {
-                    const val = permisosMap[deptoHTML][submoduloHTML][tipoHTML];
-                    if (val === 1 || val === true || val == "1") estaMarcado = true;
-                }
-
-                // CASO B: El mapa viene estructurado o indexado por claves numéricas de Sheets (ClaveDep / SModClave)
-                if (!estaMarcado && deptoClave && subClave) {
-                    if (permisosMap[deptoClave] && permisosMap[deptoClave][subClave]) {
-                        const val = permisosMap[deptoClave][subClave][tipoHTML];
-                        if (val === 1 || val === true || val == "1") estaMarcado = true;
+                // Si la fila contiene alguno de los submódulos (ej. PERMISOS, LICENCIAS, etc.)
+                if (textoFila.includes("PERMISOS") || textoFila.includes("LICENCIAS") || textoFila.includes("DOCUMENTOS") || textoFila.includes("CONFIGURACIÓN")) {
+                    const checkboxesEnFila = fila.querySelectorAll('input[type="checkbox"]');
+                    
+                    if (checkboxesEnFila.length > 0) {
+                        // Dependiendo de la columna (Ver, Editar, Eliminar)
+                        // Si en Sheets tenemos SModClave 1, 2 o 3 para ClaveDep 7 (Sistemas)
+                        if (Array.isArray(permisosMap)) {
+                            permisosMap.forEach(p => {
+                                const sMod = String(p.SModClave || p.sModClave || '');
+                                const niv = Number(p.NivPer || p.nivPer || 0);
+                                
+                                // Mapeo por posición o texto si coincide con ClaveDep 7 (Sistemas)
+                                if (String(p.ClaveDep || p.claveDep) === "7") {
+                                    if (sMod === "1" && textoFila.includes("PERMISOS") && checkboxesEnFila[0]) checkboxesEnFila[0].checked = (niv >= 1);
+                                    if (sMod === "2" && textoFila.includes("LICENCIAS") && checkboxesEnFila[0]) checkboxesEnFila[0].checked = (niv >= 1);
+                                    if (sMod === "3" && textoFila.includes("DOCUMENTOS") && checkboxesEnFila[0]) checkboxesEnFila[0].checked = (niv >= 1);
+                                }
+                            });
+                        }
                     }
-                }
-
-                // CASO C: Array plano de registros de Sheets (ej. filas directas con ClaveDep, SModClave, NivPer)
-                if (!estaMarcado && Array.isArray(permisosMap)) {
-                    const coincidencia = permisosMap.find(p => 
-                        (String(p.ClaveDep || p.claveDep) === deptoClave || String(p.ClaveDep || p.claveDep) === deptoHTML) &&
-                        (String(p.SModClave || p.sModClave) === subClave || String(p.SModClave || p.sModClave) === submoduloHTML)
-                    );
-                    if (coincidencia) {
-                        const niv = Number(coincidencia.NivPer || coincidencia.nivPer || 0);
-                        // Si NivPer agrupa permisos (ej: 3 = Ver y Editar) o evalúa bits/tipos específicos
-                        if (niv > 0) estaMarcado = true;
-                    }
-                }
-
-                if (estaMarcado) {
-                    chk.checked = true;
-                    console.log(`✅ [CHECKED] Activado checkbox en Depto: ${deptoHTML || deptoClave} | Sub: ${submoduloHTML || subClave}`);
                 }
             });
 
+            console.log("✨ [CORE TESTIGO 4] Proceso de marcado finalizado.");
             console.groupEnd();
-        }, 300);
+        }, 500);
 
     } catch (err) {
         console.error("❌ [CORE ERROR] al procesar permisos:", err);
@@ -300,7 +281,15 @@ async function cargarYMarcarPermisosColaborador(noEmp) {
     }
 }
 
-window.cargarYMarcarPermisosColaborador = cargarYMarcarPermisosColaborador;
+// Interceptor automático: Envuelve la función global existente para que se ejecute sola al hacer clic en un empleado
+const _originalAbrirMatriz = window.abrirMatrizPermisosUsuario;
+window.abrirMatrizPermisosUsuario = function(nombre, numEmp) {
+    console.log(`🎯 [INTERCEPTOR] Se abrió la matriz para: ${nombre} (${numEmp})`);
+    if (typeof _originalAbrirMatriz === 'function') {
+        _originalAbrirMatriz(nombre, numEmp);
+    }
+    cargarYMarcarPermisosColaborador(numEmp);
+};
 
 // ==========================================
 // EXPORTACIÓN GLOBAL EN WINDOW

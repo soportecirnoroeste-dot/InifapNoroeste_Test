@@ -214,6 +214,65 @@ function actualizarDatosPermisosSis() {
     cargarPermisosSis();
 }
 
+
+// ==========================================
+// LÓGICA DE NEGOCIO Y TESTIGOS EN CORE
+// ==========================================
+
+async function cargarYMarcarPermisosColaborador(noEmp) {
+    try {
+        console.group(`🚀 [SISPER CORE] Consultando permisos para empleado: ${noEmp}`);
+        
+        let permisosMap = {};
+        if (typeof FetchAPI === 'function') {
+            permisosMap = await FetchAPI('obtenerPermisosColaborador', { numEmp: noEmp });
+        } else if (typeof google !== 'undefined' && google.script && google.script.run) {
+            permisosMap = await new Promise((resolve, reject) => {
+                google.script.run
+                    .withSuccessHandler(resolve)
+                    .withFailureHandler(reject)
+                    .obtenerPermisosColaborador({ numEmp: noEmp });
+            });
+        }
+
+        console.log("📥 [CORE] Datos crudos de permisos recibidos:", permisosMap);
+
+        if (!permisosMap || Object.keys(permisosMap).length === 0) {
+            console.warn("⚠️ [CORE] No hay registros previos de permisos para este colaborador.");
+            console.groupEnd();
+            return;
+        }
+
+        const checkboxes = document.querySelectorAll('.chk-permiso');
+        console.log(`🔍 [CORE] Checkboxes analizados en pantalla: ${checkboxes.length}`);
+
+        checkboxes.forEach(chk => {
+            const deptoHTML = String(chk.getAttribute('data-depto')).trim();
+            const submoduloHTML = String(chk.getAttribute('data-submodulo')).trim();
+            const tipoHTML = String(chk.getAttribute('data-tipo')).trim(); // ver, editar, eliminar
+
+            if (permisosMap[deptoHTML] && permisosMap[deptoHTML][submoduloHTML]) {
+                const valorPermiso = permisosMap[deptoHTML][submoduloHTML][tipoHTML];
+                console.log(`✅ [MATCH] Depto: [${deptoHTML}] | Sub: [${submoduloHTML}] | Tipo: [${tipoHTML}] | Valor: ${valorPermiso}`);
+                if (valorPermiso === 1) {
+                    chk.checked = true;
+                }
+            } else {
+                // Testigo opcional por si alguna clave no coincide exactamente
+                // console.log(`❌ [SIN MATCH] Buscando Depto: [${deptoHTML}] - Sub: [${submoduloHTML}]`);
+            }
+        });
+
+        console.groupEnd();
+    } catch (err) {
+        console.error("❌ [CORE ERROR] al procesar permisos:", err);
+        console.groupEnd();
+    }
+}
+
+// Exportamos la función de forma segura en el objeto window
+window.cargarYMarcarPermisosColaborador = cargarYMarcarPermisosColaborador;
+
 window.renderizarListadoPermisosSis = renderizarListadoPermisosSis;
 window.cargarPermisosSis = cargarPermisosSis;
 window.actualizarDatosPermisosSis = actualizarDatosPermisosSis;

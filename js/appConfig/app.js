@@ -248,8 +248,21 @@ const SistemaGlobal = {
         const submodulosTotales = window.allSubModulosData || (this.datos && this.datos.submodulos) || [];
         const permisosUsuario = window.userPermisosCache || {};
 
-        // 🚀 VALIDACIÓN DE PERMISOS: Filtrar departamentos donde el empleado tenga al menos un submódulo con ver === 1
-        const departamentosFiltrados = listaDepartamentos.filter(dep => {
+        // 🚀 VERIFICAR SI EL USUARIO ES ADMIN (Si tiene al menos un registro con nivper === 4)
+        let esAdminGeneral = false;
+        for (let deptoKey in permisosUsuario) {
+            for (let subKey in permisosUsuario[deptoKey]) {
+                const p = permisosUsuario[deptoKey][subKey];
+                if (p && (Number(p.nivper) === 4 || Number(p.nivPer) === 4)) {
+                    esAdminGeneral = true;
+                    break;
+                }
+            }
+            if (esAdminGeneral) break;
+        }
+
+        // 🚀 VALIDACIÓN DE PERMISOS: Si es admin (nivper === 4), muestra todas las tarjetas. Si no, filtra por los que tengan acceso.
+        const departamentosFiltrados = esAdminGeneral ? listaDepartamentos : listaDepartamentos.filter(dep => {
             const cDep = String(dep.claveDep || dep.ClaveDep || '').trim();
             const nomCor = String(dep.nomCorDep || '').trim();
 

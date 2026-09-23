@@ -245,17 +245,11 @@ const SistemaGlobal = {
 
         contenedorMenu.innerHTML = '';
 
-        const submodulosTotales = window.allSubModulosData || (this.datos && this.datos.submodulos) || [];
+        const submodulosTotales = window.allSubModulosData || window.submodulos || (this.datos && this.datos.submodulos) || [];
         const permisosUsuario = window.userPermisosCache || {};
 
-        // 🔍 DEPURACIÓN: Abre la consola del navegador (F12) para ver estos valores
-        console.log("--- DEBUG PERMISOS ---");
-        console.log("permisosUsuario:", permisosUsuario);
-        console.log("submodulosTotales:", submodulosTotales);
-        console.log("listaDepartamentos:", listaDepartamentos);
-
         // ==========================================
-        // REGLA 1: Validación de Administrador (NivPer === 4)
+        // REGLA 1: Validación de Administrador (Valor 4)
         // ==========================================
         let esAdminGeneral = false;
         for (let deptoKey in permisosUsuario) {
@@ -263,8 +257,9 @@ const SistemaGlobal = {
             if (deptoVal && typeof deptoVal === 'object') {
                 for (let subKey in deptoVal) {
                     const p = deptoVal[subKey];
-                    const valNiv = typeof p === 'object' ? Number(p.nivper || p.nivPer || p.NivPer || 0) : Number(p);
-                    if (valNiv === 4) {
+                    // Revisa si el permiso o su nivel es igual a 4
+                    const valNiv = typeof p === 'object' ? Number(p.nivper || p.nivPer || p.NivPer || p.valor || 0) : Number(p);
+                    if (valNiv === 4 || Number(subKey) === 4) {
                         esAdminGeneral = true;
                         break;
                     }
@@ -278,14 +273,20 @@ const SistemaGlobal = {
             if (esAdminGeneral) break;
         }
 
-        console.log("¿Es Admin General (Regla 1)?:", esAdminGeneral);
-
         // ==========================================
-        // REGLA 2: Filtrado por Submódulos Asignados
+        // REGLA 2: Filtrado de Departamentos
         // ==========================================
         const departamentosFiltrados = esAdminGeneral ? listaDepartamentos : listaDepartamentos.filter(dep => {
             const cDep = String(dep.claveDep || dep.ClaveDep || '').trim();
             const nomCor = String(dep.nomCorDep || '').trim();
+
+            // Si submodulosTotales está vacío, permitimos mostrar los departamentos 
+            // que tengan registros directos en el caché de permisos del usuario.
+            if (!submodulosTotales || submodulosTotales.length === 0) {
+                return permisosUsuario[cDep] !== undefined || 
+                       permisosUsuario[nomCor] !== undefined || 
+                       Object.keys(permisosUsuario).length > 0;
+            }
 
             const subsDelDepto = submodulosTotales.filter(sub => {
                 const subDep = String(sub.ClaveDep || sub.claveDep || '').trim();
@@ -322,8 +323,6 @@ const SistemaGlobal = {
             return tieneAccesoAlDepto;
         });
 
-        console.log("Departamentos Filtrados resultantes:", departamentosFiltrados);
-        
         if (departamentosFiltrados.length === 0) {
             contenedorMenu.innerHTML = '<p class="text-xs text-stone-400 col-span-full text-center py-8">No tienes módulos o submódulos con permisos de acceso asignados.</p>';
             return;

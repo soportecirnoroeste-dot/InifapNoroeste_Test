@@ -282,21 +282,28 @@ const SistemaGlobal = {
                 const idSub = String(sub.SModClave || sub.sModClave || sub.id || '').trim();
                 
                 let p = null;
-                if (permisosUsuario[cDep] && permisosUsuario[cDep][idSub]) {
-                    p = permisosUsuario[cDep][idSub];
-                } else if (permisosUsuario[nomCor] && permisosUsuario[nomCor][idSub]) {
-                    p = permisosUsuario[nomCor][idSub];
-                } else {
-                    for (let keyDepto in permisosUsuario) {
-                        if (permisosUsuario[keyDepto][idSub]) {
-                            p = permisosUsuario[keyDepto][idSub];
+                // 🔍 BÚSQUEDA ROBUSTA: Busca el submódulo en cualquier departamento del usuario
+                for (let keyDepto in permisosUsuario) {
+                    const deptoObj = permisosUsuario[keyDepto];
+                    if (deptoObj && typeof deptoObj === 'object') {
+                        if (deptoObj[idSub] !== undefined && deptoObj[idSub] !== null) {
+                            p = deptoObj[idSub];
                             break;
                         }
                     }
                 }
 
-                // Valida que tenga registro activo de acceso (ver === 1 o nivper asignado)
-                return p && (Number(p.ver) === 1 || Number(p.nivper) > 0 || Number(p.nivPer) > 0);
+                if (p === null || p === undefined) return false;
+
+                // Si el permiso es un número o texto directo (ej: 3)
+                if (typeof p === 'number' || typeof p === 'string') {
+                    return Number(p) > 0;
+                }
+
+                // Si el permiso es un objeto, revisa cualquiera de sus propiedades de acceso
+                const valVer = Number(p.ver || p.Ver || 0);
+                const valNiv = Number(p.nivper || p.nivPer || p.NivPer || 0);
+                return valVer === 1 || valNiv > 0;
             });
 
             return tieneAccesoAlDepto;

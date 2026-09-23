@@ -237,15 +237,8 @@ async function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
             window.allSubModulosData = dataSys.submodulos || dataSys.subModulos || [];
         }
 
-        // 3. Obtenemos los permisos específicos del colaborador (incluyendo opcionalmente su estatus de perfil/admin si la API lo devuelve)
-        const respuestaPermisos = await FetchAPI('obtenerPermisosColaborador', { numEmp: String(noEmp).trim() }) || {};
-        
-        // Soportamos tanto si devuelve directo el mapa como si viene estructurado con permisos y perfil
-        const permisosMap = respuestaPermisos.permisos || respuestaPermisos;
-        
-        // Verificamos si el empleado tiene el flag de administrador guardado en su registro (PerPerfAdm)
-        // Puedes ajustar la propiedad segun te lo devuelva tu backend (ej: respuestaPermisos.PerPerfAdm, etc.)
-        const esAdminGuardado = Number(respuestaPermisos.PerPerfAdm || respuestaPermisos.esAdmin || 0) === 1;
+        // 3. Obtenemos los permisos específicos del colaborador
+        const permisosMap = await FetchAPI('obtenerPermisosColaborador', { numEmp: String(noEmp).trim() }) || {};
 
         const deptos = window._catDepartamentos || [];
         const submodulos = window.allSubModulosData || [];
@@ -268,17 +261,14 @@ async function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
                         const nombreSub = sub.SModNom || sub.sModNom || sub.nombre || 'Submódulo';
                         const idSub = sub.SModClave || sub.sModClave || sub.id || '';
 
-                        // Si es admin guardado, forzamos los checks en 1, de lo contrario leemos del mapa
-                        let pDep = { ver: 0, editar: 0, eliminar: 0 };
-                        if (esAdminGuardado) {
-                            pDep = { ver: 1, editar: 1, eliminar: 1 };
-                        } else if (permisosMap[cDep] && permisosMap[cDep][idSub]) {
-                            pDep = permisosMap[cDep][idSub];
-                        }
+                        const pDep = permisosMap[cDep] && permisosMap[cDep][idSub] ? permisosMap[cDep][idSub] : { ver: 0, editar: 0, eliminar: 0 };
                         
-                        const chkVer = Number(pDep.ver) === 1 ? 'checked' : '';
-                        const chkEditar = Number(pDep.editar) === 1 ? 'checked' : '';
-                        const chkEliminar = Number(pDep.eliminar) === 1 ? 'checked' : '';
+                        // Si el nivel de permiso almacenado es 4, marcamos todos los checkboxes por defecto
+                        const esNivel4 = Number(pDep.nivper || pDep.ver) === 4 || (Number(pDep.ver) === 1 && Number(pDep.editar) === 1 && Number(pDep.eliminar) === 1);
+                        
+                        const chkVer = esNivel4 || Number(pDep.ver) === 1 ? 'checked' : '';
+                        const chkEditar = esNivel4 || Number(pDep.editar) === 1 ? 'checked' : '';
+                        const chkEliminar = esNivel4 || Number(pDep.eliminar) === 1 ? 'checked' : '';
 
                         filasHTML += `
                             <tr class="hover:bg-stone-50 transition-all border-b border-stone-100">
@@ -299,8 +289,6 @@ async function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
             });
         }
 
-        const checkedAdminAttr = esAdminGuardado ? 'checked' : '';
-
         // 4. Renderizamos la estructura completa incluyendo el checkbox de Administrador
         contenedorDinamico.innerHTML = `
             <div class="w-full space-y-6 bg-white p-6 md:p-8 rounded-2xl soft-shadow border border-[#249444]/10 mb-8 animate-fade-in">
@@ -312,9 +300,9 @@ async function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
                         <div><h3 class="font-black text-stone-800 text-lg uppercase tracking-wide">Permisos</h3></div>
                     </div>
                     
-                    <!-- Checkbox Administrador General con binding a PerPerfAdm -->
+                    <!-- Checkbox Administrador General -->
                     <div class="flex items-center gap-2 bg-stone-50 px-4 py-2 rounded-xl border border-stone-200">
-                        <input type="checkbox" id="chk-admin-general" onchange="togglePermisosAdministrador(this)" ${checkedAdminAttr} class="accent-[#249444] w-4 h-4 cursor-pointer">
+                        <input type="checkbox" id="chk-admin-general" onchange="togglePermisosAdministrador(this)" class="accent-[#249444] w-4 h-4 cursor-pointer">
                         <label for="chk-admin-general" class="text-xs font-bold text-stone-700 uppercase cursor-pointer select-none">Administrador (Todos los permisos)</label>
                     </div>
                 </div>
@@ -377,7 +365,7 @@ function actualizarEstadoCheckboxAdminGeneral() {
 }
 
 // ==========================================
-// GUARDAR PERMISOS - SISPER CORE (CON SPINNER Y PerPerfAdm)
+// GUARDAR PERMISOS - SISPER CORE (CON NIVEL 4 SI ES ADMIN)
 // ==========================================
 
 async function guardarMatrizPermisosSis(noEmp) {
@@ -397,6 +385,9 @@ async function guardarMatrizPermisosSis(noEmp) {
         `;
     }
 
+    const chkAdminGeneral = document.getElementById('chk-admin-general');
+    const esAdminActivo = chkAdminGeneral && chkAdminGeneral.checked;
+
     const checkboxes = document.querySelectorAll('.chk-permiso');
     const permisosEstructura = {};
 
@@ -409,24 +400,26 @@ async function guardarMatrizPermisosSis(noEmp) {
             permisosEstructura[depto] = {};
         }
         if (!permisosEstructura[depto][submodulo]) {
-            permisosEstructura[depto][submodulo] = { ver: 0, editar: 0, eliminar: 0 };
+            permisosEstructura[depto][submodulo] = { ver: 0, editar: 0, eliminar: 0, nivper: 1 };
         }
 
-        permisosEstructura[depto][submodulo][tipo] = chk.checked ? 1 : 0;
+        // Si está marcado como administrador general, forzamos nivper a 4 y los permisos individuales encendidos
+        if (esAdminActivo) {
+            permisosEstructura[depto][submodulo][tipo] = 1;
+            permisosEstructura[depto][submodulo].nivper = 4;
+        } else {
+            permisosEstructura[depto][submodulo][tipo] = chk.checked ? 1 : 0;
+            // Opcional: si no es admin pero todos están manuales en 1, puedes evaluar dejarlo en otro nivel, aquí por defecto se asigna según los checks
+        }
     });
-
-    // Validamos si el checkbox de administrador general está marcado para definir PerPerfAdm como 1 o 0
-    const chkAdminGeneral = document.getElementById('chk-admin-general');
-    const valorPerPerfAdm = (chkAdminGeneral && chkAdminGeneral.checked) ? 1 : 0;
 
     const payload = {
         numEmp: noEmp,
-        PerPerfAdm: valorPerPerfAdm, // Campo solicitado para guardar en el sheet de personal
         permisos: permisosEstructura
     };
 
     try {
-        console.log("💾 [SISPER] Guardando permisos y perfil administrador para empleado:", noEmp, payload);
+        console.log("💾 [SISPER] Guardando permisos (Nivel 4 si es admin) para empleado:", noEmp, payload);
 
         if (typeof FetchAPI === 'function') {
             await FetchAPI('guardarPermisos', payload);
@@ -439,7 +432,7 @@ async function guardarMatrizPermisosSis(noEmp) {
             });
         }
 
-        alert("¡Permisos y perfil actualizados correctamente para el colaborador!");
+        alert("¡Permisos actualizados correctamente para el colaborador!");
         
         if (typeof cargarPermisosSis === 'function') {
             cargarPermisosSis();
@@ -456,7 +449,7 @@ async function guardarMatrizPermisosSis(noEmp) {
     }
 }
 
-// Control de selección en cascada y actualización del admin general en tiempo real
+// Control de selección en cascada y actualización del admin general
 document.addEventListener('change', function(e) {
     const chk = e.target;
     if (!chk.classList.contains('chk-permiso')) return;

@@ -121,30 +121,32 @@ const SistemaGlobal = {
             }
         }
 
-        // 🚀 PRIMERA VALIDACIÓN: ¿Tiene NivPer >= 4 de forma global?
-        if (permisosUsuario['0'] && (permisosUsuario['0']['0'] || permisosUsuario['0'][0])) {
-            const registroCero = permisosUsuario['0']['0'] || permisosUsuario['0'][0];
-            const nivelGlobal = Number(registroCero.nivPer || registroCero.NivPer || 0);
-            if (nivelGlobal >= 4) {
-                esSuperAdmin = true;
+        // 🚀 VALIDACIÓN DIRECTA: Si algún NivPer es igual a 4, se activa el acceso total
+        function verificarNivPer4(obj) {
+            if (!obj) return false;
+            if (Array.isArray(obj)) {
+                return obj.some(p => Number(p.NivPer || p.nivPer || 0) === 4);
+            } else if (typeof obj === 'object') {
+                for (let key in obj) {
+                    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+                        const val = obj[key];
+                        if (val && typeof val === 'object') {
+                            if (Number(val.NivPer || val.nivPer || 0) === 4) return true;
+                            if (verificarNivPer4(val)) return true;
+                        } else if ((key === 'NivPer' || key === 'nivPer') && Number(val) === 4) {
+                            return true;
+                        }
+                    }
+                }
             }
+            return false;
         }
 
-        if (!esSuperAdmin && Array.isArray(permisosUsuario)) {
-            const adminCheck = permisosUsuario.find(p => {
-                const cDep = String(p.ClaveDep || p.claveDep || '').trim();
-                const sMod = String(p.SModClave || p.sModClave || '').trim();
-                const niv = Number(p.NivPer || p.nivPer || 0);
-                return (cDep === '0' || cDep === '') && (sMod === '0' || sMod === '') && niv >= 4;
-            });
-            if (adminCheck) {
-                esSuperAdmin = true;
-            }
-        }
+        esSuperAdmin = verificarNivPer4(permisosUsuario);
 
         window.userPermisosCache = permisosUsuario;
         window.userEsSuperAdmin = esSuperAdmin;
-        console.log("Estado de SuperAdmin (Acceso total):", window.userEsSuperAdmin);
+        console.log("Estado de SuperAdmin (Acceso total por NivPer=4):", window.userEsSuperAdmin);
 
         this.procesarRespuestaServidor(datosReales);
         ocultarCarga();
@@ -273,7 +275,7 @@ const SistemaGlobal = {
         const submodulosTotales = window.allSubModulosData || (this.datos && this.datos.submodulos) || [];
         const permisosUsuario = window.userPermisosCache || {};
 
-        // 🚀 VALIDACIÓN CON PRIORIDAD: Primero pregunta si es SuperAdmin (NivPer >= 4), si no, verifica el nivel o tipo de permiso específico.
+        // 🚀 VALIDACIÓN: Si es SuperAdmin (NivPer = 4), muestra todas. Si no, verifica si existe el registro como antes.
         const departamentosFiltrados = window.userEsSuperAdmin ? listaDepartamentos : listaDepartamentos.filter(dep => {
             const cDep = String(dep.claveDep || dep.ClaveDep || '').trim();
             const nomCor = String(dep.nomCorDep || '').trim();
@@ -302,16 +304,11 @@ const SistemaGlobal = {
                     }
                 }
 
+                // Si no hay registro específico de permisos para este submódulo, retorna false
                 if (!p) return false;
 
-                // 🚀 PRIORIDAD 1: ¿Tiene NivPer >= 4 en este submódulo?
-                const nivelPermiso = Number(p.NivPer || p.nivPer || 0);
-                if (nivelPermiso >= 4) {
-                    return true;
-                }
-
-                // 🚀 PRIORIDAD 2: Si no tiene NivPer >= 4, verifica si tiene permiso de visualización normal (ver === 1)
-                const puedeVer = Number(p.ver) === 1;
+                // Verificación tradicional (como antes: si existe el registro con permiso de visualización válido)
+                const puedeVer = Number(p.ver) === 1 || Number(p.NivPer || p.nivPer || 0) > 0;
                 return puedeVer;
             });
 

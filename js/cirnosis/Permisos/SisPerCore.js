@@ -412,9 +412,9 @@ async function guardarMatrizPermisosSis(noEmp) {
     Object.keys(permisosEstructura).forEach(depto => {
         Object.keys(permisosEstructura[depto]).forEach(submodulo => {
             if (esAdminActivo) {
-                permisosEstructura[depto][submodulo].ver = 1;
-                permisosEstructura[depto][submodulo].editar = 1;
-                permisosEstructura[depto][submodulo].eliminar = 1;
+              //  permisosEstructura[depto][submodulo].ver = 1;
+               // permisosEstructura[depto][submodulo].editar = 1;
+                //permisosEstructura[depto][submodulo].eliminar = 1;
                 permisosEstructura[depto][submodulo].nivper = 4; // <--- Forzamos el 4 aquí de manera absoluta
             } else {
                 // Cálculo normal de nivper según los checks manuales

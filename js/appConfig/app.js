@@ -121,7 +121,7 @@ const SistemaGlobal = {
             }
         }
 
-        // 🚀 VALIDACIÓN DE SUPERADMINISTRADOR (Soporta estructura anidada o arreglo plano de Google Sheets)
+        // 🚀 PRIMERA VALIDACIÓN: ¿Tiene NivPer >= 4 de forma global?
         if (permisosUsuario['0'] && (permisosUsuario['0']['0'] || permisosUsuario['0'][0])) {
             const registroCero = permisosUsuario['0']['0'] || permisosUsuario['0'][0];
             const nivelGlobal = Number(registroCero.nivPer || registroCero.NivPer || 0);
@@ -130,7 +130,7 @@ const SistemaGlobal = {
             }
         }
 
-        if (Array.isArray(permisosUsuario)) {
+        if (!esSuperAdmin && Array.isArray(permisosUsuario)) {
             const adminCheck = permisosUsuario.find(p => {
                 const cDep = String(p.ClaveDep || p.claveDep || '').trim();
                 const sMod = String(p.SModClave || p.sModClave || '').trim();
@@ -273,7 +273,7 @@ const SistemaGlobal = {
         const submodulosTotales = window.allSubModulosData || (this.datos && this.datos.submodulos) || [];
         const permisosUsuario = window.userPermisosCache || {};
 
-        // 🚀 VALIDACIÓN DE PERMISOS: Si es SuperAdmin ve todo, de lo contrario evalúa NivPer >= 4 o ver === 1
+        // 🚀 VALIDACIÓN CON PRIORIDAD: Primero pregunta si es SuperAdmin (NivPer >= 4), si no, verifica el nivel o tipo de permiso específico.
         const departamentosFiltrados = window.userEsSuperAdmin ? listaDepartamentos : listaDepartamentos.filter(dep => {
             const cDep = String(dep.claveDep || dep.ClaveDep || '').trim();
             const nomCor = String(dep.nomCorDep || '').trim();
@@ -304,10 +304,15 @@ const SistemaGlobal = {
 
                 if (!p) return false;
 
+                // 🚀 PRIORIDAD 1: ¿Tiene NivPer >= 4 en este submódulo?
                 const nivelPermiso = Number(p.NivPer || p.nivPer || 0);
-                const puedeVer = Number(p.ver) === 1;
+                if (nivelPermiso >= 4) {
+                    return true;
+                }
 
-                return nivelPermiso >= 4 || puedeVer;
+                // 🚀 PRIORIDAD 2: Si no tiene NivPer >= 4, verifica si tiene permiso de visualización normal (ver === 1)
+                const puedeVer = Number(p.ver) === 1;
+                return puedeVer;
             });
 
             return tieneAccesoAlDepto;

@@ -273,7 +273,7 @@ const SistemaGlobal = {
         const submodulosTotales = window.allSubModulosData || (this.datos && this.datos.submodulos) || [];
         const permisosUsuario = window.userPermisosCache || {};
 
-        // 🚀 VALIDACIÓN DE PERMISOS: Si es SuperAdmin ve todo, de lo contrario filtra de manera estricta.
+        // 🚀 VALIDACIÓN DE PERMISOS: Si es SuperAdmin ve todo, de lo contrario evalúa NivPer >= 4 o ver === 1
         const departamentosFiltrados = window.userEsSuperAdmin ? listaDepartamentos : listaDepartamentos.filter(dep => {
             const cDep = String(dep.claveDep || dep.ClaveDep || '').trim();
             const nomCor = String(dep.nomCorDep || '').trim();
@@ -302,7 +302,12 @@ const SistemaGlobal = {
                     }
                 }
 
-                return p && Number(p.ver) === 1;
+                if (!p) return false;
+
+                const nivelPermiso = Number(p.NivPer || p.nivPer || 0);
+                const puedeVer = Number(p.ver) === 1;
+
+                return nivelPermiso >= 4 || puedeVer;
             });
 
             return tieneAccesoAlDepto;

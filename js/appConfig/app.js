@@ -18,7 +18,6 @@ function convertirObjetoAMayusculas(datos) {
     let datosMayus = {};
     for (let key in datos) {
         if (typeof datos[key] === 'string' && key !== 'pass' && key !== 'email') { 
-            // Excluimos la contraseña (pass) y el correo (email) para conservar su formato original
             datosMayus[key] = datos[key].toUpperCase();
         } else {
             datosMayus[key] = datos[key];
@@ -52,13 +51,11 @@ const AuthGuard = {
             }
 
             if (!paginaActual.includes('login.html')) {
-                // Guardamos la ruta actual antes de hacer nada
                 sessionStorage.setItem('ultima_ruta_completa', rutaCompletaActual);
 
                 if (paginaActual.includes('index.html') || paginaActual.endsWith('/')) {
                     SistemaGlobal.init();
                 } else {
-                    // Verificamos si al recargar perdimos los parámetros o el estado
                     const rutaGuardada = sessionStorage.getItem('ultima_ruta_completa');
                 }
             }
@@ -67,77 +64,84 @@ const AuthGuard = {
 };
 
 // ==========================================
-// 2. NÚCLEO CENTRAL DEL SISTEMA (CON CACHÉ Y FILTRO INICIAL)
+// 2. NÚCLEO CENTRAL DEL SISTEMA (CON CACHÉ Y FILTRO DE PERMISOS)
 // ==========================================
 const SistemaGlobal = {
     datos: null,
 
-    init() {
-        mostrarCarga(); // Activamos el spinner al iniciar la carga
+    async init() {
+        mostrarCarga(); 
 
         const datosEnCache = localStorage.getItem('sistema_cache_datos');
         const tiempoCache = localStorage.getItem('sistema_cache_tiempo');
         const ahora = new Date().getTime();
 
+        let datosReales = null;
+
         if (datosEnCache && tiempoCache && (ahora - tiempoCache < 30 * 60 * 1000)) {
             try {
-                const datosProcesados = JSON.parse(datosEnCache);
-                this.procesarRespuestaServidor(datosProcesados);
-                ocultarCarga(); // Ocultamos si se cargó exitosamente desde caché
-                return;
+                datosReales = JSON.parse(datosEnCache);
             } catch (e) {
                 console.error("Error al leer la caché, procediendo a red...", e);
             }
         }
 
-        if (typeof google !== 'undefined' && google.script && google.script.run) {
-            google.script.run
-                .withSuccessHandler(respuesta => {
-                    this.guardarYCargar(respuesta);
-                    ocultarCarga(); // Ocultamos al terminar desde Google Sheets
-                })
-                .withFailureHandler(err => {
-                    console.error("Error al obtener datos de Sheets:", err);
-                    ocultarCarga(); // Ocultamos incluso si ocurre un fallo
-                })
-                .obtenerDatosSistema();
-        } else {
-            const URL_DIRECTA = "https://script.google.com/macros/s/AKfycbzDs5fvFxykQniWFZnbUqpbuDAmrIDhMHlVwU4r5B3iPLxBp4FDG7uKrtDBDQEXxEX8fQ/exec?action=obtenerDatosSistema";
-
-            fetch(URL_DIRECTA)
-                .then(res => res.json())
-                .then(data => {
-                    this.guardarYCargar(data);
-                    ocultarCarga(); // Ocultamos al terminar el fetch con éxito
-                })
-                .catch(err => {
-                    console.error("Error de conexión Fetch:", err);
-                    ocultarCarga(); // Ocultamos si falla la conexión de red
-                });
+        if (!datosReales) {
+            try {
+                if (typeof google !== 'undefined' && google.script && google.script.run) {
+                    datosReales = await new Promise((resolve, reject) => {
+                        google.script.run
+                            .withSuccessHandler(res => resolve(res))
+                            .withFailureHandler(err => reject(err))
+                            .obtenerDatosSistema();
+                    });
+                } else {
+                    const URL_DIRECTA = "https://script.google.com/macros/s/AKfycbzDs5fvFxykQniWFZnbUqpbuDAmrIDhMHlVwU4r5B3iPLxBp4FDG7uKrtDBDQEXxEX8fQ/exec?action=obtenerDatosSistema";
+                    const res = await fetch(URL_DIRECTA);
+                    datosReales = await res.json();
+                }
+                this.guardarEnCache(datosReales);
+            } catch (err) {
+                console.error("Error al obtener datos del sistema:", err);
+                ocultarCarga();
+                return;
+            }
         }
+
+        // 🚀 Consultamos los permisos específicos del empleado logueado
+        const noEmp = localStorage.getItem('session_noEmp') || localStorage.getItem('usuario_sesion') || '';
+        let permisosUsuario = {};
+
+        if (noEmp && typeof FetchAPI === 'function') {
+            try {
+                permisosUsuario = await FetchAPI('obtenerPermisosColaborador', { numEmp: String(noEmp).trim() }) || {};
+            } catch (e) {
+                console.warn("No se pudieron cargar los permisos del empleado:", e);
+            }
+        }
+        window.userPermisosCache = permisosUsuario;
+
+        this.procesarRespuestaServidor(datosReales);
+        ocultarCarga();
     },
 
-    guardarYCargar(respuestaServidor) {
+    guardarEnCache(respuestaServidor) {
         const datosReales = {
             success: respuestaServidor.success !== undefined ? respuestaServidor.success : true,
             departamentos: respuestaServidor.departamentos || [],
             regionales: respuestaServidor.regionales || [],
             campos: respuestaServidor.campos || [],
-            submodulos: respuestaServidor.submodulos || [] // 👈 Aseguramos capturar los submódulos
+            submodulos: respuestaServidor.submodulos || []
         };
 
-        // Guardamos en caché global accesible para todo el sistema
         localStorage.setItem('sistema_cache_datos', JSON.stringify(datosReales));
         localStorage.setItem('sistema_cache_tiempo', new Date().getTime());
-
-        // 🚀 Exponemos los submódulos globalmente para los config de cada depto
         window.allSubModulosData = datosReales.submodulos;
-
-        this.procesarRespuestaServidor(datosReales);
     },
 
     procesarRespuestaServidor(datosReales) {
         this.datos = datosReales;
+        window.allSubModulosData = datosReales.submodulos || [];
 
         const todosLosDepartamentos = datosReales.departamentos || [];
         const todasLasRegionales = datosReales.regionales || [];
@@ -182,7 +186,6 @@ const SistemaGlobal = {
 
         this.renderizarFiltroCampos(todosLosCampos, claveRegUsuario);
 
-        // Búsqueda inteligente del campo inicial
         const camposDeLaRegional = todosLosCampos.filter(c => String(c.claveReg).trim() === claveRegUsuario);
         const depDelUsuarioLogueado = departamentosDeLaRegional.find(dep =>
             String(dep.nomCorDep).trim().toUpperCase() === areaUsuario ||
@@ -196,7 +199,6 @@ const SistemaGlobal = {
             claveCentroInicial = String(camposDeLaRegional[0].claveCentro).trim();
         }
 
-        // GUARDAR EL CENTRO INICIAL AUTOMÁTICAMENTE EN LOCALSTORAGE
         if (claveCentroInicial) {
             localStorage.setItem('centro_activo_actual', claveCentroInicial);
         }
@@ -243,12 +245,50 @@ const SistemaGlobal = {
 
         contenedorMenu.innerHTML = '';
 
-        if (listaDepartamentos.length === 0) {
-            contenedorMenu.innerHTML = '<p class="text-xs text-stone-400 col-span-full">No se encontraron departamentos disponibles en las pestañas.</p>';
+        const submodulosTotales = window.allSubModulosData || (this.datos && this.datos.submodulos) || [];
+        const permisosUsuario = window.userPermisosCache || {};
+
+        // 🚀 VALIDACIÓN DE PERMISOS: Filtrar departamentos donde el empleado tenga al menos un submódulo con ver === 1
+        const departamentosFiltrados = listaDepartamentos.filter(dep => {
+            const cDep = String(dep.claveDep || dep.ClaveDep || '').trim();
+            const nomCor = String(dep.nomCorDep || '').trim();
+
+            const subsDelDepto = submodulosTotales.filter(sub => {
+                const subDep = String(sub.ClaveDep || sub.claveDep || '').trim();
+                return subDep === cDep || subDep.toUpperCase() === nomCor.toUpperCase();
+            });
+
+            if (subsDelDepto.length === 0) return false;
+
+            const tieneAccesoAlDepto = subsDelDepto.some(sub => {
+                const idSub = String(sub.SModClave || sub.sModClave || sub.id || '').trim();
+                
+                let p = null;
+                if (permisosUsuario[cDep] && permisosUsuario[cDep][idSub]) {
+                    p = permisosUsuario[cDep][idSub];
+                } else if (permisosUsuario[nomCor] && permisosUsuario[nomCor][idSub]) {
+                    p = permisosUsuario[nomCor][idSub];
+                } else {
+                    for (let keyDepto in permisosUsuario) {
+                        if (permisosUsuario[keyDepto][idSub]) {
+                            p = permisosUsuario[keyDepto][idSub];
+                            break;
+                        }
+                    }
+                }
+
+                return p && Number(p.ver) === 1;
+            });
+
+            return tieneAccesoAlDepto;
+        });
+
+        if (departamentosFiltrados.length === 0) {
+            contenedorMenu.innerHTML = '<p class="text-xs text-stone-400 col-span-full text-center py-8">No tienes módulos o submódulos con permisos de acceso asignados.</p>';
             return;
         }
 
-        listaDepartamentos.forEach((dep) => {
+        departamentosFiltrados.forEach((dep) => {
             const claveDep = (dep.nomCorDep || '').toUpperCase();
             let iconoSvg = '';
 
@@ -333,7 +373,6 @@ const SistemaGlobal = {
 
         const deptoKey = NomCorDep.toString().toLowerCase().trim().replace(/\s+/g, '');
         
-        // Guardamos el departamento activo en sessionStorage para respaldarlo ante un F5
         sessionStorage.setItem('depto_activo', deptoKey);
 
         setTimeout(() => {
@@ -345,19 +384,12 @@ const SistemaGlobal = {
 // ==========================================
 // 3. PUENTES GLOBALES PARA EL HTML
 // ==========================================
-// ==========================================
-// MODIFICACIÓN EN EL FILTRO GLOBAL DE CAMPOS
-// ==========================================
 function filtrarPorCampoRegional(claveCentro) {
-    // 1. Guardamos la clave numérica limpia en localStorage para que esté disponible globalmente
     if (claveCentro) {
         localStorage.setItem('centro_activo_actual', String(claveCentro).trim());
-        console.log("💾 [GLOBAL] Centro activo guardado:", claveCentro);
     } else {
         localStorage.removeItem('centro_activo_actual');
     }
-
-    // 2. Ejecutamos la lógica original del sistema
     SistemaGlobal.filtrarPorCampo(claveCentro);
 }
 
@@ -371,7 +403,6 @@ function seleccionarDepartamento(NomCorDep, elementoBtn) {
 document.addEventListener('DOMContentLoaded', () => {
     AuthGuard.verificarAcceso();
 
-    // Verificación automática de F5 / restauración si el usuario ya tenía un departamento activo seleccionado
     const deptoGuardado = sessionStorage.getItem('depto_activo');
     const urlParams = new URLSearchParams(window.location.search);
     if (!urlParams.get('depto') && deptoGuardado && window.location.pathname.includes('main.html')) {
@@ -384,20 +415,17 @@ document.addEventListener('DOMContentLoaded', () => {
 // ==========================================
 window.AppConfigUtils = {
     crearOpcionesDinamicas(claveDepDepto, deptoKey) {
-        // Buscamos los datos en la variable global o en la caché del sistema
         const fuenteDatos = window.allSubModulosData || (SistemaGlobal.datos && SistemaGlobal.datos.submodulos);
 
         if (!fuenteDatos || !Array.isArray(fuenteDatos)) {
             return [];
         }
 
-        // Filtramos por la ClaveDep numérica correspondiente en la hoja 'SubModulo'
         const submodulosFiltrados = fuenteDatos.filter(item => {
             const dep = item.ClaveDep !== undefined ? item.ClaveDep : item.claveDep;
             return String(dep).trim() === String(claveDepDepto).trim();
         });
 
-        // Mapeamos los datos leídos directamente de Sheets
         return submodulosFiltrados.map(sub => {
             const idSheet = String(sub.SModClave !== undefined ? sub.SModClave : sub.sModClave);
             const nombreSheet = String(sub.SModNom !== undefined ? sub.SModNom : sub.sModNom);

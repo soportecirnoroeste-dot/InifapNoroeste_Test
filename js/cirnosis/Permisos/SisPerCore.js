@@ -287,15 +287,24 @@ async function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
             });
         }
 
-        // 4. Renderizamos la estructura completa con los checkboxes ya marcados en memoria
+        // 4. Renderizamos la estructura completa con los checkboxes ya marcados en memoria y el control de Administrador general
         contenedorDinamico.innerHTML = `
             <div class="w-full space-y-6 bg-white p-6 md:p-8 rounded-2xl soft-shadow border border-[#249444]/10 mb-8 animate-fade-in">
-                <div class="flex items-center gap-3 pb-4 border-b border-stone-100">
-                    <div class="p-2.5 bg-[#f0fdf4] border border-[#c6f6d5] text-[#059669] rounded-xl flex items-center justify-center">
-                        <svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M19 11v6'/><path d='M19 13h2'/><path d='M2 21a8 8 0 0 1 12.868-6.349'/><circle cx='10' cy='8' r='5'/><circle cx='19' cy='19' r='2'/></svg>
+                <div class="flex items-center justify-between pb-4 border-b border-stone-100">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2.5 bg-[#f0fdf4] border border-[#c6f6d5] text-[#059669] rounded-xl flex items-center justify-center">
+                            <svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M19 11v6'/><path d='M19 13h2'/><path d='M2 21a8 8 0 0 1 12.868-6.349'/><circle cx='10' cy='8' r='5'/><circle cx='19' cy='19' r='2'/></svg>
+                        </div>
+                        <div><h3 class="font-black text-stone-800 text-lg uppercase tracking-wide">Permisos</h3></div>
                     </div>
-                    <div><h3 class="font-black text-stone-800 text-lg uppercase tracking-wide">Permisos</h3></div>
+                    
+                    <!-- Checkbox Administrador General -->
+                    <div class="flex items-center gap-2 bg-stone-50 px-4 py-2 rounded-xl border border-stone-200">
+                        <input type="checkbox" id="chk-admin-general" onchange="togglePermisosAdministrador(this)" class="accent-[#249444] w-4 h-4 cursor-pointer">
+                        <label for="chk-admin-general" class="text-xs font-bold text-stone-700 uppercase cursor-pointer select-none">Administrador (Todos los permisos)</label>
+                    </div>
                 </div>
+
                 <div class="rounded-xl border border-stone-200 overflow-hidden shadow-sm">
                     <div class="p-4 border-b border-stone-100 bg-white">
                         <p class="text-xs text-stone-500">Editando permisos para: <span class="font-bold text-stone-800">${nombreColaborador}</span> (No. Empleado: ${noEmp})</p>
@@ -321,6 +330,9 @@ async function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
             </div>
         `;
 
+        // Verificamos si inicialmente todos están marcados para encender el switch de admin si aplica
+        actualizarEstadoCheckboxAdminGeneral();
+
     } catch (err) {
         console.error("❌ Error al abrir matriz de permisos:", err);
         contenedorDinamico.innerHTML = `<div class="p-6 text-center text-red-500 text-xs">Error al cargar los datos: ${err.message}</div>`;
@@ -330,6 +342,26 @@ async function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
 // ==========================================
 // LÓGICA DE NEGOCIO Y MARCADO
 // ==========================================
+
+function togglePermisosAdministrador(masterCheckbox) {
+    const checkboxes = document.querySelectorAll('.chk-permiso');
+    checkboxes.forEach(chk => {
+        chk.checked = masterCheckbox.checked;
+    });
+}
+
+function actualizarEstadoCheckboxAdminGeneral() {
+    const checkboxes = document.querySelectorAll('.chk-permiso');
+    const chkAdmin = document.getElementById('chk-admin-general');
+    if (!chkAdmin || checkboxes.length === 0) return;
+
+    let todosMarcados = true;
+    checkboxes.forEach(chk => {
+        if (!chk.checked) todosMarcados = false;
+    });
+
+    chkAdmin.checked = todosMarcados;
+}
 
 async function cargarYMarcarPermisosColaborador(noEmp) {
     try {
@@ -356,6 +388,8 @@ async function cargarYMarcarPermisosColaborador(noEmp) {
                 }
             }
         });
+
+        actualizarEstadoCheckboxAdminGeneral();
 
     } catch (err) {
         console.error("❌ Error al sincronizar permisos:", err);
@@ -448,26 +482,30 @@ document.addEventListener('change', function(e) {
     if (!chk.classList.contains('chk-permiso')) return;
 
     const fila = chk.closest('tr');
-    if (!fila) return;
+    if (fila) {
+        const checkboxes = fila.querySelectorAll('input.chk-permiso');
+        if (checkboxes.length >= 3) {
+            const chkVer = checkboxes[0];
+            const chkEditar = checkboxes[1];
+            const chkEliminar = checkboxes[2];
 
-    const checkboxes = fila.querySelectorAll('input.chk-permiso');
-    if (checkboxes.length < 3) return;
-
-    const chkVer = checkboxes[0];
-    const chkEditar = checkboxes[1];
-    const chkEliminar = checkboxes[2];
-
-    if (chk === chkEliminar && chk.checked) {
-        chkEditar.checked = true;
-        chkVer.checked = true;
-    } else if (chk === chkEditar && chk.checked) {
-        chkVer.checked = true;
-    } else if (chk === chkVer && !chk.checked) {
-        chkEditar.checked = false;
-        chkEliminar.checked = false;
+            if (chk === chkEliminar && chk.checked) {
+                chkEditar.checked = true;
+                chkVer.checked = true;
+            } else if (chk === chkEditar && chk.checked) {
+                chkVer.checked = true;
+            } else if (chk === chkVer && !chk.checked) {
+                chkEditar.checked = false;
+                chkEliminar.checked = false;
+            }
+        }
     }
+
+    // Actualizamos el estado del checkbox general por si se marcaron todos de forma manual
+    actualizarEstadoCheckboxAdminGeneral();
 });
 
 // Exportaciones globales
 window.abrirMatrizPermisosUsuario = abrirMatrizPermisosUsuario;
 window.cargarYMarcarPermisosColaborador = cargarYMarcarPermisosColaborador;
+window.togglePermisosAdministrador = togglePermisosAdministrador;

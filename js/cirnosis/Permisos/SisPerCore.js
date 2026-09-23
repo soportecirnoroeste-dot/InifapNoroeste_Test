@@ -365,7 +365,7 @@ function actualizarEstadoCheckboxAdminGeneral() {
 }
 
 // ==========================================
-// GUARDAR PERMISOS - SISPER CORE (CON NIVEL 4 SI ES ADMIN)
+// GUARDAR PERMISOS - SISPER CORE (NIVEL 4 SI ES ADMIN)
 // ==========================================
 
 async function guardarMatrizPermisosSis(noEmp) {
@@ -403,13 +403,25 @@ async function guardarMatrizPermisosSis(noEmp) {
             permisosEstructura[depto][submodulo] = { ver: 0, editar: 0, eliminar: 0, nivper: 1 };
         }
 
-        // Si está marcado como administrador general, forzamos nivper a 4 y los permisos individuales encendidos
+        // Si el admin general está activo, forzamos los permisos a 1 y nivper a 4
         if (esAdminActivo) {
             permisosEstructura[depto][submodulo][tipo] = 1;
             permisosEstructura[depto][submodulo].nivper = 4;
         } else {
             permisosEstructura[depto][submodulo][tipo] = chk.checked ? 1 : 0;
-            // Opcional: si no es admin pero todos están manuales en 1, puedes evaluar dejarlo en otro nivel, aquí por defecto se asigna según los checks
+            
+            // Opcional: calculamos nivper según el estado de los checks si no es admin general
+            const v = permisosEstructura[depto][submodulo].ver;
+            const ed = permisosEstructura[depto][submodulo].editar;
+            const el = permisosEstructura[depto][submodulo].eliminar;
+            
+            if (v === 1 && ed === 1 && el === 1) {
+                permisosEstructura[depto][submodulo].nivper = 3; // O el número que manejes para acceso total manual
+            } else if (v === 1) {
+                permisosEstructura[depto][submodulo].nivper = 1; 
+            } else {
+                permisosEstructura[depto][submodulo].nivper = 0;
+            }
         }
     });
 
@@ -419,7 +431,7 @@ async function guardarMatrizPermisosSis(noEmp) {
     };
 
     try {
-        console.log("💾 [SISPER] Guardando permisos (Nivel 4 si es admin) para empleado:", noEmp, payload);
+        console.log("💾 [SISPER] Guardando permisos (NivPer = 4 si es admin) para empleado:", noEmp, payload);
 
         if (typeof FetchAPI === 'function') {
             await FetchAPI('guardarPermisos', payload);
@@ -448,6 +460,8 @@ async function guardarMatrizPermisosSis(noEmp) {
         }
     }
 }
+
+window.guardarMatrizPermisosSis = guardarMatrizPermisosSis;
 
 // Control de selección en cascada y actualización del admin general
 document.addEventListener('change', function(e) {

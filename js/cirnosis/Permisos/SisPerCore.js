@@ -11,7 +11,7 @@ function renderizarListadoPermisosSis() {
     });
 
     let contenedorDinamico = document.getElementById('contenido-submodulo-dinamico');
-    
+
     if (!contenedorDinamico) {
         const areaTrabajo = document.getElementById('app-container') || document.querySelector('main') || document.body;
         if (areaTrabajo) {
@@ -80,7 +80,7 @@ function renderizarListadoPermisosSis() {
                 </div>
             </div>
         `;
-        
+
         cargarDatosPermisosConCatalogos();
     }
 }
@@ -147,7 +147,7 @@ function renderizarTarjetasPermisosSis(empleados) {
         const centro = emp.centro || emp.CENTRO || "108 - DIRECCION";
         const numEmp = String(emp.numEmp || emp.noEmp || emp.NO_EMP || emp.NumEmp || '').trim();
         const nombre = emp.nombre || emp.NOMBRE || "SIN NOMBRE";
-        
+
         const cNumPto = String(emp.NumPto || emp.numPto || emp.puesto || '').trim();
         let puestoVisual = cNumPto;
         if (cNumPto && window._mapPuestosCache && window._mapPuestosCache[cNumPto]) {
@@ -159,7 +159,7 @@ function renderizarTarjetasPermisosSis(empleados) {
         if (cNomCorDep && window._mapDeptosCache && window._mapDeptosCache[cNomCorDep]) {
             deptoVisual = window._mapDeptosCache[cNomCorDep];
         }
-        
+
         html += `
             <tr class="hover:bg-stone-50/80 transition-all border-b border-stone-100">
                 <td class="p-3 font-mono text-stone-600">${reg}</td>
@@ -185,7 +185,7 @@ function filtrarTarjetasPermisosSis() {
 
     const filtro = inputBusqueda.value.toUpperCase().trim();
     const lista = window.listaEmpleadosPermisosCache || [];
-    
+
     if (!filtro) {
         renderizarTarjetasPermisosSis(lista);
         return;
@@ -262,10 +262,10 @@ async function abrirMatrizPermisosUsuario(nombreColaborador, noEmp) {
                         const idSub = sub.SModClave || sub.sModClave || sub.id || '';
 
                         const pDep = permisosMap[cDep] && permisosMap[cDep][idSub] ? permisosMap[cDep][idSub] : { ver: 0, editar: 0, eliminar: 0 };
-                        
+
                         // Si el nivel de permiso almacenado es 4, marcamos todos los checkboxes por defecto
                         const esNivel4 = Number(pDep.nivper || pDep.ver) === 4 || (Number(pDep.ver) === 1 && Number(pDep.editar) === 1 && Number(pDep.eliminar) === 1);
-                        
+
                         const chkVer = esNivel4 || Number(pDep.ver) === 1 ? 'checked' : '';
                         const chkEditar = esNivel4 || Number(pDep.editar) === 1 ? 'checked' : '';
                         const chkEliminar = esNivel4 || Number(pDep.eliminar) === 1 ? 'checked' : '';
@@ -411,22 +411,24 @@ async function guardarMatrizPermisosSis(noEmp) {
     // 2. Si el Administrador general está activo, barremos toda la estructura y forzamos NivPer a 4
     Object.keys(permisosEstructura).forEach(depto => {
         Object.keys(permisosEstructura[depto]).forEach(submodulo => {
+            // Si es admin activo, forzamos nivper a 4, de lo contrario calculamos según los checks
             if (esAdminActivo) {
                 permisosEstructura[depto][submodulo].ver = 1;
                 permisosEstructura[depto][submodulo].editar = 1;
                 permisosEstructura[depto][submodulo].eliminar = 1;
-                permisosEstructura[depto][submodulo].nivper = 4; // <--- Forzamos el 4 aquí de manera absoluta
-                console.log("💾 [SISPER] Guardando permisos con NivPer forzado:", permisosEstructura[depto][submodulo].nivper);
+                permisosEstructura[depto][submodulo].nivper = 4; // <--- El Core define que es 4
             } else {
-                // Cálculo normal de nivper según los checks manuales
                 const v = permisosEstructura[depto][submodulo].ver;
                 const ed = permisosEstructura[depto][submodulo].editar;
                 const el = permisosEstructura[depto][submodulo].eliminar;
 
-                if (v === 1 && ed === 1 && el === 1) {
-                    permisosEstructura[depto][submodulo].nivper = 3; 
+                // <--- El Core define el nivel exacto (1, 2, 3 o 0)
+                if (el === 1) {
+                    permisosEstructura[depto][submodulo].nivper = 3;
+                } else if (ed === 1) {
+                    permisosEstructura[depto][submodulo].nivper = 2;
                 } else if (v === 1) {
-                    permisosEstructura[depto][submodulo].nivper = 1; 
+                    permisosEstructura[depto][submodulo].nivper = 1;
                 } else {
                     permisosEstructura[depto][submodulo].nivper = 0;
                 }
@@ -454,14 +456,14 @@ async function guardarMatrizPermisosSis(noEmp) {
         }
 
         alert("¡Permisos actualizados correctamente para el colaborador!");
-        
+
         if (typeof cargarPermisosSis === 'function') {
             cargarPermisosSis();
         }
     } catch (err) {
         console.error("❌ Error al guardar permisos:", err);
         alert("Error al guardar los permisos: " + (err.message || err));
-        
+
         if (btnGuardar) {
             btnGuardar.disabled = false;
             btnGuardar.className = "bg-[#249444] hover:bg-[#1e7a37] text-white text-xs font-bold px-6 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-2";
@@ -473,7 +475,7 @@ async function guardarMatrizPermisosSis(noEmp) {
 window.guardarMatrizPermisosSis = guardarMatrizPermisosSis;
 
 // Control de selección en cascada y actualización del admin general
-document.addEventListener('change', function(e) {
+document.addEventListener('change', function (e) {
     const chk = e.target;
     if (!chk.classList.contains('chk-permiso')) return;
 

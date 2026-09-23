@@ -121,22 +121,30 @@ const SistemaGlobal = {
             }
         }
 
-        // Validación del nivel "Todos los poderes" (ClaveDep: 0, SModClave: 0, NivPer: 4)
+        // 🚀 VALIDACIÓN DE SUPERADMINISTRADOR (Soporta estructura anidada o arreglo plano de Google Sheets)
         if (permisosUsuario['0'] && (permisosUsuario['0']['0'] || permisosUsuario['0'][0])) {
-            const nivelGlobal = Number(permisosUsuario['0']['0']?.nivPer || permisosUsuario['0']['0']?.NivPer || permisosUsuario['0'][0]?.nivPer || 0);
+            const registroCero = permisosUsuario['0']['0'] || permisosUsuario['0'][0];
+            const nivelGlobal = Number(registroCero.nivPer || registroCero.NivPer || 0);
             if (nivelGlobal >= 4) {
                 esSuperAdmin = true;
             }
         }
+
         if (Array.isArray(permisosUsuario)) {
-            const adminCheck = permisosUsuario.find(p => String(p.ClaveDep || p.claveDep) === '0' && String(p.SModClave || p.sModClave) === '0');
-            if (adminCheck && Number(adminCheck.NivPer || adminCheck.nivPer) >= 4) {
+            const adminCheck = permisosUsuario.find(p => {
+                const cDep = String(p.ClaveDep || p.claveDep || '').trim();
+                const sMod = String(p.SModClave || p.sModClave || '').trim();
+                const niv = Number(p.NivPer || p.nivPer || 0);
+                return (cDep === '0' || cDep === '') && (sMod === '0' || sMod === '') && niv >= 4;
+            });
+            if (adminCheck) {
                 esSuperAdmin = true;
             }
         }
 
         window.userPermisosCache = permisosUsuario;
         window.userEsSuperAdmin = esSuperAdmin;
+        console.log("Estado de SuperAdmin (Acceso total):", window.userEsSuperAdmin);
 
         this.procesarRespuestaServidor(datosReales);
         ocultarCarga();
@@ -265,7 +273,7 @@ const SistemaGlobal = {
         const submodulosTotales = window.allSubModulosData || (this.datos && this.datos.submodulos) || [];
         const permisosUsuario = window.userPermisosCache || {};
 
-        // 🚀 VALIDACIÓN DE PERMISOS: Si es SuperAdmin ("Todos los poderes"), ve todo. Si no, filtra por submódulos permitidos.
+        // 🚀 VALIDACIÓN DE PERMISOS: Si es SuperAdmin ve todo, de lo contrario filtra de manera estricta.
         const departamentosFiltrados = window.userEsSuperAdmin ? listaDepartamentos : listaDepartamentos.filter(dep => {
             const cDep = String(dep.claveDep || dep.ClaveDep || '').trim();
             const nomCor = String(dep.nomCorDep || '').trim();

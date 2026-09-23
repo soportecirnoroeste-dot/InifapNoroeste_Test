@@ -365,7 +365,7 @@ function actualizarEstadoCheckboxAdminGeneral() {
 }
 
 // ==========================================
-// GUARDAR PERMISOS - SISPER CORE (NIVEL 4 SI ES ADMIN)
+// GUARDAR PERMISOS - SISPER CORE (FORZANDO NIVEL 4 SI ES ADMIN)
 // ==========================================
 
 async function guardarMatrizPermisosSis(noEmp) {
@@ -391,10 +391,11 @@ async function guardarMatrizPermisosSis(noEmp) {
     const checkboxes = document.querySelectorAll('.chk-permiso');
     const permisosEstructura = {};
 
+    // 1. Primero construimos o mapeamos todos los submódulos limpiamente
     checkboxes.forEach(chk => {
         const depto = chk.getAttribute('data-depto');
         const submodulo = chk.getAttribute('data-submodulo');
-        const tipo = chk.getAttribute('data-tipo');
+        const tipo = chk.getAttribute('data-tipo'); // 'ver', 'editar', 'eliminar'
 
         if (!permisosEstructura[depto]) {
             permisosEstructura[depto] = {};
@@ -403,26 +404,33 @@ async function guardarMatrizPermisosSis(noEmp) {
             permisosEstructura[depto][submodulo] = { ver: 0, editar: 0, eliminar: 0, nivper: 1 };
         }
 
-        // Si el admin general está activo, forzamos los permisos a 1 y nivper a 4
-        if (esAdminActivo) {
-            permisosEstructura[depto][submodulo][tipo] = 1;
-            permisosEstructura[depto][submodulo].nivper = 4;
-        } else {
-            permisosEstructura[depto][submodulo][tipo] = chk.checked ? 1 : 0;
-            
-            // Opcional: calculamos nivper según el estado de los checks si no es admin general
-            const v = permisosEstructura[depto][submodulo].ver;
-            const ed = permisosEstructura[depto][submodulo].editar;
-            const el = permisosEstructura[depto][submodulo].eliminar;
-            
-            if (v === 1 && ed === 1 && el === 1) {
-                permisosEstructura[depto][submodulo].nivper = 3; // O el número que manejes para acceso total manual
-            } else if (v === 1) {
-                permisosEstructura[depto][submodulo].nivper = 1; 
+        // Asignamos el valor del checkbox correspondiente
+        permisosEstructura[depto][submodulo][tipo] = chk.checked ? 1 : 0;
+    });
+
+    // 2. Si el Administrador general está activo, barremos toda la estructura y forzamos NivPer a 4
+    Object.keys(permisosEstructura).forEach(depto => {
+        Object.keys(permisosEstructura[depto]).forEach(submodulo => {
+            if (esAdminActivo) {
+                permisosEstructura[depto][submodulo].ver = 1;
+                permisosEstructura[depto][submodulo].editar = 1;
+                permisosEstructura[depto][submodulo].eliminar = 1;
+                permisosEstructura[depto][submodulo].nivper = 4; // <--- Forzamos el 4 aquí de manera absoluta
             } else {
-                permisosEstructura[depto][submodulo].nivper = 0;
+                // Cálculo normal de nivper según los checks manuales
+                const v = permisosEstructura[depto][submodulo].ver;
+                const ed = permisosEstructura[depto][submodulo].editar;
+                const el = permisosEstructura[depto][submodulo].eliminar;
+
+                if (v === 1 && ed === 1 && el === 1) {
+                    permisosEstructura[depto][submodulo].nivper = 3; 
+                } else if (v === 1) {
+                    permisosEstructura[depto][submodulo].nivper = 1; 
+                } else {
+                    permisosEstructura[depto][submodulo].nivper = 0;
+                }
             }
-        }
+        });
     });
 
     const payload = {
@@ -431,7 +439,7 @@ async function guardarMatrizPermisosSis(noEmp) {
     };
 
     try {
-        console.log("💾 [SISPER] Guardando permisos (NivPer = 4 si es admin) para empleado:", noEmp, payload);
+        console.log("💾 [SISPER] Guardando permisos con NivPer forzado:", payload);
 
         if (typeof FetchAPI === 'function') {
             await FetchAPI('guardarPermisos', payload);

@@ -412,10 +412,11 @@ async function guardarMatrizPermisosSis(noEmp) {
     Object.keys(permisosEstructura).forEach(depto => {
         Object.keys(permisosEstructura[depto]).forEach(submodulo => {
             if (esAdminActivo) {
-              //  permisosEstructura[depto][submodulo].ver = 1;
-               // permisosEstructura[depto][submodulo].editar = 1;
-                //permisosEstructura[depto][submodulo].eliminar = 1;
+                permisosEstructura[depto][submodulo].ver = 1;
+                permisosEstructura[depto][submodulo].editar = 1;
+                permisosEstructura[depto][submodulo].eliminar = 1;
                 permisosEstructura[depto][submodulo].nivper = 4; // <--- Forzamos el 4 aquí de manera absoluta
+                console.log("💾 [SISPER] Guardando permisos con NivPer forzado:", permisosEstructura[depto][submodulo].nivper);
             } else {
                 // Cálculo normal de nivper según los checks manuales
                 const v = permisosEstructura[depto][submodulo].ver;

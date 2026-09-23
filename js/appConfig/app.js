@@ -111,6 +111,7 @@ const SistemaGlobal = {
         // 🚀 Consultamos los permisos específicos del empleado logueado
         const noEmp = localStorage.getItem('session_noEmp') || localStorage.getItem('usuario_sesion') || '';
         let permisosUsuario = {};
+        let esSuperAdmin = false;
 
         if (noEmp && typeof FetchAPI === 'function') {
             try {
@@ -119,7 +120,23 @@ const SistemaGlobal = {
                 console.warn("No se pudieron cargar los permisos del empleado:", e);
             }
         }
+
+        // Validación del nivel "Todos los poderes" (ClaveDep: 0, SModClave: 0, NivPer: 4)
+        if (permisosUsuario['0'] && (permisosUsuario['0']['0'] || permisosUsuario['0'][0])) {
+            const nivelGlobal = Number(permisosUsuario['0']['0']?.nivPer || permisosUsuario['0']['0']?.NivPer || permisosUsuario['0'][0]?.nivPer || 0);
+            if (nivelGlobal >= 4) {
+                esSuperAdmin = true;
+            }
+        }
+        if (Array.isArray(permisosUsuario)) {
+            const adminCheck = permisosUsuario.find(p => String(p.ClaveDep || p.claveDep) === '0' && String(p.SModClave || p.sModClave) === '0');
+            if (adminCheck && Number(adminCheck.NivPer || adminCheck.nivPer) >= 4) {
+                esSuperAdmin = true;
+            }
+        }
+
         window.userPermisosCache = permisosUsuario;
+        window.userEsSuperAdmin = esSuperAdmin;
 
         this.procesarRespuestaServidor(datosReales);
         ocultarCarga();
@@ -248,8 +265,8 @@ const SistemaGlobal = {
         const submodulosTotales = window.allSubModulosData || (this.datos && this.datos.submodulos) || [];
         const permisosUsuario = window.userPermisosCache || {};
 
-        // 🚀 VALIDACIÓN DE PERMISOS: Filtrar departamentos donde el empleado tenga al menos un submódulo con ver === 1
-        const departamentosFiltrados = listaDepartamentos.filter(dep => {
+        // 🚀 VALIDACIÓN DE PERMISOS: Si es SuperAdmin ("Todos los poderes"), ve todo. Si no, filtra por submódulos permitidos.
+        const departamentosFiltrados = window.userEsSuperAdmin ? listaDepartamentos : listaDepartamentos.filter(dep => {
             const cDep = String(dep.claveDep || dep.ClaveDep || '').trim();
             const nomCor = String(dep.nomCorDep || '').trim();
 
@@ -270,7 +287,7 @@ const SistemaGlobal = {
                     p = permisosUsuario[nomCor][idSub];
                 } else {
                     for (let keyDepto in permisosUsuario) {
-                        if (permisosUsuario[keyDepto][idSub]) {
+                        if (permisosUsuario[keyDepto] && permisosUsuario[keyDepto][idSub]) {
                             p = permisosUsuario[keyDepto][idSub];
                             break;
                         }

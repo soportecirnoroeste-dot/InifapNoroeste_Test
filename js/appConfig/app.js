@@ -111,7 +111,6 @@ const SistemaGlobal = {
         // 🚀 Consultamos los permisos específicos del empleado logueado
         const noEmp = localStorage.getItem('session_noEmp') || localStorage.getItem('usuario_sesion') || '';
         let permisosUsuario = {};
-        let esSuperAdmin = false;
 
         if (noEmp && typeof FetchAPI === 'function') {
             try {
@@ -120,33 +119,7 @@ const SistemaGlobal = {
                 console.warn("No se pudieron cargar los permisos del empleado:", e);
             }
         }
-
-        // 🚀 VALIDACIÓN DIRECTA: Si algún NivPer es igual a 4, se activa el acceso total
-        function verificarNivPer4(obj) {
-            if (!obj) return false;
-            if (Array.isArray(obj)) {
-                return obj.some(p => Number(p.NivPer || p.nivPer || 0) === 4);
-            } else if (typeof obj === 'object') {
-                for (let key in obj) {
-                    if (Object.prototype.hasOwnProperty.call(obj, key)) {
-                        const val = obj[key];
-                        if (val && typeof val === 'object') {
-                            if (Number(val.NivPer || val.nivPer || 0) === 4) return true;
-                            if (verificarNivPer4(val)) return true;
-                        } else if ((key === 'NivPer' || key === 'nivPer') && Number(val) === 4) {
-                            return true;
-                        }
-                    }
-                }
-            }
-            return false;
-        }
-
-        esSuperAdmin = verificarNivPer4(permisosUsuario);
-
         window.userPermisosCache = permisosUsuario;
-        window.userEsSuperAdmin = esSuperAdmin;
-        console.log("Estado de SuperAdmin (Acceso total por NivPer=4):", window.userEsSuperAdmin);
 
         this.procesarRespuestaServidor(datosReales);
         ocultarCarga();
@@ -275,8 +248,8 @@ const SistemaGlobal = {
         const submodulosTotales = window.allSubModulosData || (this.datos && this.datos.submodulos) || [];
         const permisosUsuario = window.userPermisosCache || {};
 
-        // 🚀 VALIDACIÓN: Si es SuperAdmin (NivPer = 4), muestra todas. Si no, verifica si existe el registro como antes.
-        const departamentosFiltrados = window.userEsSuperAdmin ? listaDepartamentos : listaDepartamentos.filter(dep => {
+        // 🚀 VALIDACIÓN DE PERMISOS: Filtrar departamentos donde el empleado tenga al menos un submódulo con ver === 1
+        const departamentosFiltrados = listaDepartamentos.filter(dep => {
             const cDep = String(dep.claveDep || dep.ClaveDep || '').trim();
             const nomCor = String(dep.nomCorDep || '').trim();
 
@@ -297,19 +270,14 @@ const SistemaGlobal = {
                     p = permisosUsuario[nomCor][idSub];
                 } else {
                     for (let keyDepto in permisosUsuario) {
-                        if (permisosUsuario[keyDepto] && permisosUsuario[keyDepto][idSub]) {
+                        if (permisosUsuario[keyDepto][idSub]) {
                             p = permisosUsuario[keyDepto][idSub];
                             break;
                         }
                     }
                 }
 
-                // Si no hay registro específico de permisos para este submódulo, retorna false
-                if (!p) return false;
-
-                // Verificación tradicional (como antes: si existe el registro con permiso de visualización válido)
-                const puedeVer = Number(p.ver) === 1 || Number(p.NivPer || p.nivPer || 0) > 0;
-                return puedeVer;
+                return p && Number(p.ver) === 1;
             });
 
             return tieneAccesoAlDepto;

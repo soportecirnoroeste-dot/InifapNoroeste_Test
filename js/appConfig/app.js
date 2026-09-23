@@ -248,8 +248,26 @@ const SistemaGlobal = {
         const submodulosTotales = window.allSubModulosData || (this.datos && this.datos.submodulos) || [];
         const permisosUsuario = window.userPermisosCache || {};
 
-        // 🚀 VALIDACIÓN DE PERMISOS: Filtrar departamentos donde el empleado tenga al menos un submódulo con ver === 1
-        const departamentosFiltrados = listaDepartamentos.filter(dep => {
+        // ==========================================
+        // REGLA 1: Validación de Administrador (NivPer === 4)
+        // ==========================================
+        let esAdminGeneral = false;
+        for (let deptoKey in permisosUsuario) {
+            for (let subKey in permisosUsuario[deptoKey]) {
+                const p = permisosUsuario[deptoKey][subKey];
+                // Con el primer registro que encuentre con valor 4, se marca como admin
+                if (p && (Number(p.nivper) === 4 || Number(p.nivPer) === 4)) {
+                    esAdminGeneral = true;
+                    break;
+                }
+            }
+            if (esAdminGeneral) break;
+        }
+
+        // ==========================================
+        // REGLA 2: Filtrado por Submódulos Asignados (Si no es admin)
+        // ==========================================
+        const departamentosFiltrados = esAdminGeneral ? listaDepartamentos : listaDepartamentos.filter(dep => {
             const cDep = String(dep.claveDep || dep.ClaveDep || '').trim();
             const nomCor = String(dep.nomCorDep || '').trim();
 
@@ -277,7 +295,8 @@ const SistemaGlobal = {
                     }
                 }
 
-                return p && Number(p.ver) === 1;
+                // Valida que tenga registro activo de acceso (ver === 1 o nivper asignado)
+                return p && (Number(p.ver) === 1 || Number(p.nivper) > 0 || Number(p.nivPer) > 0);
             });
 
             return tieneAccesoAlDepto;
@@ -288,6 +307,7 @@ const SistemaGlobal = {
             return;
         }
 
+        // Renderizado de las tarjetas de departamentos
         departamentosFiltrados.forEach((dep) => {
             const claveDep = (dep.nomCorDep || '').toUpperCase();
             let iconoSvg = '';

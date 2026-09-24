@@ -108,7 +108,7 @@ const SistemaGlobal = {
             }
         }
 
-        // 🚀 Consultamos los permisos específicos del empleado logueado
+        // Consultamos los permisos específicos del empleado logueado
         const noEmp = localStorage.getItem('session_noEmp') || localStorage.getItem('usuario_sesion') || '';
         let permisosUsuario = {};
 
@@ -157,7 +157,6 @@ const SistemaGlobal = {
                 for (let subKey in deptoObj) {
                     const p = deptoObj[subKey];
                     const valNiv = typeof p === 'object' ? Number(p.nivper || p.nivPer || p.NivPer || p.valor || 0) : Number(p);
-                    // Consideramos admin general si tiene nivel 4 en el módulo general o clave maestra
                     if (valNiv === 4 && (String(deptoKey) === '0' || String(subKey) === '4' || String(subKey) === 'admin')) {
                         esAdminGeneral = true;
                         break;
@@ -213,11 +212,9 @@ const SistemaGlobal = {
         const selectFiltro = document.getElementById('filtro-campos-regional');
         if (selectFiltro) {
             if (!esAdminGeneral) {
-                // Si NO es admin, bloqueamos el combo para que no sea editable
                 selectFiltro.disabled = true;
                 selectFiltro.classList.add('bg-stone-100', 'cursor-not-allowed', 'opacity-80');
             } else {
-                // Si SÍ es admin, nos aseguramos de que esté habilitado
                 selectFiltro.disabled = false;
                 selectFiltro.classList.remove('bg-stone-100', 'cursor-not-allowed', 'opacity-80');
             }
@@ -281,9 +278,7 @@ const SistemaGlobal = {
 
         const permisosUsuario = window.userPermisosCache || {};
 
-        // ==========================================
-        // REGLA 1: Validación de Administrador General (Nivel 4)
-        // ==========================================
+        // Validación estricta de Administrador General (Nivel 4 global)
         let esAdminGeneral = false;
         for (let deptoKey in permisosUsuario) {
             const deptoObj = permisosUsuario[deptoKey];
@@ -291,34 +286,27 @@ const SistemaGlobal = {
                 for (let subKey in deptoObj) {
                     const p = deptoObj[subKey];
                     const valNiv = typeof p === 'object' ? Number(p.nivper || p.nivPer || p.NivPer || p.valor || 0) : Number(p);
-                    if (valNiv === 4 || Number(subKey) === 4) {
+                    if (valNiv === 4 && (String(deptoKey) === '0' || String(subKey) === '4' || String(subKey) === 'admin')) {
                         esAdminGeneral = true;
                         break;
                     }
                 }
-            } else {
-                if (Number(deptoObj) === 4) {
-                    esAdminGeneral = true;
-                    break;
-                }
+            } else if (Number(deptoObj) === 4) {
+                esAdminGeneral = true;
+                break;
             }
             if (esAdminGeneral) break;
         }
 
-        // ==========================================
-        // REGLA 2: Filtrado estricto por Departamento
-        // ==========================================
+        // Filtrado por permisos o visualización total si es admin general
         const departamentosFiltrados = esAdminGeneral ? listaDepartamentos : listaDepartamentos.filter(dep => {
-            // Obtenemos las posibles formas de identificar la clave del departamento
             const idDep = String(dep.claveDep || dep.ClaveDep || dep.id || '').trim();
             const nomCor = String(dep.nomCorDep || '').trim().toUpperCase();
 
-            // Buscamos si el usuario tiene un bloque de permisos para este departamento específico
             const deptoPermisos = permisosUsuario[idDep] || permisosUsuario[nomCor] || permisosUsuario[Number(idDep)];
 
             if (!deptoPermisos) return false;
 
-            // Validamos que al menos uno de sus submódulos en este depto tenga permisos activos (> 0)
             if (typeof deptoPermisos === 'object') {
                 return Object.values(deptoPermisos).some(p => {
                     if (typeof p === 'number') return p > 0;
@@ -339,9 +327,6 @@ const SistemaGlobal = {
             return;
         }
 
-        // ==========================================
-        // RENDERIZADO OPTIMIZADO (Sin tirones de DOM)
-        // ==========================================
         let htmlAcumulado = '';
 
         departamentosFiltrados.forEach((dep) => {

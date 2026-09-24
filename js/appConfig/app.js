@@ -276,17 +276,17 @@ const SistemaGlobal = {
         const contenedorMenu = document.getElementById('menu-dinamico-departamentos');
         if (!contenedorMenu) return;
 
+        // 🚀 1. Verificamos si el usuario actual es Administrador General (Cualquier permiso con Nivel 4)
         const permisosUsuario = window.userPermisosCache || {};
-
-        // Validación estricta de Administrador General (Nivel 4 global)
         let esAdminGeneral = false;
+
         for (let deptoKey in permisosUsuario) {
             const deptoObj = permisosUsuario[deptoKey];
             if (deptoObj && typeof deptoObj === 'object') {
                 for (let subKey in deptoObj) {
                     const p = deptoObj[subKey];
                     const valNiv = typeof p === 'object' ? Number(p.nivper || p.nivPer || p.NivPer || p.valor || 0) : Number(p);
-                    if (valNiv === 4 && (String(deptoKey) === '0' || String(subKey) === '4' || String(subKey) === 'admin')) {
+                    if (valNiv === 4) {
                         esAdminGeneral = true;
                         break;
                     }

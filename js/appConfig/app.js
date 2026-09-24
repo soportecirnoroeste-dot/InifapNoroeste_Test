@@ -147,6 +147,29 @@ const SistemaGlobal = {
         const todasLasRegionales = datosReales.regionales || [];
         let todosLosCampos = datosReales.campos || [];
 
+        // 🚀 1. Verificamos si el usuario actual es Administrador General estricto (Nivel 4 global)
+        const permisosUsuario = window.userPermisosCache || {};
+        let esAdminGeneral = false;
+
+        for (let deptoKey in permisosUsuario) {
+            const deptoObj = permisosUsuario[deptoKey];
+            if (deptoObj && typeof deptoObj === 'object') {
+                for (let subKey in deptoObj) {
+                    const p = deptoObj[subKey];
+                    const valNiv = typeof p === 'object' ? Number(p.nivper || p.nivPer || p.NivPer || p.valor || 0) : Number(p);
+                    // Consideramos admin general si tiene nivel 4 en el módulo general o clave maestra
+                    if (valNiv === 4 && (String(deptoKey) === '0' || String(subKey) === '4' || String(subKey) === 'admin')) {
+                        esAdminGeneral = true;
+                        break;
+                    }
+                }
+            } else if (Number(deptoObj) === 4) {
+                esAdminGeneral = true;
+                break;
+            }
+            if (esAdminGeneral) break;
+        }
+
         const areaUsuario = String(localStorage.getItem('session_area') || '').trim().toUpperCase();
         let claveRegUsuario = "";
 
@@ -186,6 +209,20 @@ const SistemaGlobal = {
 
         this.renderizarFiltroCampos(todosLosCampos, claveRegUsuario);
 
+        // 🚀 2. GESTIÓN DE EDITABILIDAD DEL COMBO DE CAMPOS SEGÚN PERFIL
+        const selectFiltro = document.getElementById('filtro-campos-regional');
+        if (selectFiltro) {
+            if (!esAdminGeneral) {
+                // Si NO es admin, bloqueamos el combo para que no sea editable
+                selectFiltro.disabled = true;
+                selectFiltro.classList.add('bg-stone-100', 'cursor-not-allowed', 'opacity-80');
+            } else {
+                // Si SÍ es admin, nos aseguramos de que esté habilitado
+                selectFiltro.disabled = false;
+                selectFiltro.classList.remove('bg-stone-100', 'cursor-not-allowed', 'opacity-80');
+            }
+        }
+
         const camposDeLaRegional = todosLosCampos.filter(c => String(c.claveReg).trim() === claveRegUsuario);
         const depDelUsuarioLogueado = departamentosDeLaRegional.find(dep =>
             String(dep.nomCorDep).trim().toUpperCase() === areaUsuario ||
@@ -203,7 +240,6 @@ const SistemaGlobal = {
             localStorage.setItem('centro_activo_actual', claveCentroInicial);
         }
 
-        const selectFiltro = document.getElementById('filtro-campos-regional');
         if (selectFiltro && claveCentroInicial) {
             selectFiltro.value = claveCentroInicial;
         }
@@ -214,7 +250,7 @@ const SistemaGlobal = {
         } else {
             this.pintarTarjetasDepartamentos(departamentosDeLaRegional);
         }
-    },
+    },,
 
     renderizarRegional(claveReg, regionales) {
         const infoRegional = regionales.find(r => String(r.claveReg).trim() === claveReg);

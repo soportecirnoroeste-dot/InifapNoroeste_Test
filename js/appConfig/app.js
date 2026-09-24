@@ -250,7 +250,7 @@ const SistemaGlobal = {
         } else {
             this.pintarTarjetasDepartamentos(departamentosDeLaRegional);
         }
-    },,
+    },
 
     renderizarRegional(claveReg, regionales) {
         const infoRegional = regionales.find(r => String(r.claveReg).trim() === claveReg);

@@ -147,7 +147,7 @@ const SistemaGlobal = {
         const todasLasRegionales = datosReales.regionales || [];
         let todosLosCampos = datosReales.campos || [];
 
-        // 🚀 1. Verificamos si el usuario actual es Administrador General estricto (Nivel 4 global)
+        // 🚀 1. Verificamos si el usuario actual es Administrador General (Cualquier permiso con Nivel 4)
         const permisosUsuario = window.userPermisosCache || {};
         let esAdminGeneral = false;
 
@@ -157,7 +157,7 @@ const SistemaGlobal = {
                 for (let subKey in deptoObj) {
                     const p = deptoObj[subKey];
                     const valNiv = typeof p === 'object' ? Number(p.nivper || p.nivPer || p.NivPer || p.valor || 0) : Number(p);
-                    if (valNiv === 4 && (String(deptoKey) === '0' || String(subKey) === '4' || String(subKey) === 'admin')) {
+                    if (valNiv === 4) {
                         esAdminGeneral = true;
                         break;
                     }
@@ -276,10 +276,10 @@ const SistemaGlobal = {
         const contenedorMenu = document.getElementById('menu-dinamico-departamentos');
         if (!contenedorMenu) return;
 
-        // 🚀 1. Verificamos si el usuario actual es Administrador General (Cualquier permiso con Nivel 4)
         const permisosUsuario = window.userPermisosCache || {};
-        let esAdminGeneral = false;
 
+        // Validación de Administrador General (Cualquier Nivel 4)
+        let esAdminGeneral = false;
         for (let deptoKey in permisosUsuario) {
             const deptoObj = permisosUsuario[deptoKey];
             if (deptoObj && typeof deptoObj === 'object') {

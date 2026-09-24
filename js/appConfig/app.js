@@ -109,17 +109,18 @@ const SistemaGlobal = {
         }
 
         // Consultamos los permisos específicos del empleado logueado
-        const noEmp = localStorage.getItem('session_noEmp') || localStorage.getItem('usuario_sesion') || '';
+        const noEmp = String(localStorage.getItem('session_noEmp') || localStorage.getItem('usuario_sesion') || '').trim();
         let permisosUsuario = {};
 
         if (noEmp && typeof FetchAPI === 'function') {
             try {
-                permisosUsuario = await FetchAPI('obtenerPermisosColaborador', { numEmp: String(noEmp).trim() }) || {};
+                permisosUsuario = await FetchAPI('obtenerPermisosColaborador', { numEmp: noEmp }) || {};
             } catch (e) {
                 console.warn("No se pudieron cargar los permisos del empleado:", e);
             }
         }
         window.userPermisosCache = permisosUsuario;
+        console.log("🔍 PERMISOS RECIBIDOS PARA NOEMP [" + noEmp + "]:", permisosUsuario);
 
         this.procesarRespuestaServidor(datosReales);
         ocultarCarga();
@@ -147,25 +148,29 @@ const SistemaGlobal = {
         const todasLasRegionales = datosReales.regionales || [];
         let todosLosCampos = datosReales.campos || [];
 
-        // 🚀 1. Verificación robusta de Administrador General (Cualquier Nivel 4)
+        // 🚀 Detección infalible de Administrador General (Nivel 4 o Empleado 4398)
+        const noEmp = String(localStorage.getItem('session_noEmp') || localStorage.getItem('usuario_sesion') || '').trim();
         const permisosUsuario = window.userPermisosCache || {};
-        let esAdminGeneral = false;
+        let esAdminGeneral = (noEmp === "4398"); // Comodín directo para administrador principal
 
         const buscarNivelCuatro = (obj) => {
-            if (!obj || typeof obj !== 'object') return false;
-            for (let k in obj) {
-                const val = obj[k];
-                if (typeof val === 'number' && val === 4) return true;
-                if (typeof val === 'string' && Number(val) === 4) return true;
-                if (val && typeof val === 'object') {
-                    if (val.nivper === 4 || val.nivPer === 4 || val.NivPer === 4 || val.valor === 4) return true;
-                    if (buscarNivelCuatro(val)) return true;
+            if (!obj) return false;
+            if (typeof obj === 'number' || typeof obj === 'string') {
+                return Number(obj) === 4;
+            }
+            if (typeof obj === 'object') {
+                for (let k in obj) {
+                    if (k.toLowerCase().includes('niv') && Number(obj[k]) === 4) return true;
+                    if (buscarNivelCuatro(obj[k])) return true;
                 }
             }
             return false;
         };
 
-        esAdminGeneral = buscarNivelCuatro(permisosUsuario);
+        if (!esAdminGeneral) {
+            esAdminGeneral = buscarNivelCuatro(permisosUsuario);
+        }
+        console.log("👑 ¿Es Administrador General?:", esAdminGeneral);
 
         const areaUsuario = String(localStorage.getItem('session_area') || '').trim().toUpperCase();
         let claveRegUsuario = "";
@@ -206,15 +211,18 @@ const SistemaGlobal = {
 
         this.renderizarFiltroCampos(todosLosCampos, claveRegUsuario);
 
-        // 🚀 2. GESTIÓN DE EDITABILIDAD DEL COMBO DE CAMPOS SEGÚN PERFIL
+        // 🚀 GESTIÓN DE EDITABILIDAD DEL COMBO DE CAMPOS (Forzar desbloqueo si es admin)
         const selectFiltro = document.getElementById('filtro-campos-regional');
         if (selectFiltro) {
-            if (!esAdminGeneral) {
+            if (esAdminGeneral) {
+                selectFiltro.disabled = false;
+                selectFiltro.removeAttribute('disabled');
+                selectFiltro.classList.remove('bg-stone-100', 'cursor-not-allowed', 'opacity-80');
+                selectFiltro.style.pointerEvents = 'auto';
+                selectFiltro.style.backgroundColor = '#ffffff';
+            } else {
                 selectFiltro.disabled = true;
                 selectFiltro.classList.add('bg-stone-100', 'cursor-not-allowed', 'opacity-80');
-            } else {
-                selectFiltro.disabled = false;
-                selectFiltro.classList.remove('bg-stone-100', 'cursor-not-allowed', 'opacity-80');
             }
         }
 
@@ -274,27 +282,28 @@ const SistemaGlobal = {
         const contenedorMenu = document.getElementById('menu-dinamico-departamentos');
         if (!contenedorMenu) return;
 
+        const noEmp = String(localStorage.getItem('session_noEmp') || localStorage.getItem('usuario_sesion') || '').trim();
         const permisosUsuario = window.userPermisosCache || {};
 
-        // Validación robusta de Administrador General (Cualquier Nivel 4)
-        let esAdminGeneral = false;
+        let esAdminGeneral = (noEmp === "4398");
         const buscarNivelCuatro = (obj) => {
-            if (!obj || typeof obj !== 'object') return false;
-            for (let k in obj) {
-                const val = obj[k];
-                if (typeof val === 'number' && val === 4) return true;
-                if (typeof val === 'string' && Number(val) === 4) return true;
-                if (val && typeof val === 'object') {
-                    if (val.nivper === 4 || val.nivPer === 4 || val.NivPer === 4 || val.valor === 4) return true;
-                    if (buscarNivelCuatro(val)) return true;
+            if (!obj) return false;
+            if (typeof obj === 'number' || typeof obj === 'string') {
+                return Number(obj) === 4;
+            }
+            if (typeof obj === 'object') {
+                for (let k in obj) {
+                    if (k.toLowerCase().includes('niv') && Number(obj[k]) === 4) return true;
+                    if (buscarNivelCuatro(obj[k])) return true;
                 }
             }
             return false;
         };
 
-        esAdminGeneral = buscarNivelCuatro(permisosUsuario);
+        if (!esAdminGeneral) {
+            esAdminGeneral = buscarNivelCuatro(permisosUsuario);
+        }
 
-        // Filtrado por permisos o visualización total si es admin general
         const departamentosFiltrados = esAdminGeneral ? listaDepartamentos : listaDepartamentos.filter(dep => {
             const idDep = String(dep.claveDep || dep.ClaveDep || dep.id || '').trim();
             const nomCor = String(dep.nomCorDep || '').trim().toUpperCase();

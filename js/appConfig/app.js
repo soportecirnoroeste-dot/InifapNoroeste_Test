@@ -147,27 +147,25 @@ const SistemaGlobal = {
         const todasLasRegionales = datosReales.regionales || [];
         let todosLosCampos = datosReales.campos || [];
 
-        // 🚀 1. Verificamos si el usuario actual es Administrador General (Cualquier permiso con Nivel 4)
+        // 🚀 1. Verificación robusta de Administrador General (Cualquier Nivel 4)
         const permisosUsuario = window.userPermisosCache || {};
         let esAdminGeneral = false;
 
-        for (let deptoKey in permisosUsuario) {
-            const deptoObj = permisosUsuario[deptoKey];
-            if (deptoObj && typeof deptoObj === 'object') {
-                for (let subKey in deptoObj) {
-                    const p = deptoObj[subKey];
-                    const valNiv = typeof p === 'object' ? Number(p.nivper || p.nivPer || p.NivPer || p.valor || 0) : Number(p);
-                    if (valNiv === 4) {
-                        esAdminGeneral = true;
-                        break;
-                    }
+        const buscarNivelCuatro = (obj) => {
+            if (!obj || typeof obj !== 'object') return false;
+            for (let k in obj) {
+                const val = obj[k];
+                if (typeof val === 'number' && val === 4) return true;
+                if (typeof val === 'string' && Number(val) === 4) return true;
+                if (val && typeof val === 'object') {
+                    if (val.nivper === 4 || val.nivPer === 4 || val.NivPer === 4 || val.valor === 4) return true;
+                    if (buscarNivelCuatro(val)) return true;
                 }
-            } else if (Number(deptoObj) === 4) {
-                esAdminGeneral = true;
-                break;
             }
-            if (esAdminGeneral) break;
-        }
+            return false;
+        };
+
+        esAdminGeneral = buscarNivelCuatro(permisosUsuario);
 
         const areaUsuario = String(localStorage.getItem('session_area') || '').trim().toUpperCase();
         let claveRegUsuario = "";
@@ -278,25 +276,23 @@ const SistemaGlobal = {
 
         const permisosUsuario = window.userPermisosCache || {};
 
-        // Validación de Administrador General (Cualquier Nivel 4)
+        // Validación robusta de Administrador General (Cualquier Nivel 4)
         let esAdminGeneral = false;
-        for (let deptoKey in permisosUsuario) {
-            const deptoObj = permisosUsuario[deptoKey];
-            if (deptoObj && typeof deptoObj === 'object') {
-                for (let subKey in deptoObj) {
-                    const p = deptoObj[subKey];
-                    const valNiv = typeof p === 'object' ? Number(p.nivper || p.nivPer || p.NivPer || p.valor || 0) : Number(p);
-                    if (valNiv === 4) {
-                        esAdminGeneral = true;
-                        break;
-                    }
+        const buscarNivelCuatro = (obj) => {
+            if (!obj || typeof obj !== 'object') return false;
+            for (let k in obj) {
+                const val = obj[k];
+                if (typeof val === 'number' && val === 4) return true;
+                if (typeof val === 'string' && Number(val) === 4) return true;
+                if (val && typeof val === 'object') {
+                    if (val.nivper === 4 || val.nivPer === 4 || val.NivPer === 4 || val.valor === 4) return true;
+                    if (buscarNivelCuatro(val)) return true;
                 }
-            } else if (Number(deptoObj) === 4) {
-                esAdminGeneral = true;
-                break;
             }
-            if (esAdminGeneral) break;
-        }
+            return false;
+        };
+
+        esAdminGeneral = buscarNivelCuatro(permisosUsuario);
 
         // Filtrado por permisos o visualización total si es admin general
         const departamentosFiltrados = esAdminGeneral ? listaDepartamentos : listaDepartamentos.filter(dep => {

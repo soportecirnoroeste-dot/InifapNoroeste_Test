@@ -17,7 +17,7 @@ function ocultarCarga() {
 function convertirObjetoAMayusculas(datos) {
     let datosMayus = {};
     for (let key in datos) {
-        if (typeof datos[key] === 'string' && key !== 'pass' && key !== 'email') { 
+        if (typeof datos[key] === 'string' && key !== 'pass' && key !== 'email') {
             datosMayus[key] = datos[key].toUpperCase();
         } else {
             datosMayus[key] = datos[key];
@@ -70,7 +70,7 @@ const SistemaGlobal = {
     datos: null,
 
     async init() {
-        mostrarCarga(); 
+        mostrarCarga();
 
         const datosEnCache = localStorage.getItem('sistema_cache_datos');
         const tiempoCache = localStorage.getItem('sistema_cache_tiempo');
@@ -243,8 +243,6 @@ const SistemaGlobal = {
         const contenedorMenu = document.getElementById('menu-dinamico-departamentos');
         if (!contenedorMenu) return;
 
-        contenedorMenu.innerHTML = '';
-
         const submodulosTotales = window.allSubModulosData || window.submodulos || (this.datos && this.datos.submodulos) || [];
         const permisosUsuario = window.userPermisosCache || {};
 
@@ -257,7 +255,6 @@ const SistemaGlobal = {
             if (deptoVal && typeof deptoVal === 'object') {
                 for (let subKey in deptoVal) {
                     const p = deptoVal[subKey];
-                    // Revisa si el permiso o su nivel es igual a 4
                     const valNiv = typeof p === 'object' ? Number(p.nivper || p.nivPer || p.NivPer || p.valor || 0) : Number(p);
                     if (valNiv === 4 || Number(subKey) === 4) {
                         esAdminGeneral = true;
@@ -274,18 +271,16 @@ const SistemaGlobal = {
         }
 
         // ==========================================
-        // REGLA 2: Filtrado de Departamentos
+        // REGLA 2: Filtrado optimizado de Departamentos
         // ==========================================
         const departamentosFiltrados = esAdminGeneral ? listaDepartamentos : listaDepartamentos.filter(dep => {
             const cDep = String(dep.claveDep || dep.ClaveDep || '').trim();
             const nomCor = String(dep.nomCorDep || '').trim();
 
-            // Si submodulosTotales está vacío, permitimos mostrar los departamentos 
-            // que tengan registros directos en el caché de permisos del usuario.
             if (!submodulosTotales || submodulosTotales.length === 0) {
-                return permisosUsuario[cDep] !== undefined || 
-                       permisosUsuario[nomCor] !== undefined || 
-                       Object.keys(permisosUsuario).length > 0;
+                return permisosUsuario[cDep] !== undefined ||
+                    permisosUsuario[nomCor] !== undefined ||
+                    Object.keys(permisosUsuario).length > 0;
             }
 
             const subsDelDepto = submodulosTotales.filter(sub => {
@@ -295,9 +290,9 @@ const SistemaGlobal = {
 
             if (subsDelDepto.length === 0) return false;
 
-            const tieneAccesoAlDepto = subsDelDepto.some(sub => {
+            return subsDelDepto.some(sub => {
                 const idSub = String(sub.SModClave || sub.sModClave || sub.id || '').trim();
-                
+
                 let p = null;
                 for (let keyDepto in permisosUsuario) {
                     const deptoObj = permisosUsuario[keyDepto];
@@ -310,17 +305,12 @@ const SistemaGlobal = {
                 }
 
                 if (p === null || p === undefined) return false;
-
-                if (typeof p === 'number' || typeof p === 'string') {
-                    return Number(p) > 0;
-                }
+                if (typeof p === 'number' || typeof p === 'string') return Number(p) > 0;
 
                 const valVer = Number(p.ver || p.Ver || 0);
                 const valNiv = Number(p.nivper || p.nivPer || p.NivPer || 0);
                 return valVer === 1 || valNiv > 0;
             });
-
-            return tieneAccesoAlDepto;
         });
 
         if (departamentosFiltrados.length === 0) {
@@ -328,7 +318,11 @@ const SistemaGlobal = {
             return;
         }
 
-        // Renderizado de las tarjetas de departamentos
+        // ==========================================
+        // RENDERIZADO OPTIMIZADO (Evita tirones en el DOM)
+        // ==========================================
+        let htmlAcumulado = '';
+
         departamentosFiltrados.forEach((dep) => {
             const claveDep = (dep.nomCorDep || '').toUpperCase();
             let iconoSvg = '';
@@ -363,17 +357,19 @@ const SistemaGlobal = {
                     break;
             }
 
-            const btnHTML = `
-                <button onclick="seleccionarDepartamento('${dep.nomCorDep}', this)" 
-                    class="area-btn border-stone-200 flex flex-col items-center justify-center p-4 rounded-xl border hover:border-[#249444] hover:bg-emerald-50/50 transition-all text-center cursor-pointer group">
-                    <span class="uppercase text-xs font-bold text-stone-700 group-hover:text-[#249444] mb-2">${dep.nomDep}</span>
-                    <div class="w-10 h-10 rounded-lg bg-emerald-50 text-[#249444] flex items-center justify-center group-hover:bg-[#249444] group-hover:text-white transition-all">
-                        ${iconoSvg}
-                    </div>
-                </button>
-            `;
-            contenedorMenu.innerHTML += btnHTML;
+            htmlAcumulado += `
+            <button onclick="seleccionarDepartamento('${dep.nomCorDep}', this)" 
+                class="area-btn border-stone-200 flex flex-col items-center justify-center p-4 rounded-xl border hover:border-[#249444] hover:bg-emerald-50/50 transition-all text-center cursor-pointer group">
+                <span class="uppercase text-xs font-bold text-stone-700 group-hover:text-[#249444] mb-2">${dep.nomDep}</span>
+                <div class="w-10 h-10 rounded-lg bg-emerald-50 text-[#249444] flex items-center justify-center group-hover:bg-[#249444] group-hover:text-white transition-all">
+                    ${iconoSvg}
+                </div>
+            </button>
+        `;
         });
+
+        // Inyección única al DOM (Elimina el parpadeo y acelera la carga)
+        contenedorMenu.innerHTML = htmlAcumulado;
     },
 
     filtrarPorCampo(claveCentroSeleccionado) {
@@ -413,7 +409,7 @@ const SistemaGlobal = {
         }
 
         const deptoKey = NomCorDep.toString().toLowerCase().trim().replace(/\s+/g, '');
-        
+
         sessionStorage.setItem('depto_activo', deptoKey);
 
         setTimeout(() => {
@@ -471,7 +467,7 @@ window.AppConfigUtils = {
             const idSheet = String(sub.SModClave !== undefined ? sub.SModClave : sub.sModClave);
             const nombreSheet = String(sub.SModNom !== undefined ? sub.SModNom : sub.sModNom);
             const iconoSheet = sub.SModIcon !== undefined ? sub.SModIcon : (sub.sModIcon || sub.icono);
-            
+
             const iconoPorDefecto = "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect width='18' height='18' x='3' y='3' rx='2'/></svg>";
 
             return {
